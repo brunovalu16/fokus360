@@ -37,7 +37,7 @@ const Team = () => {
       renderCell: ({ row: { access } }) => {
         return (
           <Box
-            width="120px"
+            width="90%"
             p={1}
             display="flex"
             alignItems="center"
@@ -45,8 +45,8 @@ const Team = () => {
             gap={1}
             bgcolor={
               access === "admin"
-                ? colors.greenAccent[600]
-                : colors.greenAccent[700]
+                ? colors.blueAccent[700]
+                : colors.redAccent[600]
             }
             borderRadius={1}
           >
@@ -74,7 +74,7 @@ const Team = () => {
             border: "none",
           },
           "& .name-column--cell": {
-            color: colors.greenAccent[300],
+            color: colors.gray[400],
           },
           "& .MuiDataGrid-columnHeaders": {
             backgroundColor: colors.blueAccent[700],
@@ -88,7 +88,7 @@ const Team = () => {
             backgroundColor: colors.blueAccent[700],
           },
           "& .MuiCheckbox-root": {
-            color: `${colors.greenAccent[200]} !important`,
+            color: `${colors.gray[400]} !important`,
           },
           "& .MuiDataGrid-iconSeparator": {
             color: colors.primary[100],

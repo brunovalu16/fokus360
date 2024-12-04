@@ -20,7 +20,7 @@ const StatBox = ({ title, subtitle, icon, progress, increase }) => {
         </Box>
       </Box>
       <Box display="flex" justifyContent="space-between" mt="2px">
-        <Typography variant="h5" color={colors.greenAccent[500]}>
+        <Typography variant="h5" color={colors.gray[700]}>
           {subtitle}
         </Typography>
         <Typography
