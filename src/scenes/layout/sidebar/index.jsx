@@ -147,7 +147,7 @@ const SideBar = () => {
         </Menu>
         <Typography
           variant="h6"
-          color={colors.gray[300]}
+          color={colors.gray[400]}
           sx={{ m: "15px 0 5px 20px" }}
         >
           {!collapsed ? "Data" : " "}
