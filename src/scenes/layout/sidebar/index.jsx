@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { Avatar, Box, IconButton, Typography, useTheme } from "@mui/material";
 import { useContext, useState } from "react";
 import { tokens } from "../../../theme";
@@ -28,9 +27,10 @@ const SideBar = () => {
   const { toggled, setToggled } = useContext(ToggledContext);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+
   return (
     <Sidebar
-      backgroundColor={colors.primary[400]}
+      backgroundColor={colors.blueAccent[1000]}
       rootStyles={{
         border: 0,
         height: "100%",
@@ -42,7 +42,14 @@ const SideBar = () => {
     >
       <Menu
         menuItemStyles={{
-          button: { ":hover": { background: "transparent" } },
+          button: {
+            color: "#c2c2c2", // Cor padrão do texto dos itens
+            ":hover": {
+              color: "#c3c6fd", // Cor ao passar o mouse
+              background: "transparent",
+              transition: ".4s ease",
+            },
+          },
         }}
       >
         <MenuItem
@@ -66,23 +73,27 @@ const SideBar = () => {
                 sx={{ transition: ".3s ease" }}
               >
                 <img
-                  style={{ width: "30px", height: "30px", borderRadius: "8px" }}
+                  style={{ width: "50px", height: "50px", borderRadius: "8px" }}
                   src={logo}
                   alt="Argon"
                 />
                 <Typography
-                  variant="h4"
+                  variant="h5"
                   fontWeight="bold"
                   textTransform="capitalize"
-                  color={colors.greenAccent[500]}
+                  color={colors.gray[800]}
                 >
-                  Argon
+                  Fokus360
                 </Typography>
               </Box>
             )}
-            <IconButton onClick={() => setCollapsed(!collapsed)}>
-              <MenuOutlined />
-            </IconButton>
+            <IconButton
+                onClick={() => setCollapsed(!collapsed)}
+                sx={{ color: "#d0d1d5" }}
+            >
+  <MenuOutlined />
+</IconButton>
+
           </Box>
         </MenuItem>
       </Menu>
@@ -102,16 +113,14 @@ const SideBar = () => {
             sx={{ width: "100px", height: "100px" }}
           />
           <Box sx={{ textAlign: "center" }}>
-            <Typography variant="h3" fontWeight="bold" color={colors.gray[100]}>
-              Tony Stark
+            <Typography variant="h3" fontWeight="bold" color={colors.gray[800]}>
+              Olá, Elton
             </Typography>
             <Typography
               variant="h6"
               fontWeight="500"
               color={colors.greenAccent[500]}
-            >
-              VP Fancy Admin
-            </Typography>
+            ></Typography>
           </Box>
         </Box>
       )}
@@ -120,8 +129,9 @@ const SideBar = () => {
         <Menu
           menuItemStyles={{
             button: {
+              color: "#c2c2c2", // Cor padrão dos links
               ":hover": {
-                color: "#868dfb",
+                color: "#e1e2fe", // Cor dos links ao passar o mouse
                 background: "transparent",
                 transition: ".4s ease",
               },
@@ -145,8 +155,9 @@ const SideBar = () => {
         <Menu
           menuItemStyles={{
             button: {
+              color: "#c2c2c2", // Cor padrão dos links
               ":hover": {
-                color: "#868dfb",
+                color: "#e1e2fe", // Cor dos links ao passar o mouse
                 background: "transparent",
                 transition: ".4s ease",
               },
@@ -174,7 +185,7 @@ const SideBar = () => {
         </Menu>
         <Typography
           variant="h6"
-          color={colors.gray[300]}
+          color={colors.gray[800]}
           sx={{ m: "15px 0 5px 20px" }}
         >
           {!collapsed ? "Pages" : " "}
@@ -182,8 +193,9 @@ const SideBar = () => {
         <Menu
           menuItemStyles={{
             button: {
+              color: "#c2c2c2", // Cor padrão dos links
               ":hover": {
-                color: "#868dfb",
+                color: "#e1e2fe", // Cor dos links ao passar o mouse
                 background: "transparent",
                 transition: ".4s ease",
               },
@@ -211,7 +223,7 @@ const SideBar = () => {
         </Menu>
         <Typography
           variant="h6"
-          color={colors.gray[300]}
+          color={colors.gray[800]}
           sx={{ m: "15px 0 5px 20px" }}
         >
           {!collapsed ? "Charts" : " "}
@@ -219,8 +231,9 @@ const SideBar = () => {
         <Menu
           menuItemStyles={{
             button: {
+              color: "#c2c2c2", // Cor padrão dos links
               ":hover": {
-                color: "#868dfb",
+                color: "#e1e2fe", // Cor dos links ao passar o mouse
                 background: "transparent",
                 transition: ".4s ease",
               },
