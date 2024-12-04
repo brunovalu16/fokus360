@@ -17,8 +17,10 @@ import {
   TimelineOutlined,
   WavesOutlined,
 } from "@mui/icons-material";
-import avatar from "../../../assets/images/avatar.png";
-import logo from "../../../assets/images/logo.png";
+import { Divider } from "@mui/material";
+
+
+import logo from "../../../assets/images/icone_logo.png";
 import Item from "./Item";
 import { ToggledContext } from "../../../App";
 
@@ -54,7 +56,8 @@ const SideBar = () => {
       >
         <MenuItem
           rootStyles={{
-            margin: "10px 0 20px 0",
+            margin: "35px 0 15px 10",
+            marginTop: "10px",
             color: colors.gray[100],
           }}
         >
@@ -73,7 +76,7 @@ const SideBar = () => {
                 sx={{ transition: ".3s ease" }}
               >
                 <img
-                  style={{ width: "50px", height: "50px", borderRadius: "8px" }}
+                  style={{ width: "80px", height: "50px", marginLeft: "15px", marginTop: "20px", marginBottom: "10px" }}
                   src={logo}
                   alt="Argon"
                 />
@@ -83,7 +86,7 @@ const SideBar = () => {
                   textTransform="capitalize"
                   color={colors.gray[800]}
                 >
-                  Fokus360
+                  
                 </Typography>
               </Box>
             )}
@@ -91,12 +94,26 @@ const SideBar = () => {
                 onClick={() => setCollapsed(!collapsed)}
                 sx={{ color: "#d0d1d5" }}
             >
-  <MenuOutlined />
-</IconButton>
+              <MenuOutlined />
+            </IconButton>
 
           </Box>
         </MenuItem>
+        
       </Menu>
+
+      
+          <Box
+              sx={{
+                my: 2, // Margem vertical
+                mx: "auto", // Centraliza horizontalmente
+                width: "80%", // Define a largura da linha (80% da largura do container)
+              }}
+            >
+              <Divider sx={{ backgroundColor: colors.blueAccent[1300], height: "1px" }} />
+          </Box>
+
+
       {!collapsed && (
         <Box
           sx={{
@@ -107,21 +124,6 @@ const SideBar = () => {
             mb: "25px",
           }}
         >
-          <Avatar
-            alt="avatar"
-            src={avatar}
-            sx={{ width: "100px", height: "100px" }}
-          />
-          <Box sx={{ textAlign: "center" }}>
-            <Typography variant="h3" fontWeight="bold" color={colors.gray[800]}>
-              Olá, Elton
-            </Typography>
-            <Typography
-              variant="h6"
-              fontWeight="500"
-              color={colors.greenAccent[500]}
-            ></Typography>
-          </Box>
         </Box>
       )}
 
@@ -258,18 +260,37 @@ const SideBar = () => {
             colors={colors}
             icon={<TimelineOutlined />}
           />
-          <Item
-            title="Geography Chart"
-            path="/geography"
-            colors={colors}
-            icon={<MapOutlined />}
-          />
-          <Item
-            title="Stream Chart"
-            path="/stream"
-            colors={colors}
-            icon={<WavesOutlined />}
-          />
+          
+
+            {/* Adicionando linha horizontal de separação */}
+            <Box
+              sx={{
+                my: 2, // Margem vertical
+                mx: "auto", // Centraliza horizontalmente
+                width: "80%", // Define a largura da linha (80% da largura do container)
+              }}
+            >
+              <Divider sx={{ backgroundColor: colors.blueAccent[1300], height: "1px" }} />
+            </Box>
+
+            {/* Adicionando logo ou imagem */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                mt: 2,
+              }}
+            >
+              <img
+                src="src/assets/images/fokus360-favicon.png" // Caminho atualizado para a nova logo
+                alt="Logo"
+                style={{
+                  maxWidth: "50px", // Ajuste para limitar o tamanho
+                  height: "auto", // Manter proporção
+                }}
+              />
+          </Box>
         </Menu>
       </Box>
     </Sidebar>
