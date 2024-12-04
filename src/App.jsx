@@ -3,6 +3,7 @@ import { Box, CssBaseline, ThemeProvider } from "@mui/material";
 import { ColorModeContext, useMode } from "./theme";
 import { Navbar, SideBar } from "./scenes";
 import { Outlet } from "react-router-dom";
+import Login from "./scenes/login";
 
 export const ToggledContext = createContext(null);
 
@@ -27,7 +28,8 @@ function App() {
                 maxWidth: "100%",
               }}
             >
-              <Navbar />
+              {/* <Navbar /> <Login /> */}
+              <Login />
               <Box sx={{ overflowY: "auto", flex: 1, maxWidth: "100%" }}>
                 <Outlet />
               </Box>
