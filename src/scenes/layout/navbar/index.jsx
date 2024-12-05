@@ -1,18 +1,5 @@
-import {
-  Box,
-  IconButton,
-  InputBase,
-  useMediaQuery,
-  useTheme,
-  Typography,
-} from "@mui/material";
-import {
-  MenuOutlined,
-  NotificationsOutlined,
-  PersonOutlined,
-  SearchOutlined,
-  SettingsOutlined,
-} from "@mui/icons-material";
+import { Box, IconButton, InputBase, useMediaQuery, useTheme, Typography } from "@mui/material";
+import { MenuOutlined, NotificationsOutlined, PersonOutlined, SearchOutlined, SettingsOutlined } from "@mui/icons-material";
 import { useContext } from "react";
 import { ToggledContext } from "../../../App";
 

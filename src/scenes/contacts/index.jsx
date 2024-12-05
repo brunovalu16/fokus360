@@ -1,32 +1,95 @@
-import { Box, useTheme } from "@mui/material";
+import React from "react";
+import { Box, Button, IconButton, useTheme } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { Header } from "../../components";
-import { DataGrid, GridToolbar } from "@mui/x-data-grid";
+import { DataGrid } from "@mui/x-data-grid";
+import { GridToolbarContainer, GridToolbarExport, GridToolbarFilterButton, GridToolbarDensitySelector, GridToolbarColumnsButton } from "@mui/x-data-grid";
 import { mockDataContacts } from "../../data/mockData";
 import { tokens } from "../../theme";
+import { useNavigate } from "react-router-dom";
+
+// Tradução dos textos da Toolbar
+const localeText = {
+  toolbarColumns: "Colunas",
+  toolbarFilters: "Filtros",
+  toolbarDensity: "Densidade",
+  toolbarExport: "Exportar",
+};
+
+// Barra de ferramentas personalizada
+const CustomToolbar = () => {
+  return (
+    
+    <GridToolbarContainer
+      sx={{
+        padding: "8px",
+        borderRadius: "5px",
+        backgroundColor: "#f4f6f8",
+        marginBottom: "10px",
+      }}
+    >
+      <GridToolbarColumnsButton
+        sx={{
+          color: "#727681",
+          "&:hover": {
+            color: "#3f51b5",
+          },
+        }}
+      />
+      <GridToolbarFilterButton
+        sx={{
+          color: "#727681",
+          "&:hover": {
+            color: "#3f51b5",
+          },
+        }}
+      />
+      <GridToolbarDensitySelector
+        sx={{
+          color: "#727681",
+          "&:hover": {
+            color: "#3f51b5",
+          },
+        }}
+      />
+      <GridToolbarExport
+        sx={{
+          color: "#727681",
+          "&:hover": {
+            color: "#3f51b5",
+          },
+        }}
+      />
+    </GridToolbarContainer>
+  );
+};
 
 const Contacts = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const navigate = useNavigate();
+
+  const handleDelete = (id) => {
+    console.log(`Excluir usuário com ID: ${id}`);
+  };
+
+  const handleNavigateToUser = (id) => {
+    navigate(`/usuario?id=${id}`);
+  };
 
   const columns = [
     { field: "id", headerName: "ID", flex: 0.5 },
     { field: "registrarId", headerName: "Registrar ID" },
     {
       field: "name",
-      headerName: "Name",
+      headerName: "Nome",
       flex: 1,
       cellClassName: "name-column--cell",
     },
     {
-      field: "age",
-      headerName: "Age",
-      type: "number",
-      headerAlign: "left",
-      align: "left",
-    },
-    {
       field: "phone",
-      headerName: "Phone Number",
+      headerName: "Telefone",
       flex: 1,
     },
     {
@@ -35,31 +98,54 @@ const Contacts = () => {
       flex: 1,
     },
     {
-      field: "address",
-      headerName: "Address",
-      flex: 1,
-    },
-    {
       field: "city",
-      headerName: "City",
+      headerName: "Unidade",
       flex: 1,
     },
     {
-      field: "zipCode",
-      headerName: "Zip Code",
+      field: "actions",
+      headerName: "Ações",
       flex: 1,
+      renderCell: ({ row }) => (
+        <Box display="flex" gap={1}>
+          <Button
+            size="small"
+            startIcon={<ArrowForwardIcon />}
+            onClick={() => handleNavigateToUser(row.id)}
+            sx={{
+              color: "#fff",
+              backgroundColor: "#583cff",
+              "&:hover": {
+                backgroundColor: "#3f2cb2",
+              },
+              borderRadius: "5px",
+              padding: "5px 10px",
+            }}
+          >
+            Editar
+          </Button>
+          <IconButton
+            onClick={() => handleDelete(row.id)}
+            sx={{
+              color: "#d32f2f",
+              width: "36px",
+              height: "36px",
+            }}
+          >
+            <DeleteIcon />
+          </IconButton>
+        </Box>
+      ),
     },
   ];
+
   return (
     <Box m="20px">
-      <Header
-        title="CONTACTS"
-        subtitle="List of Contacts for Future Reference"
-      />
+      <Header title="USUÁRIOS" subtitle="Lista de usuários cadastrados no sistema" />
       <Box
         mt="40px"
         height="75vh"
-        maxWidth="100%"
+        width="100%"
         sx={{
           "& .MuiDataGrid-root": {
             border: "none",
@@ -68,7 +154,7 @@ const Contacts = () => {
             border: "none",
           },
           "& .name-column--cell": {
-            color: colors.greenAccent[300],
+            color: colors.gray[100],
           },
           "& .MuiDataGrid-columnHeaders": {
             backgroundColor: colors.blueAccent[700],
@@ -79,23 +165,21 @@ const Contacts = () => {
           },
           "& .MuiDataGrid-footerContainer": {
             borderTop: "none",
-            backgroundColor: colors.blueAccent[700],
+            backgroundColor: colors.gray[900],
           },
           "& .MuiCheckbox-root": {
-            color: `${colors.greenAccent[200]} !important`,
+            color: `${colors.blueAccent[1300]} !important`,
           },
           "& .MuiDataGrid-iconSeparator": {
             color: colors.primary[100],
-          },
-          "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-            color: `${colors.gray[100]} !important`,
           },
         }}
       >
         <DataGrid
           rows={mockDataContacts}
           columns={columns}
-          components={{ Toolbar: GridToolbar }}
+          components={{ Toolbar: CustomToolbar }}
+          localeText={localeText} // Aplica as traduções para português
           initialState={{
             pagination: {
               paginationModel: {

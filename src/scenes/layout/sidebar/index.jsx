@@ -1,4 +1,4 @@
-import { Avatar, Box, IconButton, Typography, useTheme } from "@mui/material";
+import { Box, IconButton, Typography, useTheme } from "@mui/material";
 import { useContext, useState } from "react";
 import { tokens } from "../../../theme";
 import { Menu, MenuItem, Sidebar } from "react-pro-sidebar";
@@ -42,7 +42,7 @@ const SideBar = () => {
       toggled={toggled}
       breakPoint="md"
     >
-      <Menu
+    <Menu
         menuItemStyles={{
           button: {
             color: "#c2c2c2", // Cor padrão do texto dos itens
@@ -96,11 +96,9 @@ const SideBar = () => {
             >
               <MenuOutlined />
             </IconButton>
-
           </Box>
         </MenuItem>
-        
-      </Menu>
+    </Menu>
 
       
           <Box
@@ -128,32 +126,27 @@ const SideBar = () => {
       )}
 
       <Box mb={5} pl={collapsed ? undefined : "5%"}>
-        <Menu
-          menuItemStyles={{
-            button: {
-              color: "#c2c2c2", // Cor padrão dos links
-              ":hover": {
-                color: "#e1e2fe", // Cor dos links ao passar o mouse
-                background: "transparent",
-                transition: ".4s ease",
+          <Menu
+            menuItemStyles={{
+              button: {
+                color: "#c2c2c2", // Cor padrão dos links
+                ":hover": {
+                  color: "#e1e2fe", // Cor dos links ao passar o mouse
+                  background: "transparent",
+                  transition: ".4s ease",
+                },
               },
-            },
-          }}
-        >
-          <Item
-            title="Dashboard"
-            path="/"
-            colors={colors}
-            icon={<DashboardOutlined />}
-          />
-        </Menu>
-        <Typography
-          variant="h6"
-          color={colors.gray[300]}
-          sx={{ m: "15px 0 5px 20px" }}
-        >
-          {!collapsed ? "Data" : " "}
-        </Typography>{" "}
+            }}
+          >
+            <Item
+              title="Fokus360"
+              path="/dashboard"
+              colors={colors}
+              icon={<DashboardOutlined />}
+            />
+          </Menu>
+        
+        
         <Menu
           menuItemStyles={{
             button: {
@@ -173,18 +166,20 @@ const SideBar = () => {
             icon={<PeopleAltOutlined />}
           />
           <Item
-            title="Contacts Information"
+            title="Usuários "
             path="/contacts"
             colors={colors}
-            icon={<ContactsOutlined />}
+            icon={<PersonOutlined />}
+            //icon={<ContactsOutlined />}
           />
           <Item
-            title="Invoices Balances"
+            title="Invoices "
             path="/invoices"
             colors={colors}
             icon={<ReceiptOutlined />}
           />
         </Menu>
+        {/* 
         <Typography
           variant="h6"
           color={colors.gray[800]}
@@ -192,6 +187,7 @@ const SideBar = () => {
         >
           {!collapsed ? "Pages" : " "}
         </Typography>
+        */}
         <Menu
           menuItemStyles={{
             button: {
@@ -205,8 +201,20 @@ const SideBar = () => {
           }}
         >
           <Item
-            title="Profile Form"
+            title="Usuários"
             path="/form"
+            colors={colors}
+            icon={<PersonOutlined />}
+          />
+          <Item
+            title="Relatórios"
+            path="/relatorios"
+            colors={colors}
+            icon={<PersonOutlined />}
+          />
+          <Item
+            title="USer"
+            path="/user"
             colors={colors}
             icon={<PersonOutlined />}
           />
@@ -223,13 +231,6 @@ const SideBar = () => {
             icon={<HelpOutlineOutlined />}
           />
         </Menu>
-        <Typography
-          variant="h6"
-          color={colors.gray[800]}
-          sx={{ m: "15px 0 5px 20px" }}
-        >
-          {!collapsed ? "Charts" : " "}
-        </Typography>
         <Menu
           menuItemStyles={{
             button: {
@@ -254,14 +255,6 @@ const SideBar = () => {
             colors={colors}
             icon={<DonutLargeOutlined />}
           />
-          <Item
-            title="Line Chart"
-            path="/line"
-            colors={colors}
-            icon={<TimelineOutlined />}
-          />
-          
-
             {/* Adicionando linha horizontal de separação */}
             <Box
               sx={{
