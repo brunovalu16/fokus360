@@ -1,5 +1,6 @@
 /* Font Family Import */
 @import url("https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
 
 /* Global Style */
 html,
@@ -27,4 +28,11 @@ body,
 /* Handle on hover */
 ::-webkit-scrollbar-track:hover {
   background: #555;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
 }

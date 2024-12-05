@@ -1,27 +1,29 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import App from "./App";
-import {
-  Dashboard,
-  Team,
-  Invoices,
-  Contacts,
-  Form,
-  Bar,
-  Line,
-  Pie,
-  FAQ,
-  Geography,
-  Calendar,
-  Stream,
-} from "./scenes";
+import AuthLayout from "../src/components/AuthLayout";
+import Login from "./scenes/login";
+import Cadastro from "./scenes/cadastro";
+import User from "./scenes/usuario";
+import Dashboard from "./scenes/dashboard";
+import Relatorios from "./scenes/relatorios";
+import { Team, Invoices, Contacts, Form, Bar, Line, Pie, FAQ, Geography, Calendar, Stream } from "./scenes";
 
 const AppRouter = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<App />}>
-          <Route path="/" element={<Dashboard />} />
+        {/* Rotas sem Sidebar */}
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/cadastro" element={<Cadastro />} />
+        </Route>
+
+        {/* Rotas com Sidebar */}
+        <Route element={<App />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/user" element={<User />} />
+          <Route path="/relatorios" element={<Relatorios />} />
           <Route path="/team" element={<Team />} />
           <Route path="/contacts" element={<Contacts />} />
           <Route path="/invoices" element={<Invoices />} />
@@ -39,4 +41,4 @@ const AppRouter = () => {
   );
 };
 
-export default AppRouter;
+export default AppRouter; 

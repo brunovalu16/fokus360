@@ -1,26 +1,6 @@
-import {
-  Box,
-  Button,
-  IconButton,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
-import {
-  Header,
-  StatBox,
-  LineChart,
-  ProgressCircle,
-  BarChart,
-  GeographyChart,
-} from "../../components";
-import {
-  DownloadOutlined,
-  Email,
-  PersonAdd,
-  PointOfSale,
-  Traffic,
-} from "@mui/icons-material";
+import { Box, Button, IconButton, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { Header, StatBox, LineChart, ProgressCircle, BarChart, GeographyChart } from "../../components";
+import { DownloadOutlined, Email, PersonAdd, PointOfSale, Traffic } from "@mui/icons-material";
 import { tokens } from "../../theme";
 import { mockTransactions } from "../../data/mockData";
 

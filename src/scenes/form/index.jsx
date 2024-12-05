@@ -1,26 +1,10 @@
-import {
-  Box,
-  Button,
-  TextField,
-  useMediaQuery,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Typography,
-} from "@mui/material";
+import { Box, Button, TextField, useMediaQuery, FormControl, InputLabel, Select, MenuItem, Typography } from "@mui/material";
 import { Header } from "../../components";
 import { Formik } from "formik";
 import * as yup from "yup";
 
-const initialValues = {
-  firstName: "",
-  lastName: "",
-  email: "",
-  contact: "",
-  address1: "",
-  address2: "",
-  role: "",
+
+const initialValues = { firstName: "", lastName: "", email: "", contact: "", address1: "", address2: "", role: "",
 };
 
 const phoneRegExp =
