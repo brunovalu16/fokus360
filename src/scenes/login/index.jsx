@@ -1,19 +1,30 @@
 import React, { useState } from "react";
 import { Box, Button, TextField } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../data/firebase-config.js";  
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  // handle - função de ação de clique
   const handleLogin = (e) => {
     e.preventDefault();
-    console.log("E-mail:", email, "Senha:", password);
-
-    // Adicionar lógica de autenticação (ex.: Firebase)
-    navigate("/dashboard"); // Redirecionar após login bem-sucedido
+    logar();
   };
+
+  // função de logar // signInWithEmailAndPassword - esse é o método de autenticação
+  const logar = async () => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      navigate("/dashboard"); // Redirecionar após login bem-sucedido
+    } catch (error) {
+      console.error("Error logging in:", error);
+    }
+  }
+  
 
   return (
       <Box
