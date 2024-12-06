@@ -1,10 +1,8 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Box, Button, Typography } from "@mui/material";
 import { Header } from "../../components"; // Certifique-se de que o caminho está correto
 
-const Relatorios = () => {
-  const navigate = useNavigate();
+const PainelIndustrias = () => {
   // Estado para rastrear qual conteúdo está ativo
   const [activeContent, setActiveContent] = useState("Vendas");
 
@@ -18,8 +16,8 @@ const Relatorios = () => {
         }}
       >
         <Header
-          title="RELATÓRIOS DO GRUPO FOKUS"
-          subtitle="Visualize todos os relatórios do Grupo Fokus por DEPARTAMENTOS"
+          title="RELATÓRIOS INDÚSTRIAS"
+          subtitle="Visualize todos os relatórios das nossas marcas parceiras"
         />
       </Box>
 
@@ -37,7 +35,7 @@ const Relatorios = () => {
         }}
       >
         <Typography variant="h4" mb={3} fontWeight="bold" color="#583cff">
-          Relatórios
+          Relatórios Indústrias
         </Typography>
 
         {/* Conteúdo Principal */}
@@ -59,17 +57,12 @@ const Relatorios = () => {
               borderRight: "1px solid #d6d6d6",
             }}
           >
-            {["Vendas", "Financeiro", "Logística", "Central de monitoramento", "Trade", "Indústrias"].map((label) => (
+            {["AB Mauri", "Adoralle", "Ajinomoto", "Bettanin", "M.Dias", "Mars Choco", "Mars Pet", "SCJhonson", "Ypê"].map((label) => (
               <Button
                 key={label}
                 fullWidth
                 variant="contained"
-                onClick={() => {
-                  setActiveContent(label);
-                  if (label === "Indústrias") {
-                    navigate("/painelindustrias"); // Redireciona para a página desejada
-                  }
-                }}
+                onClick={() => setActiveContent(label)}
                 sx={{
                   mb: 3,
                   borderRadius: "10px",
@@ -109,7 +102,7 @@ const Relatorios = () => {
               overflow: "auto",
             }}
           >
-            {activeContent === "Vendas" && (
+            {activeContent === "AB Mauri" && (
               <>
                 <Button fullWidth variant="contained" sx={mainButtonStyle}>
                   VENDAS X DEVOLUÇÃO
@@ -122,7 +115,7 @@ const Relatorios = () => {
                 </Button>
               </>
             )}
-            {activeContent === "Financeiro" && (
+            {activeContent === "Adoralle" && (
               <>
                 <Button fullWidth variant="contained" sx={mainButtonStyle}>
                   teste 1 financeiro
@@ -135,7 +128,7 @@ const Relatorios = () => {
                 </Button>
               </>
             )}
-            {activeContent === "Logística" && (
+            {activeContent === "Ajinomoto" && (
               <>
                 <Button fullWidth variant="contained" sx={mainButtonStyle}>
                   teste 4 logística
@@ -148,7 +141,7 @@ const Relatorios = () => {
                 </Button>
               </>
             )}
-            {activeContent === "Central de monitoramento" && (
+            {activeContent === "Bettanin" && (
               <>
                 <Button fullWidth variant="contained" sx={mainButtonStyle}>
                   teste 7 Central
@@ -161,7 +154,7 @@ const Relatorios = () => {
                 </Button>
               </>
             )}
-            {activeContent === "Trade" && (
+            {activeContent === "M.Dias" && (
               <>
                 <Button fullWidth variant="contained" sx={mainButtonStyle}>
                   teste 11 trade
@@ -174,7 +167,61 @@ const Relatorios = () => {
                 </Button>
               </>
             )}
-            
+            {activeContent === "Mars Choco" && (
+              <>
+                <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                  teste 14 indústria
+                </Button>
+                <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                  teste 15 indústria
+                </Button>
+                <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                  teste 16 indústria
+                </Button>
+              </>
+            )}
+
+            {activeContent === "Mars Pet" && (
+              <>
+                <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                  teste 14 indústria
+                </Button>
+                <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                  teste 15 indústria
+                </Button>
+                <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                  teste 16 indústria
+                </Button>
+              </>
+            )}  
+
+            {activeContent === "SCJhonson" && (
+              <>
+                <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                  teste 14 indústria
+                </Button>
+                <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                  teste 15 indústria
+                </Button>
+                <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                  teste 16 indústria
+                </Button>
+              </>
+            )} 
+
+            {activeContent === "Ypê" && (
+              <>
+                <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                  teste 14 indústria
+                </Button>
+                <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                  teste 15 indústria
+                </Button>
+                <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                  teste 16 indústria
+                </Button>
+              </>
+            )}  
           </Box>
         </Box>
       </Box>
@@ -199,4 +246,4 @@ const mainButtonStyle = {
   },
 };
 
-export default Relatorios;
+export default PainelIndustrias;

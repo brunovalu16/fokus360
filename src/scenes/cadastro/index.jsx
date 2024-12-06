@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { Box, Button, TextField, Select, MenuItem, InputLabel, FormControl, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from "../../data/firebase-config.js";
+import { collection, addDoc, setDoc, doc } from "firebase/firestore";
 
 const Cadastro = () => {
   const [username, setUsername] = useState("");
@@ -12,9 +15,28 @@ const Cadastro = () => {
   const handleCadastro = (e) => {
     e.preventDefault();
     console.log("Username:", username, "E-mail:", email, "Senha:", password, "Perfil:", role);
+    cadastrar()
+  };
 
-    // Adicionar lógica de cadastro (ex.: Firebase)
-    navigate("/dashboard"); // Redirecionar após cadastro bem-sucedido
+  const cadastrar = async() => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log("Usuário criado com sucesso:", userCredential.user);
+        if (userCredential) {
+          // Salvar dados do usuário no Firestore
+          const user = userCredential.user.uid;
+          const userData = {
+            username,
+            email,
+            role,
+            file: ""
+          }; // salvar o ID do usuário gerado pelo firebase
+          const userRef = await setDoc(doc(db, "user", user), userData)
+        }
+      navigate("/login");
+    } catch (error) {
+      console.error("Erro ao cadastrar usuário:", error.message);
+    }
   };
 
   return (

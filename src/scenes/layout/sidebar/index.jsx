@@ -2,22 +2,16 @@ import { Box, IconButton, Typography, useTheme } from "@mui/material";
 import { useContext, useState } from "react";
 import { tokens } from "../../../theme";
 import { Menu, MenuItem, Sidebar } from "react-pro-sidebar";
-import {
-  BarChartOutlined,
-  CalendarTodayOutlined,
-  ContactsOutlined,
-  DashboardOutlined,
-  DonutLargeOutlined,
-  HelpOutlineOutlined,
-  MapOutlined,
-  MenuOutlined,
-  PeopleAltOutlined,
-  PersonOutlined,
-  ReceiptOutlined,
-  TimelineOutlined,
-  WavesOutlined,
-} from "@mui/icons-material";
+import { BarChartOutlined, CalendarTodayOutlined, DashboardOutlined, DonutLargeOutlined, HelpOutlineOutlined, MenuOutlined, PersonOutlined } from "@mui/icons-material";
+import PersonIcon from '@mui/icons-material/Person';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import PieChartIcon from '@mui/icons-material/PieChart';
+import ArchiveIcon from '@mui/icons-material/Archive';
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import { Divider } from "@mui/material";
+import HomeIcon from '@mui/icons-material/Home';
+import SourceIcon from '@mui/icons-material/Source';
+
 
 
 import logo from "../../../assets/images/icone_logo.png";
@@ -86,8 +80,7 @@ const SideBar = () => {
                   textTransform="capitalize"
                   color={colors.gray[800]}
                 >
-                  
-                </Typography>
+                 </Typography>
               </Box>
             )}
             <IconButton
@@ -138,19 +131,16 @@ const SideBar = () => {
               },
             }}
           >
-            <Item
-              title="Fokus360"
-              path="/dashboard"
-              colors={colors}
-              icon={<DashboardOutlined />}
-            />
+            
           </Menu>
+          
         
         
         <Menu
           menuItemStyles={{
             button: {
               color: "#c2c2c2", // Cor padrão dos links
+              //marginBottom: "10px",
               ":hover": {
                 color: "#e1e2fe", // Cor dos links ao passar o mouse
                 background: "transparent",
@@ -160,24 +150,44 @@ const SideBar = () => {
           }}
         >
           <Item
-            title="Manage Team"
-            path="/team"
+            title="Home"
+            path="/relatorios"
             colors={colors}
-            icon={<PeopleAltOutlined />}
+            icon={<HomeIcon />}
+          />
+          <Item
+            title="Relatórios"
+            path="/relatorios"
+            colors={colors}
+            icon={<AssessmentIcon />}
+          />
+          <Item
+            title="Arquivos"
+            path="/contacts"
+            colors={colors}
+            icon={<SourceIcon />}
+            //icon={<ContactsOutlined />}
+            
+          />
+          <Item
+            title="Tarefas"
+            path="/kanban"
+            colors={colors}
+            icon={<AssignmentTurnedInIcon />}
           />
           <Item
             title="Usuários "
             path="/contacts"
             colors={colors}
-            icon={<PersonOutlined />}
+            icon={<PersonIcon />}
             //icon={<ContactsOutlined />}
           />
           <Item
-            title="Invoices "
-            path="/invoices"
-            colors={colors}
-            icon={<ReceiptOutlined />}
-          />
+              title="Fokus360"
+              path="/dashboard"
+              colors={colors}
+              icon={<PieChartIcon />}
+            />
         </Menu>
         {/* 
         <Typography
@@ -200,36 +210,9 @@ const SideBar = () => {
             },
           }}
         >
-          <Item
-            title="Usuários"
-            path="/form"
-            colors={colors}
-            icon={<PersonOutlined />}
-          />
-          <Item
-            title="Relatórios"
-            path="/relatorios"
-            colors={colors}
-            icon={<PersonOutlined />}
-          />
-          <Item
-            title="USer"
-            path="/user"
-            colors={colors}
-            icon={<PersonOutlined />}
-          />
-          <Item
-            title="Calendar"
-            path="/calendar"
-            colors={colors}
-            icon={<CalendarTodayOutlined />}
-          />
-          <Item
-            title="FAQ Page"
-            path="/faq"
-            colors={colors}
-            icon={<HelpOutlineOutlined />}
-          />
+          
+          
+          
         </Menu>
         <Menu
           menuItemStyles={{
@@ -243,18 +226,7 @@ const SideBar = () => {
             },
           }}
         >
-          <Item
-            title="Bar Chart"
-            path="/bar"
-            colors={colors}
-            icon={<BarChartOutlined />}
-          />
-          <Item
-            title="Pie Chart"
-            path="/pie"
-            colors={colors}
-            icon={<DonutLargeOutlined />}
-          />
+          
             {/* Adicionando linha horizontal de separação */}
             <Box
               sx={{

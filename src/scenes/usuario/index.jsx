@@ -158,7 +158,7 @@ const User = () => {
               },
             }}
           >
-            EDITAR USUÁRIO
+            SALVAR
           </Button>
         </Box>
       </Box>
