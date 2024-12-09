@@ -12,14 +12,24 @@ const Login = () => {
   // handle - função de ação de clique
   const handleLogin = (e) => {
     e.preventDefault();
+    if (!email || !password) {
+      alert("Por favor, preencha todos os campos.");
+      return;
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      alert("Por favor, insira um e-mail válido.");
+      return;
+    }
+   
     logar();
   };
+  
 
   // função de logar // signInWithEmailAndPassword - esse é o método de autenticação
   const logar = async () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate("/dashboard"); // Redirecionar após login bem-sucedido
+      navigate("/home"); // Redirecionar após login bem-sucedido
     } catch (error) {
       console.error("Error logging in:", error);
     }

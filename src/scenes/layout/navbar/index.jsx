@@ -1,29 +1,82 @@
-import { Box, IconButton, InputBase, useMediaQuery, useTheme, Typography } from "@mui/material";
-import { MenuOutlined, NotificationsOutlined, PersonOutlined, SearchOutlined, SettingsOutlined } from "@mui/icons-material";
-import { useContext } from "react";
+import React, { useEffect, useState, useContext } from "react";
+import {
+  Box,
+  IconButton,
+  InputBase,
+  Typography,
+  Button,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
+import {
+  MenuOutlined,
+  NotificationsOutlined,
+  PersonOutlined,
+  SearchOutlined,
+  SettingsOutlined,
+} from "@mui/icons-material";
 import { ToggledContext } from "../../../App";
+import { auth, db } from "../../../data/firebase-config";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const theme = useTheme();
   const { toggled, setToggled } = useContext(ToggledContext);
-  const isMdDevices = useMediaQuery("(max-width:768px)");
   const isXsDevices = useMediaQuery("(max-width:466px)");
+  const [user, setUser] = useState(null);
+  const [username, setUsername] = useState("");
+  const navigate = useNavigate(); // Para redirecionar após logout
 
-  const avatar = "link-do-avatar.png"; // Substitua pelo caminho correto do avatar
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+
+        // Buscar username no Firestore
+        try {
+          const docRef = doc(db, "user", currentUser.uid);
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+            setUsername(docSnap.data().username);
+          } else {
+            
+          }
+        } catch (error) {
+          
+        }
+      } else {
+        setUser(null);
+        setUsername("");
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Função para deslogar
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate("/login"); // Redireciona para a página de login
+    } catch (error) {
+      console.error("Erro ao deslogar:", error);
+    }
+  };
 
   return (
     <Box display="flex" alignItems="center" justifyContent="space-between" p={5}>
-      {/* Menu e barra de busca */}
+      {/* Parte esquerda */}
       <Box display="flex" alignItems="center" gap={2}>
-        {/* Botão para alternar Sidebar */}
         <IconButton
-          onClick={() => setToggled(!toggled)} // Alterna o estado do Sidebar
+          onClick={() => setToggled(!toggled)}
           sx={{ color: "#292929" }}
         >
           <MenuOutlined />
         </IconButton>
 
-        {/* Barra de busca */}
         <Box
           display="flex"
           alignItems="center"
@@ -38,19 +91,8 @@ const Navbar = () => {
         </Box>
       </Box>
 
-      <Box
-        display="flex"
-        alignItems="center"
-        gap={2}
-        padding="5px"
-        paddingRight="20px"
-        paddingLeft="20px"
-        sx={{
-          borderLeft: "1px solid #a1a4ab",
-          height: "30px", 
-          paddingLeft: "30px",
-        }}
-      >
+      {/* Parte direita */}
+      <Box display="flex" alignItems="center" gap={2}>
         <IconButton>
           <NotificationsOutlined />
         </IconButton>
@@ -58,39 +100,27 @@ const Navbar = () => {
           <SettingsOutlined />
         </IconButton>
 
-        {/* Adicionando Avatar com Ícone Sobreposto */}
-        <Box display="flex" alignItems="center" gap={2} position="relative">
-          {/* Ícone em vez do Avatar */}
-          <Box
-            sx={{
-              width: "30px",
-              height: "30px",
-              borderRadius: "50%",
-              backgroundColor: "#5f53e5",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <PersonOutlined sx={{ fontSize: "24px", color: "#fff" }} />
-          </Box>
+        <Box
+          sx={{
+            width: "30px",
+            height: "30px",
+            borderRadius: "50%",
+            backgroundColor: "#5f53e5",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <PersonOutlined sx={{ fontSize: "24px", color: "#fff" }} />
         </Box>
 
-        {/* Texto ao lado do Avatar */}
         <Box sx={{ textAlign: "center" }}>
           <Typography
             variant="h6"
             fontWeight="bold"
             color={theme.palette.text.secondary}
           >
-            Olá, Elton
-          </Typography>
-          <Typography
-            variant="body2"
-            fontWeight="500"
-            color={theme.palette.primary.main}
-          >
-            {/*Bem-vindo*/}
+            {user ? `Olá, ${username}` : "Usuário não logado"}
           </Typography>
         </Box>
       </Box>
@@ -99,3 +129,6 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+
+//{user ? `Olá, ${username || user.email}` : "Usuário não logado"}

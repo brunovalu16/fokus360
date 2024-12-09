@@ -1,52 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Button, Typography } from "@mui/material";
 import { Header } from "../../components"; // Certifique-se de que o caminho está correto
-import { auth, db } from "../../data/firebase-config";
-import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
 
-const Relatorios = () => {
+const Home = () => {
   const navigate = useNavigate();
+  // Estado para rastrear qual conteúdo está ativo
   const [activeContent, setActiveContent] = useState("Vendas");
-  const [userRole, setUserRole] = useState(""); // Armazena o perfil do usuário logado
-  const [visibleLinks, setVisibleLinks] = useState([]);
-
-  // Regras para os links baseados no perfil
-  const links = {
-    "01": ["Vendas", "Financeiro", "Logística", "Central de monitoramento", "Trade", "Indústrias"],
-    "02": ["Vendas", "Financeiro", "Logística", "Central de monitoramento", "Vendas"],
-    "03": ["Vendas", "Financeiro", "Logística", "Vendas"],
-    "04": ["Vendas", "Indústrias"],
-    "05": ["Trade", "Indústrias"],
-    "06": ["Indústrias"],
-  };
-
-  // Obter o perfil do usuário logado
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        try {
-          const docRef = doc(db, "user", currentUser.uid);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            const role = docSnap.data().role;
-            setUserRole(role);
-            setVisibleLinks(links[role] || []);
-          } else {
-            console.error("Dados do usuário não encontrados!");
-          }
-        } catch (error) {
-          console.error("Erro ao buscar dados do usuário:", error);
-        }
-      } else {
-        setUserRole("");
-        setVisibleLinks([]);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   return (
     <>
@@ -58,7 +18,7 @@ const Relatorios = () => {
         }}
       >
         <Header
-          title="RELATÓRIOS DO GRUPO FOKUS"
+          title="Home"
           subtitle="Visualize todos os relatórios do Grupo Fokus por DEPARTAMENTOS"
         />
       </Box>
@@ -69,11 +29,11 @@ const Relatorios = () => {
         minHeight="50vh"
         bgcolor="#fff"
         sx={{
-          overflowX: "hidden",
+          overflowX: "hidden", // Remove a rolagem horizontal
           padding: "15px",
           paddingLeft: "30px",
           borderRadius: "20px",
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.05)",
+          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.05)", // Efeito de sombra para o container
         }}
       >
         <Typography variant="h4" mb={3} fontWeight="bold" color="#583cff">
@@ -85,9 +45,9 @@ const Relatorios = () => {
           display="flex"
           flexDirection={{ xs: "column", md: "row" }}
           width="100%"
-          minHeight="calc(60vh - 80px)"
+          minHeight="calc(60vh - 80px)" // Ajuste para considerar a altura do Header
           sx={{
-            overflowX: "hidden",
+            overflowX: "hidden", // Garante que nenhum conteúdo cause rolagem horizontal
           }}
         >
           {/* Div de Menus */}
@@ -100,36 +60,34 @@ const Relatorios = () => {
             }}
           >
             {["Vendas", "Financeiro", "Logística", "Central de monitoramento", "Trade", "Indústrias"].map((label) => (
-              visibleLinks.includes(label) && ( // Exibe apenas os botões permitidos
-                <Button
-                  key={label}
-                  fullWidth
-                  variant="contained"
-                  onClick={() => {
-                    setActiveContent(label);
-                    if (label === "Indústrias") {
-                      navigate("/painelindustrias");
-                    }
-                  }}
-                  sx={{
-                    mb: 3,
-                    borderRadius: "10px",
-                    border: "1px solid",
+              <Button
+                key={label}
+                fullWidth
+                variant="contained"
+                onClick={() => {
+                  setActiveContent(label);
+                  if (label === "Indústrias") {
+                    navigate("/painelindustrias"); // Redireciona para a página desejada
+                  }
+                }}
+                sx={{
+                  mb: 3,
+                  borderRadius: "10px",
+                  border: "1px solid",
+                  boxShadow: "none", // Garante que não há sombra no hover
+                  backgroundColor: activeContent === label ? "#583cff" : "#fff",
+                  textTransform: "none",
+                  borderColor: "#e0e0e0",
+                  color: activeContent === label ? "#fff" : "#858585",
+                  "&:hover": {
+                    backgroundColor: "#583cff",
+                    color: "#fff",
                     boxShadow: "none",
-                    backgroundColor: activeContent === label ? "#583cff" : "#fff",
-                    textTransform: "none",
-                    borderColor: "#e0e0e0",
-                    color: activeContent === label ? "#fff" : "#858585",
-                    "&:hover": {
-                      backgroundColor: "#583cff",
-                      color: "#fff",
-                      boxShadow: "none",
-                    },
-                  }}
-                >
-                  {label}
-                </Button>
-              )
+                  },
+                }}
+              >
+                {label}
+              </Button>
             ))}
           </Box>
 
@@ -143,18 +101,15 @@ const Relatorios = () => {
             alignItems="center"
             sx={{
               mb: 1,
-              boxShadow: "none",
+              boxShadow: "none", // Garante que não há sombra no hover
               color: "#727681",
               textTransform: "none",
-              maxWidth: "60%",
+              maxWidth: "60%", // Certifica-se de que o conteúdo se ajuste
               minWidth: "60%",
               overflow: "auto",
             }}
           >
-
-            
-            
-            {activeContent === "Vendas" && visibleLinks.includes("Vendas") &&  (
+            {activeContent === "Vendas" && (
               <>
                 <Button fullWidth variant="contained" sx={mainButtonStyle}>
                   VENDAS X DEVOLUÇÃO
@@ -167,7 +122,7 @@ const Relatorios = () => {
                 </Button>
               </>
             )}
-            {activeContent === "Financeiro" && visibleLinks.includes("Financeiro") && (
+            {activeContent === "Financeiro" && (
               <>
                 <Button fullWidth variant="contained" sx={mainButtonStyle}>
                   teste 1 financeiro
@@ -180,46 +135,33 @@ const Relatorios = () => {
                 </Button>
               </>
             )}
-            {activeContent === "Logística" && visibleLinks.includes("Logística") && (
+            {activeContent === "Logística" && (
               <>
                 <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 1 financeiro
+                  teste 4 logística
                 </Button>
                 <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 2 financeiro
+                  teste 5 logística
                 </Button>
                 <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 3 financeiro
+                  teste 6 logística
                 </Button>
               </>
             )}
-            {activeContent === "Central de monitoramento" && visibleLinks.includes("Central de monitoramento") && (
+            {activeContent === "Central de monitoramento" && (
               <>
                 <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 1 financeiro
+                  teste 7 Central
                 </Button>
                 <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 2 financeiro
+                  teste 8 Central
                 </Button>
                 <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 3 financeiro
+                  teste 9 Central
                 </Button>
               </>
             )}
-            {activeContent === "Indústrias" && (
-              <>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 1 financeiro
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 2 financeiro
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 3 financeiro
-                </Button>
-              </>
-            )}
-            {activeContent === "Trade" && visibleLinks.includes("Trade") &&  (
+            {activeContent === "Trade" && (
               <>
                 <Button fullWidth variant="contained" sx={mainButtonStyle}>
                   teste 11 trade
@@ -232,6 +174,7 @@ const Relatorios = () => {
                 </Button>
               </>
             )}
+            
           </Box>
         </Box>
       </Box>
@@ -256,4 +199,4 @@ const mainButtonStyle = {
   },
 };
 
-export default Relatorios;
+export default Home;

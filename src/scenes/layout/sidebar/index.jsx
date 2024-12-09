@@ -1,21 +1,21 @@
-import { Box, IconButton, Typography, useTheme } from "@mui/material";
-import { useContext, useState } from "react";
-import { tokens } from "../../../theme";
+import React, { useContext, useState } from "react";
+import { Box, IconButton, Button, Divider, useTheme} from "@mui/material";
 import { Menu, MenuItem, Sidebar } from "react-pro-sidebar";
-import { BarChartOutlined, CalendarTodayOutlined, DashboardOutlined, DonutLargeOutlined, HelpOutlineOutlined, MenuOutlined, PersonOutlined } from "@mui/icons-material";
-import PersonIcon from '@mui/icons-material/Person';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import PieChartIcon from '@mui/icons-material/PieChart';
-import ArchiveIcon from '@mui/icons-material/Archive';
-import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
-import { Divider } from "@mui/material";
-import HomeIcon from '@mui/icons-material/Home';
-import SourceIcon from '@mui/icons-material/Source';
-
-
-
+import {
+  MenuOutlined,
+  Home as HomeIcon,
+  Person as PersonIcon,
+  Assessment as AssessmentIcon,
+  PieChart as PieChartIcon,
+  Source as SourceIcon,
+  AssignmentTurnedIn as AssignmentTurnedInIcon,
+} from "@mui/icons-material";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { signOut } from "firebase/auth";
+import { useNavigate, Link } from "react-router-dom";
 import logo from "../../../assets/images/icone_logo.png";
-import Item from "./Item";
+import { tokens } from "../../../theme";
+import { auth } from "../../../data/firebase-config";
 import { ToggledContext } from "../../../App";
 
 const SideBar = () => {
@@ -23,45 +23,74 @@ const SideBar = () => {
   const { toggled, setToggled } = useContext(ToggledContext);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const navigate = useNavigate();
+
+  // Função para logout
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Desloga o usuário
+      navigate("/login"); // Redireciona para a página de login
+    } catch (error) {
+      console.error("Erro ao deslogar:", error);
+    }
+  };
 
   return (
     <Sidebar
-      backgroundColor={colors.blueAccent[1000]}
-      rootStyles={{
-        border: 0,
-        height: "100%",
-      }}
-      collapsed={collapsed}
-      onBackdropClick={() => setToggled(false)}
-      toggled={toggled}
-      breakPoint="md"
-    >
-    <Menu
-        menuItemStyles={{
-          button: {
-            color: "#c2c2c2", // Cor padrão do texto dos itens
-            ":hover": {
-              color: "#c3c6fd", // Cor ao passar o mouse
-              background: "transparent",
-              transition: ".4s ease",
-            },
-          },
+        backgroundColor={colors.blueAccent[1000]}
+        rootStyles={{
+          border: 0,
+          height: "100%",
         }}
+        collapsed={collapsed}
+        onBackdropClick={() => setToggled(false)}
+        toggled={toggled}
+        breakPoint="md"
       >
-        <MenuItem
-          rootStyles={{
-            margin: "35px 0 15px 10",
-            marginTop: "10px",
-            color: colors.gray[100],
+
+        <Divider
+            sx={{
+              backgroundColor: colors.blueAccent[1300],
+              height: "1px",
+              width: "50%",
+              marginTop: "px",
+              marginLeft: "auto",
+              marginRight: "auto",
+              paddingBottom: "2px"
+            }}
+          />
+
+        
+      
+
+      <Menu
+          menuItemStyles={{
+            button: {
+              color: "#c2c2c2",
+              ":hover": {
+                color: "#c3c6fd",
+                background: "transparent",
+                transition: ".4s ease",
+              },
+            },
           }}
         >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
+        {/* Cabeçalho do Sidebar */}
+        <MenuItem
+              rootStyles={{
+                margin: "35px 0 15px 10",
+                marginTop: "10%",
+                paddingBottom: "30%",
+                color: colors.gray[100],
+              }}
+            >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
             {!collapsed && (
               <Box
                 display="flex"
@@ -70,193 +99,229 @@ const SideBar = () => {
                 sx={{ transition: ".3s ease" }}
               >
                 <img
-                  style={{ width: "80px", height: "50px", marginLeft: "15px", marginTop: "20px", marginBottom: "10px" }}
+                  style={{
+                    width: "150px",
+                    height: "auto",
+                    marginLeft: "15px",
+                    marginTop: "50px",
+                    
+                  }}
                   src={logo}
                   alt="Argon"
                 />
-                <Typography
-                  variant="h5"
-                  fontWeight="bold"
-                  textTransform="capitalize"
-                  color={colors.gray[800]}
-                >
-                 </Typography>
               </Box>
             )}
             <IconButton
-                onClick={() => setCollapsed(!collapsed)}
-                sx={{ color: "#d0d1d5" }}
+              onClick={() => setCollapsed(!collapsed)}
+              sx={{ color: "#d0d1d5" }}
             >
               <MenuOutlined />
             </IconButton>
           </Box>
         </MenuItem>
-    </Menu>
+      </Menu>
 
-      
-          <Box
-              sx={{
-                my: 2, // Margem vertical
-                mx: "auto", // Centraliza horizontalmente
-                width: "80%", // Define a largura da linha (80% da largura do container)
+      {/* Itens do menu */}
+      <Box mb={5} pl={collapsed ? undefined : "5%"}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "0px",
+        }}
+      >
+        <Menu
+          menuItemStyles={{
+            button: {
+              color: "#c2c2c2",
+              ":hover": {
+                color: "#e1e2fe",
+                background: "transparent",
+                transition: ".4s ease",
+              },
+            },
+          }}
+        >
+
+
+
+          <MenuItem>
+            <Link
+              to="/home"
+              style={{
+                textDecoration: "none",
+                color: "inherit",
+                display: "flex",
+                alignItems: "center",
+                gap: "20px", // Espaço entre o ícone e o texto
+                marginLeft: "7px",
               }}
             >
-              <Divider sx={{ backgroundColor: colors.blueAccent[1300], height: "1px" }} />
-          </Box>
+              <HomeIcon />
+              Home
+            </Link>
+          </MenuItem>
 
+          {/* início Links do menu */}
 
-      {!collapsed && (
+          <MenuItem>
+            <Link
+              to="/relatorios"
+              style={{
+                textDecoration: "none",
+                color: "inherit",
+                display: "flex",
+                alignItems: "center",
+                gap: "20px", // Espaço entre o ícone e o texto
+                marginLeft: "7px",
+              }}
+            >
+              <AssessmentIcon />
+              Relatórios
+            </Link>
+          </MenuItem>
+
+          <MenuItem>
+            <Link
+              to="/arquivos"
+              style={{
+                textDecoration: "none",
+                color: "inherit",
+                display: "flex",
+                alignItems: "center",
+                gap: "20px", // Espaço entre o ícone e o texto
+                marginLeft: "7px",
+              }}
+            >
+              <SourceIcon />
+              Arquivos
+            </Link>
+          </MenuItem>
+
+          <MenuItem>
+            <Link
+              to="/kanban"
+              style={{
+                textDecoration: "none",
+                color: "inherit",
+                display: "flex",
+                alignItems: "center",
+                gap: "20px", // Espaço entre o ícone e o texto
+                marginLeft: "7px",
+              }}
+            >
+              <AssignmentTurnedInIcon />
+              Tarefas
+            </Link>
+          </MenuItem>
+
+          <MenuItem>
+            <Link
+              to="/contacts"
+              style={{
+                textDecoration: "none",
+                color: "inherit",
+                display: "flex",
+                alignItems: "center",
+                gap: "20px", // Espaço entre o ícone e o texto
+                marginLeft: "7px",
+              }}
+            >
+              <PersonIcon />
+              Usuários
+            </Link>
+          </MenuItem>
+
+          <MenuItem>
+            <Link
+              to="/dashboard"
+              style={{
+                textDecoration: "none",
+                color: "inherit",
+                display: "flex",
+                alignItems: "center",
+                gap: "20px", // Espaço entre o ícone e o texto
+                marginLeft: "7px",
+              }}
+            >
+              <PieChartIcon />
+              Fokus360
+            </Link>
+          </MenuItem>
+        </Menu>
+      </Box>
+
+      {/* fim Links do menu */}
+
+      
+
+      {/* Rodapé fixo */}
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: 0,
+          width: "100%",
+          padding: "10px",
+        }}
+      >
+        {/* Botão de Logout */}
         <Box
           sx={{
             display: "flex",
-            flexDirection: "column",
+            justifyContent: "center",
             alignItems: "center",
-            gap: "10px",
-            mb: "25px",
           }}
         >
-        </Box>
-      )}
-
-      <Box mb={5} pl={collapsed ? undefined : "5%"}>
-          <Menu
-            menuItemStyles={{
-              button: {
-                color: "#c2c2c2", // Cor padrão dos links
-                ":hover": {
-                  color: "#e1e2fe", // Cor dos links ao passar o mouse
-                  background: "transparent",
-                  transition: ".4s ease",
-                },
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleLogout}
+            sx={{
+              width: "80%",
+              paddingBottom: "40px",
+              color: "#03c3f9",
+              backgroundColor: "#5f53e5",
+              boxShadow: "none",
+              ":hover": {
+                color: "#483dbd",
+                background: "#5f53e5",
+                transition: ".4s ease",
+                boxShadow: "none",
               },
             }}
           >
-            
-          </Menu>
-          
-        
-        
-        <Menu
-          menuItemStyles={{
-            button: {
-              color: "#c2c2c2", // Cor padrão dos links
-              //marginBottom: "10px",
-              ":hover": {
-                color: "#e1e2fe", // Cor dos links ao passar o mouse
-                background: "transparent",
-                transition: ".4s ease",
-              },
-            },
-          }}
-        >
-          <Item
-            title="Home"
-            path="/relatorios"
-            colors={colors}
-            icon={<HomeIcon />}
-          />
-          <Item
-            title="Relatórios"
-            path="/relatorios"
-            colors={colors}
-            icon={<AssessmentIcon />}
-          />
-          <Item
-            title="Arquivos"
-            path="/contacts"
-            colors={colors}
-            icon={<SourceIcon />}
-            //icon={<ContactsOutlined />}
-            
-          />
-          <Item
-            title="Tarefas"
-            path="/kanban"
-            colors={colors}
-            icon={<AssignmentTurnedInIcon />}
-          />
-          <Item
-            title="Usuários "
-            path="/contacts"
-            colors={colors}
-            icon={<PersonIcon />}
-            //icon={<ContactsOutlined />}
-          />
-          <Item
-              title="Fokus360"
-              path="/dashboard"
-              colors={colors}
-              icon={<PieChartIcon />}
-            />
-        </Menu>
-        {/* 
-        <Typography
-          variant="h6"
-          color={colors.gray[800]}
-          sx={{ m: "15px 0 5px 20px" }}
-        >
-          {!collapsed ? "Pages" : " "}
-        </Typography>
-        */}
-        <Menu
-          menuItemStyles={{
-            button: {
-              color: "#c2c2c2", // Cor padrão dos links
-              ":hover": {
-                color: "#e1e2fe", // Cor dos links ao passar o mouse
-                background: "transparent",
-                transition: ".4s ease",
-              },
-            },
-          }}
-        >
-          
-          
-          
-        </Menu>
-        <Menu
-          menuItemStyles={{
-            button: {
-              color: "#c2c2c2", // Cor padrão dos links
-              ":hover": {
-                color: "#e1e2fe", // Cor dos links ao passar o mouse
-                background: "transparent",
-                transition: ".4s ease",
-              },
-            },
-          }}
-        >
-          
-            {/* Adicionando linha horizontal de separação */}
-            <Box
-              sx={{
-                my: 2, // Margem vertical
-                mx: "auto", // Centraliza horizontalmente
-                width: "80%", // Define a largura da linha (80% da largura do container)
-              }}
-            >
-              <Divider sx={{ backgroundColor: colors.blueAccent[1300], height: "1px" }} />
-            </Box>
+            <LogoutIcon />
+          </Button>
+        </Box>
 
-            {/* Adicionando logo ou imagem */}
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                mt: 2,
-              }}
-            >
-              <img
-                src="src/assets/images/fokus360-favicon.png" // Caminho atualizado para a nova logo
-                alt="Logo"
-                style={{
-                  maxWidth: "50px", // Ajuste para limitar o tamanho
-                  height: "auto", // Manter proporção
-                }}
-              />
-          </Box>
-        </Menu>
+        <Divider
+          sx={{
+            backgroundColor: colors.blueAccent[1300],
+            height: "1px",
+            width: "50%",
+            marginBottom: "10px",
+            marginLeft: "auto",
+            marginRight: "auto",
+          }}
+        />
+
+        {/* Adicionando logo ou imagem */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            marginBottom: "10px",
+          }}
+        >
+          <img
+            src="src/assets/images/fokus360-favicon.png"
+            alt="Logo"
+            style={{
+              maxWidth: "50px",
+              height: "auto",
+            }}
+          />
+        </Box>
       </Box>
     </Sidebar>
   );

@@ -9,6 +9,8 @@ import Dashboard from "./scenes/dashboard";
 import Relatorios from "./scenes/relatorios";
 import PainelIndustrias from "./scenes/painel-industrias";
 import Kanban from "./scenes/kanban";
+import  Home  from "./scenes/home";
+import Arquivos from "./scenes/arquivos";
 import { Team, Invoices, Contacts, Form, Bar, Line, Pie, FAQ, Geography, Calendar, Stream } from "./scenes";
 
 const AppRouter = () => {
@@ -24,9 +26,11 @@ const AppRouter = () => {
         {/* Rotas com Sidebar */}
         <Route element={<App />}>
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/user" element={<User />} />
           <Route path="/painelindustrias" element={<PainelIndustrias />} />
           <Route path="/relatorios" element={<Relatorios />} />
+          <Route path="/arquivos" element={<Arquivos />} />
           <Route path="/kanban" element={<Kanban />} />
           <Route path="/team" element={<Team />} />
           <Route path="/contacts" element={<Contacts />} />
