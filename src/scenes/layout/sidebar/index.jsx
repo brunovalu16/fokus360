@@ -11,6 +11,7 @@ import {
   AssignmentTurnedIn as AssignmentTurnedInIcon,
 } from "@mui/icons-material";
 import LogoutIcon from "@mui/icons-material/Logout";
+import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import { signOut } from "firebase/auth";
 import { useNavigate, Link } from "react-router-dom";
 import logo from "../../../assets/images/icone_logo.png";
@@ -40,7 +41,7 @@ const SideBar = () => {
         backgroundColor={colors.blueAccent[1000]}
         rootStyles={{
           border: 0,
-          height: "100%",
+          height: "100vh",
         }}
         collapsed={collapsed}
         onBackdropClick={() => setToggled(false)}
@@ -85,44 +86,64 @@ const SideBar = () => {
               }}
             >
             <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-            {!collapsed && (
-              <Box
-                display="flex"
-                alignItems="center"
-                gap="12px"
-                sx={{ transition: ".3s ease" }}
+                sx={{
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginRight: "50px",
+                }}
               >
-                <img
-                  style={{
-                    width: "150px",
-                    height: "auto",
-                    marginLeft: "15px",
-                    marginTop: "50px",
-                    
+
+                {/* imagem logo topo sidebar */}
+                <IconButton
+                  onClick={() => setCollapsed(!collapsed)}
+                  sx={{
+                    color: "#d0d1d5",
+                    marginTop: "40%",
+                    marginBottom: "12%",
+                    marginLeft: "90%",
                   }}
-                  src={logo}
-                  alt="Argon"
-                />
-              </Box>
-            )}
-            <IconButton
-              onClick={() => setCollapsed(!collapsed)}
-              sx={{ color: "#d0d1d5" }}
-            >
-              <MenuOutlined />
-            </IconButton>
-          </Box>
+                >
+                  <MenuOutlined />
+                </IconButton>
+            
+                {/* imagem logo topo sidebar */}
+                {!collapsed && (
+                  <Box
+                      display="flex"
+                      alignItems="center"
+                      gap="12px"
+                      sx={{ transition: ".3s ease" }}
+                    >
+                      <img
+                        style={{
+                          width: "160px",
+                          height: "auto",
+                          marginLeft: "15px",
+                          
+                        }}
+                        src={logo}
+                      />
+                  </Box>
+                )}
+
+            </Box>
         </MenuItem>
       </Menu>
 
+      <Divider
+          sx={{
+            backgroundColor: colors.blueAccent[1300],
+            height: "1px",
+            width: "50%",
+            marginTop: "50px",
+            marginBottom: "30px",
+            marginLeft: "auto",
+            marginRight: "auto",
+          }}
+        />
+
       {/* Itens do menu */}
-      <Box mb={5} pl={collapsed ? undefined : "5%"}
+      <Box mb={5} pl={collapsed ? undefined : "18%"}
         sx={{
           display: "flex",
           flexDirection: "column",
@@ -142,8 +163,6 @@ const SideBar = () => {
           }}
         >
 
-
-
           <MenuItem>
             <Link
               to="/home"
@@ -156,7 +175,7 @@ const SideBar = () => {
                 marginLeft: "7px",
               }}
             >
-              <HomeIcon />
+              <HomeIcon/>
               Home
             </Link>
           </MenuItem>
@@ -263,35 +282,45 @@ const SideBar = () => {
           padding: "10px",
         }}
       >
+
+
         {/* Botão de Logout */}
         <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Button
-            variant="contained"
-            color="error"
-            onClick={handleLogout}
             sx={{
-              width: "80%",
-              paddingBottom: "40px",
-              color: "#03c3f9",
-              backgroundColor: "#5f53e5",
-              boxShadow: "none",
-              ":hover": {
-                color: "#483dbd",
-                background: "#5f53e5",
-                transition: ".4s ease",
-                boxShadow: "none",
-              },
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
             }}
           >
-            <LogoutIcon />
-          </Button>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleLogout}
+              sx={{
+                width: "80%",
+                paddingBottom: "40px",
+                backgroundColor: "#5f53e5",
+                boxShadow: "none",
+                ":hover": {
+                  color: "#483dbd",
+                  background: "#5f53e5",
+                  transition: ".4s ease",
+                  boxShadow: "none",
+                },
+              }}
+            >
+              <PowerSettingsNewIcon
+                sx={{
+                  fontSize: "30px",
+                  color: "#00ecf8",
+                
+                }}
+              />
+            </Button>
         </Box>
+
+
+
 
         <Divider
           sx={{
@@ -303,6 +332,8 @@ const SideBar = () => {
             marginRight: "auto",
           }}
         />
+
+        
 
         {/* Adicionando logo ou imagem */}
         <Box
