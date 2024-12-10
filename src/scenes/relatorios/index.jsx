@@ -59,7 +59,7 @@ const Relatorios = () => {
       >
         <Header
           title="RELATÓRIOS DO GRUPO FOKUS"
-          subtitle="Visualize todos os relatórios do Grupo Fokus por DEPARTAMENTOS"
+          subtitle="Visualize todos os relatórios do Grupo Fokus por departamentos."
         />
       </Box>
 

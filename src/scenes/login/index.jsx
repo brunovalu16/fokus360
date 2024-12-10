@@ -44,6 +44,7 @@ const Login = () => {
         justifyContent="center"
         sx={{
           //backgroundImage: 'url("src/assets/images/background_home.webp")', // Defina o caminho correto
+          //backgroundColor: "#fff",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
@@ -55,7 +56,7 @@ const Login = () => {
         <Box
           sx={{
             backgroundColor: "#5f53e5", // Fundo branco ao redor do logo
-            padding: "59px",
+            padding: "58px",
             boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)", // Sombra ao redor
             display: "flex",
             justifyContent: "center",
@@ -82,7 +83,6 @@ const Login = () => {
           width: "90%", // Responsivo
           maxWidth: 400, // Largura máxima
           textAlign: "center",
-          border: "1px solid #868dfb",
         }}
       >
         <Box

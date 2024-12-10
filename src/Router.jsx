@@ -9,7 +9,7 @@ import Dashboard from "./scenes/dashboard";
 import Relatorios from "./scenes/relatorios";
 import PainelIndustrias from "./scenes/painel-industrias";
 import Kanban from "./scenes/kanban";
-import  Home  from "./scenes/home";
+import { Home } from "./scenes/home";
 import Arquivos from "./scenes/arquivos";
 import { Team, Invoices, Contacts, Form, Bar, Line, Pie, FAQ, Geography, Calendar, Stream } from "./scenes";
 
