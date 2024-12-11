@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Button, IconButton, useTheme } from "@mui/material";
+import { Box, Button, IconButton, useTheme, Typography } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { Header } from "../../components";
@@ -8,6 +8,7 @@ import { GridToolbarContainer, GridToolbarExport, GridToolbarFilterButton, GridT
 import { mockDataContacts } from "../../data/mockData";
 import { tokens } from "../../theme";
 import { useNavigate } from "react-router-dom";
+import PersonIcon from '@mui/icons-material/Person';
 
 // Tradução dos textos da Toolbar
 const localeText = {
@@ -140,8 +141,30 @@ const Contacts = () => {
   ];
 
   return (
-    <Box m="20px">
-      <Header title="USUÁRIOS" subtitle="Lista de usuários cadastrados no sistema" />
+
+    <>
+    {/* Header */}
+    <Box
+            sx={{
+              marginLeft: "40px",
+              paddingTop: "50px",
+            }}
+          >
+          <Header
+            title={
+              <Box display="flex" alignItems="center" gap={1}>
+                <PersonIcon sx={{ color: "#5f53e5", fontSize: 40 }} />
+                  <Typography>
+                      GERENCIADOR DE USUÁRIOS 
+                  </Typography>
+                
+              </Box>
+            }
+          />
+      </Box>
+
+    <Box m="45px">
+      
       <Box
         mt="40px"
         height="75vh"
@@ -171,8 +194,14 @@ const Contacts = () => {
             color: `${colors.blueAccent[1300]} !important`,
           },
           "& .MuiDataGrid-iconSeparator": {
-            color: colors.primary[100],
+            color: colors.primary[500],
           },
+          "& .MuiDataGrid-columnHeaders": {
+              backgroundColor: "#312783", // Cor de fundo do cabeçalho
+              color: "#bcbcbc", // Cor do texto do cabeçalho
+              
+              fontSize: "13px", // Ajusta o tamanho do texto
+            },
         }}
       >
         <DataGrid
@@ -191,6 +220,7 @@ const Contacts = () => {
         />
       </Box>
     </Box>
+    </>
   );
 };
 

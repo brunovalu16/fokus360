@@ -46,7 +46,7 @@ const Cadastro = () => {
       alignItems="center"
       justifyContent="center"
       sx={{
-        backgroundImage: 'url("/assets/img/background_home.webp")', // Defina o caminho correto
+        backgroundColor: "#312783",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
@@ -58,7 +58,7 @@ const Cadastro = () => {
       {/* Logo */}
       <Box
         sx={{
-          backgroundColor: "#5f53e5",
+          backgroundColor: "#312783",
           padding: "93px",
           boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
           display: "flex",
@@ -166,7 +166,7 @@ const Cadastro = () => {
             fullWidth
             sx={{
               borderRadius: 5,
-              backgroundColor: "#583cff",
+              backgroundColor: "#312783",
               color: "white",
               boxShadow: "none",
               "&:hover": {

@@ -45,6 +45,7 @@ const Login = () => {
         sx={{
           //backgroundImage: 'url("src/assets/images/background_home.webp")', // Defina o caminho correto
           //backgroundColor: "#fff",
+          backgroundColor: "#312783",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
@@ -55,7 +56,7 @@ const Login = () => {
       >
         <Box
           sx={{
-            backgroundColor: "#5f53e5", // Fundo branco ao redor do logo
+            backgroundColor: "#312783", // Fundo branco ao redor do logo
             padding: "58px",
             boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)", // Sombra ao redor
             display: "flex",
@@ -159,7 +160,7 @@ const Login = () => {
             fullWidth
             sx={{
               borderRadius: 5,
-              backgroundColor: "#583cff", // Fundo roxo
+              backgroundColor: "#312783", // Fundo roxo
               color: "white", // Texto branco
               boxShadow: "none", // Remove a sombra
               "&:hover": {

@@ -1,42 +1,90 @@
 import React, { useState } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import { Header } from "../../components"; // Certifique-se de que o caminho está correto
+import LocalGroceryStoreIcon from '@mui/icons-material/LocalGroceryStore';
+import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
+import { Divider } from "@mui/material";
 
 const PainelIndustrias = () => {
   // Estado para rastrear qual conteúdo está ativo
-  const [activeContent, setActiveContent] = useState("Vendas");
+  const [activeContent, setActiveContent] = useState("AB Mauri");
 
   return (
     <>
-      {/* Header */}
-      <Box
-        sx={{
-          marginLeft: "70px",
-          paddingTop: "50px",
-        }}
-      >
-        <Header
-          title="RELATÓRIOS INDÚSTRIAS"
-          subtitle="Visualize todos os relatórios das nossas marcas parceiras"
-        />
+       {/* Header */}
+       <Box
+            sx={{
+              marginLeft: "40px",
+              paddingTop: "50px",
+            }}
+          >
+          <Header
+            title={
+              <Box display="flex" alignItems="center" gap={1}>
+                <LocalGroceryStoreIcon sx={{ color: "#5f53e5", fontSize: 40 }} />
+                  <Typography>
+                      GERENCIADOR DE RELATÓRIOS  |  INDÚSTRIAS
+                  </Typography>
+                
+              </Box>
+            }
+          />
       </Box>
 
       <Box
-        m="50px auto"
+        m="40px"
         width="90%"
         minHeight="50vh"
-        bgcolor="#fff"
+        bgcolor="#f2f0f0"
         sx={{
           overflowX: "hidden", // Remove a rolagem horizontal
           padding: "15px",
           paddingLeft: "30px",
           borderRadius: "20px",
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.05)", // Efeito de sombra para o container
+          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)", // Efeito de sombra para o container
         }}
       >
-        <Typography variant="h4" mb={3} fontWeight="bold" color="#583cff">
-          Relatórios Indústrias
-        </Typography>
+        <Box display="flex" alignItems="center" gap={1}>
+            <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
+            <Typography color="#858585">
+                RELATÓRIOS
+          </Typography>     
+        </Box>
+
+        <Box
+            sx={{
+              position: "relative", // Permite posicionar o ícone sobre o divisor
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "90%", // Largura do divisor
+              marginBottom: "10px",
+              marginTop: "15px",
+            }}
+          >
+            {/* Divider */}
+            <Divider
+              sx={{
+                position: "absolute", // Para garantir que o ícone fique sobre o divisor
+                width: "100%",
+                height: "1px",
+                backgroundColor: "#ccc", // Cor do divisor
+              }}
+            />
+
+            {/* Ícone */}
+            <LocalGroceryStoreIcon
+              sx={{
+                color: "#5f53e5",
+                fontSize: 25,
+                zIndex: 1, // Garante que o ícone fique acima do divisor
+                backgroundColor: "#f2f0f0", // Fundo branco para destacar o ícone
+                padding: "0 4px", // Espaçamento para o fundo branco
+                marginLeft: "103%",
+              }}
+            />
+        </Box>
+        
 
         {/* Conteúdo Principal */}
         <Box
@@ -52,7 +100,7 @@ const PainelIndustrias = () => {
           <Box
             sx={{
               width: { xs: "100%", md: "30%" },
-              backgroundColor: "#fff",
+              backgroundColor: "#f2f0f0",
               padding: { xs: 2, md: 3 },
               borderRight: "1px solid #d6d6d6",
             }}
@@ -68,12 +116,12 @@ const PainelIndustrias = () => {
                   borderRadius: "10px",
                   border: "1px solid",
                   boxShadow: "none", // Garante que não há sombra no hover
-                  backgroundColor: activeContent === label ? "#583cff" : "#fff",
+                  backgroundColor: activeContent === label ? "#312783" : "#f2f0f0",
                   textTransform: "none",
                   borderColor: "#e0e0e0",
                   color: activeContent === label ? "#fff" : "#858585",
                   "&:hover": {
-                    backgroundColor: "#583cff",
+                    backgroundColor: "#312783",
                     color: "#fff",
                     boxShadow: "none",
                   },
@@ -232,7 +280,7 @@ const PainelIndustrias = () => {
 // Estilo padrão dos botões principais
 const mainButtonStyle = {
   mb: 2,
-  backgroundColor: "#583cff",
+  backgroundColor: "#312783",
   color: "#fff",
   textTransform: "none",
   maxWidth: "50%",
