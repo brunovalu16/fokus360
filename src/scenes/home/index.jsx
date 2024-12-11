@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Header } from "../../components";
 import {
   Box,
   Button,
@@ -12,6 +13,7 @@ import {
   ListItemText,
   Container,
 } from "@mui/material";
+import HomeIcon from '@mui/icons-material/Home';
 import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useNavigate } from "react-router-dom";
@@ -31,10 +33,28 @@ export function Home() {
   };
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      {/* AppBar */}
-      
+    <>
+    {/* Header */}
+    <Box
+            sx={{
+              marginLeft: "40px",
+              paddingTop: "50px",
+            }}
+          >
+          <Header
+            title={
+              <Box display="flex" alignItems="center" gap={1}>
+                <HomeIcon sx={{ color: "#5f53e5", fontSize: 40 }} />
+                  <Typography>
+                      HOME 
+                  </Typography>
+               </Box>
+            }
+          />
+      </Box>
 
+    <Box sx={{ flexGrow: 1 }}>
+      
       {/* Drawer */}
       <Drawer anchor="left" open={isDrawerOpen} onClose={toggleDrawer}>
         <Box
@@ -98,5 +118,6 @@ export function Home() {
         <img src="/images/logo_footer.svg" alt="Logo Footer" style={{ maxWidth: "150px" }} />
       </Box>
     </Box>
+    </>
   );
 }

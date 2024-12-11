@@ -1,6 +1,8 @@
 import { Box, Button, IconButton, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { Header, StatBox, LineChart, ProgressCircle, BarChart, GeographyChart } from "../../components";
 import { DownloadOutlined, Email, PersonAdd, PointOfSale, Traffic } from "@mui/icons-material";
+
+import PieChartIcon from '@mui/icons-material/PieChart';
 import { tokens } from "../../theme";
 import { mockTransactions } from "../../data/mockData";
 
@@ -12,11 +14,38 @@ function Dashboard() {
   const isXsDevices = useMediaQuery("(max-width: 436px)");
 
   return (
+    <>
+    {/* Header */}
+    <Box
+            sx={{
+              marginLeft: "40px",
+              paddingTop: "50px",
+            }}
+          >
+          <Header
+            title={
+              <Box display="flex" alignItems="center" gap={1}>
+                <PieChartIcon sx={{ color: "#5f53e5", fontSize: 40 }} />
+                  <Typography>
+                      DASHBOARD 360 | GRUPO FOKUS
+                  </Typography>
+                
+              </Box>
+            }
+          />
+      </Box>
+
+
+
     <Box m="40px">
-      <Box display="flex" justifyContent="space-between">
-        <Header title="DASHBOARD" subtitle="FOKUS 360" />
+      
         {!isXsDevices && (
-          <Box>
+          <Box sx={{
+            display: "flex",
+            justifyContent: "flex-end",
+            mt: "18px", // Adiciona margem superior para espaçamento
+            
+          }}>
             <Button
               variant="contained"
               sx={{
@@ -37,12 +66,12 @@ function Dashboard() {
             </Button>
           </Box>
         )}
-      </Box>
+      
 
       {/* GRID & CHARTS */}
       <Box
         borderRadius="20px"
-        padding="15px"
+        paddingTop="20px"
         display="grid"
         gridTemplateColumns={
           isXlDevices
@@ -317,6 +346,7 @@ function Dashboard() {
         </Box>
       </Box>
     </Box>
+    </>
   );
 }
 

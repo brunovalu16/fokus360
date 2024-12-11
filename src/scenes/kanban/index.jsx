@@ -5,6 +5,10 @@ import { Header } from "../../components";
 import { db } from "../../data/firebase-config";
 import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
 import DeleteForeverSharpIcon from '@mui/icons-material/DeleteForeverSharp';
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
+import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
+import { Divider } from "@mui/material";
+import LocalGroceryStoreIcon from '@mui/icons-material/LocalGroceryStore';
 
 const Kanban = () => {
   const [columns, setColumns] = useState([
@@ -147,13 +151,61 @@ const Kanban = () => {
   };
 
   return (
-    <Box sx={{ marginLeft: "30px", paddingTop: "50px"}}>
-      <Header
-        title="GERENCIADOR DE TAREFAS"
-        subtitle="Organize tarefas para toda a equipe e acompanhe seu progresso"
-      />
 
-      <Modal open={isModalOpen} onClose={() => setModalOpen(false)}>
+    <>
+    {/* Header */}
+      <Box
+            sx={{
+              marginLeft: "40px",
+              paddingTop: "50px",
+            }}
+          >
+          <Header
+            title={
+              <Box display="flex" alignItems="center" gap={1}>
+                <AssignmentTurnedInIcon sx={{ color: "#5f53e5", fontSize: 40 }} />
+                  <Typography>
+                      GERENCIADOR DE TAREFAS 
+                  </Typography>
+                
+              </Box>
+            }
+          />
+      </Box>
+
+
+    <Box m="40px">
+
+    <Box display="flex" alignItems="center" gap={1}>
+            <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
+            <Typography color="#858585">
+                Adicione tarefas no painel de gerenciamento
+          </Typography>     
+        </Box>
+
+          <Box
+            sx={{
+              position: "relative", // Permite posicionar o ícone sobre o divisor
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%", // Largura do divisor
+              marginBottom: "30px",
+              marginTop: "15px",
+            }}
+          >
+            {/* Divider */}
+            <Divider
+              sx={{
+                position: "absolute", // Para garantir que o ícone fique sobre o divisor
+                width: "100%",
+                height: "1px",
+                backgroundColor: "#ccc", // Cor do divisor
+              }}
+            />
+        </Box>
+      
+      <Modal open={isModalOpen} onClose={() => setModalOpen(false)} width="100%">
         <Box sx={modalStyle}>
           <Typography
             variant="h5"
@@ -263,8 +315,16 @@ const Kanban = () => {
               <Button
                 variant="contained"
                 onClick={() => setModalOpen(true)}
-                sx={{ marginBottom: "15px", backgroundColor: "#5f53e5", color: "#ffffff" }}
-              >
+                sx={{
+                  boxShadow: "none",
+                  marginBottom: "15px",
+                  backgroundColor: "#5f53e5",
+                  color: "#ffffff",
+                    "&:hover": {
+                    backgroundColor: "#3f2cb2",
+                    boxShadow: "none"
+                }, }}
+                >
                 Adicionar cartão
               </Button>
             )}
@@ -335,6 +395,7 @@ const Kanban = () => {
         ))}
       </Box>
     </Box>
+    </>
   );
 };
 
@@ -361,8 +422,8 @@ const modalStyle = {
 const columnStyle = {
   display: "flex",
   flexDirection: "column",
-  minWidth: "260px",
-  maxWidth: "260px",
+  minWidth: "253px",
+  maxWidth: "253px",
   p: 2,
   bgcolor: "#e8e9ea",
   borderRadius: "10px",

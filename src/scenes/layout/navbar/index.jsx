@@ -16,11 +16,14 @@ import {
   SearchOutlined,
   SettingsOutlined,
 } from "@mui/icons-material";
+import ArrowCircleRightIcon from '@mui/icons-material/ArrowCircleRight';
+import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import { ToggledContext } from "../../../App";
 import { auth, db } from "../../../data/firebase-config";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
+
 
 const Navbar = () => {
   const theme = useTheme();
@@ -57,20 +60,24 @@ const Navbar = () => {
     return () => unsubscribe();
   }, []);
 
-  
-
-  // Função para deslogar
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      navigate("/login"); // Redireciona para a página de login
-    } catch (error) {
-      console.error("Erro ao deslogar:", error);
-    }
-  };
 
   return (
-  
+  <>
+        <Toolbar
+          sx={{ backgroundColor: "#f2f0f0", boxShadow:"0px 4px 6px rgba(0, 0, 0, 0.1)" }}>
+            <IconButton size="large" edge="start" color="inherit" aria-label="menu">
+              <KeyboardDoubleArrowRightIcon
+                sx={{ color: "#312783" }}/>
+            </IconButton>
+            <Typography
+                variant="h8"
+                component="div"
+                marginTop="3px"
+                sx={{ flexGrow: 1, color: "#7f7f7f" }}>
+                Copyright © 2024 | Grupo Fokus  
+            </Typography>
+         </Toolbar>
+
   <Box
         display="flex"
         alignItems="center"
@@ -78,11 +85,13 @@ const Navbar = () => {
         p={5}
         sx={{
           backgroundColor: "#e8e5e5",
+         }}>
           
-        }}
-      >
+         
       
       {/* Conteúdo do Box */}
+
+      
 
       
       {/* Input */}
@@ -186,33 +195,22 @@ const Navbar = () => {
             </Typography>
           </Box>
 
-          <AppBar
-        position="relative"
-        sx={{
-          width: "100%",
-          top: 0,
-          width: "80%",
-          right: 0,
-          zIndex: 1000,
-          backgroundColor: "#583cff",
-          top: "104px",
-        }}
-      >
-        <Toolbar>
-          <IconButton size="large" edge="start" color="inherit" aria-label="menu">
-            <MenuOutlined />
-          </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            GRUPO FOKUS
-          </Typography>
-          <IconButton>
-            <PersonOutlined />
-          </IconButton>
-        </Toolbar>
-      </AppBar>
-
       </Box>
   </Box>
+        <Toolbar sx={{ alignSelf: "center", backgroundColor: "#312783", width: "100%"}}>
+            <IconButton size="large" edge="start" color="inherit" aria-label="menu">
+              <ArrowCircleRightIcon
+                sx={{ color: "#583cff", marginLeft: "15px" }}/>
+            </IconButton>
+            <Typography
+                variant="h8"
+                component="div"
+                marginTop="3px"
+                sx={{ flexGrow: 1, color: "#c2c2c2" }}>
+              GRUPO FOKUS  |  www.grupofokus.com.br
+            </Typography>
+        </Toolbar>
+  </>
   );
 };
 

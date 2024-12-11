@@ -38,10 +38,11 @@ const SideBar = () => {
 
   return (
     <Sidebar
-        backgroundColor={colors.blueAccent[1000]}
+        backgroundColor="#f2f0f0"
         rootStyles={{
           border: 0,
           height: "100vh",
+          boxShadow:"0px 4px 6px rgba(0, 0, 0, 0.1)"
         }}
         collapsed={collapsed}
         onBackdropClick={() => setToggled(false)}
@@ -51,7 +52,7 @@ const SideBar = () => {
 
         <Divider
             sx={{
-              backgroundColor: colors.blueAccent[1300],
+              backgroundColor: colors.gray[800],
               height: "1px",
               width: "50%",
               marginTop: "px",
@@ -97,7 +98,7 @@ const SideBar = () => {
                 <IconButton
                   onClick={() => setCollapsed(!collapsed)}
                   sx={{
-                    color: "#d0d1d5",
+                    color: "#312783",
                     marginTop: "40%",
                     marginBottom: "12%",
                     marginLeft: "90%",
@@ -116,9 +117,10 @@ const SideBar = () => {
                     >
                       <img
                         style={{
-                          width: "160px",
+                          width: "130px",
                           height: "auto",
-                          marginLeft: "15px",
+                          alignSelf: "center",
+                          marginLeft: "50px",
                           
                         }}
                         src={logo}
@@ -132,7 +134,7 @@ const SideBar = () => {
 
       <Divider
           sx={{
-            backgroundColor: colors.blueAccent[1300],
+            backgroundColor: colors.gray[1000],
             height: "1px",
             width: "50%",
             marginTop: "50px",
@@ -153,9 +155,9 @@ const SideBar = () => {
         <Menu
           menuItemStyles={{
             button: {
-              color: "#c2c2c2",
+              color: "#312783",
               ":hover": {
-                color: "#e1e2fe",
+                color: "#b7b7b7",
                 background: "transparent",
                 transition: ".4s ease",
               },
@@ -299,11 +301,11 @@ const SideBar = () => {
               sx={{
                 width: "80%",
                 paddingBottom: "40px",
-                backgroundColor: "#5f53e5",
+                backgroundColor: "#f2f0f0",
                 boxShadow: "none",
                 ":hover": {
-                  color: "#483dbd",
-                  background: "#5f53e5",
+                  color: "#f2f0f0",
+                  background: "#f2f0f0",
                   transition: ".4s ease",
                   boxShadow: "none",
                 },
@@ -312,19 +314,22 @@ const SideBar = () => {
               <PowerSettingsNewIcon
                 sx={{
                   fontSize: "30px",
-                  color: "#00ecf8",
-                
+                  color: "#5f53e5",
+                  ":hover": {
+                  color: "#b7b7b7",
+                  transition: ".4s ease",
+                },
                 }}
               />
             </Button>
         </Box>
-
+        
 
 
 
         <Divider
           sx={{
-            backgroundColor: colors.blueAccent[1300],
+            backgroundColor: colors.gray[1000],
             height: "1px",
             width: "50%",
             marginBottom: "10px",
@@ -340,15 +345,14 @@ const SideBar = () => {
           sx={{
             display: "flex",
             justifyContent: "center",
-            alignItems: "center",
-            marginBottom: "10px",
+            padding: "10px",
           }}
         >
           <img
-            src="src/assets/images/fokus360-favicon.png"
+            src="src/assets/images/icon_logo.png"
             alt="Logo"
             style={{
-              maxWidth: "50px",
+              maxWidth: "40px",
               height: "auto",
             }}
           />
