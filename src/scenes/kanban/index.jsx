@@ -422,8 +422,8 @@ const modalStyle = {
 const columnStyle = {
   display: "flex",
   flexDirection: "column",
-  minWidth: "253px",
-  maxWidth: "253px",
+  minWidth: "240px",
+  maxWidth: "240px",
   p: 2,
   bgcolor: "#e8e9ea",
   borderRadius: "10px",

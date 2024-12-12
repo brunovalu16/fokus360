@@ -65,16 +65,34 @@ const Navbar = () => {
   <>
         <Toolbar
           sx={{ backgroundColor: "#f2f0f0", boxShadow:"0px 4px 6px rgba(0, 0, 0, 0.1)" }}>
-            <IconButton size="large" edge="start" color="inherit" aria-label="menu">
-              <KeyboardDoubleArrowRightIcon
-                sx={{ color: "#312783" }}/>
-            </IconButton>
+            
+              <KeyboardDoubleArrowRightIcon 
+                size="large"
+                edge="start"
+                color="inherit"
+                aria-label="menu"
+                sx={{ color: "#312783", marginRight: "10px" }}
+              />
+              
+            
             <Typography
                 variant="h8"
                 component="div"
-                marginTop="3px"
-                sx={{ flexGrow: 1, color: "#7f7f7f" }}>
+                sx={{ color: "#7f7f7f", fontSize: "10px" }}>
                 Copyright © 2024 | Grupo Fokus  
+            </Typography>
+
+            <Typography
+                variant="h8"
+                component="div"
+                sx={{ color: "#7f7f7f", display: "flex", alignItems: "flex-end", marginBottom: "10px", transform: "scale(0.7)"}}>
+                  Desenvolvido por:
+                  <img  
+                    src="src/assets/images/colibri.png" 
+                    alt="Logo Colibri" 
+                    style={{ width: "100px", height: "auto", marginLeft: "5px", marginLeft: "15px", marginRight: "20px"  }} 
+                  />
+                   Colibri | Sistemas inteligentes
             </Typography>
          </Toolbar>
 
@@ -116,8 +134,8 @@ const Navbar = () => {
             type="button"
             sx={{
               p: 0.7,
-              bgcolor: "#5f53e5", // Fundo azul
-              color: "#ffffff", // Ícone branco
+              bgcolor: "#312783", // Fundo azul
+              color: "#00ebf7", // Ícone branco
               borderRadius: "1%", // Faz o botão ser circular
               marginLeft: "-7%", // Faz o botão ser
               padding: "8px",
@@ -191,22 +209,32 @@ const Navbar = () => {
               fontWeight="bold"
               color={theme.palette.text.secondary}
             >
-              {user ? `Olá, ${username}` : "Usuário não logado"}
+              {user ? `Olá, ${username}` : ""}
             </Typography>
           </Box>
 
       </Box>
   </Box>
-        <Toolbar sx={{ alignSelf: "center", backgroundColor: "#312783", width: "100%"}}>
+        <Toolbar 
+              sx={{
+                "&.MuiToolbar-root": { // &.MUI É A BIBLIOTECA
+                  height: "40px", // Define a altura fixa
+                  minHeight: "40px", // Define a altura mínima
+                  padding: "0", // Remove o padding
+                  },
+                  alignSelf: "center",
+                  backgroundColor: "#312783",
+                  width: "100%"
+              }}>
             <IconButton size="large" edge="start" color="inherit" aria-label="menu">
               <ArrowCircleRightIcon
-                sx={{ color: "#583cff", marginLeft: "15px" }}/>
+                sx={{ color: "#00ebf7", marginLeft: "15px", fontSize: "17px", marginLeft: "38px" }}/>
             </IconButton>
             <Typography
                 variant="h8"
                 component="div"
                 marginTop="3px"
-                sx={{ flexGrow: 1, color: "#c2c2c2" }}>
+                sx={{ flexGrow: 1, color: "#c2c2c2", fontSize: "12px", marginBottom: "3px" }}>
               GRUPO FOKUS  |  www.grupofokus.com.br
             </Typography>
         </Toolbar>

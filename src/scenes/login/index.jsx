@@ -43,9 +43,8 @@ const Login = () => {
         alignItems="center"
         justifyContent="center"
         sx={{
-          //backgroundImage: 'url("src/assets/images/background_home.webp")', // Defina o caminho correto
-          //backgroundColor: "#fff",
-          backgroundColor: "#312783",
+          backgroundImage: 'url("src/assets/images/backlogin2.webp")', // Defina o caminho correto
+          //backgroundColor: "#312783",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
@@ -54,22 +53,28 @@ const Login = () => {
           minHeight: "100vh", // Altura mínima da viewport
         }}
       >
+
+
         <Box
           sx={{
             backgroundColor: "#312783", // Fundo branco ao redor do logo
             padding: "58px",
-            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)", // Sombra ao redor
+            paddingBottom: "64px",
+            //boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)", // Sombra ao redor
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
             borderBottomLeftRadius: "50px",
+            transform: "scale(0.8)", //Reduz todo o conteúdo em 90% do tamanho original.
+            marginRight: "-95px", // Margem direita para separar o logo do formulário
+            height: "35%",
           }}
         >
           <img
-            src="src/assets/images/icone_logo.png"
+            src="src/assets/images/logo360verde.png"
             alt="Logo"
             style={{
-              width: "300px", // Tamanho ajustável
+              width: "450px", // Tamanho ajustável
               height: "auto",
             }}
           />
@@ -84,6 +89,8 @@ const Login = () => {
           width: "90%", // Responsivo
           maxWidth: 400, // Largura máxima
           textAlign: "center",
+          transform: "scale(0.8)", //Reduz todo o conteúdo em 90% do tamanho original.
+          marginRight: "370px"
         }}
       >
         <Box
