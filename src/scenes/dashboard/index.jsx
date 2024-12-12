@@ -49,6 +49,7 @@ function Dashboard() {
             <Button
               variant="contained"
               sx={{
+                borderRadius: "10px",
                 bgcolor: colors.blueAccent[1000],
                 color: "#fcfcfc",
                 fontSize: isMdDevices ? "14px" : "10px",
@@ -62,7 +63,7 @@ function Dashboard() {
               }}
               startIcon={<DownloadOutlined />}
             >
-              BAIXAR RELATÓRIOS
+              NOVO PROJETO
             </Button>
           </Box>
         )}
