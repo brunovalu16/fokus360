@@ -12,6 +12,7 @@ import Kanban from "./scenes/kanban";
 import { Home } from "./scenes/home";
 import Arquivos from "./scenes/arquivos";
 import VendasDevolucao from "./scenes/vendasdevolucao";
+import Projetos from "./scenes/projetos";
 import { Team, Invoices, Contacts, Form, Bar, Line, Pie, FAQ, Geography, Calendar, Stream } from "./scenes";
 
 const AppRouter = () => {
@@ -31,6 +32,7 @@ const AppRouter = () => {
           <Route path="/user" element={<User />} />
           <Route path="/painelindustrias" element={<PainelIndustrias />} />
           <Route path="/vendasdevolucao" element={<VendasDevolucao />} />
+          <Route path="/projetos" element={<Projetos />} />
           <Route path="/relatorios" element={<Relatorios />} />
           <Route path="/arquivos" element={<Arquivos />} />
           <Route path="/kanban" element={<Kanban />} />
