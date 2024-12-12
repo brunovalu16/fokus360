@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { Box, IconButton, Button, Divider, useTheme} from "@mui/material";
+import { Box, IconButton, Button, Divider, useTheme } from "@mui/material";
 import { Menu, MenuItem, Sidebar } from "react-pro-sidebar";
 import {
   MenuOutlined,
@@ -9,9 +9,8 @@ import {
   PieChart as PieChartIcon,
   Source as SourceIcon,
   AssignmentTurnedIn as AssignmentTurnedInIcon,
+  PowerSettingsNew as LogoutIcon,
 } from "@mui/icons-material";
-import LogoutIcon from "@mui/icons-material/Logout";
-import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import { signOut } from "firebase/auth";
 import { useNavigate, Link } from "react-router-dom";
 import logo from "../../../assets/images/icone_logo.png";
@@ -26,11 +25,10 @@ const SideBar = () => {
   const colors = tokens(theme.palette.mode);
   const navigate = useNavigate();
 
-  // Função para logout
   const handleLogout = async () => {
     try {
-      await signOut(auth); // Desloga o usuário
-      navigate("/login"); // Redireciona para a página de login
+      await signOut(auth);
+      navigate("/login");
     } catch (error) {
       console.error("Erro ao deslogar:", error);
     }
@@ -38,118 +36,74 @@ const SideBar = () => {
 
   return (
     <Sidebar
-        backgroundColor="#f2f0f0"
-        rootStyles={{
-          border: 0,
-          height: "100vh",
-          boxShadow:"0px 4px 6px rgba(0, 0, 0, 0.1)"
+      backgroundColor="#f2f0f0"
+      rootStyles={{
+        border: 0,
+        height: "100vh",
+        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+        width: collapsed ? "60px" : "250px", // Ajusta dinamicamente
+        transition: "width 0.3s ease", // Transição suave
+      }}
+      collapsed={collapsed}
+      onBackdropClick={() => setToggled(false)}
+      toggled={toggled}
+      breakPoint="md"
+    >
+      {/* Botão de Recolher */}
+      <IconButton
+        onClick={() => setCollapsed(!collapsed)}
+        sx={{
+          color: "#312783",
+          margin: "10px auto", // Centraliza horizontalmente
+          marginLeft: "20px",
+          transition: "all 0.3s ease", // Suaviza a transição
         }}
-        collapsed={collapsed}
-        onBackdropClick={() => setToggled(false)}
-        toggled={toggled}
-        breakPoint="md"
       >
+        <MenuOutlined />
+      </IconButton>
 
-        <Divider
-            sx={{
-              backgroundColor: colors.gray[800],
-              height: "1px",
-              width: "50%",
-              marginTop: "px",
-              marginLeft: "auto",
-              marginRight: "auto",
-              paddingBottom: "2px"
-            }}
-          />
-
-        
-      
-
-      <Menu
-          menuItemStyles={{
-            button: {
-              color: "#c2c2c2",
-              ":hover": {
-                color: "#c3c6fd",
-                background: "transparent",
-                transition: ".4s ease",
-              },
-            },
+      {/* Imagem no Topo */}
+      {!collapsed && (
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          sx={{
+            transition: "all 0.8s ease", // Transição suave
           }}
         >
-        {/* Cabeçalho do Sidebar */}
-        <MenuItem
-              rootStyles={{
-                margin: "35px 0 15px 10",
-                marginTop: "10%",
-                paddingBottom: "30%",
-                color: colors.gray[100],
-              }}
-            >
-            <Box
-                sx={{
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginRight: "50px",
-                }}
-              >
-
-                {/* imagem logo topo sidebar */}
-                <IconButton
-                  onClick={() => setCollapsed(!collapsed)}
-                  sx={{
-                    color: "#312783",
-                    marginTop: "40%",
-                    marginBottom: "12%",
-                    marginLeft: "90%",
-                  }}
-                >
-                  <MenuOutlined />
-                </IconButton>
-            
-                {/* imagem logo topo sidebar */}
-                {!collapsed && (
-                  <Box
-                      display="flex"
-                      alignItems="center"
-                      gap="12px"
-                      sx={{ transition: ".3s ease" }}
-                    >
-                      <img
-                        style={{
-                          width: "130px",
-                          height: "auto",
-                          alignSelf: "center",
-                          marginLeft: "50px",
-                          
-                        }}
-                        src={logo}
-                      />
-                  </Box>
-                )}
-
-            </Box>
-        </MenuItem>
-      </Menu>
+          <img
+            src={logo}
+            alt="Logo"
+            style={{
+              width: "100px", // Tamanho da logo
+              height: "auto",
+              marginTop: "10px",
+              marginBottom: "20px",
+            }}
+          />
+        </Box>
+      )}
 
       <Divider
-          sx={{
-            backgroundColor: colors.gray[1000],
-            height: "1px",
-            width: "50%",
-            marginTop: "50px",
-            marginBottom: "30px",
-            marginLeft: "auto",
-            marginRight: "auto",
-          }}
-        />
+        sx={{
+          backgroundColor: colors.gray[1000],
+          height: "1px",
+          width: "50%",
+          margin: "20px auto",
+        }}
+      />
 
-      {/* Itens do menu */}
-      <Box mb={5} pl={collapsed ? undefined : "18%"}
+      {/* Itens do Menu */}
+      <Box
+        mb={5}
+        pl={collapsed ? undefined : "19%"}
         sx={{
           display: "flex",
           flexDirection: "column",
           gap: "0px",
+          marginLeft: "7px",
         }}
       >
         <Menu
@@ -157,14 +111,13 @@ const SideBar = () => {
             button: {
               color: "#312783",
               ":hover": {
-                color: "#b7b7b7",
+                color: "#00ebf7",
                 background: "transparent",
                 transition: ".4s ease",
               },
             },
           }}
         >
-
           <MenuItem>
             <Link
               to="/home"
@@ -173,16 +126,13 @@ const SideBar = () => {
                 color: "inherit",
                 display: "flex",
                 alignItems: "center",
-                gap: "20px", // Espaço entre o ícone e o texto
-                marginLeft: "7px",
+                gap: "20px",
               }}
             >
-              <HomeIcon/>
+              <HomeIcon />
               Home
             </Link>
           </MenuItem>
-
-          {/* início Links do menu */}
 
           <MenuItem>
             <Link
@@ -192,8 +142,7 @@ const SideBar = () => {
                 color: "inherit",
                 display: "flex",
                 alignItems: "center",
-                gap: "20px", // Espaço entre o ícone e o texto
-                marginLeft: "7px",
+                gap: "20px",
               }}
             >
               <AssessmentIcon />
@@ -209,8 +158,7 @@ const SideBar = () => {
                 color: "inherit",
                 display: "flex",
                 alignItems: "center",
-                gap: "20px", // Espaço entre o ícone e o texto
-                marginLeft: "7px",
+                gap: "20px",
               }}
             >
               <SourceIcon />
@@ -226,8 +174,7 @@ const SideBar = () => {
                 color: "inherit",
                 display: "flex",
                 alignItems: "center",
-                gap: "20px", // Espaço entre o ícone e o texto
-                marginLeft: "7px",
+                gap: "20px",
               }}
             >
               <AssignmentTurnedInIcon />
@@ -243,8 +190,7 @@ const SideBar = () => {
                 color: "inherit",
                 display: "flex",
                 alignItems: "center",
-                gap: "20px", // Espaço entre o ícone e o texto
-                marginLeft: "7px",
+                gap: "20px",
               }}
             >
               <PersonIcon />
@@ -260,8 +206,7 @@ const SideBar = () => {
                 color: "inherit",
                 display: "flex",
                 alignItems: "center",
-                gap: "20px", // Espaço entre o ícone e o texto
-                marginLeft: "7px",
+                gap: "20px",
               }}
             >
               <PieChartIcon />
@@ -271,11 +216,7 @@ const SideBar = () => {
         </Menu>
       </Box>
 
-      {/* fim Links do menu */}
-
-      
-
-      {/* Rodapé fixo */}
+      {/* Rodapé */}
       <Box
         sx={{
           position: "absolute",
@@ -284,63 +225,63 @@ const SideBar = () => {
           padding: "10px",
         }}
       >
-
-
         {/* Botão de Logout */}
         <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            marginBottom: "10px",
+          }}
+        >
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleLogout}
             sx={{
+              width: collapsed ? "3px" : "50%",
+              borderRadius: "5px",
+              height: "40px",
+              padding: "10px",
+              marginBottom: "15px",
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-            }}
-          >
-            <Button
-              variant="contained"
-              color="error"
-              onClick={handleLogout}
-              sx={{
-                width: "80%",
-                paddingBottom: "40px",
+              gap: "10px",
+              backgroundColor: "#f2f0f0",
+              boxShadow: "none",
+              transition: "all 0.1s ease", // Transição suave
+              ":hover": {
                 backgroundColor: "#f2f0f0",
                 boxShadow: "none",
+                color: "#00ebf7"
+              },
+            }}
+          >
+            <LogoutIcon
+              sx={{
+                fontSize: "25px",
+                color: "#312783",
                 ":hover": {
-                  color: "#f2f0f0",
-                  background: "#f2f0f0",
-                  transition: ".4s ease",
                   boxShadow: "none",
-                },
+                  color: "#00ebf7",
+                  transition: "all 0.3s ease", // Transição suave
+              },
               }}
-            >
-              <PowerSettingsNewIcon
-                sx={{
-                  fontSize: "30px",
-                  color: "#5f53e5",
-                  ":hover": {
-                  color: "#b7b7b7",
-                  transition: ".4s ease",
-                },
-                }}
-              />
-            </Button>
+            />
+            {!collapsed && ""}
+          </Button>
         </Box>
-        
-
-
 
         <Divider
           sx={{
             backgroundColor: colors.gray[1000],
             height: "1px",
             width: "50%",
-            marginBottom: "10px",
-            marginLeft: "auto",
-            marginRight: "auto",
+            margin: "10px auto",
           }}
         />
 
-        
-
-        {/* Adicionando logo ou imagem */}
+        {/* Imagem no Rodapé */}
         <Box
           sx={{
             display: "flex",

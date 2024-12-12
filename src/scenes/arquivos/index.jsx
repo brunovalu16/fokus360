@@ -169,7 +169,7 @@ const Arquivos = () => {
       <Box
         mt="40px"
         height="auto"
-        width="95%"
+        
         sx={{
           "& .MuiDataGrid-root": { border: "none" },
           "& .MuiDataGrid-cell": { border: "none" },
