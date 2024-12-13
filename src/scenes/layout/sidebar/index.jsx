@@ -17,6 +17,7 @@ import logo from "../../../assets/images/icone_logo.png";
 import { tokens } from "../../../theme";
 import { auth } from "../../../data/firebase-config";
 import { ToggledContext } from "../../../App";
+import PermContactCalendarIcon from '@mui/icons-material/PermContactCalendar';
 
 const SideBar = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -193,14 +194,14 @@ const SideBar = () => {
                 gap: "20px",
               }}
             >
-              <PersonIcon />
+              <PermContactCalendarIcon />
               Usuários
             </Link>
           </MenuItem>
 
           <MenuItem>
             <Link
-              to="/dashboard"
+              to="/projetos"
               style={{
                 textDecoration: "none",
                 color: "inherit",
@@ -293,7 +294,7 @@ const SideBar = () => {
             src="src/assets/images/icon_logo.png"
             alt="Logo"
             style={{
-              maxWidth: "40px",
+              maxWidth: "30px",
               height: "auto",
             }}
           />

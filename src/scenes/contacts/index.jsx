@@ -9,7 +9,7 @@ import { mockDataContacts } from "../../data/mockData";
 import { tokens } from "../../theme";
 import { useNavigate } from "react-router-dom";
 import PersonIcon from '@mui/icons-material/Person';
-
+import PermContactCalendarIcon from '@mui/icons-material/PermContactCalendar';
 // Tradução dos textos da Toolbar
 const localeText = {
   toolbarColumns: "Colunas",
@@ -153,7 +153,7 @@ const Contacts = () => {
           <Header
             title={
               <Box display="flex" alignItems="center" gap={1}>
-                <PersonIcon sx={{ color: "#5f53e5", fontSize: 40 }} />
+                <PermContactCalendarIcon sx={{ color: "#5f53e5", fontSize: 40 }} />
                   <Typography>
                       GERENCIADOR DE USUÁRIOS 
                   </Typography>
@@ -161,12 +161,13 @@ const Contacts = () => {
               </Box>
             }
           />
-      </Box>
+    </Box>
 
     <Box m="45px">
       
       <Box
         mt="40px"
+        marginTop="-2px"
         height="75vh"
         width="100%"
         sx={{

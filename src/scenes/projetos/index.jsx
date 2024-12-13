@@ -14,37 +14,34 @@ const Projetos = () => {
 
   return (
     <>
-      {/* Cabeçalho */}
-      <Box sx={{ marginLeft: "40px", paddingTop: "50px" }}>
-        <Header
-          title={
-            <Box display="flex" alignItems="center" gap={1}>
-              <AssessmentIcon sx={{ color: "#5f53e5", fontSize: 40 }} />
-              <Typography>GERENCIADOR DE RELATÓRIOS</Typography>
-            </Box>
-          }
-        />
-      </Box>
+      
 
       {/* Conteúdo Principal */}
       <Box
-        m="40px"
-        width="90%"
-        minHeight="50vh"
         sx={{
-          overflowX: "hidden",
+          marginLeft: "40px",
+          marginTop: "10px",
+          width: "calc(100% - 80px)", // Para ajustar à tela considerando o margin de 40px
+          minHeight: "50vh",
           padding: "15px",
           paddingLeft: "30px",
           borderRadius: "20px",
           boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
           bgcolor: "#f2f0f0",
+          overflowX: "hidden",
         }}
       >
+
+
+        
         <Box display="flex" alignItems="center" gap={1}>
           <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
-          <Typography color="#858585">RELATÓRIOS | VENDAS X DEVOLUÇÃO</Typography>
+            <Typography
+                color="#858585">FOKUS 360 | PROJETOS
+            </Typography>
         </Box>
 
+        
         <Box
           sx={{
             position: "relative",
@@ -56,14 +53,6 @@ const Projetos = () => {
             marginTop: "15px",
           }}
         >
-          <Divider
-            sx={{
-              position: "absolute",
-              width: "100%",
-              height: "1px",
-              backgroundColor: "#ccc",
-            }}
-          />
           <LocalGroceryStoreIcon
             sx={{
               color: "#5f53e5",
@@ -75,9 +64,10 @@ const Projetos = () => {
             }}
           />
         </Box>
+        
 
         {/* Estrutura da Imagem */}
-        <div style={{ position: "relative", width: "100%" }}>
+        <div style={{ position: "relative", width: "100%", top: "-40px" }}>
           <img
             src="src/assets/images/capasistema360.webp" // Caminho da imagem
             alt="Relatório de Vendas e Devoluções"
@@ -88,46 +78,53 @@ const Projetos = () => {
               boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
             }}
           />
+
+
           {/* Links sobrepostos */}
           <Box
             sx={{
               position: "absolute",
               top: "75%", // Posição para "Novo Projeto"
               left: "10%",
-              height: "100%",
+              height: "80px",
             }}
           >
             <a
               href="/novo-projeto"
               style={{
                 padding: "45px",
-                backgroundColor: "transparent",
+                backgroundColor: "transparent",  
                 color: "transparent",
-                borderRadius: "8px",
+                borderRadius: "10px",
                 textDecoration: "none",
                 fontWeight: "bold",
                 marginLeft: "8px",
+                padding: "95px",
+                alignContent: "center",
               }}
             >
               Novo Projeto
             </a>
           </Box>
+
           <Box
             sx={{
               position: "absolute",
-              top: "35%", // Posição para "Resumo Geral"
-              right: "15%",
+              top: "36%", // Posição para "Resumo Geral"
+              right: "7%",
+              height: "60px",
             }}
           >
             <a
               href="/resumo-geral"
               style={{
                 padding: "10px 20px",
-                backgroundColor: "#5f53e5",
-                color: "#fff",
+                backgroundColor: "transparent",
+                color: "transparent",
                 borderRadius: "8px",
                 textDecoration: "none",
                 fontWeight: "bold",
+                padding: "50px",
               }}
             >
               Resumo Geral
@@ -136,19 +133,21 @@ const Projetos = () => {
           <Box
             sx={{
               position: "absolute",
-              top: "45%", // Posição para "Resumo Projetos"
-              right: "15%",
+              top: "48%", // Posição para "Resumo Projetos"
+              right: "6%",
+              height: "75px",
             }}
           >
             <a
               href="/resumo-projetos"
               style={{
                 padding: "10px 20px",
-                backgroundColor: "#5f53e5",
-                color: "#fff",
+                backgroundColor: "transparent",
+                color: "transparent",
                 borderRadius: "8px",
                 textDecoration: "none",
                 fontWeight: "bold",
+                padding: "50px",
               }}
             >
               Resumo Projetos

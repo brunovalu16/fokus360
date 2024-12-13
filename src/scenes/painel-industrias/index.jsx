@@ -42,6 +42,7 @@ const PainelIndustrias = () => {
           paddingLeft: "30px",
           borderRadius: "20px",
           boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)", // Efeito de sombra para o container
+          marginTop: "-15px",
         }}
       >
         <Box display="flex" alignItems="center" gap={1}>

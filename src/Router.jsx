@@ -9,10 +9,11 @@ import Dashboard from "./scenes/dashboard";
 import Relatorios from "./scenes/relatorios";
 import PainelIndustrias from "./scenes/painel-industrias";
 import Kanban from "./scenes/kanban";
-import { Home } from "./scenes/home";
+import  Home  from "./scenes/home";
 import Arquivos from "./scenes/arquivos";
 import VendasDevolucao from "./scenes/vendasdevolucao";
 import Projetos from "./scenes/projetos";
+import CadastroProjetos from "./scenes/cadastroprojetos";
 import { Team, Invoices, Contacts, Form, Bar, Line, Pie, FAQ, Geography, Calendar, Stream } from "./scenes";
 
 const AppRouter = () => {
@@ -27,11 +28,12 @@ const AppRouter = () => {
         
         {/* Rotas com Sidebar */}
         <Route element={<App />}>
-          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/home" element={<Home />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/user" element={<User />} />
           <Route path="/painelindustrias" element={<PainelIndustrias />} />
           <Route path="/vendasdevolucao" element={<VendasDevolucao />} />
+          <Route path="/cadastroprojetos" element={<CadastroProjetos />} />
           <Route path="/projetos" element={<Projetos />} />
           <Route path="/relatorios" element={<Relatorios />} />
           <Route path="/arquivos" element={<Arquivos />} />

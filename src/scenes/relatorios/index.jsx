@@ -76,18 +76,20 @@ const Relatorios = () => {
       </Box>
 
       <Box
-        m="40px"
-        width="90%"
-        minHeight="50vh"
-        bgcolor="f2f0f0#"
-        sx={{
-          overflowX: "hidden",
-          padding: "15px",
-          paddingLeft: "30px",
-          borderRadius: "20px",
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-        }}
-      >
+          sx={{
+            marginLeft: "40px",
+            marginTop: "-15px",
+            width: "calc(100% - 80px)", // Para ajustar à tela considerando o margin de 40px
+            minHeight: "50vh",
+            padding: "15px",
+            paddingLeft: "30px",
+            borderRadius: "20px",
+            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+            bgcolor: "#f2f0f0",
+            overflowX: "hidden",
+          }}
+        >
+
         <Box display="flex" alignItems="center" gap={1}>
             <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
             <Typography color="#858585">
