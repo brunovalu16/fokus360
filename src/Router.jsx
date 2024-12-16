@@ -14,6 +14,7 @@ import Arquivos from "./scenes/arquivos";
 import VendasDevolucao from "./scenes/vendasdevolucao";
 import Projetos from "./scenes/projetos";
 import CadastroProjetos from "./scenes/cadastroprojetos";
+import  ListaProjetos from "./scenes/listaprojetos";
 import { Team, Invoices, Contacts, Form, Bar, Line, Pie, FAQ, Geography, Calendar, Stream } from "./scenes";
 
 const AppRouter = () => {
@@ -34,6 +35,7 @@ const AppRouter = () => {
           <Route path="/painelindustrias" element={<PainelIndustrias />} />
           <Route path="/vendasdevolucao" element={<VendasDevolucao />} />
           <Route path="/cadastroprojetos" element={<CadastroProjetos />} />
+          <Route path="/listaprojetos" element={<ListaProjetos />} />
           <Route path="/projetos" element={<Projetos />} />
           <Route path="/relatorios" element={<Relatorios />} />
           <Route path="/arquivos" element={<Arquivos />} />
