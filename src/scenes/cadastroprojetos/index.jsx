@@ -3,8 +3,6 @@ import { Box, Button, Typography, TextField, Checkbox, FormControlLabel, Select,
 import { useNavigate } from "react-router-dom";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
-import { Divider } from "@mui/material";
-import LocalGroceryStoreIcon from '@mui/icons-material/LocalGroceryStore';
 import { Header } from "../../components"; // Certifique-se de que o caminho está correto
 
 const CadastroProjetos = () => {
@@ -42,6 +40,12 @@ const CadastroProjetos = () => {
     // Adicionar lógica para salvar o formulário
   };
 
+  const handleInputChangeReal = (event) => {
+    const { name, value } = event.target;
+    setFormValues({ ...formValues, [name]: value });
+  };
+  
+
   return (
     <Box
       sx={{
@@ -75,7 +79,13 @@ const CadastroProjetos = () => {
           fullWidth
         />
 
-        <Typography variant="h6" sx={{ color: "#858585" }}>Datas/Duração do projeto</Typography>
+        <Box display="flex" alignItems="center" gap={1}
+          sx={{ marginTop: "20px", marginBottom: "20px"  }}
+        >
+          <PlayCircleFilledIcon sx={{ color: "#a3e635", fontSize: 25 }} />
+          <Typography sx={{ color: "#858585" }}>Datas/Duração do projeto</Typography>
+        </Box>
+
         <Box display="flex" gap={2}>
           <TextField
             label="Data início"
@@ -83,7 +93,11 @@ const CadastroProjetos = () => {
             type="date"
             value={formValues.dataInicio}
             onChange={handleInputChange}
-            InputLabelProps={{ shrink: true }}
+            InputLabelProps={{
+              shrink: true,
+              style: { position: 'absolute', top: '5px', left: '5px' }
+            }}
+            
           />
           <TextField
             label="Prazo previsto"
@@ -91,18 +105,14 @@ const CadastroProjetos = () => {
             type="date"
             value={formValues.prazoPrevisto}
             onChange={handleInputChange}
-            InputLabelProps={{ shrink: true }}
-          />
-          <TextField
-            label="Data término"
-            name="dataTermino"
-            type="date"
-            value={formValues.dataTermino}
-            onChange={handleInputChange}
-            InputLabelProps={{ shrink: true }}
+            InputLabelProps={{
+              shrink: true,
+              style: { position: 'absolute', top: '5px', left: '5px' }
+            }}
           />
         </Box>
 
+        {/**     
         <Box display="flex" gap={2}>
           <TextField
             label="Duração prevista"
@@ -117,26 +127,58 @@ const CadastroProjetos = () => {
             onChange={handleInputChange}
           />
         </Box>
+        */}
 
-        <Select
-          label="Cliente"
-          name="cliente"
-          value={formValues.cliente}
-          onChange={handleInputChange}
-          displayEmpty
+        <Box display="flex" alignItems="center" gap={1}
+          sx={{ marginTop: "20px", marginBottom: "20px"  }}
         >
-          <MenuItem
-            value="" disabled>
-            Selecione a Unidade
-          </MenuItem>
-          <MenuItem value="Cliente A">GOIÁS</MenuItem>
-          <MenuItem value="Cliente B">BRASÍLIA</MenuItem>
-          <MenuItem value="Cliente B">TOCANTINS</MenuItem>
-          <MenuItem value="Cliente B">MATO GROSSO</MenuItem>
-          <MenuItem value="Cliente B">MATO GROSSO DO SUL</MenuItem>
-          <MenuItem value="Cliente B">PARÁ</MenuItem>
-        </Select>
+          <PlayCircleFilledIcon sx={{ color: "#06b6d4", fontSize: 25 }} />
+          <Typography sx={{ color: "#858585" }}>Local/Categoria do projeto</Typography>
+        </Box>
 
+        <box style={{ display: "flex", justifyContent: "space-between", width: "100%"}} >
+          <Select
+            label="Cliente"
+            name="cliente"
+            value={formValues.cliente}
+            onChange={handleInputChange}
+            displayEmpty
+            sx={{ width:"49%" }}
+          >
+            <MenuItem
+              value="" disabled>
+              Selecione a Unidade
+            </MenuItem>
+            <MenuItem value="Cliente A">GOIÁS</MenuItem>
+            <MenuItem value="Cliente B">BRASÍLIA</MenuItem>
+            <MenuItem value="Cliente B">TOCANTINS</MenuItem>
+            <MenuItem value="Cliente B">MATO GROSSO</MenuItem>
+            <MenuItem value="Cliente B">MATO GROSSO DO SUL</MenuItem>
+            <MenuItem value="Cliente B">PARÁ</MenuItem>
+          </Select>
+
+          <Select
+            label="Cliente"
+            name="cliente"
+            value={formValues.cliente}
+            onChange={handleInputChange}
+            displayEmpty
+            sx={{ width:"49%"}}
+          >
+            <MenuItem
+              value="" disabled>
+              Selecione a categoria do projeto
+            </MenuItem>
+            <MenuItem value="Cliente A">Contabilidade</MenuItem>
+            <MenuItem value="Cliente B">Controladoria</MenuItem>
+            <MenuItem value="Cliente B">RH</MenuItem>
+            <MenuItem value="Cliente B">Jurídico</MenuItem>
+            <MenuItem value="Cliente B">Financeiro</MenuItem>
+            <MenuItem value="Cliente B">Administrativo</MenuItem>
+          </Select>
+        </box>
+        
+        {/*
         <Typography variant="h6" sx={{ color: "#858585" }}>Outras configurações</Typography>
         <Box display="flex" gap={2}>
           <TextField
@@ -145,35 +187,35 @@ const CadastroProjetos = () => {
             value={formValues.custoPrevisto}
             onChange={handleInputChange}
           />
+           
           <TextField
             label="Custo real"
             name="custoReal"
             value={formValues.custoReal}
             onChange={handleInputChange}
           />
+          
         </Box>
+        */}
 
+        {/** 
         <FormControlLabel
           control={<Checkbox checked={formValues.projetoAtivo} onChange={handleCheckboxChange} name="projetoAtivo" />}
           label="Projeto ativo"
           sx={{ color: "#858585", marginLeft: "5px" }}
         />
-        
+        */}
+
+        <Box display="flex" alignItems="center" gap={1}
+          sx={{ marginTop: "20px", marginBottom: "20px" }}
+        >
+          <PlayCircleFilledIcon sx={{ color: "#8b5cf6", fontSize: 25 }} />
+          <Typography sx={{ color: "#858585" }}>Solicitantes/Responsáveis/Participantes do projeto</Typography>
+        </Box>
+
 
         <Box display="flex" gap={2}>
-          <Select
-            label="Copiar projeto"
-            name="copiarProjeto"
-            value={formValues.copiarProjeto}
-            onChange={handleInputChange}
-            displayEmpty
-          >
-            <MenuItem value="" disabled>
-              Selecione um projeto
-            </MenuItem>
-            <MenuItem value="Projeto A">Projeto A</MenuItem>
-            <MenuItem value="Projeto B">Projeto B</MenuItem>
-          </Select>
+          
           <Select
             label="Solicitante"
             name="solicitante"
@@ -200,7 +242,48 @@ const CadastroProjetos = () => {
             <MenuItem value="Responsável A">Responsável A</MenuItem>
             <MenuItem value="Responsável B">Responsável B</MenuItem>
           </Select>
+          <Select
+            label="Copiar projeto"
+            name="copiarProjeto"
+            value={formValues.copiarProjeto}
+            onChange={handleInputChange}
+            displayEmpty
+          >
+            <MenuItem value="" disabled>
+              Participantes do Projeto
+            </MenuItem>
+            <MenuItem value="Projeto A">Projeto A</MenuItem>
+            <MenuItem value="Projeto B">Projeto B</MenuItem>
+          </Select>
+          
         </Box>
+
+        <Box display="flex" alignItems="center" gap={1}
+          sx={{ marginTop: "20px", marginBottom: "20px" }}
+        >
+          <PlayCircleFilledIcon sx={{ color: "#db2777", fontSize: 25 }} />
+          <Typography sx={{ color: "#858585" }}>Orçamento do projeto</Typography>
+        </Box>
+
+        <TextField
+          label="Digite o valor do orçamento para esse projeto..."
+          name="valor"
+          value={formValues.valor}
+          onChange={(e) => {
+            const valor = e.target.value;
+            // Remove caracteres não numéricos
+            const onlyNumbers = valor.replace(/[^\d]/g, "");
+            // Converte para formato de moeda
+            const formattedValue = new Intl.NumberFormat("pt-BR", {
+              style: "currency",
+              currency: "BRL",
+            }).format(onlyNumbers / 100);
+            // Atualiza o estado
+            handleInputChangeReal({ target: { name: "valor", value: formattedValue } });
+          }}
+          fullWidth
+        />
+
 
         <TextField
           label="Descrição"

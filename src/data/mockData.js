@@ -75,6 +75,61 @@ export const mockDataTeam = [
   },
 ];
 
+export const mockDataProjects = [
+  {
+    id: 1,
+    name: "Sistema de Gestão de Vendas",
+    solicitante: "Carlos Oliveira",
+    startDate: "2023-01-15",
+    deadline: "2023-12-31",
+    currentSpending: "$90,000",
+    budget: "$50,000",
+    active: false,
+  },
+  {
+    id: 2,
+    name: "Reestruturação do Site Corporativo",
+    solicitante: "Ana Paula",
+    startDate: "2023-06-01",
+    deadline: "2023-11-30",
+    currentSpending: "$18,000",
+    budget: "$20,000",
+    active: false,
+  },
+  {
+    id: 3,
+    name: "Aplicativo Mobile para Clientes",
+    solicitante: "João Silva",
+    startDate: "2023-04-10",
+    deadline: "2024-03-01",
+    currentSpending: "$25,000",
+    budget: "$75,000",
+    active: false,
+  },
+  {
+    id: 4,
+    name: "Migração de Servidores para a Nuvem",
+    solicitante: "Fernanda Souza",
+    startDate: "2023-09-01",
+    deadline: "2024-02-28",
+    currentSpending: "$10,000",
+    budget: "$30,000",
+    active: false,
+  },
+  {
+    id: 5,
+    name: "Treinamento de Equipe de TI",
+    solicitante: "Roberto Lima",
+    startDate: "2023-08-15",
+    deadline: "2023-12-15",
+    currentSpending: "$5,000",
+    budget: "$10,000",
+    active: false,
+  },
+];
+
+
+
 export const mockDataContacts = [
   {
     id: 1,
