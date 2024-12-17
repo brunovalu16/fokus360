@@ -24,10 +24,10 @@ const localeText = {
   toolbarDensity: "Densidade",
   toolbarExport: "Exportar",
   footerRowSelected: (count) =>
-    count === 1 ? `${count} linha selecionada` : `${count} linhas selecionadas`,
+  count === 1 ? `` : ``,
   footerTotalRows: "Linhas totais:",
   footerPaginationRowsPerPage: "Linhas por página:",
-  footerPagination: (page, pageCount) => `${page}–${pageCount} de ${pageCount}`,
+  
 };
 
 // Barra de ferramentas personalizada
@@ -42,7 +42,7 @@ const CustomToolbar = () => (
   >
     <GridToolbarColumnsButton sx={{ color: "#727681", "&:hover": { color: "#3f51b5" } }} />
     <GridToolbarFilterButton sx={{ color: "#727681", "&:hover": { color: "#3f51b5" } }} />
-    <GridToolbarDensitySelector sx={{ color: "#727681", "&:hover": { color: "#3f51b5" } }} />
+    {/**   <GridToolbarDensitySelector sx={{ color: "#727681", "&:hover": { color: "#3f51b5" } }} />   */}
     <GridToolbarExport sx={{ color: "#727681", "&:hover": { color: "#3f51b5" } }} />
   </GridToolbarContainer>
 );
@@ -108,14 +108,25 @@ const ListaProjetos = () => {
         return (
           <Box
             sx={{
-              backgroundColor,
-              color: "#fff",
-              padding: "5px 10px",
-              borderRadius: "5px",
-              textAlign: "center",
+              display: "flex",
+              alignItems: "center", // Alinha verticalmente
+              gap: "8px", // Espaço entre a bolinha e o texto
+              maxWidth: "100%",
+              minWidth: "100%",
+              justifyContent: "flex-start", // Centraliza horizontalmente
               fontWeight: "bold",
             }}
           >
+            {/* Bolinha */}
+            <Box
+              sx={{
+                width: "10px", // Define o tamanho da bolinha
+                height: "10px",
+                borderRadius: "50%", // Faz o elemento ser um círculo
+                backgroundColor: backgroundColor || "#583cff", // Cor da bolinha
+                marginRight: "5px",
+              }}
+            />
             {startDate.toLocaleDateString("pt-BR", { timeZone: "UTC" })}
           </Box>
         );
@@ -124,7 +135,7 @@ const ListaProjetos = () => {
     {
       field: "deadline",
       headerName: "Prazo previsto",
-      flex: 0.5,
+      flex: 0.8,
       renderCell: (params) => {
         const [day, month, year] = params.value.split("/");
         const deadlineDate = new Date(Date.UTC(year, month - 1, day));
@@ -151,7 +162,7 @@ const ListaProjetos = () => {
         else if (currentSpending >= budget) backgroundColor = "#f44336";
         else if (currentSpending >= budget * 0.8) {
           backgroundColor = "#FFC107";
-          textColor = "#000";
+          textColor = "#fff";
         }
 
         const formatDate = (dateString) => {
@@ -164,16 +175,25 @@ const ListaProjetos = () => {
         return (
           <Box
             sx={{
-              backgroundColor,
-              color: textColor,
-              padding: "5px 10px",
-              borderRadius: "5px",
-              textAlign: "center",
+              display: "flex",
+              alignItems: "center", // Alinha verticalmente
+              gap: "8px", // Espaço entre a bolinha e o texto
+              maxWidth: "100%",
+              minWidth: "100%",
+              justifyContent: "flex-start", // Centraliza horizontalmente
               fontWeight: "bold",
-              display: "inline-block",
-              minWidth: "80px",
             }}
           >
+            {/* Bolinha */}
+            <Box
+              sx={{
+                width: "10px", // Define o tamanho da bolinha
+                height: "10px",
+                borderRadius: "50%", // Faz o elemento ser um círculo
+                backgroundColor: backgroundColor || "#583cff", // Cor da bolinha
+                marginRight: "5px",
+              }}
+            />
             {currentSpending.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
           </Box>
         );
@@ -195,7 +215,7 @@ const ListaProjetos = () => {
     {
       field: "active",
       headerName: "Ativo",
-      flex: 0.5,
+      flex: 0.4,
       renderCell: (params) => (
         <FormControlLabel
           control={
@@ -211,13 +231,20 @@ const ListaProjetos = () => {
     {
       field: "actions",
       headerName: "Ações",
-      flex: 1,
+      flex: 0.9,
       renderCell: ({ row }) => (
         <Box display="flex" gap={1}>
           <Button
             size="small"
             onClick={() => handleNavigateToProject(row.id)}
-            sx={{ color: "#fff", backgroundColor: "#583cff", "&:hover": { backgroundColor: "#3f2cb2" } }}
+            sx={{
+              color: "#fff",
+              backgroundColor: "#583cff",
+              marginBottom: "5px",
+              marginTop: "5px",
+              fontSize: "0.65rem", // Tamanho da fonte
+              "&:hover": { backgroundColor: "#3f2cb2" },
+            }}
           >
             Editar
           </Button>
