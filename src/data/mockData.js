@@ -80,38 +80,38 @@ export const mockDataProjects = [
     id: 1,
     name: "Sistema de Gestão de Vendas",
     solicitante: "Carlos Oliveira",
-    startDate: "2023-01-15",
-    deadline: "2023-12-31",
+    startDate: "28/12/2024", // Verde (6 ou mais dias antes do prazo)
+    deadline: "28/12/2024",
     currentSpending: "$90,000",
     budget: "$50,000",
     active: false,
   },
   {
     id: 2,
-    name: "Reestruturação do Site Corporativo",
-    solicitante: "Ana Paula",
-    startDate: "2023-06-01",
-    deadline: "2023-11-30",
-    currentSpending: "$18,000",
-    budget: "$20,000",
-    active: false,
+    name: "Projeto Imediato",
+    solicitante: "Maria Fernanda",
+    startDate: "28/12/2024", // Amarelo (2 dias antes do prazo)
+    deadline: "25/12/2024",
+    currentSpending: "$40,000",
+    budget: "$45,000",
+    active: true,
   },
   {
     id: 3,
-    name: "Aplicativo Mobile para Clientes",
-    solicitante: "João Silva",
-    startDate: "2023-04-10",
-    deadline: "2024-03-01",
-    currentSpending: "$25,000",
-    budget: "$75,000",
+    name: "Projeto Atrasado",
+    solicitante: "Roberto Lima",
+    startDate: "18/12/2024", // Vermelho (mesma data ou após o prazo)
+    deadline: "20/12/2024",
+    currentSpending: "$8,000",
+    budget: "$10,000",
     active: false,
   },
   {
     id: 4,
     name: "Migração de Servidores para a Nuvem",
     solicitante: "Fernanda Souza",
-    startDate: "2023-09-01",
-    deadline: "2024-02-28",
+    startDate: "01/09/2024", // Verde (6 ou mais dias antes do prazo)
+    deadline: "01/10/2024",
     currentSpending: "$10,000",
     budget: "$30,000",
     active: false,
@@ -120,13 +120,55 @@ export const mockDataProjects = [
     id: 5,
     name: "Treinamento de Equipe de TI",
     solicitante: "Roberto Lima",
-    startDate: "2023-08-15",
-    deadline: "2023-12-15",
-    currentSpending: "$5,000",
+    startDate: "14/12/2024", // Verde (6 ou mais dias antes do prazo)
+    deadline: "15/12/2024",
+    currentSpending: "$8,000",
     budget: "$10,000",
     active: false,
   },
+  {
+    id: 6,
+    name: "Atualização do Sistema ERP",
+    solicitante: "Mariana Santos",
+    startDate: "08/01/2024", // Amarelo (2 dias antes do prazo)
+    deadline: "10/01/2024",
+    currentSpending: "$15,000",
+    budget: "$25,000",
+    active: true,
+  },
+  {
+    id: 7,
+    name: "Desenvolvimento de Dashboard",
+    solicitante: "Pedro Almeida",
+    startDate: "10/10/2024", // Verde (6 ou mais dias antes do prazo)
+    deadline: "01/11/2024",
+    currentSpending: "$5,000",
+    budget: "$20,000",
+    active: true,
+  },
+  {
+    id: 8,
+    name: "Análise de Segurança da Informação",
+    solicitante: "Juliana Ribeiro",
+    startDate: "27/12/2024", // Amarelo (2 dias antes do prazo)
+    deadline: "30/12/2024",
+    currentSpending: "$18,000",
+    budget: "$20,000",
+    active: false,
+  },
+  {
+    id: 9,
+    name: "Projeto de Integração",
+    solicitante: "Carlos Pereira",
+    startDate: "01/01/2024", // Verde (6 ou mais dias antes do prazo)
+    deadline: "31/12/2024",
+    currentSpending: "$12,000",
+    budget: "$50,000",
+    active: true,
+  },
 ];
+
+
 
 
 
