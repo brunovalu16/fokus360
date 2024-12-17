@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Button, TextField, Modal, Select, MenuItem, IconButton } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { Header } from "../../components";
-import { db } from "../../data/firebase-config";
-import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
+import { Box, Typography, Button, TextField, Modal, Select, MenuItem, IconButton, Divider } from "@mui/material";
 import DeleteForeverSharpIcon from '@mui/icons-material/DeleteForeverSharp';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
-import { Divider } from "@mui/material";
-import LocalGroceryStoreIcon from '@mui/icons-material/LocalGroceryStore';
+import { Header } from "../../components";
+import { db } from "../../data/firebase-config";
+import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
 
 const Kanban = () => {
   const [columns, setColumns] = useState([
@@ -151,250 +148,253 @@ const Kanban = () => {
   };
 
   return (
-
     <>
-    {/* Header */}
+      {/* Header */}
       <Box
-            sx={{
-              marginLeft: "40px",
-              paddingTop: "50px",
-            }}
-          >
-          <Header
-            title={
-              <Box display="flex" alignItems="center" gap={1}>
-                <AssignmentTurnedInIcon sx={{ color: "#5f53e5", fontSize: 40 }} />
-                  <Typography>
-                      GERENCIADOR DE TAREFAS 
-                  </Typography>
-                
-              </Box>
-            }
-          />
-      </Box>
-
-
-    <Box m="40px">
-
-    <Box display="flex" alignItems="center" gap={1}>
-            <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
-            <Typography color="#858585">
-                Adicione tarefas no painel de gerenciamento
-          </Typography>     
-        </Box>
-
-          <Box
-            sx={{
-              position: "relative", // Permite posicionar o ícone sobre o divisor
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "100%", // Largura do divisor
-              marginBottom: "30px",
-              marginTop: "15px",
-            }}
-          >
-            {/* Divider */}
-            <Divider
-              sx={{
-                position: "absolute", // Para garantir que o ícone fique sobre o divisor
-                width: "100%",
-                height: "1px",
-                backgroundColor: "#ccc", // Cor do divisor
-              }}
-            />
-        </Box>
-      
-      <Modal open={isModalOpen} onClose={() => setModalOpen(false)} width="100%">
-        <Box sx={modalStyle}>
-          <Typography
-            variant="h5"
-            mb={2}
-            backgroundColor="#5f53e5"
-            padding="10px"
-            borderRadius="10px"
-            color="white"
-            >
-            Adicionar Novo Cartão
-          </Typography>
-          <TextField
-            fullWidth
-            label="Nome"
-            value={newCard.nome}
-            onChange={(e) => setNewCard({ ...newCard, nome: e.target.value })}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            fullWidth
-            label="Departamento"
-            value={newCard.departamento}
-            onChange={(e) => setNewCard({ ...newCard, departamento: e.target.value })}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            fullWidth
-            label="Assunto"
-            value={newCard.assunto}
-            onChange={(e) => setNewCard({ ...newCard, assunto: e.target.value })}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            fullWidth
-            label="Data de Criação"
-            type="date"
-            value={newCard.dataCriacao}
-            onChange={(e) => setNewCard({ ...newCard, dataCriacao: e.target.value })}
-            InputLabelProps={{ shrink: true }}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            fullWidth
-            label="Data de Finalização"
-            type="date"
-            value={newCard.dataFinalizacao}
-            onChange={(e) =>
-              setNewCard({ ...newCard, dataFinalizacao: e.target.value })
-            }
-            InputLabelProps={{ shrink: true }}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            fullWidth
-            label="Responsável"
-            value={newCard.responsavel}
-            onChange={(e) => setNewCard({ ...newCard, responsavel: e.target.value })}
-            sx={{ mb: 2 }}
-          />
-          <Select
-            fullWidth
-            value={newCard.prioridade}
-            onChange={(e) => setNewCard({ ...newCard, prioridade: e.target.value })}
-            sx={{ mb: 2 }}
-          >
-            <MenuItem value="low">Baixa Prioridade</MenuItem>
-            <MenuItem value="medium">Média Prioridade</MenuItem>
-            <MenuItem value="high">Alta Prioridade</MenuItem>
-          </Select>
-          <Button
-            variant="contained"
-            onClick={handleAddCard}
-            fullWidth
-            sx={{ marginBottom: "15px",
-              backgroundColor: "#5f53e5",
-              color: "#ffffff",
-              boxShadow: "none",
-              "&:hover": {
-                backgroundColor: "#3f2cb2",
-                boxShadow: "none"
-              },
-            }}
-          >
-            Adicionar
-          </Button>
-        </Box>
-      </Modal>
-
-
-
-      <Box sx={kanbanStyle}>
-        {columns.map((column) => (
-          <Box
-            key={column.id}
-            sx={{
-              ...columnStyle,
-              borderTop: `5px solid ${getColumnBorderColor(column.id)}`,
-            }}
-            onDragOver={handleDragOver}
-            onDrop={() => handleDrop(column.id)}
-          >
-            <Typography variant="h6" sx={{ mb: 3 }}>
-              {column.title}
-            </Typography>
-
-            {column.id === 1 && (
-              <Button
-                variant="contained"
-                onClick={() => setModalOpen(true)}
-                sx={{
-                  boxShadow: "none",
-                  marginBottom: "15px",
-                  backgroundColor: "#5f53e5",
-                  color: "#ffffff",
-                    "&:hover": {
-                    backgroundColor: "#3f2cb2",
-                    boxShadow: "none"
-                }, }}
-                >
-                Adicionar cartão
-              </Button>
-            )}
-
-            <Box sx={cardContainerStyle}>
-              {column.cards.map((card) => (
-                <Box
-                  key={card.id}
-                  sx={cardStyle}
-                  draggable
-                  onDragStart={() => handleDragStart(card, column.id)}
-                  onDragEnd={handleDragEnd}
-                >
-                  <Box sx={badgeStyle(card.prioridade)}>
-                    {card.prioridade === "high"
-                      ? "Alta Prioridade"
-                      : card.prioridade === "medium"
-                      ? "Média Prioridade"
-                      : "Baixa Prioridade"}
-                  </Box>
-                  <Typography variant="body2">
-                    <strong>Nome:</strong> {card.nome}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Departamento:</strong> {card.departamento}
-                  </Typography>
-                  <Typography
-                    variant="h6"
-                    sx={{ mb: 1,
-                          whiteSpace: "pre-wrap", // Permite quebra de linha
-                          wordBreak: "break-word", 
-                    }}
-                    color="#565454"
-                    backgroundColor="#ccc9c9"
-                    padding="10px"
-                    borderRadius="7px"
-                    >
-                    {card.assunto}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Responsável:</strong> {card.responsavel}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Data de Criação:</strong> {card.dataCriacao}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Data de Finalização:</strong> {card.dataFinalizacao}
-                  </Typography>
-                  <IconButton
-                    onClick={() => handleDeleteCard(card.id, column.id)}
-                    sx={{
-                      color: "#d32f2f",
-                      marginLeft: "160px",
-                      marginTop: "10px",
-                      padding: "0px"
-                    }}
-                  >
-                    <DeleteForeverSharpIcon
-                      sx={{
-                        fontSize: "30px",
-                      }}
-                    />
-                  </IconButton>
-                </Box>
-              ))}
+        sx={{
+          marginLeft: "40px",
+          paddingTop: "50px",
+        }}
+      >
+        <Header
+          title={
+            <Box display="flex" alignItems="center" gap={1}>
+              <AssignmentTurnedInIcon sx={{ color: "#5f53e5", fontSize: 40 }} />
+              <Typography>GERENCIADOR DE TAREFAS</Typography>
             </Box>
-          </Box>
-        ))}
+          }
+        />
       </Box>
-    </Box>
+
+      <Box
+        sx={{
+          marginLeft: "40px",
+          marginTop: "-15px",
+          width: "calc(100% - 80px)",
+          minHeight: "50vh",
+          padding: "15px",
+          paddingLeft: "30px",
+          borderRadius: "20px",
+          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+          bgcolor: "#f2f0f0",
+          overflowX: "hidden",
+        }}
+      >
+        <Box display="flex" alignItems="center" gap={1}>
+          <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
+          <Typography color="#858585">
+            Adicione tarefas no painel de gerenciamento
+          </Typography>
+        </Box>
+
+        <Box
+          sx={{
+            position: "relative",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            marginBottom: "30px",
+            marginTop: "15px",
+          }}
+        >
+          <Divider
+            sx={{
+              position: "absolute",
+              width: "100%",
+              height: "1px",
+              backgroundColor: "#ccc",
+            }}
+          />
+        </Box>
+
+        <Modal open={isModalOpen} onClose={() => setModalOpen(false)} width="100%">
+          <Box sx={modalStyle}>
+            <Typography
+              variant="h5"
+              mb={2}
+              backgroundColor="#5f53e5"
+              padding="10px"
+              borderRadius="10px"
+              color="white"
+            >
+              Adicionar Novo Cartão
+            </Typography>
+            <TextField
+              fullWidth
+              label="Nome"
+              value={newCard.nome}
+              onChange={(e) => setNewCard({ ...newCard, nome: e.target.value })}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              label="Departamento"
+              value={newCard.departamento}
+              onChange={(e) => setNewCard({ ...newCard, departamento: e.target.value })}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              label="Assunto"
+              value={newCard.assunto}
+              onChange={(e) => setNewCard({ ...newCard, assunto: e.target.value })}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              label="Data de Criação"
+              type="date"
+              value={newCard.dataCriacao}
+              onChange={(e) => setNewCard({ ...newCard, dataCriacao: e.target.value })}
+              InputLabelProps={{ shrink: true }}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              label="Data de Finalização"
+              type="date"
+              value={newCard.dataFinalizacao}
+              onChange={(e) =>
+                setNewCard({ ...newCard, dataFinalizacao: e.target.value })
+              }
+              InputLabelProps={{ shrink: true }}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              label="Responsável"
+              value={newCard.responsavel}
+              onChange={(e) => setNewCard({ ...newCard, responsavel: e.target.value })}
+              sx={{ mb: 2 }}
+            />
+            <Select
+              fullWidth
+              value={newCard.prioridade}
+              onChange={(e) => setNewCard({ ...newCard, prioridade: e.target.value })}
+              sx={{ mb: 2 }}
+            >
+              <MenuItem value="low">Baixa Prioridade</MenuItem>
+              <MenuItem value="medium">Média Prioridade</MenuItem>
+              <MenuItem value="high">Alta Prioridade</MenuItem>
+            </Select>
+            <Button
+              variant="contained"
+              onClick={handleAddCard}
+              fullWidth
+              sx={{
+                marginBottom: "15px",
+                backgroundColor: "#5f53e5",
+                color: "#ffffff",
+                boxShadow: "none",
+                "&:hover": {
+                  backgroundColor: "#3f2cb2",
+                  boxShadow: "none",
+                },
+              }}
+            >
+              Adicionar
+            </Button>
+          </Box>
+        </Modal>
+
+        <Box sx={kanbanStyle}>
+          {columns.map((column) => (
+            <Box
+              key={column.id}
+              sx={{
+                ...columnStyle,
+                borderTop: `5px solid ${getColumnBorderColor(column.id)}`,
+              }}
+              onDragOver={handleDragOver}
+              onDrop={() => handleDrop(column.id)}
+            >
+              <Typography variant="h6" sx={{ mb: 3 }}>
+                {column.title}
+              </Typography>
+
+              {column.id === 1 && (
+                <Button
+                  variant="contained"
+                  onClick={() => setModalOpen(true)}
+                  sx={{
+                    boxShadow: "none",
+                    marginBottom: "15px",
+                    backgroundColor: "#5f53e5",
+                    color: "#ffffff",
+                    "&:hover": {
+                      backgroundColor: "#3f2cb2",
+                      boxShadow: "none",
+                    },
+                  }}
+                >
+                  Adicionar cartão
+                </Button>
+              )}
+
+              <Box sx={cardContainerStyle}>
+                {column.cards.map((card) => (
+                  <Box
+                    key={card.id}
+                    sx={cardStyle}
+                    draggable
+                    onDragStart={() => handleDragStart(card, column.id)}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <Box sx={badgeStyle(card.prioridade)}>
+                      {card.prioridade === "high"
+                        ? "Alta Prioridade"
+                        : card.prioridade === "medium"
+                        ? "Média Prioridade"
+                        : "Baixa Prioridade"}
+                    </Box>
+                    <Typography variant="body2">
+                      <strong>Nome:</strong> {card.nome}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Departamento:</strong> {card.departamento}
+                    </Typography>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        mb: 1,
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                      }}
+                      color="#565454"
+                      backgroundColor="#ccc9c9"
+                      padding="10px"
+                      borderRadius="7px"
+                    >
+                      {card.assunto}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Responsável:</strong> {card.responsavel}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Data de Criação:</strong> {card.dataCriacao}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Data de Finalização:</strong> {card.dataFinalizacao}
+                    </Typography>
+                    <IconButton
+                      onClick={() => handleDeleteCard(card.id, column.id)}
+                      sx={{
+                        color: "#d32f2f",
+                        marginLeft: "160px",
+                        marginTop: "10px",
+                        padding: "0px",
+                      }}
+                    >
+                      <DeleteForeverSharpIcon sx={{ fontSize: "30px" }} />
+                    </IconButton>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      </Box>
     </>
   );
 };
@@ -404,7 +404,7 @@ const kanbanStyle = {
   gap: 2,
   overflowX: "auto",
   overflowY: "hidden",
-  marginBottom: "50px"
+  marginBottom: "50px",
 };
 
 const modalStyle = {
@@ -422,12 +422,11 @@ const modalStyle = {
 const columnStyle = {
   display: "flex",
   flexDirection: "column",
-  minWidth: "240px",
+  minWidth: "260px",
   maxWidth: "240px",
   p: 2,
   bgcolor: "#e8e9ea",
   borderRadius: "10px",
-  
 };
 
 const cardContainerStyle = {
@@ -442,5 +441,6 @@ const cardStyle = {
   borderRadius: "10px",
   boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
 };
+
 
 export default Kanban;

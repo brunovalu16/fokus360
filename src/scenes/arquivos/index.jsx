@@ -10,7 +10,6 @@ import Modal from "../../components/Modal";
 import { db, storage } from "../../data/firebase-config"; // Firestore e Storage
 import { collection, getDocs, doc, deleteDoc } from "firebase/firestore"; 
 import { ref, deleteObject } from "firebase/storage"; 
-import AssessmentIcon from "@mui/icons-material/Assessment";
 import TopicIcon from '@mui/icons-material/Topic';
 
 const localeText = {
@@ -87,18 +86,21 @@ const Arquivos = () => {
   }, []);
 
   const columns = [
-    { field: "uploadedBy",
+    {
+      field: "uploadedBy",
       headerName: "Nome do Usuário",
       flex: 1,
-      renderCell: ({ row }) => 
-        <Typography  style={{ fontWeight: "bold" }}>
-          {row.uploadedBy}
-        </Typography>
+      renderCell: ({ row }) => (
+        <Typography style={{ fontWeight: "bold" }}>{row.uploadedBy}</Typography>
+      ),
     },
     { field: "fileName", headerName: "Nome do Arquivo", flex: 1 },
     { field: "fileType", headerName: "Tipo de Arquivo", flex: 1 },
     { field: "state", headerName: "Unidade", flex: 1 },
-    { field: "fileURL", headerName: "Ações", flex: 1.3,
+    {
+      field: "fileURL",
+      headerName: "Ações",
+      flex: 1.3,
       renderCell: ({ row }) => (
         <Box display="flex" gap={1}>
           <Button
@@ -120,69 +122,54 @@ const Arquivos = () => {
             Download
           </Button>
 
-          
-          <IconButton
-            onClick={() => handleDelete(row.id)}
-            sx={{
-              marginLeft: "30px",
-            }}
-          >
+          <IconButton onClick={() => handleDelete(row.id)}>
             <DeleteForeverSharpIcon
               disableRipple
-              sx={{
-                fontSize: "28px",
-                color: colors.redAccent[600],
-              }}
+              sx={{ fontSize: "28px", color: colors.redAccent[600] }}
             />
           </IconButton>
         </Box>
       ),
     },
   ];
-  
 
   return (
-
     <>
       {/* Header */}
-      <Box
-            sx={{
-              marginLeft: "40px",
-              paddingTop: "50px",
-            }}
-          >
-          <Header
-            title={
-              <Box display="flex" alignItems="center" gap={1}>
-                <TopicIcon sx={{ color: "#5f53e5", fontSize: 40 }} />
-                  <Typography>
-                      GERENCIADOR DE ARQUIVOS
-                  </Typography>
-                
-              </Box>
-            }
-          />
+      <Box sx={{ marginLeft: "40px", paddingTop: "50px" }}>
+        <Header
+          title={
+            <Box display="flex" alignItems="center" gap={1}>
+              <TopicIcon sx={{ color: "#5f53e5", fontSize: 40 }} />
+              <Typography>GERENCIADOR DE ARQUIVOS</Typography>
+            </Box>
+          }
+        />
       </Box>
-    
-    <Box m="40px">
-      
+
       <Box
-        mt="40px"
-        height="auto"
-        
         sx={{
+          marginLeft: "40px",
+          marginTop: "-15px",
+          width: "calc(100% - 80px)",
+          minHeight: "50vh",
+          padding: "15px",
+          paddingLeft: "30px",
+          borderRadius: "20px",
+          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+          bgcolor: "#f2f0f0",
+          overflowX: "hidden",
           "& .MuiDataGrid-root": { border: "none" },
           "& .MuiDataGrid-cell": { border: "none" },
-          "& .MuiDataGrid-columnHeaders": { backgroundColor: colors.blueAccent[700] },
-          "& .MuiDataGrid-virtualScroller": { backgroundColor: colors.primary[400] },
-          "& .MuiDataGrid-footerContainer": { borderTop: "none", backgroundColor: colors.gray[900] },
-          "& .MuiCheckbox-root": { color: `${colors.blueAccent[1300]} !important` },
           "& .MuiDataGrid-columnHeaders": {
-              backgroundColor: "#312783", // Cor de fundo do cabeçalho
-              color: "#bcbcbc", // Cor do texto do cabeçalho
-              
-              fontSize: "13px", // Ajusta o tamanho do texto
-            },
+            backgroundColor: "#312783",
+            color: "#bcbcbc",
+            fontSize: "13px",
+          },
+          "& .MuiDataGrid-footerContainer": {
+            borderTop: "none",
+            backgroundColor: colors.gray[900],
+          },
         }}
       >
         <Box display="flex" justifyContent="flex-end" mb={2}>
@@ -214,13 +201,10 @@ const Arquivos = () => {
               paginationModel: { pageSize: 10 },
             },
           }}
-          pageSizeOptions={[5, 10, 20]}
-          checkboxSelection
         />
       </Box>
 
       <Modal open={isModalOpen} onClose={handleCloseModal} onFileUploaded={fetchFiles} />
-    </Box>
     </>
   );
 };
