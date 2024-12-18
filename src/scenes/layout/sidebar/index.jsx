@@ -112,7 +112,7 @@ const SideBar = () => {
             button: {
               color: "#312783",
               ":hover": {
-                color: "#00ebf7",
+                color: "#22d3ee",
                 background: "transparent",
                 transition: ".4s ease",
               },
@@ -254,7 +254,6 @@ const SideBar = () => {
               ":hover": {
                 backgroundColor: "#f2f0f0",
                 boxShadow: "none",
-                color: "#00ebf7"
               },
             }}
           >
@@ -264,7 +263,7 @@ const SideBar = () => {
                 color: "#312783",
                 ":hover": {
                   boxShadow: "none",
-                  color: "#00ebf7",
+                  color: "#22d3ee",
                   transition: "all 0.3s ease", // Transição suave
               },
               }}
