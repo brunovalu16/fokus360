@@ -3,7 +3,7 @@ import { Box, Button, Typography, TextField, IconButton, MenuItem } from "@mui/m
 import CloseIcon from "@mui/icons-material/Close";
 import { db, storage, auth } from "../data/firebase-config";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { addDoc, collection, Timestamp } from "firebase/firestore";
+import { addDoc, collection, Timestamp, getDoc, query, where } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 
 const Modal = ({ open, onClose, onFileUploaded }) => {
@@ -28,14 +28,19 @@ const Modal = ({ open, onClose, onFileUploaded }) => {
 
   // Obter o nome do usuário autenticado ao montar o componente
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUserName(user.displayName || user.email || "Usuário Anônimo");
-      }
-    });
+    // verfifica o estado do user logado e passa para o fechuser
+    const unsubscribe = onAuthStateChanged(auth, async(user) => {
+        if (user) {
+          
+          setUserName(user.displayName || user.email || "Usuário Anônimo");
+        }
 
     return () => unsubscribe();
+  });
+
   }, []);
+  
+  
 
   const handleFileUpload = async () => {
     // Validação de campos obrigatórios

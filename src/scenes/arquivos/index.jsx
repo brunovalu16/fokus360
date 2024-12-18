@@ -52,6 +52,7 @@ const Arquivos = () => {
         ...doc.data(),
       }));
       setFilesData(files);
+      console.log(files);
     } catch (error) {
       console.error("Erro ao buscar arquivos:", error);
     }
