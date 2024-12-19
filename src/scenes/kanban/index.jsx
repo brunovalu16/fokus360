@@ -401,7 +401,6 @@ const Kanban = () => {
 
 const kanbanStyle = {
   display: "flex",
-  gap: 2,
   overflowX: "auto",
   overflowY: "hidden",
   marginBottom: "50px",
@@ -422,12 +421,15 @@ const modalStyle = {
 const columnStyle = {
   display: "flex",
   flexDirection: "column",
-  minWidth: "260px",
-  maxWidth: "240px",
-  p: 2,
+  flex: "1 1 280px", // Flexibilidade com largura mínima
+  padding: "16px", // Substituindo 'p' para consistência
+  margin: "3px", // Espaçamento entre colunas
   bgcolor: "#e8e9ea",
   borderRadius: "10px",
+  minWidth: "100px", // Largura mínima
+  maxWidth: "100%", // Garante que a largura máxima não ultrapasse o contêiner
 };
+
 
 const cardContainerStyle = {
   display: "flex",
