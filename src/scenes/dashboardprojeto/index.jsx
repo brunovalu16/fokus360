@@ -6,9 +6,11 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import { Divider } from "@mui/material";
 import PlayCircleFilledWhiteIcon from '@mui/icons-material/PlayCircleFilledWhite';
+import PermContactCalendarIcon from "@mui/icons-material/PermContactCalendar";
 import { tokens } from "../../theme";
 import { mockTransactions } from "../../data/mockData";
 import { mockDiretrizes } from "../../../src/data/mockData";
+import Lista from "../../components/Lista";
 
 
 function DashboardProjeto() {
@@ -102,7 +104,11 @@ function DashboardProjeto() {
           gridAutoRows="140px"
           gap="20px"
         >
+
+
           {/* Statistic Items */}
+          
+         
           {[{
             title: "11,361",
             subtitle: "Orçamento",
@@ -126,11 +132,20 @@ function DashboardProjeto() {
               key={index}
               boxShadow="2"
               borderRadius="20px"
-              gridColumn="span 3"
+              gridColumn="span 4"
               bgcolor={colors.primary[400]}
               display="flex"
               alignItems="center"
               justifyContent="center"
+
+              sx={{ 
+                display: "flex",
+                flexWrap: "wrap", // Permite que as caixas "quebrem" para a próxima linha
+                justifyContent: "center", // Centraliza as caixas no eixo principal
+                gap: "16px", // Espaçamento entre as caixas
+                marginLeft: "19px", //
+                marginRight: "19px", //
+               }}
             >
               <StatBox
                 title={item.title}
@@ -142,32 +157,34 @@ function DashboardProjeto() {
             </Box>
           ))}
 
+          
+          
+         
+
           {/* Line Chart */}
+
+          
           <Box
-            boxShadow="2"
+            //boxShadow="2"
             borderRadius="20px"
-            gridColumn={isXlDevices ? "span 8" : isMdDevices ? "span 6" : "span 6"}
-            gridRow="span 2"
-            bgcolor={colors.primary[400]}
+            gridColumn={isXlDevices ? "span 12" : isMdDevices ? "span 6" : "span 6"}
+            gridRow="span 3"
+            paddingLeft="30px"
+            paddingRight="10px"
+            color="#f2f0f0"
+           // bgcolor={colors.primary[400]}
+
           >
-            <Box mt="25px" px="30px" display="flex" justifyContent="space-between">
-              <Box>
-                <Typography variant="h5" fontWeight="600" color={colors.gray[700]}>
-                  Revenue Generated
-                </Typography>
-                <Typography variant="h5" fontWeight="bold" color={colors.blueAccent[700]}>
-                  $59,342.32
-                </Typography>
-              </Box>
-              <IconButton>
-                <DownloadOutlined sx={{ fontSize: "26px", color: colors.blueAccent[700] }} />
-              </IconButton>
-            </Box>
-            <Box height="250px" mt="-20px">
-              <LineChart isDashboard={true} />
-            </Box>
+            
+
+            <Lista />
+            
           </Box>
         </Box>
+
+        
+
+
 
           
 
