@@ -81,16 +81,7 @@ export const mockDiretrizes = [
     title: "Diretriz de Segurança",
     description: "Implementar políticas de segurança rigorosas para proteger os dados sensíveis da empresa.",
   },
-  {
-    id: 2,
-    title: "Diretriz de Qualidade",
-    description: "Manter um padrão de qualidade em todos os processos para assegurar a satisfação do cliente.",
-  },
-  {
-    id: 3,
-    title: "Diretriz de Sustentabilidade",
-    description: "Promover práticas sustentáveis para minimizar o impacto ambiental nas operações da empresa.",
-  },
+  
 ];
 
 export const mockDataProjects = [
