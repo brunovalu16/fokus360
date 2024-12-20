@@ -3,7 +3,7 @@ import { Box, Typography, useMediaQuery, useTheme } from "@mui/material";
 import  Header  from "../../components/Header";
 import { Divider } from "@mui/material";
 import PlayCircleFilledWhiteIcon from '@mui/icons-material/PlayCircleFilledWhite';
-import BaseDiretriz from "../../components/BaseDiretriz";
+import BaseDiretriz2 from "../../components/BaseDiretriz2";
 import  DadosProjeto   from "../../components/DadosProjeto";
 import InformacoesProjeto from "../../components/InformacoesProjeto";
 
@@ -87,7 +87,7 @@ function DashboardProjeto() {
 
         {/* Componente */}
         <Box sx={{ marginLeft: "35px", marginRight: "55px", marginBottom: "50px"}}>
-          <BaseDiretriz />
+          <BaseDiretriz2 />
         </Box>
         
 
