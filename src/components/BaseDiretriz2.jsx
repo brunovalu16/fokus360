@@ -5,19 +5,20 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import DiretrizData2 from "./DiretrizData2";
 import { mockDiretrizes } from "../data/mockData";
 
-// Componente ProgressStatus
+
+// FUNÇÃO DO GRÁFICO PROGRESS QUE CONTROLA O ESTADO DOS CHECKS
 const ProgressStatus = ({ checkState }) => {
   const allChecked = Object.values(checkState).every((value) => value);
   const someChecked = Object.values(checkState).some((value) => value);
 
   const status = allChecked
-    ? { color: "green", text: "Finalizado" }
+    ? { color: "#a3e635", text: "Finalizado" }
     : someChecked
-    ? { color: "yellow", text: "Em andamento" }
-    : { color: "gray", text: "Não iniciado" };
+    ? { color: "#fde047", text: "Em andamento" }
+    : { color: "#00ebf7", text: "Não iniciado" };
 
   return (
-    <Box display="flex" alignItems="center" gap={1} sx={{ marginLeft: "auto" }}>
+    <Box display="flex" alignItems="center" gap={1} sx={{ marginLeft: "auto", marginRight: "30px" }}>
       <CircularProgress
         variant="determinate"
         value={
@@ -26,13 +27,16 @@ const ProgressStatus = ({ checkState }) => {
           100
         }
         sx={{ color: status.color }}
+        thickness={10} // Ajusta a espessura
+        size={30} // Define o tamanho do círculo (diâmetro em pixels)
       />
-      <Typography variant="h6" sx={{ color: status.color, fontWeight: "bold" }}>
+      <Typography variant="h5" sx={{ color: status.color, fontWeight: "bold" }}>
         {status.text}
       </Typography>
     </Box>
   );
 };
+ // FIM   FUNÇÃO DO GRÁFICO QUE CONTROLA O ESTADO DOS CHECKS
 
 const BaseDiretriz2 = () => {
   const [checkState, setCheckState] = useState({

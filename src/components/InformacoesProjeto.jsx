@@ -177,7 +177,7 @@ const InformacoesProjeto = () => {
 
               {/* Valor e Descrição */}
               <TextField
-                label="Digite o valor do orçamento para esse projeto..."
+                label="Orçamento"
                 name="valor"
                 value={formValues.valor}
                 onChange={(e) => {
