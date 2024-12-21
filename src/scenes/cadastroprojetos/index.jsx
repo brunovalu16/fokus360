@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Button, Typography, TextField, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
+import { Dialog, DialogContent, Alert, Box, Button, Typography, TextField, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import DescriptionIcon from "@mui/icons-material/Description";
@@ -13,6 +13,8 @@ import InformacoesProjeto  from "../../components/InformacoesProjeto";
 
 
 const CadastroProjetos = () => {
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState("success"); // Estado para tipo de alerta
   const [formValues, setFormValues] = useState({
     nome: "",
     dataInicio: "",
@@ -22,6 +24,13 @@ const CadastroProjetos = () => {
     valor: "",
     descricao: "",
   });
+
+  // Função do Alert no botão salvar
+  const handleButtonClick = () => {
+    console.log("Botão clicado!");
+    setShowAlert(true);
+    setTimeout(() => setShowAlert(false), 3000); // Fecha o modal após 3 segundos
+  };
 
   const handleInputChangeReal = (event) => {
     const { name, value } = event.target;
@@ -52,6 +61,35 @@ const CadastroProjetos = () => {
           }
         />
       </Box>
+
+
+
+      {/* Modal com o Alerta */}
+      <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
+        <Dialog
+          open={showAlert}
+          onClose={() => setShowAlert(false)} // Permite fechar manualmente
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: {
+              backgroundColor: "transparent", // Remove o fundo branco
+              boxShadow: "none", // Remove a sombra
+            },
+          }}
+        >
+          <DialogContent>
+            {console.log("Tarefa salva com sucesso!")} {/* Log no console */}
+            <Alert severity="success" sx={{ borderRadius: "12px" }}>
+              <Typography variant="h6" fontWeight="bold">
+                Projeto adicionado com sucesso!
+              </Typography>
+            </Alert>
+          </DialogContent>
+        </Dialog>
+      </Box>
+
+
 
       {/* Caixa com borda cinza e botões */}
       <Box
@@ -175,6 +213,7 @@ const CadastroProjetos = () => {
           sx={{ paddingTop: "30px" }}
         >
           <Button
+            onClick={handleButtonClick}
             variant="contained"
             sx={{
               fontSize: "9px",

@@ -1,13 +1,12 @@
 import React from "react";
-import { Box, useMediaQuery, useTheme, Typography, CircularProgress  } from "@mui/material";
-import  StatBox  from "../../src/components/StatBox";
-import { Email, PersonAdd, PointOfSale } from "@mui/icons-material";
+import { Box, useMediaQuery, useTheme, Typography, CircularProgress } from "@mui/material";
+import StatBox from "../../src/components/StatBox";
 import { tokens } from "../theme";
 import Lista from "../components/Lista";
 import PaidIcon from '@mui/icons-material/Paid';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 
-function DadosProjeto() {
+function DadosProjetogeral() {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const isXlDevices = useMediaQuery("(min-width: 1260px)");
@@ -16,13 +15,9 @@ function DadosProjeto() {
   return (
     <>
       {/* Header */}
-      <Box
-        sx={{
-          marginLeft: "40px",
-          paddingTop: "50px",
-        }}
-      ></Box>
+      <Box sx={{ marginLeft: "40px", paddingTop: "50px" }}></Box>
 
+      {/* Container Principal */}
       <Box
         sx={{
           marginLeft: "40px",
@@ -37,14 +32,8 @@ function DadosProjeto() {
           overflowX: "hidden",
         }}
       >
-        
-
-
         {/* GRID & CHARTS */}
         <Box
-          paddingBottom="20px"
-          borderRadius="20px"
-          paddingTop="20px"
           display="grid"
           gridTemplateColumns={
             isXlDevices
@@ -64,7 +53,7 @@ function DadosProjeto() {
               progress: 75,
               increase: "+14%",
               icon: <PaidIcon sx={{ color: "#fff", fontSize: "40px" }} />,
-              progressColor: "#4caf50", // Cor do gráfico
+              progressColor: "#4caf50",
             },
             {
               title: "431,225",
@@ -72,19 +61,15 @@ function DadosProjeto() {
               progress: 50,
               increase: "+21%",
               icon: <PaidIcon sx={{ color: "#fff", fontSize: "40px" }} />,
-              progressColor: "#ff9800", // Cor do gráfico
+              progressColor: "#ff9800",
             },
             {
               title: "32,441",
               subtitle: "Total de tarefas",
               progress: 30,
               increase: "+5%",
-              icon: (
-                <AssignmentTurnedInIcon
-                  sx={{ color: "#fff", fontSize: "40px" }}
-                />
-              ),
-              progressColor: "#2196f3", // Cor do gráfico
+              icon: <AssignmentTurnedInIcon sx={{ color: "#fff", fontSize: "40px" }} />,
+              progressColor: "#2196f3",
             },
           ].map((item, index) => (
             <Box
@@ -97,21 +82,10 @@ function DadosProjeto() {
               alignItems="center"
               justifyContent="space-between"
               padding="20px"
-              sx={{
-                gap: "10px",
-                position: "relative",
-              }}
+              sx={{ gap: "10px", position: "relative" }}
             >
               {/* Ícone à Esquerda */}
-              <Box
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                sx={{
-                  minWidth: "60px",
-                  height: "60px",
-                }}
-              >
+              <Box display="flex" alignItems="center" justifyContent="center" sx={{ minWidth: "60px", height: "60px" }}>
                 {item.icon}
               </Box>
 
@@ -131,15 +105,9 @@ function DadosProjeto() {
                 flexDirection="column"
                 alignItems="center"
                 justifyContent="center"
-                sx={{
-                  textAlign: "center",
-                  flex: 1,
-                }}
+                sx={{ textAlign: "center", flex: 1 }}
               >
-                <Typography
-                  variant="h5"
-                  sx={{ fontWeight: "bold", color: "#fff" }}
-                >
+                <Typography variant="h5" sx={{ fontWeight: "bold", color: "#fff" }}>
                   {item.title}
                 </Typography>
                 <Typography variant="subtitle2" sx={{ color: "#b0b0b0" }}>
@@ -151,34 +119,81 @@ function DadosProjeto() {
               </Box>
 
               {/* Gráfico à Direita */}
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  minWidth: "60px",
-                  height: "60px",
-                }}
-              >
+              <Box display="flex" alignItems="center" justifyContent="center" sx={{ minWidth: "60px", height: "60px" }}>
                 <CircularProgress
                   variant="determinate"
                   value={item.progress}
                   size={60}
-                  thickness={6} // Define a espessura do círculo
-                  sx={{
-                    color: item.progressColor,
-                  }}
+                  thickness={6}
+                  sx={{ color: item.progressColor }}
                 />
               </Box>
             </Box>
           ))}
         </Box>
 
-        {/** COMPONENTE */}
-        <Lista />
+        {/* Lista e Gráfico Lado a Lado */}
+        <Box
+          display="grid"
+          gridTemplateColumns="2fr 1fr"
+          gap="20px"
+          marginTop="20px"
+        >
+          {/* Lista */}
+          <Box sx={{ width: "100%" }}>
+            <Lista />
+          </Box>
+
+          {/* Gráfico Horizontal - Projetos por Gerência */}
+          <Box
+            boxShadow={3}
+            borderRadius="20px"
+            bgcolor="#fff"
+            padding="20px"
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              gap: "10px",
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: "bold", marginBottom: "10px" }}>
+              Projetos por Gerência
+            </Typography>
+
+            {/* Gráfico de Barras */}
+            {[
+              { gerente: "Marcelo", valor: 2 },
+              { gerente: "Ana Cristina", valor: 1 },
+              { gerente: "Juliana", valor: 1 },
+              { gerente: "Leonardo", valor: 1 },
+            ].map((item, index) => (
+              <Box key={index} display="flex" alignItems="center" gap="10px" sx={{ width: "100%" }}>
+                <Typography sx={{ minWidth: "80px", fontWeight: "bold" }}>
+                  {item.gerente}
+                </Typography>
+                <Box sx={{ flex: 1, backgroundColor: "#e0e0e0", borderRadius: "5px", height: "30px" }}>
+                  <Box
+                    sx={{
+                      width: `${item.valor * 50}px`,
+                      backgroundColor: "#1976d2",
+                      height: "100%",
+                      borderRadius: "5px",
+                      textAlign: "center",
+                      color: "#fff",
+                      lineHeight: "30px",
+                    }}
+                  >
+                    {item.valor}
+                  </Box>
+                </Box>
+              </Box>
+            ))}
+          </Box>
+        </Box>
       </Box>
     </>
   );
 }
 
-export default DadosProjeto;
+export default DadosProjetogeral;
