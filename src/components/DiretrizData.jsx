@@ -346,6 +346,7 @@ const DiretrizData = () => {
               />
             </Box>
 
+            {/**   
             <Box display="flex" justifyContent="flex-end" marginTop="20px">
               <Button
                 onClick={handleButtonClick}
@@ -362,6 +363,7 @@ const DiretrizData = () => {
                 SALVAR
               </Button>
             </Box>
+            */}  
           </Box>
         </AccordionDetails>
       </Accordion>
