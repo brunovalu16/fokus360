@@ -1,37 +1,45 @@
 import React, { useState } from "react";
-import {
-  Checkbox,
-  ListItemText,
-  Box,
-  Button,
-  Select,
-  Typography,
-  MenuItem,
-  TextField,
-  Accordion,
-  AccordionSummary, 
-  AccordionDetails,
-} from "@mui/material";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import { Checkbox, ListItemText, Dialog, DialogContent, Box, Button, Alert, Select, Typography, MenuItem, TextField, Accordion, AccordionDetails } from "@mui/material";
 import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import  Header  from "../components/Header";
 
 const DiretrizData = () => {
+  const [showAlert, setShowAlert] = useState(false);
+  const [responsaveis, setResponsaveis] = useState([]);
+  const [quem, setQuem] = useState([]);
   const [formValues, setFormValues] = useState({
-      nome: "",
-      dataInicio: "",
-      prazoPrevisto: "",
-      cliente: "",
-      categoria: [], // Inicializado como array vazio
-      valor: "",
-      descricao: "",
-    });
+    nome: "",
+    dataInicio: "",
+    prazoPrevisto: "",
+    cliente: "",
+    categoria: [], // Inicializado como array vazio
+    valor: "",
+    descricao: "",
+  });
 
-    const handleInputChangeReal = (event) => {
-      const { name, value } = event.target;
-      setFormValues({ ...formValues, [name]: value });
-    };
+  // Função do Alert no botão salvar
+  const handleButtonClick = () => {
+    console.log("Botão clicado!");
+    setShowAlert(true);
+    setTimeout(() => setShowAlert(false), 3000); // Fecha o modal após 3 segundos
+  };
+
+  // Manipulador para "Responsáveis"
+  const handleResponsaveisChange = (event) => {
+    const value = event.target.value;
+    setResponsaveis(typeof value === "string" ? value.split(",") : value);
+  };
+
+  // Manipulador para "Quem"
+  const handleQuemChange = (event) => {
+    const value = event.target.value;
+    setQuem(typeof value === "string" ? value.split(",") : value);
+  };
+
+  const handleInputChangeReal = (event) => {
+    const { name, value } = event.target;
+    setFormValues({ ...formValues, [name]: value });
+  };
 
   // Combina os handlers de input e select
   const handleInputChange = (e) => {
@@ -45,16 +53,48 @@ const DiretrizData = () => {
 
   return (
     <>
-      
-    <Accordion 
-      sx={{
-        boxShadow: "none", // Remove a sombra
-        backgroundColor: "transparent",
-        
-      }}
-    >
-      
+      <Accordion
+        sx={{
+          boxShadow: "none", // Remove a sombra
+          backgroundColor: "transparent",
+        }}
+      >
         <AccordionDetails>
+
+
+          {/* Modal com o Alerta */}
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            gap={2}
+          >
+            <Dialog
+              open={showAlert}
+              onClose={() => setShowAlert(false)} // Permite fechar manualmente
+              maxWidth="sm"
+              fullWidth
+              PaperProps={{
+                sx: {
+                  backgroundColor: "transparent", // Remove o fundo branco
+                  boxShadow: "none", // Remove a sombra
+                },
+              }}
+            >
+              <DialogContent>
+                {console.log("Tarefa salva com sucesso!")}{" "}
+                {/* Log no console */}
+                <Alert severity="success" sx={{ borderRadius: "12px" }}>
+                  <Typography variant="h6" fontWeight="bold">
+                    Tarefa salva com sucesso!
+                  </Typography>
+                </Alert>
+              </DialogContent>
+            </Dialog>
+          </Box>
+
+
+
           <Box sx={{ marginLeft: "40px", paddingTop: "10px" }}>
             <Header
               title={
@@ -82,7 +122,12 @@ const DiretrizData = () => {
             }}
           >
             {/* TextField */}
-            <Box display="flex" alignItems="center" gap={1} sx={{ flex: "1 1 30%" }}>
+            <Box
+              display="flex"
+              alignItems="center"
+              gap={1}
+              sx={{ flex: "1 1 30%" }}
+            >
               <TextField
                 label="Digite uma tarefa..."
                 name="nome"
@@ -90,7 +135,12 @@ const DiretrizData = () => {
                 fullWidth
                 InputLabelProps={{
                   shrink: true,
-                  style: { position: 'absolute', top: '5px', left: '5px', fontSize: "15px" }
+                  style: {
+                    position: "absolute",
+                    top: "5px",
+                    left: "5px",
+                    fontSize: "15px",
+                  },
                 }}
               />
             </Box>
@@ -99,26 +149,20 @@ const DiretrizData = () => {
             <Box width="320px">
               <Select
                 multiple
-                name="categoria"
-                value={formValues.categoria}
-                onChange={handleSelectChange}
+                name="responsaveis"
+                value={responsaveis}
+                onChange={handleResponsaveisChange}
                 displayEmpty
                 fullWidth
                 renderValue={(selected) =>
                   selected.length === 0
-                    ? "Selecione responsáveis para essa tarefa"
+                    ? "Responsáveis para essa tarefa"
                     : selected.join(", ")
                 }
               >
-                <MenuItem disabled value="">
-                  <ListItemText primary="Selecione responsáveis pelo projeto" />
-                </MenuItem>
-
                 {["financeiro", "rh", "marketing", "ti"].map((option) => (
                   <MenuItem key={option} value={option}>
-                    <Checkbox
-                      checked={formValues.categoria.indexOf(option) > -1}
-                    />
+                    <Checkbox checked={responsaveis.indexOf(option) > -1} />
                     <ListItemText
                       primary={option.charAt(0).toUpperCase() + option.slice(1)}
                     />
@@ -127,7 +171,7 @@ const DiretrizData = () => {
               </Select>
             </Box>
 
-            {/* Botão de Adicionar */}
+            {/* Botão de Adicionar 
             <Button
               variant="outlined"
               disableRipple
@@ -146,6 +190,7 @@ const DiretrizData = () => {
             >
               <AddCircleOutlineIcon sx={{ fontSize: 30, color: "#5f53e5" }} />
             </Button>
+            */}
           </Box>
 
           <Box sx={{ marginLeft: "40px", paddingTop: "10px" }}>
@@ -155,7 +200,9 @@ const DiretrizData = () => {
                   <PlayCircleFilledWhiteIcon
                     sx={{ color: "#5f53e5", fontSize: 30 }}
                   />
-                  <Typography>CADASTRAR PLANO DE AÇÃO (5W2H) PARA ESSA TAREFA</Typography>
+                  <Typography>
+                    CADASTRAR PLANO DE AÇÃO (5W2H) PARA ESSA TAREFA
+                  </Typography>
                 </Box>
               }
             />
@@ -172,7 +219,6 @@ const DiretrizData = () => {
               marginRight: "50px",
               padding: "20px",
               borderRadius: "8px",
-              
             }}
           >
             {/* Linha 1 */}
@@ -205,9 +251,9 @@ const DiretrizData = () => {
               <Box sx={{ flex: 1 }}>
                 <Select
                   multiple
-                  name="categoria"
-                  value={formValues.categoria}
-                  onChange={handleSelectChange}
+                  name="quem"
+                  value={quem}
+                  onChange={handleQuemChange}
                   displayEmpty
                   fullWidth
                   renderValue={(selected) =>
@@ -221,9 +267,7 @@ const DiretrizData = () => {
 
                   {["financeiro", "rh", "marketing", "ti"].map((option) => (
                     <MenuItem key={option} value={option}>
-                      <Checkbox
-                        checked={formValues.categoria.indexOf(option) > -1}
-                      />
+                      <Checkbox checked={quem.indexOf(option) > -1} />
                       <ListItemText
                         primary={
                           option.charAt(0).toUpperCase() + option.slice(1)
@@ -302,9 +346,9 @@ const DiretrizData = () => {
               />
             </Box>
 
-            {/** 
             <Box display="flex" justifyContent="flex-end" marginTop="20px">
               <Button
+                onClick={handleButtonClick}
                 variant="contained"
                 sx={{
                   marginTop: "20px",
@@ -318,7 +362,6 @@ const DiretrizData = () => {
                 SALVAR
               </Button>
             </Box>
-            */}
           </Box>
         </AccordionDetails>
       </Accordion>

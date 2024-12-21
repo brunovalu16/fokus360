@@ -1,19 +1,13 @@
 import React, { useState } from "react";
-import {
-  Checkbox,
-  ListItemText,
-  Box,
-  Select,
-  Typography,
-  MenuItem,
-  TextField,
-  Accordion,
-  AccordionDetails,
-} from "@mui/material";
+import { Checkbox, ListItemText, Box, Select, Typography, MenuItem, TextField, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
 import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Header from "./Header";
 
 const DiretrizData2 = ({ checkState, handleCheckChange }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [responsaveis, setResponsaveis] = useState([]);
+  const [quem, setQuem] = useState([]);
   const [formValues, setFormValues] = useState({
     nome: "",
     dataInicio: "",
@@ -24,14 +18,23 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
     descricao: "",
   });
 
-  const handleInputChangeReal = (event) => {
-    const { name, value } = event.target;
-    setFormValues({ ...formValues, [name]: value });
+  // Função do Accordion
+  const handleAccordionToggle = () => {
+    setExpanded(!expanded);
   };
 
-  const handleSelectChange = (e) => {
-    setFormValues({ ...formValues, categoria: e.target.value });
+  // Manipulador para "Responsáveis"
+  const handleResponsaveisChange = (event) => {
+    const value = event.target.value;
+    setResponsaveis(typeof value === "string" ? value.split(",") : value);
   };
+
+  // Manipulador para "Quem"
+  const handleQuemChange = (event) => {
+    const value = event.target.value;
+    setQuem(typeof value === "string" ? value.split(",") : value);
+  };
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -40,11 +43,68 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
 
   return (
     <Accordion
+      expanded={expanded}
+      onChange={handleAccordionToggle}
       sx={{
         boxShadow: "none",
         backgroundColor: "transparent",
       }}
     >
+
+      {/* Título do Accordion */}
+      <AccordionSummary
+        expandIcon={<ExpandMoreIcon />}
+        sx={{
+          backgroundColor: "#fff",
+          borderRadius: "10px",
+          padding: "10px",
+          boxShadow: "none",
+          border: "none",
+          cursor: "pointer",
+          userSelect: "none",
+          position: "relative", // Define o contexto para posicionamento absoluto
+        }}
+      >
+        {/* Ícone com posição fixa horizontal */}
+        <PlayCircleFilledWhiteIcon
+          sx={{
+            color: "#5f53e5",
+            fontSize: 30,
+            position: "absolute", // Fixa a posição do ícone
+            left: "40px", // Define a distância fixa da borda esquerda
+            top: "50%", // Centraliza verticalmente
+            transform: "translateY(-50%)", // Ajuste fino na centralização
+            zIndex: 10, // Garante que o ícone fique acima de outros elementos
+          }}
+        />
+
+        {/* Título do Accordion */}
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: "bold",
+            color: "#5f54e7",
+            marginLeft: "80px", // Espaço para evitar sobreposição com o ícone
+            marginTop: "5px",
+          }}
+        >
+          Desenvolver sistema Fokus360 para o Grupo Fokus
+        </Typography>
+
+        {/* Checkbox */}
+        <Checkbox
+          checked={checkState.tarefa}
+          onChange={() => handleCheckChange("tarefa")}
+          sx={{
+            marginLeft: "auto", // Empurra o Checkbox para a extremidade direita
+            marginTop: "-2px",
+          }}
+        />
+      </AccordionSummary>
+
+
+
+
       <AccordionDetails>
         <Box sx={{ marginLeft: "40px", paddingTop: "10px" }}>
           <Header
@@ -53,7 +113,7 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
                 <PlayCircleFilledWhiteIcon
                   sx={{ color: "#5f53e5", fontSize: 30 }}
                 />
-                <Typography>TAREFAS CADASTRADAS PARA ESSA DIRETRIZ</Typography>
+                <Typography>PLANO DE AÇÃO (5W2H) PARA ESSA TAREFA</Typography>
               </Box>
             }
           />
@@ -78,33 +138,14 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
             gap={1}
             sx={{ flex: "1 1 30%" }}
           >
-            <TextField
-              label="Digite uma tarefa..."
-              name="nome"
-              onChange={handleInputChange}
-              fullWidth
-              InputLabelProps={{
-                shrink: true,
-                style: {
-                  position: "absolute",
-                  top: "5px",
-                  left: "5px",
-                  fontSize: "15px",
-                },
-              }}
-            />
-            <Checkbox
-              checked={checkState.tarefa}
-              onChange={() => handleCheckChange("tarefa")}
-            />
           </Box>
 
           <Box width="320px">
             <Select
               multiple
-              name="categoria"
-              value={formValues.categoria}
-              onChange={handleSelectChange}
+              name="responsaveis"
+              value={responsaveis}
+              onChange={handleResponsaveisChange}
               displayEmpty
               fullWidth
               renderValue={(selected) =>
@@ -113,24 +154,32 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
                   : selected.join(", ")
               }
             >
-              <MenuItem disabled value="">
-                <ListItemText primary="Selecione responsáveis pelo projeto" />
-              </MenuItem>
-
               {["financeiro", "rh", "marketing", "ti"].map((option) => (
                 <MenuItem key={option} value={option}>
-                  <Checkbox
-                    checked={formValues.categoria.indexOf(option) > -1}
-                  />
+                  <Checkbox checked={responsaveis.indexOf(option) > -1} />
                   <ListItemText
-                    primary={
-                      option.charAt(0).toUpperCase() + option.slice(1)
-                    }
+                    primary={option.charAt(0).toUpperCase() + option.slice(1)}
                   />
                 </MenuItem>
               ))}
             </Select>
           </Box>
+        </Box>
+
+        {/* Formulário para criar nova tarefa */}
+        <Box
+          display="flex"
+          alignItems="flex-start"
+          gap={2}
+          marginBottom="30px"
+          sx={{
+            marginLeft: "70px",
+            marginRight: "60px",
+            flexGrow: 1,
+            flexWrap: "wrap",
+          }}
+        >
+          <Box width="320px"></Box>
         </Box>
 
         {/* Outros campos com checkboxes */}
@@ -149,6 +198,7 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
             { label: "O que", field: "oQue" },
             { label: "Por que", field: "porQue" },
             { label: "Quando", field: "quando" },
+            { label: "Quem", field: "quem" },
             { label: "Onde", field: "onde" },
             { label: "Como", field: "como" },
             { label: "Valor", field: "valor" },
@@ -160,24 +210,54 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
               sx={{ flex: "1 1 30%" }}
               key={field}
             >
-              <TextField
-                placeholder={`Digite ${label.toLowerCase()}...`}
-                label={label}
-                fullWidth
-                InputLabelProps={{
-                  shrink: true,
-                  style: {
-                    position: "absolute",
-                    top: "5px",
-                    left: "5px",
-                    fontSize: "15px",
-                  },
-                }}
-              />
-              <Checkbox
-                checked={checkState[field]}
-                onChange={() => handleCheckChange(field)}
-              />
+              {field === "quem" ? ( // Renderiza o Select no lugar do TextField
+                <Box sx={{ flex: 1, marginRight: 5.4 }}>
+                  <Select
+                    multiple
+                    name="quem"
+                    value={quem}
+                    onChange={handleQuemChange}
+                    displayEmpty
+                    fullWidth
+                    renderValue={(selected) =>
+                      selected.length === 0 ? "Quem..." : selected.join(", ")
+                    }
+                    sx={{ height: "40px" }}
+                  >
+                    {["financeiro", "rh", "marketing", "ti"].map((option) => (
+                      <MenuItem key={option} value={option}>
+                        <Checkbox checked={quem.indexOf(option) > -1} />
+                        <ListItemText
+                          primary={
+                            option.charAt(0).toUpperCase() + option.slice(1)
+                          }
+                        />
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Box>
+              ) : (
+                <>
+                  <TextField
+                    placeholder={` ${label.toLowerCase()}...`}
+                    label={label}
+                    fullWidth
+                    InputLabelProps={{
+                      shrink: true,
+                      style: {
+                        position: "absolute",
+                        top: "5px",
+                        left: "5px",
+                        fontSize: "15px",
+                      },
+                    }}
+                  />
+                  <Checkbox
+                    checked={checkState[field]}
+                    onChange={() => handleCheckChange(field)}
+                  />
+                </>
+              )}
             </Box>
           ))}
         </Box>
