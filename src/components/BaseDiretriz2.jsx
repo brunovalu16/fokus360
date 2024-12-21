@@ -12,9 +12,9 @@ const ProgressStatus = ({ checkState }) => {
   const someChecked = Object.values(checkState).some((value) => value);
 
   const status = allChecked
-    ? { color: "#a3e635", text: "Finalizado" }
+    ? { color: "#a3e635", text: "100%" }
     : someChecked
-    ? { color: "#fde047", text: "Em andamento" }
+    ? { color: "#fde047", text: "30%" }
     : { color: "#00ebf7", text: "Não iniciado" };
 
   return (
