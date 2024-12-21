@@ -1,6 +1,5 @@
 import React from "react";
 import { Box, useMediaQuery, useTheme, Typography, CircularProgress } from "@mui/material";
-import StatBox from "../../src/components/StatBox";
 import { tokens } from "../theme";
 import Lista from "../components/Lista";
 import PaidIcon from '@mui/icons-material/Paid';
@@ -140,7 +139,7 @@ function DadosProjetogeral() {
           marginTop="20px"
         >
           {/* Lista */}
-          <Box sx={{ width: "100%" }}>
+          <Box sx={{ width: "800px" }}>
             <Lista />
           </Box>
 
@@ -148,7 +147,7 @@ function DadosProjetogeral() {
           <Box
             boxShadow={3}
             borderRadius="20px"
-            bgcolor="#fff"
+            bgcolor="#312783"
             padding="20px"
             sx={{
               display: "flex",
@@ -157,7 +156,7 @@ function DadosProjetogeral() {
               gap: "10px",
             }}
           >
-            <Typography variant="h6" sx={{ fontWeight: "bold", marginBottom: "10px" }}>
+            <Typography variant="h6" sx={{ fontWeight: "bold", marginBottom: "10px", color: "#fff" }}>
               Projetos por Gerência
             </Typography>
 
@@ -169,7 +168,7 @@ function DadosProjetogeral() {
               { gerente: "Leonardo", valor: 1 },
             ].map((item, index) => (
               <Box key={index} display="flex" alignItems="center" gap="10px" sx={{ width: "100%" }}>
-                <Typography sx={{ minWidth: "80px", fontWeight: "bold" }}>
+                <Typography sx={{ minWidth: "80px", fontWeight: "bold", color: "#fff" }}>
                   {item.gerente}
                 </Typography>
                 <Box sx={{ flex: 1, backgroundColor: "#e0e0e0", borderRadius: "5px", height: "30px" }}>
