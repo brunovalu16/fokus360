@@ -1,8 +1,41 @@
 import React, { useState } from "react";
-import { Checkbox, ListItemText, Box, Select, Typography, MenuItem, TextField, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
+import { CircularProgress, Checkbox, ListItemText, Box, Select, Typography, MenuItem, TextField, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
 import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Header from "./Header";
+
+
+// FUNÇÃO DO GRÁFICO PROGRESS QUE CONTROLA O ESTADO DOS CHECKS
+const ProgressStatus = ({ checkState }) => {
+  const allChecked = Object.values(checkState).every((value) => value);
+  const someChecked = Object.values(checkState).some((value) => value);
+
+  const status = allChecked
+    ? { color: "#84cc16", text: "Finalizado" }
+    : someChecked
+    ? { color: "#4338ca", text: "Em andamento" }
+    : { color: "#57534e", text: "Não iniciado" };
+
+  return (
+    <Box display="flex" alignItems="center" gap={1} sx={{ marginLeft: "auto", marginRight: "30px" }}>
+      <CircularProgress
+        variant="determinate"
+        value={
+          (Object.values(checkState).filter(Boolean).length /
+            Object.keys(checkState).length) *
+          100
+        }
+        sx={{ color: status.color }}
+        thickness={10} // Ajusta a espessura
+        size={30} // Define o tamanho do círculo (diâmetro em pixels)
+      />
+      <Typography variant="h5" sx={{ color: status.color, fontWeight: "bold" }}>
+        {status.text}
+      </Typography>
+    </Box>
+  );
+};
+ // FIM   FUNÇÃO DO GRÁFICO QUE CONTROLA O ESTADO DOS CHECKS
 
 const DiretrizData2 = ({ checkState, handleCheckChange }) => {
   const [expanded, setExpanded] = useState(false);
@@ -50,14 +83,15 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
         backgroundColor: "transparent",
       }}
     >
-
-      {/* Título do Accordion */}
+        {/* TAREFA 01*/}
+        
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         sx={{
-          backgroundColor: "#fff",
+          backgroundColor: "#FFF",
           borderRadius: "10px",
-          padding: "10px",
+          paddingLeft: "10px",
+          paddingRight: "10px",
           boxShadow: "none",
           border: "none",
           cursor: "pointer",
@@ -91,6 +125,8 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
           Desenvolver sistema Fokus360 para o Grupo Fokus
         </Typography>
 
+        <ProgressStatus checkState={checkState} />
+
         {/* Checkbox */}
         <Checkbox
           checked={checkState.tarefa}
@@ -101,7 +137,6 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
           }}
         />
       </AccordionSummary>
-
 
 
 
@@ -263,6 +298,9 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
         </Box>
       </AccordionDetails>
     </Accordion>
+
+
+    
   );
 };
 
