@@ -33,6 +33,7 @@ const Projetos = () => {
         {/* Segundo Box - Botão */}
         <Box>
           <Button
+            href="/cadastroprojetos"
             variant="contained"
             sx={{
               marginTop: "10px",

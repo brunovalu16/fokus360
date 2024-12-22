@@ -9,6 +9,7 @@ import { mockDataContacts } from "../../data/mockData";
 import { tokens } from "../../theme";
 import { useNavigate } from "react-router-dom";
 import PersonIcon from '@mui/icons-material/Person';
+import DeleteForeverSharpIcon from "@mui/icons-material/DeleteForeverSharp";
 import PermContactCalendarIcon from '@mui/icons-material/PermContactCalendar';
 // Tradução dos textos da Toolbar
 const localeText = {
@@ -21,7 +22,6 @@ const localeText = {
 // Barra de ferramentas personalizada
 const CustomToolbar = () => {
   return (
-    
     <GridToolbarContainer
       sx={{
         padding: "8px",
@@ -111,16 +111,16 @@ const Contacts = () => {
         <Box display="flex" gap={1}>
           <Button
             size="small"
-            startIcon={<ArrowForwardIcon />}
-            onClick={() => handleNavigateToUser(row.id)}
+            component="a" // Define que o botão será um link
+            href="/user" // Caminho do link
             sx={{
               color: "#fff",
               backgroundColor: "#583cff",
-              "&:hover": {
-                backgroundColor: "#3f2cb2",
-              },
-              borderRadius: "5px",
-              padding: "5px 10px",
+              marginBottom: "5px",
+              marginTop: "5px",
+              fontSize: "0.65rem",
+              "&:hover": { backgroundColor: "#3f2cb2" },
+              textDecoration: "none", // Remove sublinhado padrão do link
             }}
           >
             Editar
@@ -129,11 +129,11 @@ const Contacts = () => {
             onClick={() => handleDelete(row.id)}
             sx={{
               color: "#d32f2f",
-              width: "36px",
-              height: "36px",
+              width: "45px",
+              height: "auto",
             }}
           >
-            <DeleteIcon />
+            <DeleteForeverSharpIcon sx={{ fontSize: "25px" }} />
           </IconButton>
         </Box>
       ),
@@ -141,86 +141,83 @@ const Contacts = () => {
   ];
 
   return (
-
     <>
-    {/* Header */}
-    <Box
-            sx={{
-              marginLeft: "40px",
-              paddingTop: "50px",
-            }}
-          >
-          <Header
-            title={
-              <Box display="flex" alignItems="center" gap={1}>
-                <PermContactCalendarIcon sx={{ color: "#5f53e5", fontSize: 40 }} />
-                  <Typography>
-                      GERENCIADOR DE USUÁRIOS 
-                  </Typography>
-                
-              </Box>
-            }
-          />
-    </Box>
-
-    <Box m="45px">
-      
+      {/* Header */}
       <Box
-        mt="40px"
-        marginTop="-2px"
-        height="75vh"
-        width="100%"
         sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-          },
-          "& .MuiDataGrid-cell": {
-            border: "none",
-          },
-          "& .name-column--cell": {
-            color: colors.gray[100],
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            backgroundColor: colors.blueAccent[700],
-            borderBottom: "none",
-          },
-          "& .MuiDataGrid-virtualScroller": {
-            backgroundColor: colors.primary[400],
-          },
-          "& .MuiDataGrid-footerContainer": {
-            borderTop: "none",
-            backgroundColor: colors.gray[900],
-          },
-          "& .MuiCheckbox-root": {
-            color: `${colors.blueAccent[1300]} !important`,
-          },
-          "& .MuiDataGrid-iconSeparator": {
-            color: colors.primary[500],
-          },
-          "& .MuiDataGrid-columnHeaders": {
-              backgroundColor: "#312783", // Cor de fundo do cabeçalho
-              color: "#bcbcbc", // Cor do texto do cabeçalho
-              
-              fontSize: "13px", // Ajusta o tamanho do texto
-            },
+          marginLeft: "40px",
+          paddingTop: "50px",
         }}
       >
-        <DataGrid
-          rows={mockDataContacts}
-          columns={columns}
-          components={{ Toolbar: CustomToolbar }}
-          localeText={localeText} // Aplica as traduções para português
-          initialState={{
-            pagination: {
-              paginationModel: {
-                pageSize: 10,
-              },
-            },
-          }}
-          checkboxSelection
+        <Header
+          title={
+            <Box display="flex" alignItems="center" gap={1}>
+              <PermContactCalendarIcon
+                sx={{ color: "#5f53e5", fontSize: 40 }}
+              />
+              <Typography>GERENCIADOR DE USUÁRIOS</Typography>
+            </Box>
+          }
         />
       </Box>
-    </Box>
+
+      <Box m="45px">
+        <Box
+          mt="40px"
+          marginTop="-2px"
+          height="75vh"
+          width="100%"
+          sx={{
+            "& .MuiDataGrid-root": {
+              border: "none",
+            },
+            "& .MuiDataGrid-cell": {
+              border: "none",
+            },
+            "& .name-column--cell": {
+              color: colors.gray[100],
+            },
+            "& .MuiDataGrid-columnHeaders": {
+              backgroundColor: colors.blueAccent[700],
+              borderBottom: "none",
+            },
+            "& .MuiDataGrid-virtualScroller": {
+              backgroundColor: colors.primary[400],
+            },
+            "& .MuiDataGrid-footerContainer": {
+              borderTop: "none",
+              backgroundColor: colors.gray[900],
+            },
+            "& .MuiCheckbox-root": {
+              color: `${colors.blueAccent[1300]} !important`,
+            },
+            "& .MuiDataGrid-iconSeparator": {
+              color: colors.primary[500],
+            },
+            "& .MuiDataGrid-columnHeaders": {
+              backgroundColor: "#312783", // Cor de fundo do cabeçalho
+              color: "#bcbcbc", // Cor do texto do cabeçalho
+
+              fontSize: "13px", // Ajusta o tamanho do texto
+            },
+          }}
+        >
+          <DataGrid
+            rows={mockDataContacts}
+            columns={columns}
+            components={{ Toolbar: CustomToolbar }}
+            localeText={localeText} // Aplica as traduções para português
+            initialState={{
+              pagination: {
+                paginationModel: {
+                  pageSize: 10,
+                },
+              },
+            }}
+            checkboxSelection
+          />
+        </Box>
+      </Box>
     </>
   );
 };

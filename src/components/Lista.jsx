@@ -247,19 +247,22 @@ const Lista = () => {
       renderCell: ({ row }) => (
         <Box display="flex" gap={1}>
           <Button
-            size="small"
-            onClick={() => handleNavigateToProject(row.id)}
-            sx={{
-              color: "#fff",
-              backgroundColor: "#583cff",
-              marginBottom: "5px",
-              marginTop: "5px",
-              fontSize: "0.65rem",
-              "&:hover": { backgroundColor: "#3f2cb2" },
-            }}
-          >
-            Editar
-          </Button>
+              size="small"
+              component="a" // Define que o botão será um link
+              href="/dashboardprojeto" // Caminho do link
+              sx={{
+                color: "#fff",
+                backgroundColor: "#583cff",
+                marginBottom: "5px",
+                marginTop: "5px",
+                fontSize: "0.65rem",
+                "&:hover": { backgroundColor: "#3f2cb2" },
+                textDecoration: "none", // Remove sublinhado padrão do link
+              }}
+            >
+              Editar
+        </Button>
+
           <IconButton onClick={() => handleDelete(row.id)}>
             <DeleteForeverSharpIcon
               sx={{ fontSize: 25, color: colors.redAccent[600] }}
