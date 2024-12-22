@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Divider } from "@mui/material";
-import { Header } from "../../components";
-import AssessmentIcon from "@mui/icons-material/Assessment";
+import { Box, Typography } from "@mui/material";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import LocalGroceryStoreIcon from "@mui/icons-material/LocalGroceryStore";
 
 const Projetos = () => {
-  const [userRole, setUserRole] = useState("");
 
   useEffect(() => {
     // Adicione qualquer lógica relacionada à autenticação ou ao usuário, se necessário
@@ -86,21 +83,20 @@ const Projetos = () => {
               position: "absolute",
               top: "75%", // Posição para "Novo Projeto"
               left: "10%",
-              height: "80px",
+              height: "150px",
             }}
           >
             <a
               href="/novo-projeto"
               style={{
-                padding: "45px",
                 backgroundColor: "transparent",  
                 color: "transparent",
-                borderRadius: "10px",
                 textDecoration: "none",
                 fontWeight: "bold",
                 marginLeft: "8px",
-                padding: "95px",
                 alignContent: "center",
+                paddingRight: "350px",
+                paddingBottom: "150px",
               }}
             >
               Novo Projeto
@@ -110,9 +106,9 @@ const Projetos = () => {
           <Box
             sx={{
               position: "absolute",
-              top: "36%", // Posição para "Resumo Geral"
-              right: "7%",
-              height: "60px",
+              top: "38%", // Posição para "Resumo Geral"
+              right: "5%",
+              height: "150px",
             }}
           >
             <a
@@ -124,7 +120,8 @@ const Projetos = () => {
                 borderRadius: "8px",
                 textDecoration: "none",
                 fontWeight: "bold",
-                padding: "50px",
+                paddingRight: "250px",
+                paddingBottom: "30px",
               }}
             >
               Resumo Geral
@@ -148,9 +145,10 @@ const Projetos = () => {
                 textDecoration: "none",
                 fontWeight: "bold",
                 padding: "50px",
+                paddingRight: "250px",
               }}
             >
-              Resumo Projetos
+              Projetos
             </a>
           </Box>
         </div>

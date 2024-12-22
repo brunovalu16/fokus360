@@ -1,26 +1,25 @@
 import React from "react";
 import { Box, useMediaQuery, useTheme, Typography, CircularProgress } from "@mui/material";
 import { tokens } from "../theme";
+import PaidIcon from "@mui/icons-material/Paid";
+import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
+
 import Lista from "../components/Lista";
-import PaidIcon from '@mui/icons-material/Paid';
-import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 
 function DadosProjetogeral() {
   const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
   const isXlDevices = useMediaQuery("(min-width: 1260px)");
   const isMdDevices = useMediaQuery("(min-width: 724px)");
 
   return (
     <>
       {/* Header */}
-      <Box sx={{ marginLeft: "40px", paddingTop: "50px" }}></Box>
+      <Box sx={{ marginLeft: "40px", paddingTop: "10px" }}></Box>
 
       {/* Container Principal */}
       <Box
         sx={{
           marginLeft: "40px",
-          marginTop: "-15px",
           width: "calc(100% - 80px)",
           minHeight: "50vh",
           padding: "15px",
@@ -28,9 +27,17 @@ function DadosProjetogeral() {
           borderRadius: "20px",
           boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
           bgcolor: "#f2f0f0",
-          overflowX: "hidden",
+          overflow: "visible",
+          marginBottom: "30px",
         }}
       >
+
+
+
+
+
+
+
         {/* GRID & CHARTS */}
         <Box
           display="grid"
@@ -67,7 +74,11 @@ function DadosProjetogeral() {
               subtitle: "Total de tarefas",
               progress: 30,
               increase: "+5%",
-              icon: <AssignmentTurnedInIcon sx={{ color: "#fff", fontSize: "40px" }} />,
+              icon: (
+                <AssignmentTurnedInIcon
+                  sx={{ color: "#fff", fontSize: "40px" }}
+                />
+              ),
               progressColor: "#2196f3",
             },
           ].map((item, index) => (
@@ -84,7 +95,12 @@ function DadosProjetogeral() {
               sx={{ gap: "10px", position: "relative" }}
             >
               {/* Ícone à Esquerda */}
-              <Box display="flex" alignItems="center" justifyContent="center" sx={{ minWidth: "60px", height: "60px" }}>
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                sx={{ minWidth: "60px", height: "60px" }}
+              >
                 {item.icon}
               </Box>
 
@@ -106,7 +122,10 @@ function DadosProjetogeral() {
                 justifyContent="center"
                 sx={{ textAlign: "center", flex: 1 }}
               >
-                <Typography variant="h5" sx={{ fontWeight: "bold", color: "#fff" }}>
+                <Typography
+                  variant="h5"
+                  sx={{ fontWeight: "bold", color: "#fff" }}
+                >
                   {item.title}
                 </Typography>
                 <Typography variant="subtitle2" sx={{ color: "#b0b0b0" }}>
@@ -118,7 +137,12 @@ function DadosProjetogeral() {
               </Box>
 
               {/* Gráfico à Direita */}
-              <Box display="flex" alignItems="center" justifyContent="center" sx={{ minWidth: "60px", height: "60px" }}>
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                sx={{ minWidth: "60px", height: "60px" }}
+              >
                 <CircularProgress
                   variant="determinate"
                   value={item.progress}
@@ -131,64 +155,166 @@ function DadosProjetogeral() {
           ))}
         </Box>
 
-        {/* Lista e Gráfico Lado a Lado */}
+
+
+
+
+
+
+
+
+
+        {/* Gráfico Horizontal - Projetos por Gerência */}
         <Box
-          display="grid"
-          gridTemplateColumns="2fr 1fr"
-          gap="20px"
-          marginTop="20px"
+          padding="50px"
+          sx={{
+            gap: "20px",
+            gridColumn: "span 12",
+            alignItems: "stretch",
+          }}
         >
-          {/* Lista */}
-          <Box sx={{ width: "800px" }}>
-            <Lista />
+          {/* Coluna Esquerda - Título */}
+          <Box
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="flex-start"
+            marginLeft="10px"
+          >
+            <Box
+              sx={{
+                display: "flex", // Alinha os elementos em linha
+                alignItems: "center", // Alinha verticalmente ao centro
+                gap: "10px", // Espaço entre os elementos
+                marginBottom: "30px", //
+              }}
+            >
+              <Typography
+                variant="h3"
+                sx={{
+                  fontWeight: "bold",
+                  color: "#312783",
+                  whiteSpace: "nowrap", // Evita quebra de linha
+                }}
+              >
+                Projetos
+              </Typography>
+              <Typography
+                variant="h5"
+                sx={{
+                  color: "#afaeae",
+                  whiteSpace: "nowrap", // Evita quebra de linha
+                }}
+              >
+                por Gerência
+              </Typography>
+            </Box>
+
           </Box>
 
-          {/* Gráfico Horizontal - Projetos por Gerência */}
+          {/* Coluna Direita - Gráficos com Linhas e Bolinhas */}
           <Box
-            boxShadow={3}
-            borderRadius="20px"
-            bgcolor="#312783"
-            padding="20px"
             sx={{
+              flex: 1,
               display: "flex",
               flexDirection: "column",
-              justifyContent: "center",
-              gap: "10px",
+              gap: "20px", // Espaço entre os elementos
+              paddingLeft: "10px",
+              paddingRight: "10px",
             }}
           >
-            <Typography variant="h6" sx={{ fontWeight: "bold", marginBottom: "10px", color: "#fff" }}>
-              Projetos por Gerência
-            </Typography>
-
-            {/* Gráfico de Barras */}
             {[
-              { gerente: "Marcelo", valor: 2 },
-              { gerente: "Ana Cristina", valor: 1 },
-              { gerente: "Juliana", valor: 1 },
-              { gerente: "Leonardo", valor: 1 },
+              { gerente: "Marcelo", valor: 2, color: "#4caf50" },
+              { gerente: "Ana Cristina", valor: 1, color: "#ff9800" },
+              { gerente: "Juliana", valor: 3, color: "#1976d2" },
+              { gerente: "Leonardo", valor: 1, color: "#9c27b0" },
             ].map((item, index) => (
-              <Box key={index} display="flex" alignItems="center" gap="10px" sx={{ width: "100%" }}>
-                <Typography sx={{ minWidth: "80px", fontWeight: "bold", color: "#fff" }}>
+              <Box
+                key={index}
+                display="flex"
+                alignItems="center"
+                gap="10px"
+                sx={{ width: "100%" }}
+              >
+                {/* Nome do Gerente */}
+                <Typography
+                  sx={{
+                    minWidth: "120px",
+                    color: "#9d9d9c",
+                  }}
+                >
                   {item.gerente}
                 </Typography>
-                <Box sx={{ flex: 1, backgroundColor: "#e0e0e0", borderRadius: "5px", height: "30px" }}>
+
+                {/* Linha de Progresso */}
+                <Box
+                  sx={{
+                    flex: 1,
+                    height: "3px",
+                    backgroundColor: "#e8e5e5",
+                    borderRadius: "4px",
+                    position: "relative",
+                  }}
+                >
                   <Box
                     sx={{
-                      width: `${item.valor * 50}px`,
-                      backgroundColor: "#1976d2",
+                      width: `${item.valor * 25}%`,
+                      backgroundColor: item.color,
                       height: "100%",
-                      borderRadius: "5px",
-                      textAlign: "center",
-                      color: "#fff",
-                      lineHeight: "30px",
+                      borderRadius: "4px",
                     }}
                   >
-                    {item.valor}
+                    {/* Bolinha no Final */}
+                    <Box
+                      sx={{
+                        width: "10px",
+                        height: "10px",
+                        backgroundColor: item.color,
+                        borderRadius: "50%",
+                        position: "absolute",
+                        right: "-7px",
+                        transform: "translateY(-50%)",
+                        marginRight: "10px",
+                      }}
+                    />
+
+                  <Box
+                      sx={{
+                        width: "14px",
+                        height: "14px",
+                        backgroundColor: item.color,
+                        borderRadius: "50%",
+                        position: "absolute",
+                        transform: "translateY(-50%)",
+                      }}
+                    />        
                   </Box>
+                </Box>
+
+                {/* Caixa com Número */}
+                <Box
+                  sx={{
+                    minWidth: "25px",
+                    Height: "25px",
+                    backgroundColor: item.color,
+                    textAlign: "center",
+                    color: "#fff",
+                    fontWeight: "bold",
+                    lineHeight: "24px",
+                    borderRadius: "50%",
+                    marginTop: "5px", // Espaçamento vertical superior
+                    marginBottom: "5px", // Espaçamento vertical inferior
+                  }}
+                >
+                  {item.valor}
                 </Box>
               </Box>
             ))}
           </Box>
+        </Box>
+        {/** COMPONENTE */}
+        <Box marginTop="20px" marginLeft="40px" marginRight="40px">
+          <Lista />
         </Box>
       </Box>
     </>
