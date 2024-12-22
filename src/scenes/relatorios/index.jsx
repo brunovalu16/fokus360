@@ -210,7 +210,7 @@ const Relatorios = () => {
             
             {activeContent === "Vendas" && visibleLinks.includes("Vendas") &&  (
               <>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                <Button href="/vendasdevolucao" fullWidth variant="contained" sx={mainButtonStyle}>
                   VENDAS X DEVOLUÇÃO
                 </Button>
                 <Button fullWidth variant="contained" sx={mainButtonStyle}>

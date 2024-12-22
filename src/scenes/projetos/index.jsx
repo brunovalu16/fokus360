@@ -46,20 +46,10 @@ const Projetos = () => {
             alignItems: "center",
             justifyContent: "center",
             width: "90%",
-            marginBottom: "10px",
+            marginBottom: "40px",
             marginTop: "15px",
           }}
         >
-          <LocalGroceryStoreIcon
-            sx={{
-              color: "#5f53e5",
-              fontSize: 25,
-              zIndex: 1,
-              backgroundColor: "#f2f0f0",
-              padding: "0 4px",
-              marginLeft: "103%",
-            }}
-          />
         </Box>
         
 
@@ -87,7 +77,7 @@ const Projetos = () => {
             }}
           >
             <a
-              href="/novo-projeto"
+              href="/cadastroprojetos"
               style={{
                 backgroundColor: "transparent",  
                 color: "transparent",
@@ -112,7 +102,7 @@ const Projetos = () => {
             }}
           >
             <a
-              href="/resumo-geral"
+              href="/dashboard"
               style={{
                 padding: "10px 20px",
                 backgroundColor: "transparent",
@@ -127,25 +117,24 @@ const Projetos = () => {
               Resumo Geral
             </a>
           </Box>
+
+
           <Box
             sx={{
               position: "absolute",
               top: "48%", // Posição para "Resumo Projetos"
               right: "6%",
-              height: "75px",
             }}
           >
             <a
-              href="/resumo-projetos"
+              href="/listaprojetos"
               style={{
-                padding: "10px 20px",
                 backgroundColor: "transparent",
                 color: "transparent",
-                borderRadius: "8px",
                 textDecoration: "none",
                 fontWeight: "bold",
-                padding: "50px",
-                paddingRight: "250px",
+                paddingRight: "280px",
+                paddingBottom: "50px",
               }}
             >
               Projetos

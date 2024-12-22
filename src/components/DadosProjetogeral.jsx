@@ -23,7 +23,6 @@ function DadosProjetogeral() {
           width: "calc(100% - 80px)",
           minHeight: "50vh",
           padding: "15px",
-          paddingLeft: "30px",
           borderRadius: "20px",
           boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
           bgcolor: "#f2f0f0",
@@ -31,9 +30,6 @@ function DadosProjetogeral() {
           marginBottom: "30px",
         }}
       >
-
-
-
 
 
 
@@ -55,7 +51,7 @@ function DadosProjetogeral() {
           {[
             {
               title: "11,361",
-              subtitle: "Orçamento",
+              subtitle: "Orçamento total",
               progress: 75,
               increase: "+14%",
               icon: <PaidIcon sx={{ color: "#fff", fontSize: "40px" }} />,
@@ -63,7 +59,7 @@ function DadosProjetogeral() {
             },
             {
               title: "431,225",
-              subtitle: "Custo realizado",
+              subtitle: "Custo total realizado",
               progress: 50,
               increase: "+21%",
               icon: <PaidIcon sx={{ color: "#fff", fontSize: "40px" }} />,
@@ -295,7 +291,6 @@ function DadosProjetogeral() {
                 <Box
                   sx={{
                     minWidth: "25px",
-                    Height: "25px",
                     backgroundColor: item.color,
                     textAlign: "center",
                     color: "#fff",
@@ -312,10 +307,42 @@ function DadosProjetogeral() {
             ))}
           </Box>
         </Box>
+
+        <Box
+              sx={{
+                display: "flex", // Alinha os elementos em linha
+                alignItems: "center", // Alinha verticalmente ao centro
+                gap: "10px", // Espaço entre os elementos
+                marginBottom: "30px", //
+                marginLeft: "60px", //
+              }}
+            >
+              <Typography
+                variant="h3"
+                sx={{
+                  fontWeight: "bold",
+                  color: "#312783",
+                  whiteSpace: "nowrap", // Evita quebra de linha
+                }}
+              >
+                Projetos
+              </Typography>
+              <Typography
+                variant="h5"
+                sx={{
+                  color: "#afaeae",
+                  whiteSpace: "nowrap", // Evita quebra de linha
+                }}
+              >
+               adicionados
+              </Typography>
+            </Box>
+
         {/** COMPONENTE */}
         <Box marginTop="20px" marginLeft="40px" marginRight="40px">
           <Lista />
         </Box>
+
       </Box>
     </>
   );

@@ -16,14 +16,14 @@ import {
   SearchOutlined,
   SettingsOutlined,
 } from "@mui/icons-material";
-import ArrowCircleRightIcon from '@mui/icons-material/ArrowCircleRight';
-import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
+import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import { ToggledContext } from "../../../App";
 import { auth, db } from "../../../data/firebase-config";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
-
+import { Link } from 'react-router-dom'; // Certifique-se de importar o Link
 
 const Navbar = () => {
   const theme = useTheme();
@@ -31,7 +31,6 @@ const Navbar = () => {
   const [user, setUser] = useState(null);
   const [username, setUsername] = useState("");
   const navigate = useNavigate(); // Para redirecionar após logout
- 
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -46,11 +45,8 @@ const Navbar = () => {
           if (docSnap.exists()) {
             setUsername(docSnap.data().username);
           } else {
-            
           }
-        } catch (error) {
-          
-        }
+        } catch (error) {}
       } else {
         setUser(null);
         setUsername("");
@@ -60,60 +56,70 @@ const Navbar = () => {
     return () => unsubscribe();
   }, []);
 
-
   return (
-  <>
-        <Toolbar
-          sx={{ backgroundColor: "#f2f0f0", boxShadow:"0px 4px 6px rgba(0, 0, 0, 0.1)" }}>
-            
-              <KeyboardDoubleArrowRightIcon 
-                size="large"
-                edge="start"
-                color="inherit"
-                aria-label="menu"
-                sx={{ color: "#312783", marginRight: "10px" }}
-              />
-              
-            
-            <Typography
-                variant="h8"
-                component="div"
-                sx={{ color: "#7f7f7f", fontSize: "10px" }}>
-                Copyright © 2024 | Grupo Fokus  
-            </Typography>
+    <>
+      <Toolbar
+        sx={{
+          backgroundColor: "#f2f0f0",
+          boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <KeyboardDoubleArrowRightIcon
+          size="large"
+          edge="start"
+          color="inherit"
+          aria-label="menu"
+          sx={{ color: "#312783", marginRight: "10px" }}
+        />
 
-            <Typography
-                variant="h8"
-                component="div"
-                sx={{ color: "#7f7f7f", display: "flex", alignItems: "flex-end", marginBottom: "10px", transform: "scale(0.7)"}}>
-                  Desenvolvido por:
-                  <img  
-                    src="src/assets/images/colibri.png" 
-                    alt="Logo Colibri" 
-                    style={{ width: "100px", height: "auto", marginLeft: "5px", marginLeft: "15px", marginRight: "20px"  }} 
-                  />
-                   Colibri | Sistemas inteligentes
-            </Typography>
-         </Toolbar>
+        <Typography
+          variant="h8"
+          component="div"
+          sx={{ color: "#7f7f7f", fontSize: "10px" }}
+        >
+          Copyright © 2024 | Grupo Fokus
+        </Typography>
 
-  <Box
+        <Typography
+          variant="h8"
+          component="div"
+          sx={{
+            color: "#7f7f7f",
+            display: "flex",
+            alignItems: "flex-end",
+            marginBottom: "10px",
+            transform: "scale(0.7)",
+          }}
+        >
+          Desenvolvido por:
+          <img
+            src="src/assets/images/colibri.png"
+            alt="Logo Colibri"
+            style={{
+              width: "100px",
+              height: "auto",
+              marginLeft: "5px",
+              marginLeft: "15px",
+              marginRight: "20px",
+            }}
+          />
+          Colibri | Sistemas inteligentes
+        </Typography>
+      </Toolbar>
+
+      <Box
         display="flex"
         alignItems="center"
         justifyContent="space-between"
         p={5}
         sx={{
           backgroundColor: "#e8e5e5",
-         }}>
-          
-         
-      
-      {/* Conteúdo do Box */}
+        }}
+      >
+        {/* Conteúdo do Box */}
 
-      
-
-      
-      {/* Input */}
-      <Box display="flex" alignItems="center" gap={2}>
+        {/* Input */}
+        <Box display="flex" alignItems="center" gap={2}>
           {/* Campo de Pesquisa */}
           <Box
             display="flex"
@@ -126,8 +132,6 @@ const Navbar = () => {
           >
             <InputBase placeholder="Pesquisar..." sx={{ ml: 2, flex: 1 }} />
           </Box>
-
-          
 
           {/* Botão de Pesquisa */}
           <IconButton
@@ -146,28 +150,26 @@ const Navbar = () => {
           >
             <SearchOutlined />
           </IconButton>
-      </Box>
+        </Box>
 
-      
-      {/* Parte direita */}
-      <Box display="flex" alignItems="center" gap={2}>
-
+        {/* Parte direita */}
+        <Box display="flex" alignItems="center" gap={2}>
           {/* Adicionando logo ou imagem */}
           <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <img
+              src="src/assets/images/fokus360cinza.png"
+              alt="Logo"
+              style={{
+                maxWidth: "150px",
+                height: "auto",
               }}
-            >
-              <img
-                src="src/assets/images/fokus360cinza.png"
-                alt="Logo"
-                style={{
-                  maxWidth: "150px",
-                  height: "auto",
-                }}
-              />
+            />
           </Box>
 
           {/* Linha vertical */}
@@ -184,9 +186,18 @@ const Navbar = () => {
           <IconButton>
             <NotificationsOutlined />
           </IconButton>
-          
-          <IconButton>
-            <SettingsOutlined />
+
+          <IconButton
+              component={Link}
+              to="/contacts"
+              sx={{
+                color: "#312783",
+                "&:hover": {
+                  backgroundColor: "#f5f5f5",
+                },
+              }}
+            >
+              <SettingsOutlined />
           </IconButton>
 
           <Box
@@ -212,38 +223,50 @@ const Navbar = () => {
               {user ? `Olá, ${username}` : ""}
             </Typography>
           </Box>
-
+        </Box>
       </Box>
-  </Box>
-        <Toolbar 
-              sx={{
-                "&.MuiToolbar-root": { // &.MUI É A BIBLIOTECA
-                  height: "40px", // Define a altura fixa
-                  minHeight: "40px", // Define a altura mínima
-                  padding: "0", // Remove o padding
-                  },
-                  alignSelf: "center",
-                  backgroundColor: "#312783",
-                  width: "100%"
-              }}>
-            <IconButton size="large" edge="start" color="inherit" aria-label="menu">
-              <ArrowCircleRightIcon
-                sx={{ color: "#00ebf7", marginLeft: "15px", fontSize: "17px", marginLeft: "38px" }}/>
-            </IconButton>
-            <Typography
-                variant="h8"
-                component="div"
-                marginTop="3px"
-                sx={{ flexGrow: 1, color: "#c2c2c2", fontSize: "12px", marginBottom: "3px" }}>
-              GRUPO FOKUS  |  www.grupofokus.com.br
-            </Typography>
-        </Toolbar>
-  </>
+      <Toolbar
+        sx={{
+          "&.MuiToolbar-root": {
+            // &.MUI É A BIBLIOTECA
+            height: "40px", // Define a altura fixa
+            minHeight: "40px", // Define a altura mínima
+            padding: "0", // Remove o padding
+          },
+          alignSelf: "center",
+          backgroundColor: "#312783",
+          width: "100%",
+        }}
+      >
+        <IconButton size="large" edge="start" color="inherit" aria-label="menu">
+          <ArrowCircleRightIcon
+            sx={{
+              color: "#00ebf7",
+              marginLeft: "15px",
+              fontSize: "17px",
+              marginLeft: "38px",
+            }}
+          />
+        </IconButton>
+        <Typography
+          variant="h8"
+          component="div"
+          marginTop="3px"
+          sx={{
+            flexGrow: 1,
+            color: "#c2c2c2",
+            fontSize: "12px",
+            marginBottom: "3px",
+          }}
+        >
+          GRUPO FOKUS | www.grupofokus.com.br
+        </Typography>
+      </Toolbar>
+    </>
   );
 };
 
 export default Navbar;
-
 
 //{user ? `Olá, ${username || user.email}` : "Usuário não logado"}
 //boxShadow="0px 4px 6px rgba(0, 0, 0, 0.1)"

@@ -40,6 +40,7 @@ function Dashboard() {
         {!isXsDevices && (
           <Box display="flex" justifyContent="flex-end" mb={2}>
           <Button
+              href="/cadastroprojetos"
               variant="contained"
               color="primary"
               onClick={""}

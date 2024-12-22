@@ -49,20 +49,10 @@ const Home = () => {
             alignItems: "center",
             justifyContent: "center",
             width: "90%",
-            marginBottom: "10px",
+            marginBottom: "40px",
             marginTop: "15px",
           }}
         >
-          <LocalGroceryStoreIcon
-            sx={{
-              color: "#5f53e5",
-              fontSize: 25,
-              zIndex: 1,
-              backgroundColor: "#f2f0f0",
-              padding: "0 4px",
-              marginLeft: "103%",
-            }}
-          />
         </Box>
         
 
@@ -85,21 +75,19 @@ const Home = () => {
             sx={{
               position: "absolute",
               top: "59%", // Posição para "Novo Projeto"
-              left: "9%",
-              height: "90px",
             }}
           >
             <a
-              href="/novo-projeto"
+              href="/relatorios"
               style={{
                 backgroundColor: "transparent",  
                 color: "transparent",
-                borderRadius: "10px",
                 textDecoration: "none",
                 fontWeight: "bold",
-                marginLeft: "8px",
-                padding: "120px",
+                marginLeft: "50px",
+                paddingRight: "550px",
                 alignContent: "center",
+                paddingBottom: "150px",
               }}
             >
               Novo Projeto

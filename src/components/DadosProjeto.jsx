@@ -37,24 +37,17 @@ function DadosProjeto() {
           overflowX: "hidden",
         }}
       >
-        
-
-
         {/* GRID & CHARTS */}
         <Box
-          paddingBottom="20px"
-          borderRadius="20px"
-          paddingTop="20px"
           display="grid"
-          gridTemplateColumns={
-            isXlDevices
-              ? "repeat(12, 1fr)"
-              : isMdDevices
-              ? "repeat(6, 1fr)"
-              : "repeat(6, 1fr)"
-          }
-          gridAutoRows="140px"
-          gap="20px"
+          gridTemplateColumns="repeat(auto-fit, minmax(200px, 1fr))"
+          gap="15px"
+          paddingBottom="20px"
+          paddingTop="20px"
+          borderRadius="20px"
+          sx={{
+            overflowX: "hidden",
+          }}
         >
           {/* Statistic Items */}
           {[
@@ -64,7 +57,7 @@ function DadosProjeto() {
               progress: 75,
               increase: "+14%",
               icon: <PaidIcon sx={{ color: "#fff", fontSize: "40px" }} />,
-              progressColor: "#4caf50", // Cor do gráfico
+              progressColor: "#4caf50",
             },
             {
               title: "431,225",
@@ -72,11 +65,11 @@ function DadosProjeto() {
               progress: 50,
               increase: "+21%",
               icon: <PaidIcon sx={{ color: "#fff", fontSize: "40px" }} />,
-              progressColor: "#ff9800", // Cor do gráfico
+              progressColor: "#ff9800",
             },
             {
               title: "32,441",
-              subtitle: "Total de tarefas",
+              subtitle: "Total de diretrizes",
               progress: 30,
               increase: "+5%",
               icon: (
@@ -84,22 +77,38 @@ function DadosProjeto() {
                   sx={{ color: "#fff", fontSize: "40px" }}
                 />
               ),
-              progressColor: "#2196f3", // Cor do gráfico
+              progressColor: "#2196f3",
+            },
+            {
+              title: "7,890",
+              subtitle: "Total de tarefas",
+              progress: 45,
+              increase: "+10%",
+              icon: (
+                <AssignmentTurnedInIcon
+                  sx={{ color: "#fff", fontSize: "40px" }}
+                />
+              ),
+              progressColor: "#f44336",
             },
           ].map((item, index) => (
             <Box
               key={index}
               boxShadow={3}
               borderRadius="20px"
-              gridColumn="span 4"
               bgcolor="#312783"
               display="flex"
+              flexDirection="row"
               alignItems="center"
               justifyContent="space-between"
-              padding="20px"
+              padding="15px"
+              minWidth="200px"
               sx={{
-                gap: "10px",
-                position: "relative",
+                textAlign: "center",
+                overflow: "hidden",
+                minHeight: "140px",
+                flexShrink: 0,
+                maxWidth: "100%", // Garante adaptação ao tamanho da tela
               }}
             >
               {/* Ícone à Esquerda */}
@@ -108,8 +117,8 @@ function DadosProjeto() {
                 alignItems="center"
                 justifyContent="center"
                 sx={{
-                  minWidth: "60px",
-                  height: "60px",
+                  minWidth: "50px",
+                  height: "50px",
                 }}
               >
                 {item.icon}
@@ -121,23 +130,23 @@ function DadosProjeto() {
                   width: "2px",
                   height: "80%",
                   backgroundColor: "#ffffff4d",
-                  margin: "0 2px",
+                  margin: "0 10px",
                 }}
               />
 
-              {/* Texto no Meio */}
+              {/* Conteúdo ao Centro */}
               <Box
                 display="flex"
                 flexDirection="column"
-                alignItems="center"
+                alignItems="flex-start"
                 justifyContent="center"
                 sx={{
-                  textAlign: "center",
                   flex: 1,
+                  textAlign: "left",
                 }}
               >
                 <Typography
-                  variant="h5"
+                  variant="h6"
                   sx={{ fontWeight: "bold", color: "#fff" }}
                 >
                   {item.title}
@@ -150,21 +159,21 @@ function DadosProjeto() {
                 </Typography>
               </Box>
 
-              {/* Gráfico à Direita */}
+              {/* Gráfico Circular à Direita */}
               <Box
                 sx={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  minWidth: "60px",
-                  height: "60px",
+                  minWidth: "50px",
+                  height: "50px",
                 }}
               >
                 <CircularProgress
                   variant="determinate"
                   value={item.progress}
-                  size={60}
-                  thickness={6} // Define a espessura do círculo
+                  size={50}
+                  thickness={5}
                   sx={{
                     color: item.progressColor,
                   }}

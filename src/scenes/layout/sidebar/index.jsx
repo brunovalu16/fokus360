@@ -183,6 +183,7 @@ const SideBar = () => {
             </Link>
           </MenuItem>
 
+          {/** 
           <MenuItem>
             <Link
               to="/contacts"
@@ -198,6 +199,7 @@ const SideBar = () => {
               Usuários
             </Link>
           </MenuItem>
+          */}
 
           <MenuItem>
             <Link
