@@ -67,7 +67,7 @@ function DadosProjetogeral() {
             },
             {
               title: "32,441",
-              subtitle: "Total de tarefas",
+              subtitle: "Total de projetos",
               progress: 30,
               increase: "+5%",
               icon: (

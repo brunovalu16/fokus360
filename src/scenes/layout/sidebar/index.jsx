@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { Box, IconButton, Button, Divider, useTheme } from "@mui/material";
 import { Menu, MenuItem, Sidebar } from "react-pro-sidebar";
 import {
@@ -15,16 +15,49 @@ import { signOut } from "firebase/auth";
 import { useNavigate, Link } from "react-router-dom";
 import logo from "../../../assets/images/icone_logo.png";
 import { tokens } from "../../../theme";
-import { auth } from "../../../data/firebase-config";
+import { auth, db } from "../../../data/firebase-config";
 import { ToggledContext } from "../../../App";
-import PermContactCalendarIcon from '@mui/icons-material/PermContactCalendar';
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
 const SideBar = () => {
+  const [userRole, setUserRole] = useState("");
   const [collapsed, setCollapsed] = useState(false);
   const { toggled, setToggled } = useContext(ToggledContext);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const navigate = useNavigate();
+
+  
+
+   // Obter o perfil do usuário logado
+   useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        try {
+          const docRef = doc(db, "user", currentUser.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const role = docSnap.data().role;
+            setUserRole(role);
+          } else {
+            console.error("Dados do usuário não encontrados!");
+          }
+        } catch (error) {
+          console.error("Erro ao buscar dados do usuário:", error);
+        } finally {
+          setIsLoadingRole(false); // Finaliza o carregamento
+        }
+      } else {
+        setUserRole("");
+        setIsLoadingRole(false); // Finaliza o carregamento mesmo sem usuário logado
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+
 
   const handleLogout = async () => {
     try {
@@ -135,21 +168,23 @@ const SideBar = () => {
             </Link>
           </MenuItem>
 
-          <MenuItem>
-            <Link
-              to="/relatorios"
-              style={{
-                textDecoration: "none",
-                color: "inherit",
-                display: "flex",
-                alignItems: "center",
-                gap: "20px",
-              }}
-            >
-              <AssessmentIcon />
-              Relatórios
-            </Link>
-          </MenuItem>
+          
+        <MenuItem>
+          <Link
+            to="/relatorios"
+            style={{
+              textDecoration: "none",
+              color: "inherit",
+              display: "flex",
+              alignItems: "center",
+              gap: "20px",
+            }}
+          >
+            <AssessmentIcon />
+            Relatórios
+          </Link>
+        </MenuItem>
+ 
 
           <MenuItem>
             <Link
@@ -183,23 +218,6 @@ const SideBar = () => {
             </Link>
           </MenuItem>
 
-          {/** 
-          <MenuItem>
-            <Link
-              to="/contacts"
-              style={{
-                textDecoration: "none",
-                color: "inherit",
-                display: "flex",
-                alignItems: "center",
-                gap: "20px",
-              }}
-            >
-              <PermContactCalendarIcon />
-              Usuários
-            </Link>
-          </MenuItem>
-          */}
 
           <MenuItem>
             <Link
@@ -306,3 +324,30 @@ const SideBar = () => {
 };
 
 export default SideBar;
+
+
+
+
+{/**
+
+ Ocultar apenas para o perfil "07 Projetos" 
+
+    {userRole !== "" && (
+      <MenuItem>
+        <Link
+          to="/relatorios"
+          style={{
+            textDecoration: "none",
+            color: "inherit",
+            display: "flex",
+            alignItems: "center",
+            gap: "20px",
+          }}
+        >
+          <AssessmentIcon />
+          Relatórios
+        </Link>
+      </MenuItem>
+    )}
+  
+  */}

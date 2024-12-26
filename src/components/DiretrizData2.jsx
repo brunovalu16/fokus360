@@ -17,7 +17,12 @@ const ProgressStatus = ({ checkState }) => {
     : { color: "#57534e", text: "Não iniciado" };
 
   return (
-    <Box display="flex" alignItems="center" gap={1} sx={{ marginLeft: "auto", marginRight: "30px" }}>
+    <Box
+      display="flex"
+      alignItems="center"
+      gap={1}
+      sx={{ marginLeft: "auto", marginRight: "30px" }}
+    >
       <CircularProgress
         variant="determinate"
         value={
@@ -26,8 +31,8 @@ const ProgressStatus = ({ checkState }) => {
           100
         }
         sx={{ color: status.color }}
-        thickness={10} // Ajusta a espessura
-        size={30} // Define o tamanho do círculo (diâmetro em pixels)
+        thickness={10}
+        size={30}
       />
       <Typography variant="h5" sx={{ color: status.color, fontWeight: "bold" }}>
         {status.text}
@@ -35,7 +40,9 @@ const ProgressStatus = ({ checkState }) => {
     </Box>
   );
 };
- // FIM   FUNÇÃO DO GRÁFICO QUE CONTROLA O ESTADO DOS CHECKS
+
+// FIM DA FUNÇÃO DO GRÁFICO
+
 
 const DiretrizData2 = ({ checkState, handleCheckChange }) => {
   const [expanded, setExpanded] = useState(false);
@@ -47,10 +54,11 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
     prazoPrevisto: "",
     cliente: "",
     categoria: [],
-    valor: "",
+    custo: "",
     descricao: "",
   });
-
+  
+ 
   // Função do Accordion
   const handleAccordionToggle = () => {
     setExpanded(!expanded);
@@ -68,9 +76,9 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
     setQuem(typeof value === "string" ? value.split(",") : value);
   };
 
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  // Função para input valor
+  const handleInputChangeReal = (event) => {
+    const { name, value } = event.target;
     setFormValues({ ...formValues, [name]: value });
   };
 
@@ -83,8 +91,8 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
         backgroundColor: "transparent",
       }}
     >
-        {/* TAREFA 01*/}
-        
+      {/* TAREFA 01*/}
+
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         sx={{
@@ -125,6 +133,21 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
           Desenvolver sistema Fokus360 para o Grupo Fokus
         </Typography>
 
+        {/* Campo de Valor */}
+        <Typography
+          variant="body1"
+          sx={{
+            marginLeft: "auto", // Empurra para a direita
+            marginRight: "10px", // Espaçamento à direita antes do Checkbox
+            fontWeight: "500",
+            color: "#5f54e7",
+            alignSelf: "center", // Centraliza verticalmente
+          }}
+        >
+          R$ 5.000,00
+        </Typography>
+
+        {/* Progresso */}
         <ProgressStatus checkState={checkState} />
 
         {/* Checkbox */}
@@ -132,13 +155,11 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
           checked={checkState.tarefa}
           onChange={() => handleCheckChange("tarefa")}
           sx={{
-            marginLeft: "auto", // Empurra o Checkbox para a extremidade direita
+            marginLeft: "0", // Espaçamento padrão
             marginTop: "-2px",
           }}
         />
       </AccordionSummary>
-
-
 
       <AccordionDetails>
         <Box sx={{ marginLeft: "40px", paddingTop: "10px" }}>
@@ -167,14 +188,6 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
             flexWrap: "wrap",
           }}
         >
-          <Box
-            display="flex"
-            alignItems="center"
-            gap={1}
-            sx={{ flex: "1 1 30%" }}
-          >
-          </Box>
-
           <Box width="320px">
             <Select
               multiple
@@ -201,23 +214,7 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
           </Box>
         </Box>
 
-        {/* Formulário para criar nova tarefa */}
-        <Box
-          display="flex"
-          alignItems="flex-start"
-          gap={2}
-          marginBottom="30px"
-          sx={{
-            marginLeft: "70px",
-            marginRight: "60px",
-            flexGrow: 1,
-            flexWrap: "wrap",
-          }}
-        >
-          <Box width="320px"></Box>
-        </Box>
-
-        {/* Outros campos com checkboxes */}
+        {/* Campos adicionais */}
         <Box
           display="flex"
           alignItems="flex-start"
@@ -245,7 +242,36 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
               sx={{ flex: "1 1 30%" }}
               key={field}
             >
-              {field === "quem" ? ( // Renderiza o Select no lugar do TextField
+              {field === "custo" ? (
+                  <Box
+                  display="flex"
+                  alignItems="center"
+                  gap={1}
+                  sx={{ flex: "1 1 30%" }}
+                >
+                  <TextField
+                    label="Digite o valor do orçamento para essa tarefa..."
+                    name="valor"
+                    value={formValues.valor}
+                    onChange={(e) => {
+                      const valor = e.target.value;
+                      const onlyNumbers = valor.replace(/[^\d]/g, "");
+                      const formattedValue = new Intl.NumberFormat("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      }).format(onlyNumbers / 100);
+                      handleInputChangeReal({
+                        target: { name: "valor", value: formattedValue },
+                      });
+                    }}
+                    fullWidth
+                    InputLabelProps={{
+                      shrink: true,
+                      style: { position: "absolute", top: "5px", left: "5px" },
+                    }}
+                  />
+                </Box>
+              ) : field === "quem" ? (
                 <Box sx={{ flex: 1, marginRight: 5.4 }}>
                   <Select
                     multiple
@@ -274,7 +300,7 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
               ) : (
                 <>
                   <TextField
-                    placeholder={` ${label.toLowerCase()}...`}
+                    placeholder={`${label.toLowerCase()}...`} 
                     label={label}
                     fullWidth
                     InputLabelProps={{
@@ -282,7 +308,7 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
                       style: {
                         position: "absolute",
                         top: "5px",
-                        left: "5px",
+                        left: "1px",
                         fontSize: "15px",
                       },
                     }}
@@ -298,9 +324,6 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
         </Box>
       </AccordionDetails>
     </Accordion>
-
-
-    
   );
 };
 
