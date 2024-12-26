@@ -27,7 +27,7 @@ const Projetos = () => {
               {/* Primeiro Box - Ícone e Título */}
         <Box display="flex" alignItems="center" gap={1}>
           <PermContactCalendarIcon sx={{ color: "#5f53e5", fontSize: 40 }} />
-          <Typography>GERENCIADOR DE PROJETOS</Typography>
+          <Typography sx={{ color:"#858585" }}>GERENCIADOR DE PROJETOS</Typography>
         </Box>
 
         {/* Segundo Box - Botão */}

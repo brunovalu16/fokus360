@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, Typography, Modal } from "@mui/material";
 import { Header } from "../../components"; // Certifique-se de que o caminho está correto
 import { auth, db } from "../../data/firebase-config";
 import { onAuthStateChanged } from "firebase/auth";
@@ -9,6 +9,7 @@ import AssessmentIcon from "@mui/icons-material/Assessment";
 import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
 import { Divider } from "@mui/material";
 import LocalGroceryStoreIcon from '@mui/icons-material/LocalGroceryStore';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 
 
 const Relatorios = () => {
@@ -16,6 +17,8 @@ const Relatorios = () => {
   const [activeContent, setActiveContent] = useState("Vendas");
   const [userRole, setUserRole] = useState(""); // Armazena o perfil do usuário logado
   const [visibleLinks, setVisibleLinks] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false); // Estado do modal
+
 
   // Regras para os links baseados no perfil
   const links = {
@@ -25,6 +28,7 @@ const Relatorios = () => {
     "04": ["Vendas", "Indústrias"],
     "05": ["Trade", "Indústrias"],
     "06": ["Indústrias"],
+    "07": ["Projetos"],
   };
 
   // Obter o perfil do usuário logado
@@ -38,6 +42,9 @@ const Relatorios = () => {
             const role = docSnap.data().role;
             setUserRole(role);
             setVisibleLinks(links[role] || []);
+            if (role === "07") {
+              setIsModalOpen(true); // Abre o modal para usuários com perfil 07
+            }
           } else {
             console.error("Dados do usuário não encontrados!");
           }
@@ -53,84 +60,129 @@ const Relatorios = () => {
     return () => unsubscribe();
   }, []);
 
+  // Função para fechar o modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
   return (
     <>
-        {/* Header */}
+      {/* Header */}
       <Box
-            sx={{
-              marginLeft: "40px",
-              paddingTop: "50px",
-            }}
-          >
-          <Header
-            title={
-              <Box display="flex" alignItems="center" gap={1}>
-                <AssessmentIcon sx={{ color: "#5f53e5", fontSize: 40 }} />
-                  <Typography>
-                      GERENCIADOR DE RELATÓRIOS
-                  </Typography>
-                
-              </Box>
-            }
-          />
+        sx={{
+          marginLeft: "40px",
+          paddingTop: "50px",
+        }}
+      >
+        <Header
+          title={
+            <Box display="flex" alignItems="center" gap={1}>
+              <AssessmentIcon sx={{ color: "#5f53e5", fontSize: 40 }} />
+              <Typography>GERENCIADOR DE RELATÓRIOS</Typography>
+            </Box>
+          }
+        />
       </Box>
 
       <Box
-          sx={{
-            marginLeft: "40px",
-            marginTop: "-15px",
-            width: "calc(100% - 80px)", // Para ajustar à tela considerando o margin de 40px
-            minHeight: "50vh",
-            padding: "15px",
-            paddingLeft: "30px",
-            borderRadius: "20px",
-            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-            bgcolor: "#f2f0f0",
-            overflowX: "hidden",
-          }}
-        >
-
+        sx={{
+          marginLeft: "40px",
+          marginTop: "-15px",
+          width: "calc(100% - 80px)", // Para ajustar à tela considerando o margin de 40px
+          minHeight: "50vh",
+          padding: "15px",
+          paddingLeft: "30px",
+          borderRadius: "20px",
+          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+          bgcolor: "#f2f0f0",
+          overflowX: "hidden",
+          position: "relative", // Permite que o modal fique preso neste container
+        }}
+      >
         <Box display="flex" alignItems="center" gap={1}>
-            <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
-            <Typography color="#858585">
-                RELATÓRIOS
-          </Typography>     
+          <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
+          <Typography color="#858585">RELATÓRIOS</Typography>
         </Box>
 
+
+
+        {/* Modal específico da página Relatórios */}
+        {isModalOpen && (
           <Box
             sx={{
-              position: "relative", // Permite posicionar o ícone sobre o divisor
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "90%", // Largura do divisor
-              marginBottom: "10px",
-              marginTop: "15px",
+              position: "absolute", // Modal preso apenas no conteúdo da página
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: "400px",
+              bgcolor: "background.paper",
+              borderRadius: "8px",
+              boxShadow: 24,
+              p: 4,
+              textAlign: "center",
+              zIndex: 999, // Garantir que o modal esteja acima do conteúdo
+              color: "#737373"
             }}
           >
-            {/* Divider */}
-            <Divider
+            <ErrorOutlineIcon sx={{ color: "#dc2626", fontSize: 40 }} />
+            <Typography variant="h6" component="h2">
+              Nenhum relatório no momento.
+            </Typography>
+            <Typography sx={{ mt: 2 }}>
+              Você não tem acesso a relatórios no momento. Entre em contato com
+              o administrador do sistema para mais informações.
+            </Typography>
+            {/** 
+            <Button
+              onClick={handleCloseModal}
+              variant="contained"
               sx={{
-                position: "absolute", // Para garantir que o ícone fique sobre o divisor
-                width: "100%",
-                height: "1px",
-                backgroundColor: "#ccc", // Cor do divisor
+                mt: 3,
+                backgroundColor: "#312783",
+                "&:hover": { backgroundColor: "#1e1b4b" },
               }}
-            />
+            >
+              Fechar
+            </Button>
+            */}
+          </Box>
+        )}
 
-            {/* Ícone */}
-            <LocalGroceryStoreIcon
-              sx={{
-                color: "#5f53e5",
-                fontSize: 25,
-                zIndex: 1, // Garante que o ícone fique acima do divisor
-                backgroundColor: "#f2f0f0", // Fundo branco para destacar o ícone
-                padding: "0 4px", // Espaçamento para o fundo branco
-                marginLeft: "103%",
-              }}
-            />
-        </Box>
         
+
+        <Box
+          sx={{
+            position: "relative", // Permite posicionar o ícone sobre o divisor
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "90%", // Largura do divisor
+            marginBottom: "10px",
+            marginTop: "15px",
+          }}
+        >
+          {/* Divider */}
+          <Divider
+            sx={{
+              position: "absolute", // Para garantir que o ícone fique sobre o divisor
+              width: "100%",
+              height: "1px",
+              backgroundColor: "#ccc", // Cor do divisor
+            }}
+          />
+
+          {/* Ícone */}
+          <LocalGroceryStoreIcon
+            sx={{
+              color: "#5f53e5",
+              fontSize: 25,
+              zIndex: 1, // Garante que o ícone fique acima do divisor
+              backgroundColor: "#f2f0f0", // Fundo branco para destacar o ícone
+              padding: "0 4px", // Espaçamento para o fundo branco
+              marginLeft: "103%",
+            }}
+          />
+        </Box>
 
         {/* Conteúdo Principal */}
         <Box
@@ -153,38 +205,47 @@ const Relatorios = () => {
               borderRight: "1px solid #d6d6d6",
             }}
           >
-            {["Vendas", "Financeiro", "Logística", "Central de monitoramento", "Trade", "Indústrias"].map((label) => (
-              visibleLinks.includes(label) && ( // Exibe apenas os botões permitidos
-                <Button
-                  key={label}
-                  fullWidth
-                  variant="contained"
-                  onClick={() => {
-                    setActiveContent(label);
-                    if (label === "Indústrias") {
-                      navigate("/painelindustrias");
-                    }
-                  }}
-                  sx={{
-                    mb: 3,
-                    borderRadius: "10px",
-                    border: "1px solid",
-                    boxShadow: "none",
-                    backgroundColor: activeContent === label ? "#312783" : "#f2f0f0",
-                    textTransform: "none",
-                    borderColor: "#e0e0e0",
-                    color: activeContent === label ? "#fff" : "#858585",
-                    "&:hover": {
-                      backgroundColor: "#312783",
-                      color: "#fff",
+            {[
+              "Vendas",
+              "Financeiro",
+              "Logística",
+              "Central de monitoramento",
+              "Trade",
+              "Indústrias",
+            ].map(
+              (label) =>
+                visibleLinks.includes(label) && ( // Exibe apenas os botões permitidos
+                  <Button
+                    key={label}
+                    fullWidth
+                    variant="contained"
+                    onClick={() => {
+                      setActiveContent(label);
+                      if (label === "Indústrias") {
+                        navigate("/painelindustrias");
+                      }
+                    }}
+                    sx={{
+                      mb: 3,
+                      borderRadius: "10px",
+                      border: "1px solid",
                       boxShadow: "none",
-                    },
-                  }}
-                >
-                  {label}
-                </Button>
-              )
-            ))}
+                      backgroundColor:
+                        activeContent === label ? "#312783" : "#f2f0f0",
+                      textTransform: "none",
+                      borderColor: "#e0e0e0",
+                      color: activeContent === label ? "#fff" : "#858585",
+                      "&:hover": {
+                        backgroundColor: "#312783",
+                        color: "#fff",
+                        boxShadow: "none",
+                      },
+                    }}
+                  >
+                    {label}
+                  </Button>
+                )
+            )}
           </Box>
 
           {/* Main Content */}
@@ -205,12 +266,14 @@ const Relatorios = () => {
               overflow: "auto",
             }}
           >
-
-            
-            
-            {activeContent === "Vendas" && visibleLinks.includes("Vendas") &&  (
+            {activeContent === "Vendas" && visibleLinks.includes("Vendas") && (
               <>
-                <Button href="/vendasdevolucao" fullWidth variant="contained" sx={mainButtonStyle}>
+                <Button
+                  href="/vendasdevolucao"
+                  fullWidth
+                  variant="contained"
+                  sx={mainButtonStyle}
+                >
                   VENDAS X DEVOLUÇÃO
                 </Button>
                 <Button fullWidth variant="contained" sx={mainButtonStyle}>
@@ -221,45 +284,48 @@ const Relatorios = () => {
                 </Button>
               </>
             )}
-            {activeContent === "Financeiro" && visibleLinks.includes("Financeiro") && (
-              <>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 1 financeiro
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 2 financeiro
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 3 financeiro
-                </Button>
-              </>
-            )}
-            {activeContent === "Logística" && visibleLinks.includes("Logística") && (
-              <>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 1 financeiro
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 2 financeiro
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 3 financeiro
-                </Button>
-              </>
-            )}
-            {activeContent === "Central de monitoramento" && visibleLinks.includes("Central de monitoramento") && (
-              <>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 1 financeiro
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 2 financeiro
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 3 financeiro
-                </Button>
-              </>
-            )}
+            {activeContent === "Financeiro" &&
+              visibleLinks.includes("Financeiro") && (
+                <>
+                  <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                    teste 1 financeiro
+                  </Button>
+                  <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                    teste 2 financeiro
+                  </Button>
+                  <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                    teste 3 financeiro
+                  </Button>
+                </>
+              )}
+            {activeContent === "Logística" &&
+              visibleLinks.includes("Logística") && (
+                <>
+                  <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                    teste 1 financeiro
+                  </Button>
+                  <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                    teste 2 financeiro
+                  </Button>
+                  <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                    teste 3 financeiro
+                  </Button>
+                </>
+              )}
+            {activeContent === "Central de monitoramento" &&
+              visibleLinks.includes("Central de monitoramento") && (
+                <>
+                  <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                    teste 1 financeiro
+                  </Button>
+                  <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                    teste 2 financeiro
+                  </Button>
+                  <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                    teste 3 financeiro
+                  </Button>
+                </>
+              )}
             {activeContent === "Indústrias" && (
               <>
                 <Button fullWidth variant="contained" sx={mainButtonStyle}>
@@ -273,7 +339,7 @@ const Relatorios = () => {
                 </Button>
               </>
             )}
-            {activeContent === "Trade" && visibleLinks.includes("Trade") &&  (
+            {activeContent === "Trade" && visibleLinks.includes("Trade") && (
               <>
                 <Button fullWidth variant="contained" sx={mainButtonStyle}>
                   teste 11 trade

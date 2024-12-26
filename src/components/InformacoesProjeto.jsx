@@ -12,6 +12,8 @@ const InformacoesProjeto = () => {
     categoria: [], // Inicializado como array vazio
     valor: "",
     descricao: "",
+    unidade:"",
+    solicitante:"",
   });
 
   const handleInputChangeReal = (event) => {
@@ -83,7 +85,7 @@ const InformacoesProjeto = () => {
                 {/* Unidade */}
                 <Select
                   name="unidade"
-                  value={formValues.cliente}
+                  value={formValues.unidade}
                   onChange={handleInputChange}
                   displayEmpty
                   sx={{
@@ -97,17 +99,17 @@ const InformacoesProjeto = () => {
                   <MenuItem value="BRASÍLIA">BRASÍLIA</MenuItem>
                   <MenuItem value="GOIÁS">GOIÁS</MenuItem>
                   <MenuItem value="MATOGROSSO">MATO GROSSO</MenuItem>
-                  <MenuItem value="MATOGROSSODOSUL">
-                    MATO GROSSO DO SUL
-                  </MenuItem>
+                  <MenuItem value="MATOGROSSODOSUL">MATO GROSSO DO SUL</MenuItem>
                   <MenuItem value="PARA">PARÁ</MenuItem>
                   <MenuItem value="TOCANTINS">TOCANTINS</MenuItem>
                 </Select>
 
+
+
                 {/* Cliente */}
                 <Select
-                  name="cliente"
-                  value={formValues.cliente}
+                  name="solicitante"
+                  value={formValues.solicitante}
                   onChange={handleInputChange}
                   displayEmpty
                   sx={{
@@ -121,6 +123,8 @@ const InformacoesProjeto = () => {
                   <MenuItem value="BRASÍLIA">BRASÍLIA</MenuItem>
                   <MenuItem value="GOIÁS">GOIÁS</MenuItem>
                 </Select>
+
+
 
                 {/* Categoria */}
                 <Select
@@ -136,8 +140,16 @@ const InformacoesProjeto = () => {
                   <MenuItem value="" disabled>
                     Selecione uma categoria ao projeto
                   </MenuItem>
-                  <MenuItem value="BRASÍLIA">BRASÍLIA</MenuItem>
-                  <MenuItem value="GOIÁS">GOIÁS</MenuItem>
+                  <MenuItem value="ADMINISTRATIVO">ADMINISTRATIVO</MenuItem>
+                  <MenuItem value="COMERCIAL">COMERCIAL</MenuItem>
+                  <MenuItem value="CONTABILIDADE">CONTABILIDADE</MenuItem>
+                  <MenuItem value="CONTROLADORIA">CONTROLADORIA</MenuItem>
+                  <MenuItem value="DEPARTAMENTOPESSOAL">DEPARTAMENTO PESSOAL</MenuItem>
+                  <MenuItem value="DIRETORIA">DIRETORIA</MenuItem>
+                  <MenuItem value="FINANCEIRO">FINANCEIRO</MenuItem>
+                  <MenuItem value="RECURSOSHUMANOS">RECURSOS HUMANOS</MenuItem>
+                  <MenuItem value="CONTROLADORIA">CONTROLADORIA</MenuItem>
+                  <MenuItem value="LOGISTICA">LOGÍSTICA</MenuItem>
                 </Select>
 
                 {/* Colaboradores */}

@@ -24,6 +24,7 @@ const Login = () => {
     logar();
   };
   
+  
 
   // função de logar // signInWithEmailAndPassword - esse é o método de autenticação
   const logar = async () => {

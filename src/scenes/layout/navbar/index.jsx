@@ -31,7 +31,35 @@ const Navbar = () => {
   const [user, setUser] = useState(null);
   const [username, setUsername] = useState("");
   const navigate = useNavigate(); // Para redirecionar após logout
+   const [userRole, setUserRole] = useState(""); // Armazena o perfil do usuário logado
+   const [userName, setUserName] = useState("");
 
+   // esconde o botão do usuário logado
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        try {
+          const docRef = doc(db, 'user', currentUser.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setUserRole(data.role);
+          } else {
+            console.error('Dados do usuário não encontrados!');
+          }
+        } catch (error) {
+          console.error('Erro ao buscar dados do usuário:', error);
+        }
+      } else {
+        setUserRole('');
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+
+// pega os dados do usuário logado
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
@@ -55,6 +83,7 @@ const Navbar = () => {
 
     return () => unsubscribe();
   }, []);
+
 
   return (
     <>
@@ -187,6 +216,7 @@ const Navbar = () => {
             <NotificationsOutlined />
           </IconButton>
 
+          {userRole !== "01" && (
           <IconButton
               component={Link}
               to="/contacts"
@@ -199,6 +229,7 @@ const Navbar = () => {
             >
               <SettingsOutlined />
           </IconButton>
+          )}
 
           <Box
             sx={{

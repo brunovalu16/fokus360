@@ -158,6 +158,7 @@ const Cadastro = () => {
               <MenuItem value="04">Vendedor</MenuItem>
               <MenuItem value="05">Trade</MenuItem>
               <MenuItem value="06">Indústria</MenuItem>
+              <MenuItem value="07">Projetos</MenuItem>
             </Select>
           </FormControl>
           <Button

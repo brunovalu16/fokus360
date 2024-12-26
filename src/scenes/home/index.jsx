@@ -1,25 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Divider } from "@mui/material";
-import { Header } from "../../components";
-import AssessmentIcon from "@mui/icons-material/Assessment";
+import { Box, Typography, CircularProgress } from "@mui/material";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
-import LocalGroceryStoreIcon from "@mui/icons-material/LocalGroceryStore";
 
 const Home = () => {
   const [userRole, setUserRole] = useState("");
 
-  useEffect(() => {
-    // Adicione qualquer lógica relacionada à autenticação ou ao usuário, se necessário
-  }, []);
-
   return (
     <>
-      
-
       {/* Conteúdo Principal */}
       <Box
         sx={{
-          marginLeft:"40px",
+          marginLeft: "40px",
           marginTop: "10px",
           width: "calc(100% - 80px)", // Para ajustar à tela considerando o margin de 40px
           minHeight: "50vh",
@@ -37,7 +28,7 @@ const Home = () => {
         <Box display="flex" alignItems="center" gap={1}>
           <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
             <Typography
-                color="#858585">FOKUS 360 | RELATÓRIOS POWER BI
+                color="#858585">FOKUS 360 | PROJETOS
             </Typography>
         </Box>
 
@@ -74,7 +65,9 @@ const Home = () => {
           <Box
             sx={{
               position: "absolute",
-              top: "59%", // Posição para "Novo Projeto"
+              top: "55%", // Posição para "Novo Projeto"
+              left: "10%",
+              height: "100px",
             }}
           >
             <a
@@ -84,9 +77,9 @@ const Home = () => {
                 color: "transparent",
                 textDecoration: "none",
                 fontWeight: "bold",
-                marginLeft: "50px",
-                paddingRight: "550px",
+                marginLeft: "8px",
                 alignContent: "center",
+                paddingRight: "300px",
                 paddingBottom: "150px",
               }}
             >
@@ -97,13 +90,13 @@ const Home = () => {
           <Box
             sx={{
               position: "absolute",
-              top: "36%", // Posição para "Resumo Geral"
-              right: "7%",
-              height: "55px",
+              top: "38%", // Posição para "Resumo Geral"
+              right: "5%",
+              height: "150px",
             }}
           >
             <a
-              href="/resumo-geral"
+              href="/dashboard"
               style={{
                 padding: "10px 20px",
                 backgroundColor: "transparent",
@@ -111,33 +104,34 @@ const Home = () => {
                 borderRadius: "8px",
                 textDecoration: "none",
                 fontWeight: "bold",
-                padding: "20px",
+                paddingRight: "250px",
+                paddingBottom: "30px",
               }}
             >
               Resumo Geral
             </a>
           </Box>
+
+
           <Box
             sx={{
               position: "absolute",
               top: "48%", // Posição para "Resumo Projetos"
               right: "6%",
-              height: "75px",
             }}
           >
             <a
-              href="/resumo-projetos"
+              href="/listaprojetos"
               style={{
-                padding: "10px 20px",
                 backgroundColor: "transparent",
                 color: "transparent",
-                borderRadius: "8px",
                 textDecoration: "none",
                 fontWeight: "bold",
-                padding: "20px",
+                paddingRight: "280px",
+                paddingBottom: "50px",
               }}
             >
-              Resumo Projetos
+              Projetos
             </a>
           </Box>
         </div>

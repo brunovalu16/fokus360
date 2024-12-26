@@ -1,34 +1,41 @@
-// Novo componente para o gráfico de progresso
 import React from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
 
 const ProgressStatus = ({ checkState }) => {
-  const allChecked = Object.values(checkState).every((value) => value);
-  const someChecked = Object.values(checkState).some((value) => value);
+  const totalChecks = Object.keys(checkState).length; // Total de campos no estado
+  const completedChecks = Object.values(checkState).filter(Boolean).length; // Quantos estão marcados
+
+  const allChecked = completedChecks === totalChecks;
+  const someChecked = completedChecks > 0 && !allChecked;
 
   const status = allChecked
-    ? { color: "green", text: "Finalizado" }
+    ? { color: "#84cc16", text: "Finalizado" } // Verde
     : someChecked
-    ? { color: "yellow", text: "Em andamento" }
-    : { color: "gray", text: "Não iniciado" };
+    ? { color: "#4338ca", text: "Em andamento" } // Azul
+    : { color: "#57534e", text: "Não iniciado" }; // Cinza
+
+  const progressValue = (completedChecks / totalChecks) * 100; // Progresso dinâmico
 
   return (
-    <Box display="flex" alignItems="center" gap={2}>
+    <Box
+      display="flex"
+      alignItems="center"
+      gap={1}
+      sx={{ marginLeft: "auto", marginRight: "30px" }}
+    >
       <CircularProgress
         variant="determinate"
-        value={
-          (Object.values(checkState).filter(Boolean).length / 7) * 100
-        }
+        value={progressValue}
         sx={{ color: status.color }}
+        thickness={10}
+        size={30}
       />
-      <Typography
-        variant="h6"
-        sx={{ color: status.color, fontWeight: "bold" }}
-      >
+      <Typography variant="h5" sx={{ color: status.color, fontWeight: "bold" }}>
         {status.text}
       </Typography>
     </Box>
   );
 };
+
 
 export default ProgressStatus;
