@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, Typography } from "@mui/material";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import LocalGroceryStoreIcon from "@mui/icons-material/LocalGroceryStore";
+import { Link } from 'react-router-dom';
 
 const Projetos = () => {
 
@@ -76,8 +77,8 @@ const Projetos = () => {
               height: "150px",
             }}
           >
-            <a
-              href="/cadastroprojetos"
+            <Link
+              to="/cadastroprojetos"
               style={{
                 backgroundColor: "transparent",  
                 color: "transparent",
@@ -90,7 +91,7 @@ const Projetos = () => {
               }}
             >
               Novo Projeto
-            </a>
+            </Link>
           </Box>
 
           <Box
@@ -101,8 +102,8 @@ const Projetos = () => {
               height: "150px",
             }}
           >
-            <a
-              href="/dashboard"
+            <Link
+              to="/dashboard"
               style={{
                 padding: "10px 20px",
                 backgroundColor: "transparent",
@@ -115,7 +116,7 @@ const Projetos = () => {
               }}
             >
               Resumo Geral
-            </a>
+            </Link>
           </Box>
 
 
@@ -126,8 +127,8 @@ const Projetos = () => {
               right: "6%",
             }}
           >
-            <a
-              href="/listaprojetos"
+            <Link
+              to="/listaprojetos"
               style={{
                 backgroundColor: "transparent",
                 color: "transparent",
@@ -138,7 +139,7 @@ const Projetos = () => {
               }}
             >
               Projetos
-            </a>
+            </Link>
           </Box>
         </div>
       </Box>

@@ -1,25 +1,13 @@
 import React, { useState } from "react";
-import {
-  Box,
-  Button,
-  IconButton,
-  Typography,
-  Checkbox,
-  FormControlLabel,
-} from "@mui/material";
-import {
-  DataGrid,
-  GridToolbarContainer,
-  GridToolbarExport,
-  GridToolbarFilterButton,
-  GridToolbarColumnsButton,
-} from "@mui/x-data-grid";
+import { Box, Button, IconButton, Typography, Checkbox, FormControlLabel } from "@mui/material";
+import { DataGrid, GridToolbarContainer, GridToolbarExport, GridToolbarFilterButton, GridToolbarColumnsButton } from "@mui/x-data-grid";
 import { mockDataProjects } from "../data/mockData";
 import { tokens } from "../theme";
 import { useNavigate } from "react-router-dom";
 import PermContactCalendarIcon from "@mui/icons-material/PermContactCalendar";
 import DeleteForeverSharpIcon from "@mui/icons-material/DeleteForeverSharp";
 import { useTheme } from "@mui/material/styles";
+import { Link } from 'react-router-dom';
 
 
 // Tradução dos textos da Toolbar e rodapé
@@ -247,9 +235,9 @@ const Lista = () => {
       renderCell: ({ row }) => (
         <Box display="flex" gap={1}>
           <Button
+              component={Link} // Define que o botão será um Link do React Router
               size="small"
-              component="a" // Define que o botão será um link
-              href="/dashboardprojeto" // Caminho do link
+              to="/dashboardprojeto" // Caminho do link
               sx={{
                 color: "#fff",
                 backgroundColor: "#583cff",

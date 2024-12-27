@@ -1,36 +1,104 @@
-import React, { useState } from "react";
-import { Box, Checkbox, TextField, ListItemText, Select, MenuItem, Accordion, AccordionDetails } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Checkbox,
+  TextField,
+  ListItemText,
+  Select,
+  MenuItem,
+  Accordion,
+  AccordionDetails,
+} from "@mui/material";
+import { getFirestore, getDocs, collection } from "firebase/firestore";
 
-
-
-const InformacoesProjeto = () => {
+const InformacoesProjeto = ({ onUpdate }) => {
+  const [users, setUsers] = useState([]);
   const [formValues, setFormValues] = useState({
-    nome: "",
-    dataInicio: "",
-    prazoPrevisto: "",
-    cliente: "",
-    categoria: [], // Inicializado como array vazio
-    valor: "",
-    descricao: "",
-    unidade:"",
-    solicitante:"",
+    nome: '',
+    descricao: '',
+    dataInicio: '',
+    prazoPrevisto: '',
+    unidade: '',
+    solicitante: '',
+    categoria: '',
+    colaboradores: [],
+    responsavel: '',
+    orcamento: '',
   });
 
-  const handleInputChangeReal = (event) => {
+  // 📥 **Carregar Usuários do Firebase**
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const db = getFirestore();
+        const querySnapshot = await getDocs(collection(db, "user"));
+        const usersList = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          username: doc.data().username,
+        }));
+        setUsers(usersList);
+      } catch (error) {
+        console.error("Erro ao buscar usuários:", error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  // 🔄 **Manipular Mudanças Gerais (TextField e Select)**
+  const handleChange = (event) => {
     const { name, value } = event.target;
-    setFormValues({ ...formValues, [name]: value });
+
+    setFormValues((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    onUpdate((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  // Função para lidar com inputs
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormValues({ ...formValues, [name]: value });
+  // 🔄 **Manipular Seleção Múltipla (Colaboradores)**
+  const handleSelectChange = (event) => {
+    const { value } = event.target;
+
+    setFormValues((prev) => ({
+      ...prev,
+      colaboradores: typeof value === "string" ? value.split(",") : value,
+    }));
+
+    onUpdate((prev) => ({
+      ...prev,
+      colaboradores: typeof value === "string" ? value.split(",") : value,
+    }));
   };
 
-  // Função para lidar com seleção múltipla
-  const handleSelectChange = (e) => {
-    setFormValues({ ...formValues, categoria: e.target.value });
+  // 🔄 **Manipular Orçamento com Formato Monetário**
+  const handleCurrencyChange = (event) => {
+    const { name, value } = event.target;
+    const onlyNumbers = value.replace(/[^\d]/g, ""); // Remove não numéricos
+    const formattedValue = new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(onlyNumbers / 100); // Formata como moeda
+
+    setFormValues((prev) => ({
+      ...prev,
+      [name]: formattedValue,
+    }));
+
+    onUpdate((prev) => ({
+      ...prev,
+      [name]: Number(onlyNumbers) / 100, // Salva como número no estado global
+    }));
   };
+
+  // 🐞 **Log para Depuração**
+  useEffect(() => {
+    console.log("Estado Local Atualizado:", formValues);
+  }, [formValues]);
 
   return (
     <>
@@ -38,11 +106,12 @@ const InformacoesProjeto = () => {
         <Accordion disableGutters sx={{ backgroundColor: "transparent" }}>
           <AccordionDetails>
             <Box component="form" display="flex" flexDirection="column" gap={2}>
+              {/* Nome do Projeto */}
               <TextField
-                label="Nome do projeto..."
+                label="Nome do projeto"
                 name="nome"
                 value={formValues.nome}
-                onChange={handleInputChange}
+                onChange={handleChange}
                 fullWidth
               />
 
@@ -54,15 +123,9 @@ const InformacoesProjeto = () => {
                   name="dataInicio"
                   type="date"
                   value={formValues.dataInicio}
-                  onChange={handleInputChange}
-                  InputLabelProps={{
-                    shrink: true,
-                    style: { position: "absolute", top: "5px", left: "5px" },
-                  }}
-                  sx={{
-                    flex: "1 1 calc(33.33% - 16px)", // 33.33% de largura com espaçamento
-                    minWidth: "200px", // Largura mínima
-                  }}
+                  onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
+                  sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}
                 />
 
                 {/* Prazo Previsto */}
@@ -71,27 +134,18 @@ const InformacoesProjeto = () => {
                   name="prazoPrevisto"
                   type="date"
                   value={formValues.prazoPrevisto}
-                  onChange={handleInputChange}
-                  InputLabelProps={{
-                    shrink: true,
-                    style: { position: "absolute", top: "5px", left: "5px" },
-                  }}
-                  sx={{
-                    flex: "1 1 calc(33.33% - 16px)", // 33.33% de largura com espaçamento
-                    minWidth: "200px", // Largura mínima
-                  }}
+                  onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
+                  sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}
                 />
 
                 {/* Unidade */}
                 <Select
                   name="unidade"
                   value={formValues.unidade}
-                  onChange={handleInputChange}
+                  onChange={handleChange}
                   displayEmpty
-                  sx={{
-                    flex: "1 1 calc(33.33% - 16px)", // 33.33% de largura com espaçamento
-                    minWidth: "200px", // Largura mínima
-                  }}
+                  sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}
                 >
                   <MenuItem value="" disabled>
                     Selecione a unidade do projeto
@@ -99,53 +153,53 @@ const InformacoesProjeto = () => {
                   <MenuItem value="BRASÍLIA">BRASÍLIA</MenuItem>
                   <MenuItem value="GOIÁS">GOIÁS</MenuItem>
                   <MenuItem value="MATOGROSSO">MATO GROSSO</MenuItem>
-                  <MenuItem value="MATOGROSSODOSUL">MATO GROSSO DO SUL</MenuItem>
+                  <MenuItem value="MATOGROSSODOSUL">
+                    MATO GROSSO DO SUL
+                  </MenuItem>
                   <MenuItem value="PARA">PARÁ</MenuItem>
                   <MenuItem value="TOCANTINS">TOCANTINS</MenuItem>
                 </Select>
 
-
-
-                {/* Cliente */}
+                {/* Solicitante */}
                 <Select
                   name="solicitante"
                   value={formValues.solicitante}
-                  onChange={handleInputChange}
+                  onChange={handleChange}
                   displayEmpty
-                  sx={{
-                    flex: "1 1 calc(33.33% - 16px)", // 33.33% de largura com espaçamento
-                    minWidth: "200px", // Largura mínima
-                  }}
+                  sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}
                 >
                   <MenuItem value="" disabled>
-                    Selecione o solicitante do projeto
+                    Selecione o solicitante
                   </MenuItem>
-                  <MenuItem value="BRASÍLIA">BRASÍLIA</MenuItem>
-                  <MenuItem value="GOIÁS">GOIÁS</MenuItem>
+                  {users.map((user) => (
+                    <MenuItem key={user.id} value={user.username}>
+                      {user.username}
+                    </MenuItem>
+                  ))}
                 </Select>
-
-
 
                 {/* Categoria */}
                 <Select
-                  name="cliente"
-                  value={formValues.cliente}
-                  onChange={handleInputChange}
+                  name="categoria"
+                  value={formValues.categoria}
+                  onChange={handleChange}
                   displayEmpty
-                  sx={{
-                    flex: "1 1 calc(33.33% - 16px)", // 33.33% de largura com espaçamento
-                    minWidth: "200px", // Largura mínima
-                  }}
+                  sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}
                 >
                   <MenuItem value="" disabled>
-                    Selecione uma categoria ao projeto
+                    Selecione uma categoria
                   </MenuItem>
                   <MenuItem value="ADMINISTRATIVO">ADMINISTRATIVO</MenuItem>
                   <MenuItem value="COMERCIAL">COMERCIAL</MenuItem>
                   <MenuItem value="CONTABILIDADE">CONTABILIDADE</MenuItem>
                   <MenuItem value="CONTROLADORIA">CONTROLADORIA</MenuItem>
-                  <MenuItem value="DEPARTAMENTOPESSOAL">DEPARTAMENTO PESSOAL</MenuItem>
+                  <MenuItem value="DEPARTAMENTOPESSOAL">
+                    DEPARTAMENTO PESSOAL
+                  </MenuItem>
                   <MenuItem value="DIRETORIA">DIRETORIA</MenuItem>
+                  <MenuItem value="ESTRATEGIADENEGOCIOS">
+                    ESTRATÉGIA DE NEGÓCIOS
+                  </MenuItem>
                   <MenuItem value="FINANCEIRO">FINANCEIRO</MenuItem>
                   <MenuItem value="RECURSOSHUMANOS">RECURSOS HUMANOS</MenuItem>
                   <MenuItem value="CONTROLADORIA">CONTROLADORIA</MenuItem>
@@ -156,84 +210,40 @@ const InformacoesProjeto = () => {
                 <Select
                   multiple
                   name="colaboradores"
-                  value={formValues.categoria}
+                  value={formValues.colaboradores || []}
                   onChange={handleSelectChange}
                   displayEmpty
-                  sx={{
-                    flex: "1 1 calc(33.33% - 16px)", // 33.33% de largura com espaçamento
-                    minWidth: "200px", // Largura mínima
-                  }}
+                  sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}
                   renderValue={(selected) =>
                     selected.length === 0
-                      ? "Selecione colaboradores ao projeto"
-                      : selected.join(", ")
+                      ? "Selecione colaboradores"
+                      : selected
+                          .map(
+                            (id) =>
+                              users.find((user) => user.id === id)?.username ||
+                              "Desconhecido"
+                          )
+                          .join(", ")
                   }
                 >
-                  <MenuItem disabled value="">
-                    <ListItemText primary="Selecione responsáveis pelo projeto" />
-                  </MenuItem>
-                  {["financeiro", "rh", "marketing", "ti"].map((option) => (
-                    <MenuItem key={option} value={option}>
+                  {users.map((user) => (
+                    <MenuItem key={user.id} value={user.id}>
                       <Checkbox
-                        checked={formValues.categoria.indexOf(option) > -1}
+                        checked={formValues.colaboradores.includes(user.id)}
                       />
-                      <ListItemText
-                        primary={
-                          option.charAt(0).toUpperCase() + option.slice(1)
-                        }
-                      />
+                      <ListItemText primary={user.username} />
                     </MenuItem>
                   ))}
                 </Select>
               </Box>
 
-              {/* Valor e Descrição */}
+              {/* Orçamento */}
               <TextField
                 label="Orçamento"
-                name="valor"
-                value={formValues.valor}
-                onChange={(e) => {
-                  const valor = e.target.value;
-                  // Remove caracteres não numéricos
-                  const onlyNumbers = valor.replace(/[^\d]/g, "");
-                  // Converte para formato de moeda
-                  const formattedValue = new Intl.NumberFormat("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  }).format(onlyNumbers / 100);
-                  // Atualiza o estado
-                  handleInputChangeReal({
-                    target: { name: "valor", value: formattedValue },
-                  });
-                }}
+                name="orcamento"
+                value={formValues.orcamento}
+                onChange={handleCurrencyChange}
                 fullWidth
-                InputLabelProps={{
-                  shrink: true,
-                  style: {
-                    position: "absolute",
-                    top: "5px",
-                    left: "5px",
-                    fontSize: "15px",
-                  },
-                }}
-              />
-              <TextField
-                label="Descrição..."
-                name="descricao"
-                value={formValues.descricao}
-                onChange={handleInputChange}
-                multiline
-                rows={4}
-                fullWidth
-                InputLabelProps={{
-                  shrink: true,
-                  style: {
-                    position: "absolute",
-                    top: "5px",
-                    left: "5px",
-                    fontSize: "15px",
-                  },
-                }}
               />
             </Box>
           </AccordionDetails>

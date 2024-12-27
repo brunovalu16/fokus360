@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, CircularProgress } from "@mui/material";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
+import { Link } from 'react-router-dom';
 
 const Home = () => {
   const [userRole, setUserRole] = useState("");
@@ -70,8 +71,8 @@ const Home = () => {
               height: "100px",
             }}
           >
-            <a
-              href="/relatorios"
+            <Link
+              to="/relatorios"
               style={{
                 backgroundColor: "transparent",  
                 color: "transparent",
@@ -84,7 +85,7 @@ const Home = () => {
               }}
             >
               Novo Projeto
-            </a>
+            </Link>
           </Box>
 
           <Box
