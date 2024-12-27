@@ -216,8 +216,10 @@ const Navbar = () => {
             <NotificationsOutlined />
           </IconButton>
 
-          {userRole !== "01" && (
-          <IconButton
+
+          {userRole !== "01" && userRole !== "02" && userRole !== "03" &&
+          userRole !== "04" && userRole !== "05" && userRole !== "06" && userRole !== "07" && (
+            <IconButton
               component={Link}
               to="/contacts"
               sx={{
@@ -228,7 +230,7 @@ const Navbar = () => {
               }}
             >
               <SettingsOutlined />
-          </IconButton>
+            </IconButton>
           )}
 
           <Box
