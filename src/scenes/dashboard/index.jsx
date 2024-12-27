@@ -5,6 +5,7 @@ import PieChartIcon from '@mui/icons-material/PieChart';
 import { tokens } from "../../theme";
 import { mockTransactions } from "../../data/mockData";
 import DadosProjetogeral from "../../components/DadosProjetogeral";
+import { Link } from 'react-router-dom';
 
 function Dashboard() {
   const theme = useTheme();
@@ -40,7 +41,8 @@ function Dashboard() {
         {!isXsDevices && (
           <Box display="flex" justifyContent="flex-end" mb={2}>
           <Button
-              href="/cadastroprojetos"
+              component={Link} // Define que o botão será um Link do React Router
+              to="/cadastroprojetos"
               variant="contained"
               color="primary"
               onClick={""}

@@ -1,94 +1,185 @@
-import React, { useState } from "react";
-import { Box, Button, Typography, TextField, Accordion, AccordionDetails, AccordionSummary, } from "@mui/material";
-import { mockDiretrizes } from "../data/mockData";
+import React, { useState } from 'react';
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+} from '@mui/material';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import DiretrizData from './DiretrizData';
 
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import DiretrizData from "./DiretrizData";
+const BaseDiretriz = ({ onUpdate }) => {
+  const [novaDiretriz, setNovaDiretriz] = useState('');
+  const [descricaoDiretriz, setDescricaoDiretriz] = useState('');
+  const [diretrizes, setDiretrizes] = useState([]);
 
+  // Adicionar nova diretriz
+  const handleAddDiretriz = () => {
+    if (novaDiretriz.trim() === '' || descricaoDiretriz.trim() === '') {
+      alert('Preencha os campos de título e descrição da diretriz!');
+      return;
+    }
+  
+    const nova = {
+      id: Date.now(),
+      titulo: novaDiretriz,
+      descricao: descricaoDiretriz,
+      tarefas: [],
+    };
+  
+    setDiretrizes((prev) => [...prev, nova]);
+  
+    // Atualiza o estado global corretamente
+    onUpdate((prev) => ({
+      ...prev,
+      diretrizes: Array.isArray(prev.diretrizes)
+        ? [...prev.diretrizes, nova]
+        : [nova],
+    }));
+  
+    setNovaDiretriz('');
+    setDescricaoDiretriz('');
+  };
+  
+  
+  
 
-const BaseDiretriz = () => {
-  const [diretrizes] = useState(mockDiretrizes || []);
+  // Remover Diretriz
+  const handleRemoveDiretriz = (id) => {
+    const updated = diretrizes.filter((diretriz) => diretriz.id !== id);
+    setDiretrizes(updated);
+  
+    onUpdate((prev) => ({
+      ...prev,
+      diretrizes: updated,
+    }));
+  };
+  
 
   return (
-    <>
+    <Box>
+      {/* 📌 Campo Fixo para Adicionar Diretriz */}
+      <Box display="flex" flexDirection="column" gap={2} marginBottom="20px">
+        {/* Título da Diretriz */}
+        <TextField
+          label="Nome da diretriz..."
+          value={novaDiretriz}
+          onChange={(e) => setNovaDiretriz(e.target.value)}
+          fullWidth
+        />
+
+        {/* Descrição da Diretriz */}
+        <TextField
+          label="Descrição da diretriz..."
+          value={descricaoDiretriz}
+          onChange={(e) => setDescricaoDiretriz(e.target.value)}
+          fullWidth
+          multiline
+          rows={2}
+        />
+
+        {/* Botão Adicionar */}
+        <Button
+          onClick={handleAddDiretriz}
+          disableRipple
+          sx={{
+            alignSelf: 'flex-start',
+            backgroundColor: 'transparent',
+            '&:hover': {
+              backgroundColor: 'transparent',
+              boxShadow: 'none',
+            },
+            '&:focus': {
+              outline: 'none',
+            },
+          }}
+        >
+          <AddCircleOutlineIcon sx={{ fontSize: 25, color: '#5f53e5' }} />
+        </Button>
+      </Box>
+
+      {/* 📋 Lista de Diretrizes */}
       <Box>
-        {/* Lista de Diretrizes */}
         {diretrizes.map((item) => (
           <Accordion
             key={item.id}
             disableGutters
             sx={{
-              backgroundColor: "transparent",
-              borderRadius: "8px",
-              boxShadow: "none",
+              backgroundColor: 'transparent',
+              borderRadius: '8px',
+              boxShadow: 'none',
+              marginBottom: '10px',
             }}
           >
             {/* Cabeçalho do Accordion */}
             <AccordionSummary
-              expandIcon={<ExpandMoreIcon sx={{ color: "#b7b7b7" }} />}
+              expandIcon={<ExpandMoreIcon sx={{ color: '#b7b7b7' }} />}
               sx={{
-                marginBottom: "10px",
-                borderRadius: "8px",
-                backgroundColor: "#5f53e5",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
+                borderRadius: '8px',
+                backgroundColor: '#5f53e5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)',
               }}
             >
-              <Button
-                disableRipple
-                sx={{
-                  textAlign: "left",
-                  flex: 1,
-                  textTransform: "none",
-                  color: "#b7b7b7",
-                  padding: 0,
-                  justifyContent: "flex-start",
-                  "&:hover": { backgroundColor: "transparent" },
-                }}
-              >
-                <Box>
-                  <Typography fontWeight="bold" sx={{ color: "#b7b7b7" }}>
-                    {item.title}
-                  </Typography>
-                  <Typography sx={{ color: "#fff", fontSize: "0.9em" }}>
-                    {item.description}
-                  </Typography>
-                </Box>
-              </Button>
+              <Box sx={{ flex: 1, textAlign: 'left' }}>
+                <Typography fontWeight="bold" sx={{ color: '#fff' }}>
+                  {item.titulo}
+                </Typography>
+                <Typography sx={{ color: '#b7b7b7', fontSize: '0.9em' }}>
+                  {item.descricao}
+                </Typography>
+              </Box>
 
+              {/* Botão de Remoção */}
               <Button
                 disableRipple
-                variant="outlined"
+                onClick={(e) => {
+                  e.stopPropagation(); // Evita abrir o accordion ao clicar no botão
+                  handleRemoveDiretriz(item.id);
+                }}
                 sx={{
-                  minWidth: "40px",
-                  padding: "5px",
-                  border: "none",
-                  backgroundColor: "transparent",
-                  "&:hover": {
-                    backgroundColor: "transparent",
-                    boxShadow: "none",
-                    border: "none",
-                  },
-                  "&:focus": {
-                    outline: "none",
-                  },
+                  minWidth: '40px',
+                  padding: '5px',
+                  border: 'none',
+                  backgroundColor: 'transparent',
+                  '&:hover': { backgroundColor: 'transparent' },
                 }}
               >
-                <DeleteForeverIcon sx={{ fontSize: 24, color: "#b7b7b7" }} />
+                <DeleteForeverIcon sx={{ fontSize: 24, color: '#b7b7b7' }} />
               </Button>
             </AccordionSummary>
 
             {/* Detalhes do Accordion */}
             <AccordionDetails>
-              <DiretrizData />
+              <DiretrizData
+                diretrizID={item.id}
+                onUpdate={(updatedTarefas) => {
+                  setDiretrizes((prev) =>
+                    prev.map((diretriz) =>
+                      diretriz.id === item.id ? { ...diretriz, tarefas: updatedTarefas } : diretriz
+                    )
+                  );
+
+                  onUpdate((prev) => ({
+                    ...prev,
+                    diretrizes: prev.diretrizes.map((diretriz) =>
+                      diretriz.id === item.id ? { ...diretriz, tarefas: updatedTarefas } : diretriz
+                    ),
+                  }));
+                }}
+              />
             </AccordionDetails>
           </Accordion>
         ))}
       </Box>
-    </>
+    </Box>
   );
 };
 

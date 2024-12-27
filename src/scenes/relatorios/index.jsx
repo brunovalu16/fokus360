@@ -10,6 +10,7 @@ import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
 import { Divider } from "@mui/material";
 import LocalGroceryStoreIcon from '@mui/icons-material/LocalGroceryStore';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { Link } from 'react-router-dom';
 
 
 const Relatorios = () => {
@@ -22,7 +23,7 @@ const Relatorios = () => {
 
   // Regras para os links baseados no perfil
   const links = {
-    "01": [c],
+    "01": ["Vendas", "Financeiro", "Logística", "Central de monitoramento", "Trade", "Indústrias"],
     "02": ["Vendas", "Financeiro", "Logística", "Central de monitoramento", "Vendas"],
     "03": ["Vendas", "Financeiro", "Logística", "Vendas"],
     "04": ["Vendas", "Indústrias"],
@@ -270,7 +271,8 @@ const Relatorios = () => {
             {activeContent === "Vendas" && visibleLinks.includes("Vendas") && (
               <>
                 <Button
-                  href="/vendasdevolucao"
+                  component={Link} // Define que o botão será um Link do React Router
+                  to="/vendasdevolucao"
                   fullWidth
                   variant="contained"
                   sx={mainButtonStyle}

@@ -4,6 +4,7 @@ import PermContactCalendarIcon from "@mui/icons-material/PermContactCalendar";
 import Lista from "../../components/Lista";
 import { useTheme } from "@mui/material/styles";
 import { tokens } from "../../theme";
+import { Link } from 'react-router-dom';
 
 const Projetos = () => {
 
@@ -33,7 +34,8 @@ const Projetos = () => {
         {/* Segundo Box - Botão */}
         <Box>
           <Button
-            href="/cadastroprojetos"
+            component={Link} // Define que o botão será um Link do React Router
+            to="/cadastroprojetos"
             variant="contained"
             sx={{
               marginTop: "10px",
