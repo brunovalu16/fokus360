@@ -22,13 +22,14 @@ const Relatorios = () => {
 
   // Regras para os links baseados no perfil
   const links = {
-    "01": ["Vendas", "Financeiro", "Logística", "Central de monitoramento", "Trade", "Indústrias"],
+    "01": [c],
     "02": ["Vendas", "Financeiro", "Logística", "Central de monitoramento", "Vendas"],
     "03": ["Vendas", "Financeiro", "Logística", "Vendas"],
     "04": ["Vendas", "Indústrias"],
     "05": ["Trade", "Indústrias"],
     "06": ["Indústrias"],
     "07": ["Projetos"],
+    "07": ["Vendas", "Financeiro", "Logística", "Central de monitoramento", "Trade", "Indústrias"],
   };
 
   // Obter o perfil do usuário logado
