@@ -41,81 +41,74 @@ const CadastroProjetos = () => {
 
   const handleAdicionarProjeto = async () => {
     try {
-      // 1️⃣ Inicializa o Firestore
       const db = getFirestore();
   
-      // 2️⃣ Validação de campos obrigatórios
       if (!informacoesProjeto.nome || !informacoesProjeto.solicitante) {
         alert("Os campos 'Nome do Projeto' e 'Solicitante' são obrigatórios!");
         return;
       }
   
-      // 3️⃣ Adiciona o Projeto principal
       const projetoRef = doc(collection(db, "projetos"));
       await setDoc(projetoRef, {
-        nome: informacoesProjeto.nome,
-        descricao: informacoesProjeto.descricao,
-        dataInicio: informacoesProjeto.dataInicio,
-        prazoPrevisto: informacoesProjeto.prazoPrevisto,
-        unidade: informacoesProjeto.unidade,
-        solicitante: informacoesProjeto.solicitante,
-        categoria: informacoesProjeto.categoria,
-        colaboradores: informacoesProjeto.colaboradores,
-        orcamento: informacoesProjeto.orcamento,
+        ...informacoesProjeto,
+        diretrizes: [], // Inicializa corretamente
         createdAt: new Date(),
       });
   
       console.log('✅ Projeto adicionado com sucesso:', projetoRef.id);
   
-      // 4️⃣ Adiciona Diretrizes
-      if (informacoesProjeto.diretrizes && informacoesProjeto.diretrizes.length > 0) {
-        for (const diretriz of informacoesProjeto.diretrizes) {
-          const diretrizRef = doc(collection(db, `projetos/${projetoRef.id}/diretrizes`));
-          await setDoc(diretrizRef, {
-            titulo: diretriz.titulo,
-            descricao: diretriz.descricao,
-          });
-  
-          console.log('✅ Diretriz adicionada com sucesso:', diretrizRef.id);
-  
-          // 5️⃣ Adiciona Tarefas de cada Diretriz
-          if (diretriz.tarefas && diretriz.tarefas.length > 0) {
-            for (const tarefa of diretriz.tarefas) {
-              const tarefaRef = doc(
-                collection(db, `projetos/${projetoRef.id}/diretrizes/${diretrizRef.id}/tarefas`)
-              );
-              await setDoc(tarefaRef, {
-                titulo: tarefa.titulo,
-                responsaveis: tarefa.responsaveis,
-                planoDeAcao: {
-                  oQue: tarefa.planoDeAcao.oQue,
-                  porQue: tarefa.planoDeAcao.porQue,
-                  quem: tarefa.planoDeAcao.quem,
-                  quando: tarefa.planoDeAcao.quando,
-                  onde: tarefa.planoDeAcao.onde,
-                  como: tarefa.planoDeAcao.como,
-                  valor: tarefa.planoDeAcao.valor,
-                },
-              });
-  
-              console.log('✅ Tarefa adicionada com sucesso:', tarefaRef.id);
-            }
-          }
-        }
-      } else {
-        console.warn('⚠️ Nenhuma diretriz foi encontrada para este projeto.');
+      // Validação correta de diretrizes
+      if (!Array.isArray(diretrizes) || diretrizes.length === 0) {
+        console.warn('⚠️ Nenhuma diretriz válida foi encontrada para este projeto.');
+        return;
       }
   
-      // 6️⃣ Exibe o alerta de sucesso
+      // Adiciona diretrizes
+      for (const diretriz of diretrizes) {
+        if (!diretriz.titulo || !diretriz.descricao) {
+          console.warn(`⚠️ A diretriz está incompleta e foi ignorada.`);
+          continue;
+        }
+  
+        const diretrizRef = doc(collection(db, `projetos/${projetoRef.id}/diretrizes`));
+        await setDoc(diretrizRef, {
+          titulo: diretriz.titulo,
+          descricao: diretriz.descricao,
+          createdAt: new Date(),
+        });
+  
+        console.log('✅ Diretriz adicionada com sucesso:', diretrizRef.id);
+  
+        // Validação e adição das tarefas
+        if (Array.isArray(diretriz.tarefas) && diretriz.tarefas.length > 0) {
+          for (const tarefa of diretriz.tarefas) {
+            if (!tarefa.titulo || !tarefa.planoDeAcao) {
+              console.warn(`⚠️ A tarefa está incompleta e foi ignorada.`);
+              continue;
+            }
+  
+            const tarefaRef = doc(
+              collection(db, `projetos/${projetoRef.id}/diretrizes/${diretrizRef.id}/tarefas`)
+            );
+            await setDoc(tarefaRef, {
+              titulo: tarefa.titulo,
+              planoDeAcao: tarefa.planoDeAcao || {},
+              createdAt: new Date(),
+            });
+          }
+        }
+      }
+  
       setShowAlert(true);
       setTimeout(() => setShowAlert(false), 3000);
       console.log('🎯 Todos os dados foram salvos corretamente no Firebase!');
     } catch (error) {
       console.error('❌ Erro ao adicionar projeto:', error.message);
-      console.error('❌ Stack Trace:', error.stack);
       alert('Erro ao adicionar projeto. Verifique o console.');
     }
   };
+  
+  
   
   
 

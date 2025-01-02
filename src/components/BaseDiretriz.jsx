@@ -34,17 +34,15 @@ const BaseDiretriz = ({ onUpdate }) => {
   
     setDiretrizes((prev) => [...prev, nova]);
   
-    // Atualiza o estado global corretamente
     onUpdate((prev) => ({
       ...prev,
-      diretrizes: Array.isArray(prev.diretrizes)
-        ? [...prev.diretrizes, nova]
-        : [nova],
+      diretrizes: Array.isArray(prev.diretrizes) ? [...prev.diretrizes, nova] : [nova],
     }));
   
     setNovaDiretriz('');
     setDescricaoDiretriz('');
   };
+  
   
   
   
