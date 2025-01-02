@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, Button, IconButton, useTheme, Typography } from "@mui/material";
+import { Link } from 'react-router-dom';
 import DeleteIcon from "@mui/icons-material/Delete";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { Header } from "../../components";
@@ -109,22 +110,25 @@ const Contacts = () => {
       flex: 1,
       renderCell: ({ row }) => (
         <Box display="flex" gap={1}>
-          <Button
-            size="small"
-            component="a" // Define que o botão será um link
-            href="/user" // Caminho do link
-            sx={{
-              color: "#fff",
+          <Link
+            to="/user"
+            style={{
+              display: "inline-block",
               backgroundColor: "#583cff",
-              marginBottom: "5px",
+              color: "#fff",
+              padding: "10px 12px",
               marginTop: "5px",
-              fontSize: "0.65rem",
-              "&:hover": { backgroundColor: "#3f2cb2" },
-              textDecoration: "none", // Remove sublinhado padrão do link
+              fontSize: "0.75rem",
+              borderRadius: "4px",
+              textDecoration: "none",
+              textAlign: "center",
+              fontWeight: "bold",
+              hover: { backgroundColor: "#3f2cb2" },
             }}
           >
             Editar
-          </Button>
+          </Link>
+
           <IconButton
             onClick={() => handleDelete(row.id)}
             sx={{

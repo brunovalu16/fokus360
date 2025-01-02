@@ -38,8 +38,8 @@ const DiretrizData = ({ diretrizID, onUpdate }) => {
     const nova = {
       id: Date.now(),
       titulo: novaTarefa,
-      responsavel: "", // Inicializa sem responsável selecionado
-      colaboradores: [], // Inicializa colaboradores como array vazio
+      responsavel: "",
+      colaboradores: [],
       planoDeAcao: {
         oQue: "",
         porQue: "",
@@ -54,7 +54,6 @@ const DiretrizData = ({ diretrizID, onUpdate }) => {
     setTarefas((prev) => [...prev, nova]);
     setNovaTarefa("");
   
-    // Atualiza o estado global corretamente
     onUpdate((prev) => ({
       ...prev,
       diretrizes: prev.diretrizes.map((diretriz) =>
@@ -64,6 +63,7 @@ const DiretrizData = ({ diretrizID, onUpdate }) => {
       ),
     }));
   };
+  
   
 
   // Função para buscar os usuários no Firebase
