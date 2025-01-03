@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  TextField,
-  Button,
-  Typography,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-} from '@mui/material';
+import { Box, TextField, Button, Typography, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -34,14 +26,11 @@ const BaseDiretriz = ({ onUpdate }) => {
   
     setDiretrizes((prev) => [...prev, nova]);
   
-    onUpdate((prev) => ({
-      ...prev,
-      diretrizes: Array.isArray(prev.diretrizes) ? [...prev.diretrizes, nova] : [nova],
-    }));
-  
+    onUpdate(nova); // Envia a nova diretriz para o estado global
     setNovaDiretriz('');
     setDescricaoDiretriz('');
   };
+  
   
   
   

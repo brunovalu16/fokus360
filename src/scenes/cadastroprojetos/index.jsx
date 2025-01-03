@@ -1,18 +1,6 @@
 import React, { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  Alert,
-  Box,
-  Button,
-  Typography,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Divider,
-} from "@mui/material";
+import {Dialog, DialogContent, Alert, Box, Button, Typography, Accordion, AccordionSummary, AccordionDetails, Divider } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
 import DescriptionIcon from "@mui/icons-material/Description";
 import { Header } from "../../components";
@@ -35,78 +23,96 @@ const CadastroProjetos = () => {
     orcamento: '',
     diretrizes: [], // Garante que diretrizes exista como array
   });
+
+
+
+const handleDiretrizesUpdate = (novaDiretriz) => {
+  setDiretrizes((prev) => {
+    if (Array.isArray(prev)) {
+      return [...prev, novaDiretriz];
+    }
+    return [novaDiretriz];
+  });
+};
+
   
 
 
 
-  const handleAdicionarProjeto = async () => {
-    try {
-      const db = getFirestore();
-  
-      if (!informacoesProjeto.nome || !informacoesProjeto.solicitante) {
-        alert("Os campos 'Nome do Projeto' e 'Solicitante' são obrigatórios!");
-        return;
-      }
-  
-      const projetoRef = doc(collection(db, "projetos"));
-      await setDoc(projetoRef, {
-        ...informacoesProjeto,
-        diretrizes: [], // Inicializa corretamente
+const handleAdicionarProjeto = async () => {
+  try {
+    const db = getFirestore();
+
+    if (!informacoesProjeto.nome || !informacoesProjeto.solicitante) {
+      alert("Os campos 'Nome do Projeto' e 'Solicitante' são obrigatórios!");
+      return;
+    }
+
+    if (!Array.isArray(diretrizes) || diretrizes.length === 0) {
+      console.warn('⚠️ Nenhuma diretriz válida foi encontrada para este projeto.');
+      return;
+    }
+
+    console.log('📊 Diretrizes antes do envio:', JSON.stringify(diretrizes, null, 2));
+
+
+    // 🧹 Limpa as diretrizes antes do envio
+    const cleanDiretrizes = diretrizes.map(diretriz => {
+      const { onUpdate, ...safeDiretriz } = diretriz; // Remove funções específicas
+      return {
+        ...safeDiretriz,
+        tarefas: Array.isArray(diretriz.tarefas)
+          ? diretriz.tarefas.map(tarefa => {
+              const { onUpdate, ...safeTarefa } = tarefa;
+              return { ...safeTarefa };
+            })
+          : [],
+      };
+    });
+
+    console.log('📊 Diretrizes limpas:', cleanDiretrizes);
+
+    const projetoRef = doc(collection(db, "projetos"));
+    await setDoc(projetoRef, {
+      ...informacoesProjeto,
+      diretrizes: cleanDiretrizes, // Usa as diretrizes limpas
+      createdAt: new Date(),
+    });
+
+    console.log('✅ Projeto adicionado com sucesso:', projetoRef.id);
+
+    for (const diretriz of cleanDiretrizes) {
+      const diretrizRef = doc(collection(db, `projetos/${projetoRef.id}/diretrizes`));
+      await setDoc(diretrizRef, {
+        titulo: diretriz.titulo,
+        descricao: diretriz.descricao,
         createdAt: new Date(),
       });
-  
-      console.log('✅ Projeto adicionado com sucesso:', projetoRef.id);
-  
-      // Validação correta de diretrizes
-      if (!Array.isArray(diretrizes) || diretrizes.length === 0) {
-        console.warn('⚠️ Nenhuma diretriz válida foi encontrada para este projeto.');
-        return;
-      }
-  
-      // Adiciona diretrizes
-      for (const diretriz of diretrizes) {
-        if (!diretriz.titulo || !diretriz.descricao) {
-          console.warn(`⚠️ A diretriz está incompleta e foi ignorada.`);
-          continue;
-        }
-  
-        const diretrizRef = doc(collection(db, `projetos/${projetoRef.id}/diretrizes`));
-        await setDoc(diretrizRef, {
-          titulo: diretriz.titulo,
-          descricao: diretriz.descricao,
-          createdAt: new Date(),
-        });
-  
-        console.log('✅ Diretriz adicionada com sucesso:', diretrizRef.id);
-  
-        // Validação e adição das tarefas
-        if (Array.isArray(diretriz.tarefas) && diretriz.tarefas.length > 0) {
-          for (const tarefa of diretriz.tarefas) {
-            if (!tarefa.titulo || !tarefa.planoDeAcao) {
-              console.warn(`⚠️ A tarefa está incompleta e foi ignorada.`);
-              continue;
-            }
-  
-            const tarefaRef = doc(
-              collection(db, `projetos/${projetoRef.id}/diretrizes/${diretrizRef.id}/tarefas`)
-            );
-            await setDoc(tarefaRef, {
-              titulo: tarefa.titulo,
-              planoDeAcao: tarefa.planoDeAcao || {},
-              createdAt: new Date(),
-            });
-          }
+
+      if (Array.isArray(diretriz.tarefas) && diretriz.tarefas.length > 0) {
+        for (const tarefa of diretriz.tarefas) {
+          const tarefaRef = doc(
+            collection(db, `projetos/${projetoRef.id}/diretrizes/${diretrizRef.id}/tarefas`)
+          );
+          await setDoc(tarefaRef, {
+            titulo: tarefa.titulo,
+            planoDeAcao: tarefa.planoDeAcao || {},
+            createdAt: new Date(),
+          });
         }
       }
-  
-      setShowAlert(true);
-      setTimeout(() => setShowAlert(false), 3000);
-      console.log('🎯 Todos os dados foram salvos corretamente no Firebase!');
-    } catch (error) {
-      console.error('❌ Erro ao adicionar projeto:', error.message);
-      alert('Erro ao adicionar projeto. Verifique o console.');
     }
-  };
+
+    setShowAlert(true);
+    setTimeout(() => setShowAlert(false), 3000);
+    console.log('🎯 Todos os dados foram salvos corretamente no Firebase!');
+  } catch (error) {
+    console.error('❌ Erro ao adicionar projeto:', error.message);
+    alert('Erro ao adicionar projeto. Verifique o console.');
+  }
+};
+
+  
   
   
   
@@ -144,21 +150,25 @@ const CadastroProjetos = () => {
         />
         <Divider sx={{ marginY: "20px" }} />
 
-        <Accordion>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography>ADICIONAR INFORMAÇÕES DO PROJETO</Typography>
+        <Accordion sx={{ borderRadius: "10px", marginBottom: "15px" }}>
+          <AccordionSummary 
+          expandIcon={<ExpandMoreIcon />}>
+            <PlayCircleFilledWhiteIcon sx={{ color: "#22d3ee", fontSize: 25, marginRight: "15px" }} />
+            <Typography sx={{ color: "#9d9d9c", marginTop: "4px"}} >ADICIONAR INFORMAÇÕES DO PROJETO</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <InformacoesProjeto onUpdate={setInformacoesProjeto} />
           </AccordionDetails>
         </Accordion>
 
-        <Accordion>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography>ADICIONAR DIRETRIZES DO PROJETO</Typography>
+        <Accordion sx={{ borderRadius: "10px" }}>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}>
+            <PlayCircleFilledWhiteIcon sx={{ color: "#5f53e5", fontSize: 25, marginRight: "15px" }} />
+            <Typography sx={{ color: "#9d9d9c", marginTop: "4px"}}>ADICIONAR DIRETRIZES DO PROJETO</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <BaseDiretriz onUpdate={setDiretrizes} />
+          <BaseDiretriz onUpdate={handleDiretrizesUpdate} />
           </AccordionDetails>
         </Accordion>
 
