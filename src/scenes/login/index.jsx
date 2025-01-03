@@ -2,16 +2,20 @@ import React, { useState } from "react";
 import { Box, Button, TextField } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../data/firebase-config.js";  
+import { auth } from "../../data/firebase-config.js";
+
+// linha para reCAPTCHA
+import ReCAPTCHA from "react-google-recaptcha";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [recaptchaToken, setRecaptchaToken] = useState(null); // Estado para o token do reCAPTCHA
   const navigate = useNavigate();
 
-  // handle - função de ação de clique
   const handleLogin = (e) => {
     e.preventDefault();
+
     if (!email || !password) {
       alert("Por favor, preencha todos os campos.");
       return;
@@ -20,65 +24,82 @@ const Login = () => {
       alert("Por favor, insira um e-mail válido.");
       return;
     }
-   
+    if (!recaptchaToken) {
+      alert("Por favor, resolva o reCAPTCHA antes de fazer login.");
+      return;
+    }
+
     logar();
   };
-  
-  
 
-  // função de logar // signInWithEmailAndPassword - esse é o método de autenticação
   const logar = async () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate("/home"); // Redirecionar após login bem-sucedido
+      navigate("/home");
     } catch (error) {
-      console.error("Error logging in:", error);
+      console.error("Erro ao fazer login:", error.code, error.message);
+
+      switch (error.code) {
+        case "auth/user-not-found":
+          alert("E-mail não encontrado. Verifique e tente novamente.");
+          break;
+        case "auth/wrong-password":
+          alert("Senha incorreta. Tente novamente.");
+          break;
+        case "auth/invalid-email":
+          alert("E-mail inválido. Verifique o formato do e-mail.");
+          break;
+        case "auth/too-many-requests":
+          alert("Muitas tentativas de login. Tente novamente mais tarde.");
+          break;
+        case "auth/invalid-credential":
+          alert("Credenciais inválidas. Verifique o e-mail e a senha.");
+          break;
+        default:
+          alert("Erro ao realizar login. Tente novamente mais tarde.");
+          break;
+      }
     }
-  }
-  
+  };
 
   return (
+    <Box
+      display="flex"
+      flexDirection="row"
+      alignItems="center"
+      justifyContent="center"
+      sx={{
+        backgroundImage: 'url("src/assets/images/backlogin2.webp")',
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundAttachment: "fixed",
+        width: "100vw",
+        minHeight: "100vh",
+      }}
+    >
       <Box
-        display="flex"
-        flexDirection="row"
-        alignItems="center"
-        justifyContent="center"
         sx={{
-          backgroundImage: 'url("src/assets/images/backlogin2.webp")', // Defina o caminho correto
-          //backgroundColor: "#312783",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          backgroundAttachment: "fixed", // Fixa o background
-          width: "100vw", // Largura total da viewport
-          minHeight: "100vh", // Altura mínima da viewport
+          backgroundColor: "#312783",
+          padding: "58px",
+          paddingBottom: "64px",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          borderBottomLeftRadius: "50px",
+          transform: "scale(0.8)",
+          marginRight: "-95px",
+          height: "35%",
         }}
       >
-
-
-        <Box
-          sx={{
-            backgroundColor: "#312783", // Fundo branco ao redor do logo
-            padding: "58px",
-            paddingBottom: "64px",
-            //boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)", // Sombra ao redor
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            borderBottomLeftRadius: "50px",
-            transform: "scale(0.8)", //Reduz todo o conteúdo em 90% do tamanho original.
-            marginRight: "-95px", // Margem direita para separar o logo do formulário
-            height: "35%",
+        <img
+          src="src/assets/images/logo360verde.png"
+          alt="Logo"
+          style={{
+            width: "450px",
+            height: "auto",
           }}
-        >
-          <img
-            src="src/assets/images/logo360verde.png"
-            alt="Logo"
-            style={{
-              width: "450px", // Tamanho ajustável
-              height: "auto",
-            }}
-          />
+        />
       </Box>
 
       <Box
@@ -86,12 +107,12 @@ const Login = () => {
           borderTopRightRadius: "50px",
           backgroundColor: "white",
           padding: 4,
-          boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)", // Sombra leve
-          width: "90%", // Responsivo
-          maxWidth: 400, // Largura máxima
+          boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
+          width: "90%",
+          maxWidth: 400,
           textAlign: "center",
-          transform: "scale(0.8)", //Reduz todo o conteúdo em 90% do tamanho original.
-          marginRight: "370px"
+          transform: "scale(0.8)",
+          marginRight: "370px",
         }}
       >
         <Box
@@ -107,26 +128,6 @@ const Login = () => {
             onChange={(e) => setEmail(e.target.value)}
             fullWidth
             required
-            InputLabelProps={{
-              style: { color: "#c2c2c2" }, // Cor do texto do rótulo
-            }}
-            InputProps={{
-              style: { color: "#c2c2c2", borderColor: "#c2c2c2" }, // Cor do texto do campo e da borda
-            }}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": {
-                  borderColor: "#c2c2c2", // Cor da borda
-                  borderRadius: 5,
-                },
-                "&:hover fieldset": {
-                  borderColor: "#c2c2c2", // Cor da borda no hover
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: "#c2c2c2", // Cor da borda quando focado
-                },
-              },
-            }}
           />
 
           <TextField
@@ -137,30 +138,16 @@ const Login = () => {
             onChange={(e) => setPassword(e.target.value)}
             fullWidth
             required
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": {
-                  borderColor: "#c2c2c2", // Cor da borda
-                  borderRadius: 5,
-                },
-                "&:hover fieldset": {
-                  borderColor: "#c2c2c2", // Cor da borda ao passar o mouse
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: "#c2c2c2", // Cor da borda ao focar
-                },
-              },
-              "& .MuiInputBase-input": {
-                color: "#c2c2c2", // Cor do texto digitado
-              },
-              "& .MuiInputLabel-root": {
-                color: "#c2c2c2", // Cor do label
-              },
-              "& .MuiInputLabel-root.Mui-focused": {
-                color: "#c2c2c2", // Cor do label ao focar
-              },
-            }}
           />
+
+          {/* Componente reCAPTCHA 
+          <ReCAPTCHA
+            sitekey="6LfIHa0qAAAAAH4vkrVTj27HR9Ygsv6WYv4FKcA9" // Minha chave do site reCAPTCHA
+            onChange={(token) => setRecaptchaToken(token)}
+            onExpired={() => setRecaptchaToken(null)}
+          />
+          */}
+          
 
           <Button
             variant="contained"
@@ -168,34 +155,17 @@ const Login = () => {
             fullWidth
             sx={{
               borderRadius: 5,
-              backgroundColor: "#312783", // Fundo roxo
-              color: "white", // Texto branco
-              boxShadow: "none", // Remove a sombra
+              backgroundColor: "#312783",
+              color: "white",
+              boxShadow: "none",
               "&:hover": {
-                backgroundColor: "#868dfb", // Fundo mais claro ao passar o mouse
-                boxShadow: "none", // Garante que não haverá sombra ao passar o mouse
+                backgroundColor: "#868dfb",
+                boxShadow: "none",
               },
             }}
           >
             Entrar
           </Button>
-
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "flex-end",
-              marginTop: "30px",
-            }}
-          >
-            <img
-              src="src/assets/images/fokus360cinza.png"
-              alt="Logo"
-              style={{
-                width: "50%",
-                height: "auto",
-              }}
-            />
-          </Box>
         </Box>
       </Box>
     </Box>
