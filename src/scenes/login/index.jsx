@@ -4,13 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../data/firebase-config.js";
 
-// linha para reCAPTCHA
-import ReCAPTCHA from "react-google-recaptcha";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [recaptchaToken, setRecaptchaToken] = useState(null); // Estado para o token do reCAPTCHA
   const navigate = useNavigate();
 
   const handleLogin = (e) => {
@@ -22,10 +19,6 @@ const Login = () => {
     }
     if (!/\S+@\S+\.\S+/.test(email)) {
       alert("Por favor, insira um e-mail válido.");
-      return;
-    }
-    if (!recaptchaToken) {
-      alert("Por favor, resolva o reCAPTCHA antes de fazer login.");
       return;
     }
 
@@ -139,14 +132,6 @@ const Login = () => {
             fullWidth
             required
           />
-
-          {/* Componente reCAPTCHA 
-          <ReCAPTCHA
-            sitekey="6LfIHa0qAAAAAH4vkrVTj27HR9Ygsv6WYv4FKcA9" // Minha chave do site reCAPTCHA
-            onChange={(token) => setRecaptchaToken(token)}
-            onExpired={() => setRecaptchaToken(null)}
-          />
-          */}
           
 
           <Button

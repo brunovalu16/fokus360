@@ -15,18 +15,28 @@ const DiretrizData = ({ diretrizID, onUpdate }) => {
   const [showAlert, setShowAlert] = useState(false);
   const [responsaveis, setResponsaveis] = useState([]);
   const [quem, setQuem] = useState([]);
-  const [formValues, setFormValues] = useState({
-    nome: "",
-    descricao: "",
-    dataInicio: "",
-    prazoPrevisto: "",
-    unidade: "",
-    solicitante: "",
-    categoria: "",
-    colaboradores: [],
-    responsavel: "",
-    orcamento: "",
-  });
+
+
+   // Função para buscar os usuários no Firebase
+   useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const db = getFirestore();
+        const querySnapshot = await getDocs(collection(db, "user"));
+        const usersList = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          username: doc.data().username,
+        }));
+        console.log("Usuários carregados:", usersList); // Adicione este log
+        setUsers(usersList);
+      } catch (error) {
+        console.error("Erro ao buscar usuários:", error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
 
   // Adicionar Tarefa
   const handleAddTarefa = () => {
@@ -64,93 +74,8 @@ const DiretrizData = ({ diretrizID, onUpdate }) => {
     }));
   };
   
+
   
-
-  // Função para buscar os usuários no Firebase
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const db = getFirestore();
-        const querySnapshot = await getDocs(collection(db, "user"));
-        const usersList = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          username: doc.data().username,
-        }));
-        console.log("Usuários carregados:", usersList); // Adicione este log
-        setUsers(usersList);
-      } catch (error) {
-        console.error("Erro ao buscar usuários:", error);
-      }
-    };
-
-    fetchUsers();
-  }, []);
-
-  // Função para capturar a mudança no Select
-  const handleInputChange = (event) => {
-    const { name, value } = event.target;
-  
-    setTarefas((prev) =>
-      prev.map((tarefa) =>
-        tarefa.id === diretrizID
-          ? { ...tarefa, [name]: value }
-          : tarefa
-      )
-    );
-  
-    onUpdate((prev) => ({
-      ...prev,
-      diretrizes: prev.diretrizes.map((diretriz) =>
-        diretriz.id === diretrizID
-          ? {
-              ...diretriz,
-              tarefas: diretriz.tarefas.map((tarefa) =>
-                tarefa.id === diretrizID
-                  ? { ...tarefa, [name]: value }
-                  : tarefa
-              ),
-            }
-          : diretriz
-      ),
-    }));
-  };
-  
-
-  // Função para lidar com seleção múltipla
-  const handleSelectChange = (event) => {
-    const { value } = event.target;
-
-    // Atualiza corretamente o estado com os valores selecionados
-    setFormValues((prevState) => ({
-      ...prevState,
-      colaboradores: typeof value === "string" ? value.split(",") : value,
-    }));
-  };
-
-  // Função do Alert no botão salvar
-  const handleButtonClick = () => {
-    console.log("Botão clicado!");
-    setShowAlert(true);
-    setTimeout(() => setShowAlert(false), 3000); // Fecha o modal após 3 segundos
-  };
-
-  // Manipulador para "Responsáveis"
-  const handleResponsaveisChange = (event) => {
-    const value = event.target.value;
-    setResponsaveis(typeof value === "string" ? value.split(",") : value);
-  };
-
-  // Manipulador para "Quem"
-  const handleQuemChange = (event) => {
-    const value = event.target.value;
-    setQuem(typeof value === "string" ? value.split(",") : value);
-  };
-
-  const handleInputChangeReal = (event) => {
-    const { name, value } = event.target;
-    setFormValues({ ...formValues, [name]: value });
-  };
-
   const handleDeleteTarefa = (id) => {
     const updatedTarefas = tarefas.filter((tarefa) => tarefa.id !== id);
     setTarefas(updatedTarefas);

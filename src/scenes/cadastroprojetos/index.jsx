@@ -25,7 +25,7 @@ const CadastroProjetos = () => {
   });
 
 
-
+// Atualizar o estado diretrizes
 const handleDiretrizesUpdate = (novaDiretriz) => {
   setDiretrizes((prev) => {
     if (Array.isArray(prev)) {
@@ -36,59 +36,71 @@ const handleDiretrizesUpdate = (novaDiretriz) => {
 };
 
   
-
-
-
+// Função assíncrona para adicionar um projeto ao Firebase
 const handleAdicionarProjeto = async () => {
   try {
+    // 1 - Inicializa o Firestore
     const db = getFirestore();
 
-    if (!informacoesProjeto.nome || !informacoesProjeto.solicitante) {
-      alert("Os campos 'Nome do Projeto' e 'Solicitante' são obrigatórios!");
+    // 2️ - Validação dos campos obrigatórios ( Requisitos Mínimos para Criação do Projeto )
+    if (
+      !informacoesProjeto.nome || 
+      !informacoesProjeto.solicitante || 
+      !informacoesProjeto.dataInicio || 
+      !informacoesProjeto.prazoPrevisto || 
+      !informacoesProjeto.unidade || 
+      !informacoesProjeto.categoria
+    ) {
+      alert("Todos os campos obrigatórios precisam ser preenchidos!");
       return;
     }
+    
 
+    // 3️ - Validação das diretrizes " || " significa "ou"  "length" determina número de elementos em um array, string
+    //ou número de propriedades em um objeto Map ou Set
     if (!Array.isArray(diretrizes) || diretrizes.length === 0) {
-      console.warn('⚠️ Nenhuma diretriz válida foi encontrada para este projeto.');
-      return;
+      console.warn('Nenhuma diretriz válida foi encontrada para este projeto.');
+      return; // Interrompe se não houver diretrizes válidas
     }
 
-    console.log('📊 Diretrizes antes do envio:', JSON.stringify(diretrizes, null, 2));
+    // 4️ - Exibe no console as diretrizes antes de serem limpas
+    console.log('Diretrizes antes do envio:', JSON.stringify(diretrizes, null, 2));
 
-
-    // 🧹 Limpa as diretrizes antes do envio
+    // 5️ - Limpeza das diretrizes antes do envio ao Firebase
     const cleanDiretrizes = diretrizes.map(diretriz => {
       const { onUpdate, ...safeDiretriz } = diretriz; // Remove funções específicas
       return {
         ...safeDiretriz,
         tarefas: Array.isArray(diretriz.tarefas)
           ? diretriz.tarefas.map(tarefa => {
-              const { onUpdate, ...safeTarefa } = tarefa;
-              return { ...safeTarefa };
+              const { onUpdate, ...safeTarefa } = tarefa; // Remove funções específicas das tarefas
+              return { ...safeTarefa }; // Retorna a tarefa limpa
             })
-          : [],
+          : [], // Se não houver tarefas, retorna um array vazio
       };
     });
 
-    console.log('📊 Diretrizes limpas:', cleanDiretrizes);
 
+    // 7️ - Cria um documento para o projeto no Firestore
     const projetoRef = doc(collection(db, "projetos"));
     await setDoc(projetoRef, {
-      ...informacoesProjeto,
-      diretrizes: cleanDiretrizes, // Usa as diretrizes limpas
-      createdAt: new Date(),
+      ...informacoesProjeto, // Inclui informações gerais do projeto
+      diretrizes: cleanDiretrizes, // Inclui as diretrizes limpas
+      createdAt: new Date(), // Adiciona a data de criação
     });
 
     console.log('✅ Projeto adicionado com sucesso:', projetoRef.id);
 
+    // 8️ - Salva cada diretriz individualmente
     for (const diretriz of cleanDiretrizes) {
       const diretrizRef = doc(collection(db, `projetos/${projetoRef.id}/diretrizes`));
       await setDoc(diretrizRef, {
         titulo: diretriz.titulo,
         descricao: diretriz.descricao,
-        createdAt: new Date(),
+        createdAt: new Date(), // Adiciona a data de criação
       });
 
+      // 9️ - Salva cada tarefa dentro de sua respectiva diretriz
       if (Array.isArray(diretriz.tarefas) && diretriz.tarefas.length > 0) {
         for (const tarefa of diretriz.tarefas) {
           const tarefaRef = doc(
@@ -96,21 +108,20 @@ const handleAdicionarProjeto = async () => {
           );
           await setDoc(tarefaRef, {
             titulo: tarefa.titulo,
-            planoDeAcao: tarefa.planoDeAcao || {},
-            createdAt: new Date(),
+            planoDeAcao: tarefa.planoDeAcao || {}, // Adiciona plano de ação (5W2H) ou objeto vazio
+            createdAt: new Date(), // Adiciona a data de criação
           });
         }
       }
     }
 
-    setShowAlert(true);
-    setTimeout(() => setShowAlert(false), 3000);
-    console.log('🎯 Todos os dados foram salvos corretamente no Firebase!');
   } catch (error) {
-    console.error('❌ Erro ao adicionar projeto:', error.message);
+    // 🚨 Captura e exibe erros
+    console.error('Erro ao adicionar projeto:', error.message);
     alert('Erro ao adicionar projeto. Verifique o console.');
   }
 };
+
 
   
   
