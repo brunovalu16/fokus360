@@ -30,7 +30,7 @@ const Relatorios = () => {
     "05": ["Trade", "Indústrias"],
     "06": ["Indústrias"],
     "07": ["Projetos"],
-    "07": ["Vendas", "Financeiro", "Logística", "Central de monitoramento", "Trade", "Indústrias"],
+    "08": ["Vendas", "Financeiro", "Logística", "Central de monitoramento", "Trade", "Indústrias"],
   };
 
   // Obter o perfil do usuário logado

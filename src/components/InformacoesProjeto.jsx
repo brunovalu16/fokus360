@@ -1,38 +1,29 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Checkbox,
-  TextField,
-  ListItemText,
-  Select,
-  MenuItem,
-  Accordion,
-  AccordionDetails,
-} from "@mui/material";
+import { Box, Checkbox, TextField, ListItemText, Select, MenuItem, Accordion, AccordionDetails } from "@mui/material";
 import { getFirestore, getDocs, collection } from "firebase/firestore";
 
 const InformacoesProjeto = ({ onUpdate }) => {
   const [users, setUsers] = useState([]);
   const [formValues, setFormValues] = useState({
-    nome: '',
-    descricao: '',
-    dataInicio: '',
-    prazoPrevisto: '',
-    unidade: '',
-    solicitante: '',
-    categoria: '',
+    nome: "",
+    descricao: "",
+    dataInicio: "",
+    prazoPrevisto: "",
+    unidade: "",
+    solicitante: "",
+    categoria: "",
     colaboradores: [],
-    responsavel: '',
-    orcamento: '',
+    responsavel: "",
+    orcamento: "",
   });
 
-  // 📥 **Carregar Usuários do Firebase**
+  // Carregar Usuários do Firebase
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const db = getFirestore();
         const querySnapshot = await getDocs(collection(db, "user"));
-        const usersList = querySnapshot.docs.map(doc => ({
+        const usersList = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           username: doc.data().username,
         }));
@@ -45,37 +36,37 @@ const InformacoesProjeto = ({ onUpdate }) => {
     fetchUsers();
   }, []);
 
-  // 🔄 **Manipular Mudanças Gerais (TextField e Select)**
-  const handleChange = (event) => {
-    const { name, value } = event.target;
+  // Manipular mudanças gerais (TextField e Select)
+const handleChange = (event) => {
+  const { name, value } = event.target;
 
-    setFormValues((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  setFormValues((prev) => ({
+    ...prev,
+    [name]: value,
+  }));
 
-    onUpdate((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  onUpdate((prev) => ({
+    ...prev,
+    [name]: value,
+  }));
+};
 
-  // 🔄 **Manipular Seleção Múltipla (Colaboradores)**
-  const handleSelectChange = (event) => {
-    const { value } = event.target;
+  // Manipular seleção múltipla (Colaboradores)
+const handleSelectChange = (event) => {
+  const { name, value } = event.target;
 
-    setFormValues((prev) => ({
-      ...prev,
-      colaboradores: typeof value === "string" ? value.split(",") : value,
-    }));
+  setFormValues((prev) => ({
+    ...prev,
+    [name]: value,
+  }));
 
-    onUpdate((prev) => ({
-      ...prev,
-      colaboradores: typeof value === "string" ? value.split(",") : value,
-    }));
-  };
+  onUpdate((prev) => ({
+    ...prev,
+    [name]: value,
+  }));
+};
 
-  // 🔄 **Manipular Orçamento com Formato Monetário**
+  // Manipular Orçamento com Formato Monetário
   const handleCurrencyChange = (event) => {
     const { name, value } = event.target;
     const onlyNumbers = value.replace(/[^\d]/g, ""); // Remove não numéricos
@@ -95,10 +86,12 @@ const InformacoesProjeto = ({ onUpdate }) => {
     }));
   };
 
-  // 🐞 **Log para Depuração**
+  // Log para Depuração
   useEffect(() => {
     console.log("Estado Local Atualizado:", formValues);
   }, [formValues]);
+
+  
 
   return (
     <>
@@ -235,16 +228,24 @@ const InformacoesProjeto = ({ onUpdate }) => {
                     </MenuItem>
                   ))}
                 </Select>
-              </Box>
 
-              {/* Orçamento */}
-              <TextField
-                label="Orçamento"
-                name="orcamento"
-                value={formValues.orcamento}
-                onChange={handleCurrencyChange}
-                fullWidth
-              />
+                {/* Descrição */}
+                <TextField
+                  label="Descricao do projeto"
+                  name="descricao"
+                  value={formValues.descricao}
+                  onChange={handleChange}
+                  fullWidth
+                />
+                {/* Orçamento */}
+                <TextField
+                  label="Orçamento"
+                  name="orcamento"
+                  value={formValues.orcamento}
+                  onChange={handleCurrencyChange}
+                  fullWidth
+                />
+              </Box>
             </Box>
           </AccordionDetails>
         </Accordion>
