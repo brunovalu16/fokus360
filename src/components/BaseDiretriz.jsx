@@ -31,42 +31,7 @@ const BaseDiretriz = ({ onUpdate }) => {
     setDescricaoDiretriz('');
   };
 
-   // Adicionar Tarefa
-   const handleAddTarefa = () => {
-    if (novaTarefa.trim() === "") {
-      alert("Por favor, insira uma tarefa.");
-      return;
-    }
-
-    const nova = {
-      id: Date.now(),
-      titulo: novaTarefa,
-      responsavel: "",
-      colaboradores: [],
-      planoDeAcao: {
-        oQue: "",
-        porQue: "",
-        quem: [],
-        quando: "",
-        onde: "",
-        como: "",
-        valor: "",
-      },
-    };
-
-    setTarefas((prev) => [...prev, nova]);
-    setNovaTarefa("");
-
-    onUpdate((prev) => ({
-      ...prev,
-      diretrizes: prev.diretrizes.map((diretriz) =>
-        diretriz.id === diretrizID
-          ? { ...diretriz, tarefas: [...(diretriz.tarefas || []), nova] }
-          : diretriz
-      ),
-    }));
-  };
-  
+   
 
   // Remover Diretriz
   const handleRemoveDiretriz = (id) => {
