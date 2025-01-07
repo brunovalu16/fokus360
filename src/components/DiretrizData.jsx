@@ -9,12 +9,13 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 const DiretrizData = ({ diretrizID, onUpdate }) => {
-  const [novaTarefa, setNovaTarefa] = useState("");
-  const [tarefas, setTarefas] = useState([]);
   const [users, setUsers] = useState([]);
   const [showAlert, setShowAlert] = useState(false);
   const [responsaveis, setResponsaveis] = useState([]);
   const [quem, setQuem] = useState([]);
+  const [tarefas, setTarefas] = useState([]);
+  const [novaTarefa, setNovaTarefa] = useState("");
+
 
 
    // Função para buscar os usuários no Firebase
@@ -74,6 +75,8 @@ const DiretrizData = ({ diretrizID, onUpdate }) => {
     }));
   };
   
+  
+  
 
   
   const handleDeleteTarefa = (id) => {
@@ -90,6 +93,32 @@ const DiretrizData = ({ diretrizID, onUpdate }) => {
       ),
     }));
   };
+
+
+  // Atualizar Campo Específico de uma Tarefa
+  const handleDiretrizesUpdate = (novaDiretriz) => {
+    if (!novaDiretriz || !novaDiretriz.titulo || !novaDiretriz.descricao) {
+      console.warn('⚠️ Tentativa de adicionar uma diretriz inválida:', novaDiretriz);
+      return; // Ignora diretrizes inválidas
+    }
+  
+    setDiretrizes((prev) => {
+      const updatedDiretrizes = Array.isArray(prev)
+        ? [...prev.filter(Boolean), novaDiretriz] // Remove nulos e adiciona nova diretriz
+        : [novaDiretriz];
+  
+      setInformacoesProjeto((prevProjeto) => ({
+        ...prevProjeto,
+        diretrizes: updatedDiretrizes,
+      }));
+  
+      return updatedDiretrizes;
+    });
+  };
+  
+  
+  
+
   
 
   return (
@@ -396,89 +425,71 @@ const DiretrizData = ({ diretrizID, onUpdate }) => {
                         {/* Linha 2: Quem e Quando */}
 <Box display="flex" gap={2} marginBottom="8px">
   {/* Quem */}
-  <Box sx={{ flex: 1 }}>
-    <Select
-      multiple
-      name={`quem-${tarefa.id}`}
-      value={tarefa.planoDeAcao.quem || []}
-      onChange={(event) => {
-        const value = event.target.value;
-        setTarefas((prev) =>
-          prev.map((t) =>
-            t.id === tarefa.id
-              ? {
-                  ...t,
-                  planoDeAcao: {
-                    ...t.planoDeAcao,
-                    quem:
-                      typeof value === "string"
-                        ? value.split(",")
-                        : value,
-                  },
-                }
-              : t
-          )
-        );
-      }}
-      displayEmpty
-      fullWidth
-      sx={{
-        backgroundColor: "#FFF",
-        borderRadius: "5px",
-        minHeight: "56px",
-      }}
-      renderValue={(selected) => {
-        if (!selected || selected.length === 0) {
-          return "Quem...";
-        }
-        return selected
-          .map((id) => {
-            const user = users.find((user) => user.id === id);
-            return user ? user.username : "Desconhecido";
-          })
-          .join(", ");
-      }}
-    >
-      {users.map((user) => (
-        <MenuItem key={user.id} value={user.id}>
-          <Checkbox
-            checked={(tarefa.planoDeAcao.quem || []).includes(user.id)}
-          />
-          <ListItemText primary={user.username} />
-        </MenuItem>
-      ))}
-    </Select>
-  </Box>
+  {/* Quem */}
+<Box sx={{ flex: 1 }}>
+  <Select
+    multiple
+    name={`quem-${tarefa.id}`}
+    value={tarefa.planoDeAcao.quem || []}
+    onChange={(event) => {
+      const value = event.target.value;
+      handleUpdateTarefaCampo(
+        tarefa.id,
+        "quem",
+        typeof value === "string" ? value.split(",") : value
+      );
+    }}
+    displayEmpty
+    fullWidth
+    sx={{
+      backgroundColor: "#FFF",
+      borderRadius: "5px",
+      minHeight: "56px",
+    }}
+    renderValue={(selected) => {
+      if (!selected || selected.length === 0) {
+        return "Quem...";
+      }
+      return selected
+        .map((id) => {
+          const user = users.find((user) => user.id === id);
+          return user ? user.username : "Desconhecido";
+        })
+        .join(", ");
+    }}
+  >
+    {users.map((user) => (
+      <MenuItem key={user.id} value={user.id}>
+        <Checkbox checked={(tarefa.planoDeAcao.quem || []).includes(user.id)} />
+        <ListItemText primary={user.username} />
+      </MenuItem>
+    ))}
+  </Select>
+</Box>
+
 
   {/* Quando */}
-  <Box sx={{ flex: 1 }}>
-    <TextField
-      label="Quando"
-      placeholder="Período de execução"
-      fullWidth
-      variant="outlined"
-      value={tarefa.planoDeAcao.quando}
-      onChange={(e) => {
-        const value = e.target.value;
-        setTarefas((prev) =>
-          prev.map((t) =>
-            t.id === tarefa.id
-              ? {
-                  ...t,
-                  planoDeAcao: {
-                    ...t.planoDeAcao,
-                    quando: value,
-                  },
-                }
-              : t
-          )
-        );
-      }}
-      sx={{
-        minHeight: "56px",
-      }}
-    />
-  </Box>
+  {/* Quando */}
+<Box sx={{ flex: 1 }}>
+  <TextField
+    label="Quando"
+    placeholder="Período de execução"
+    fullWidth
+    variant="outlined"
+    value={tarefa.planoDeAcao.quando}
+    onChange={(e) => {
+      const value = e.target.value;
+      console.log("Valor digitado:", value);
+      console.log("Tarefa atual:", tarefa);
+      console.log("planoDeAcao.quando existe?", !!tarefa.planoDeAcao?.quando);
+      handleUpdateTarefaCampo(tarefa.id, "quando", value);
+    }}
+    sx={{
+      minHeight: "56px",
+    }}
+  />
+</Box>
+
 </Box>
 
 {/* Linha 3: Onde e Como */}

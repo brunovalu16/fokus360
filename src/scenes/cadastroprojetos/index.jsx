@@ -28,12 +28,15 @@ const CadastroProjetos = () => {
 // Atualizar o estado diretrizes
 const handleDiretrizesUpdate = (novaDiretriz) => {
   setDiretrizes((prev) => {
-    if (Array.isArray(prev)) {
-      return [...prev, novaDiretriz];
-    }
-    return [novaDiretriz];
+    const updatedDiretrizes = Array.isArray(prev) ? [...prev, novaDiretriz] : [novaDiretriz];
+    setInformacoesProjeto((prevProjeto) => ({
+      ...prevProjeto,
+      diretrizes: updatedDiretrizes,
+    }));
+    return updatedDiretrizes;
   });
 };
+
 
   
 // Função assíncrona para adicionar um projeto ao Firebase
@@ -67,18 +70,23 @@ const handleAdicionarProjeto = async () => {
     console.log('Diretrizes antes do envio:', JSON.stringify(diretrizes, null, 2));
 
     // 5️ - Limpeza das diretrizes antes do envio ao Firebase
-    const cleanDiretrizes = diretrizes.map(diretriz => {
-      const { onUpdate, ...safeDiretriz } = diretriz; // Remove funções específicas
-      return {
-        ...safeDiretriz,
-        tarefas: Array.isArray(diretriz.tarefas)
-          ? diretriz.tarefas.map(tarefa => {
-              const { onUpdate, ...safeTarefa } = tarefa; // Remove funções específicas das tarefas
-              return { ...safeTarefa }; // Retorna a tarefa limpa
-            })
-          : [], // Se não houver tarefas, retorna um array vazio
-      };
-    });
+    const cleanDiretrizes = diretrizes
+  .filter((diretriz) => diretriz && diretriz.titulo && diretriz.descricao) // Remove inválidas
+  .map(diretriz => {
+    const { onUpdate, ...safeDiretriz } = diretriz;
+    return {
+      ...safeDiretriz,
+      tarefas: Array.isArray(diretriz.tarefas)
+        ? diretriz.tarefas.filter((tarefa) => tarefa && tarefa.titulo).map(tarefa => {
+            const { onUpdate, ...safeTarefa } = tarefa;
+            return { ...safeTarefa };
+          })
+        : [],
+    };
+  });
+
+    
+    
 
 
     // 7️ - Cria um documento para o projeto no Firestore
