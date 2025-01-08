@@ -260,7 +260,7 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
                   sx={{ flex: "1 1 30%" }}
                 >
                   <TextField
-                    label="Digite o valor do orçamento para essa tarefa..."
+                    label="Valor do orçamento para essa tarefa..."
                     name="valor"
                     value={formValues.valor}
                     onChange={handleCurrencyChange} // A FUNÇÃO DE FORMATAÇÃO
