@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +27,7 @@ const CadastroProjetos = () => {
   // 1) ESTADO PRINCIPAL (pai) guarda TUDO do projeto:
   // ---------------------------------------------------------
   const [showAlert, setShowAlert] = useState(false);
+  const [mensagem, setMensagem] = useState(false);
   const [informacoesProjeto, setInformacoesProjeto] = useState({
     nome: "",
     descricao: "",
@@ -62,7 +63,7 @@ const CadastroProjetos = () => {
       const db = getFirestore();
 
       // Valida campos obrigatórios
-      if (!informacoesProjeto.nome || !informacoesProjeto.solicitante) {
+      if (!informacoesProjeto.nome ||!informacoesProjeto.solicitante) {
         alert("Todos os campos obrigatórios precisam ser preenchidos!");
         return;
       }
@@ -95,7 +96,30 @@ const CadastroProjetos = () => {
       console.error("Erro ao adicionar projeto:", error.message);
       alert("Erro ao adicionar projeto. Verifique o console.");
     }
+    setMensagem(true);
   };
+
+  useEffect(() => {
+    setInterval(setMensagem(false), 2000);
+  },[mensagem]);
+
+  /**
+  const LimpaEstado = () => {
+    setInformacoesProjeto({
+      nome: "",
+      descricao: "",
+      dataInicio: "",
+      prazoPrevisto: "",
+      unidade: "",
+      solicitante: "",
+      categoria: "",
+      colaboradores: [],
+      orcamento: "",
+      diretrizes: [],
+    });
+  };
+   */
+
 
   // ---------------------------------------------------------
   // 4) RENDER
@@ -147,7 +171,7 @@ const CadastroProjetos = () => {
               Passamos setInformacoesProjeto diretamente para <InformacoesProjeto />,
               pois ele modifica várias chaves (nome, datas, etc.).
             */}
-            <InformacoesProjeto onUpdate={setInformacoesProjeto} />
+            <InformacoesProjeto onUpdate={setInformacoesProjeto} LimpaEstado ={mensagem} />
           </AccordionDetails>
         </Accordion>
 
@@ -166,6 +190,7 @@ const CadastroProjetos = () => {
             <BaseDiretriz
               diretrizes={diretrizes}
               onUpdate={handleDiretrizesUpdate}
+              LimpaEstado={mensagem}
             />
           </AccordionDetails>
         </Accordion>

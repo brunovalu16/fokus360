@@ -17,7 +17,7 @@ import { getFirestore, getDocs, collection } from "firebase/firestore";
  *  Recebe:
  *    - onUpdate( (prev) => ({ ...prev, ... }) ) => para atualizar no pai
  */
-const InformacoesProjeto = ({ onUpdate }) => {
+const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
   const [users, setUsers] = useState([]);
 
   const [formValues, setFormValues] = useState({
@@ -50,6 +50,24 @@ const InformacoesProjeto = ({ onUpdate }) => {
     };
     fetchUsers();
   }, []);
+
+  // Monitorando a mensagem para limpar os inputs
+  useEffect(() => {
+    if (LimpaEstado) {
+      setFormValues({
+        nome: "",
+        descricao: "",
+        dataInicio: "",
+        prazoPrevisto: "",
+        unidade: "",
+        solicitante: "",
+        categoria: "",
+        colaboradores: [],
+        responsavel: "",
+        orcamento: "",
+      });
+    }
+  }, [LimpaEstado]);
 
   // Atualiza local e já dispara onUpdate para o pai
   const handleChange = (event) => {

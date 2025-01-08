@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, TextField, Button, Typography, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
@@ -13,7 +13,7 @@ import DiretrizData from "./DiretrizData";
  *    - diretrizes (array)
  *    - onUpdate(diretrizesAtualizadas): callback para avisar o pai
  */
-const BaseDiretriz = ({ diretrizes = [], onUpdate }) => {
+const BaseDiretriz = ({ diretrizes = [], onUpdate, LimpaEstado }) => {
   const [novaDiretriz, setNovaDiretriz] = useState("");
   const [descricaoDiretriz, setDescricaoDiretriz] = useState("");
 
@@ -36,9 +36,6 @@ const BaseDiretriz = ({ diretrizes = [], onUpdate }) => {
     const diretrizesAtualizadas = [...diretrizes, nova];
     onUpdate(diretrizesAtualizadas);
 
-    // Limpa os inputs
-    setNovaDiretriz("");
-    setDescricaoDiretriz("");
   };
 
   // --------------------------------------
@@ -58,6 +55,16 @@ const BaseDiretriz = ({ diretrizes = [], onUpdate }) => {
     );
     onUpdate(diretrizesAtualizadas);
   };
+
+  // Monitorando a mensagem para limpar os inputs
+    useEffect(() => {
+      if (LimpaEstado) {
+        
+    setNovaDiretriz("");
+    setDescricaoDiretriz("");
+      }
+    }, [LimpaEstado]);
+
 
   // --------------------------------------
   // Render
@@ -155,7 +162,7 @@ const BaseDiretriz = ({ diretrizes = [], onUpdate }) => {
 
           {/* Detalhes (tarefas, 5W2H) */}
           <AccordionDetails>
-            <DiretrizData diretriz={item} onUpdate={handleUpdateUmaDiretriz} />
+            <DiretrizData diretriz={item} onUpdate={handleUpdateUmaDiretriz} LimpaEstado={LimpaEstado} />
           </AccordionDetails>
         </Accordion>
       ))}
