@@ -9,7 +9,6 @@ import InformacoesProjeto from "../../components/InformacoesProjeto";
 import { getFirestore, collection, doc, setDoc } from "firebase/firestore";
 
 const CadastroProjetos = () => {
-  const [diretrizes, setDiretrizes] = useState([]);
   const [showAlert, setShowAlert] = useState(false);
   const [informacoesProjeto, setInformacoesProjeto] = useState({
     nome: "",
@@ -23,6 +22,18 @@ const CadastroProjetos = () => {
     orcamento: "",
     diretrizes: [],
   });
+  const [diretrizes, setDiretrizes] = useState([{
+    titulo: "",
+    responsavel: "Responsável padrão",
+    colaboradores: [],
+    oQue: "",
+    porQue: "",
+    quem: [],
+    quando: "",
+    onde: "",
+    como: "",
+    valor: "",
+}]);
 
   // Atualizar o estado diretrizes
   const handleDiretrizesUpdate = (novaDiretriz) => {

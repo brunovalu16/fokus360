@@ -83,33 +83,6 @@ const DiretrizData = ({ diretrizID, onUpdate }) => {
     }));
   };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
- 
-
   // Adicionar Tarefa
   const handleAddTarefa = () => {
     if (novaTarefa.trim() === "") {
