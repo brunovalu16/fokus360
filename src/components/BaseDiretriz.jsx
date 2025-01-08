@@ -21,7 +21,7 @@ const BaseDiretriz = ({ onUpdate }) => {
       id: Date.now(),
       titulo: novaDiretriz,
       descricao: descricaoDiretriz,
-      tarefas: [],
+      //tarefas: [],
     };
   
     setDiretrizes((prev) => [...prev, nova]);
