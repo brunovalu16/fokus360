@@ -22,7 +22,7 @@ import { getFirestore, getDocs, collection } from "firebase/firestore";
  *   - diretriz (objeto) => { id, titulo, descricao, tarefas: [...] }
  *   - onUpdate(diretrizAtualizada) => callback p/ devolver nova diretriz
  */
-const DiretrizData = ({ diretriz, onUpdate }) => {
+const DiretrizData = ({ diretriz, onUpdate, LimpaEstado }) => {
   const [users, setUsers] = useState([]);
   const [novaTarefa, setNovaTarefa] = useState("");
 
@@ -108,6 +108,17 @@ const DiretrizData = ({ diretriz, onUpdate }) => {
       };
       fetchUsers();
     }, []);
+
+      // Monitorando a mensagem para limpar os inputs
+        useEffect(() => {
+          if (LimpaEstado) {
+
+    onUpdate({
+      ...diretriz,
+      tarefas: [],
+    });
+          }
+        }, [LimpaEstado]);
 
   return (
     <Box>
