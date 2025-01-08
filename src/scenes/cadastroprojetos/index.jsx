@@ -1,14 +1,31 @@
 import React, { useState } from "react";
-import { Dialog, DialogContent, Alert, Box, Button, Typography, Accordion, AccordionSummary, AccordionDetails, Divider } from "@mui/material";
+import {
+  Dialog,
+  DialogContent,
+  Alert,
+  Box,
+  Button,
+  Typography,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+} from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
 import DescriptionIcon from "@mui/icons-material/Description";
-import { Header } from "../../components";
+
+// IMPORTS DOS SEUS COMPONENTES
+import { Header } from "../../components";       // Ajuste o caminho se necessário
 import BaseDiretriz from "../../components/BaseDiretriz";
 import InformacoesProjeto from "../../components/InformacoesProjeto";
+
+// IMPORTS DO FIREBASE
 import { getFirestore, collection, doc, setDoc } from "firebase/firestore";
 
 const CadastroProjetos = () => {
+  // ---------------------------------------------------------
+  // 1) ESTADO PRINCIPAL (pai) guarda TUDO do projeto:
+  // ---------------------------------------------------------
   const [showAlert, setShowAlert] = useState(false);
   const [informacoesProjeto, setInformacoesProjeto] = useState({
     nome: "",
@@ -20,56 +37,51 @@ const CadastroProjetos = () => {
     categoria: "",
     colaboradores: [],
     orcamento: "",
-    diretrizes: [],
+    diretrizes: [], // <--- array de diretrizes também está aqui
   });
-  const [diretrizes, setDiretrizes] = useState([{
-    titulo: "",
-    responsavel: "Responsável padrão",
-    colaboradores: [],
-    oQue: "",
-    porQue: "",
-    quem: [],
-    quando: "",
-    onde: "",
-    como: "",
-    valor: "",
-}]);
 
-  // Atualizar o estado diretrizes
-  const handleDiretrizesUpdate = (novaDiretriz) => {
-    setDiretrizes((prev) => {
-      const updatedDiretrizes = Array.isArray(prev) ? [...prev, novaDiretriz] : [novaDiretriz];
-      setInformacoesProjeto((prevProjeto) => ({
-        ...prevProjeto,
-        diretrizes: updatedDiretrizes,
-      }));
-      return updatedDiretrizes;
-    });
+  // Facilita ler/salvar "diretrizes" sem precisar ficar escrevendo tanto
+  const diretrizes = informacoesProjeto.diretrizes;
+
+  // ---------------------------------------------------------
+  // 2) FUNÇÃO QUE ATUALIZA APENAS A LISTA DE DIRETRIZES
+  //    (Chamado quando BaseDiretriz ou DiretrizData muda algo)
+  // ---------------------------------------------------------
+  const handleDiretrizesUpdate = (diretrizesAtualizadas) => {
+    setInformacoesProjeto((prev) => ({
+      ...prev,
+      diretrizes: diretrizesAtualizadas,
+    }));
   };
 
-  // Função assíncrona para adicionar um projeto ao Firebase
+  // ---------------------------------------------------------
+  // 3) FUNÇÃO PARA SALVAR PROJETO NO FIREBASE
+  // ---------------------------------------------------------
   const handleAdicionarProjeto = async () => {
     try {
       const db = getFirestore();
 
+      // Valida campos obrigatórios
       if (!informacoesProjeto.nome || !informacoesProjeto.solicitante) {
         alert("Todos os campos obrigatórios precisam ser preenchidos!");
         return;
       }
-      
 
       if (!Array.isArray(diretrizes) || diretrizes.length === 0) {
         console.warn("Nenhuma diretriz válida foi encontrada para este projeto.");
         return;
       }
 
+      // Apenas para debug:
       console.log("Diretrizes antes do envio:", JSON.stringify(diretrizes, null, 2));
 
-      const cleanDiretrizes = diretrizes.map((diretriz) => ({
-        ...diretriz,
-        tarefas: Array.isArray(diretriz.tarefas) ? diretriz.tarefas : [],
+      // Garante que cada diretriz tenha tarefas como array
+      const cleanDiretrizes = diretrizes.map((d) => ({
+        ...d,
+        tarefas: Array.isArray(d.tarefas) ? d.tarefas : [],
       }));
 
+      // Cria documento no Firestore
       const projetoRef = doc(collection(db, "projetos"));
       await setDoc(projetoRef, {
         ...informacoesProjeto,
@@ -85,8 +97,12 @@ const CadastroProjetos = () => {
     }
   };
 
+  // ---------------------------------------------------------
+  // 4) RENDER
+  // ---------------------------------------------------------
   return (
     <>
+      {/* Cabeçalho */}
       <Box sx={{ marginLeft: "40px", paddingTop: "50px" }}>
         <Header
           title={
@@ -98,6 +114,7 @@ const CadastroProjetos = () => {
         />
       </Box>
 
+      {/* Alerta de sucesso */}
       <Dialog
         open={showAlert}
         maxWidth="sm"
@@ -105,45 +122,55 @@ const CadastroProjetos = () => {
         onClose={() => setShowAlert(false)}
         PaperProps={{
           sx: {
-            backgroundColor: "transparent", // Remove o fundo branco
-            boxShadow: "none", // Remove sombras
+            backgroundColor: "transparent",
+            boxShadow: "none",
           },
         }}
       >
         <DialogContent sx={{ backgroundColor: "transparent", padding: 0 }}>
           <Alert severity="success" sx={{ backgroundColor: "#f0fff4" }}>
-            <Typography variant="h6">
-              Projeto adicionado com sucesso!
-            </Typography>
+            <Typography variant="h6">Projeto adicionado com sucesso!</Typography>
           </Alert>
         </DialogContent>
       </Dialog>
 
+      {/* Accordion principal */}
       <Box sx={{ padding: "30px", margin: "40px", backgroundColor: "#f2f0f0" }}>
+        {/* Accordion: Informações do Projeto */}
         <Accordion sx={{ borderRadius: "10px", marginBottom: "15px" }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <PlayCircleFilledWhiteIcon
-              sx={{ color: "#22d3ee", fontSize: 25 }}
-            />
+            <PlayCircleFilledWhiteIcon sx={{ color: "#22d3ee", fontSize: 25 }} />
             <Typography>ADICIONAR INFORMAÇÕES DO PROJETO</Typography>
           </AccordionSummary>
           <AccordionDetails>
+            {/*
+              Passamos setInformacoesProjeto diretamente para <InformacoesProjeto />,
+              pois ele modifica várias chaves (nome, datas, etc.).
+            */}
             <InformacoesProjeto onUpdate={setInformacoesProjeto} />
           </AccordionDetails>
         </Accordion>
 
+        {/* Accordion: Diretrizes */}
         <Accordion sx={{ borderRadius: "10px" }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <PlayCircleFilledWhiteIcon
-              sx={{ color: "#5f53e5", fontSize: 25 }}
-            />
+            <PlayCircleFilledWhiteIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
             <Typography>ADICIONAR DIRETRIZES DO PROJETO</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <BaseDiretriz onUpdate={handleDiretrizesUpdate} />
+            {/*
+              Passamos "diretrizes" e "onUpdate" para o <BaseDiretriz />
+              Assim, <BaseDiretriz> não tem state duplicado: 
+              ele chama "handleDiretrizesUpdate" quando mexe nas diretrizes.
+            */}
+            <BaseDiretriz
+              diretrizes={diretrizes}
+              onUpdate={handleDiretrizesUpdate}
+            />
           </AccordionDetails>
         </Accordion>
 
+        {/* Botão para efetivar o cadastro */}
         <Box display="flex" justifyContent="flex-end" marginTop="20px">
           <Button
             onClick={handleAdicionarProjeto}

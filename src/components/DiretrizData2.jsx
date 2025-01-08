@@ -4,7 +4,6 @@ import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Header from "./Header";
 
-
 // FUNÇÃO DO GRÁFICO PROGRESS QUE CONTROLA O ESTADO DOS CHECKS
 const ProgressStatus = ({ checkState }) => {
   const allChecked = Object.values(checkState).every((value) => value);
@@ -43,22 +42,15 @@ const ProgressStatus = ({ checkState }) => {
 
 // FIM DA FUNÇÃO DO GRÁFICO
 
-
 const DiretrizData2 = ({ checkState, handleCheckChange }) => {
   const [expanded, setExpanded] = useState(false);
   const [responsaveis, setResponsaveis] = useState([]);
   const [quem, setQuem] = useState([]);
-  const [formValues, setFormValues] = useState({
-    nome: "",
-    dataInicio: "",
-    prazoPrevisto: "",
-    cliente: "",
-    categoria: [],
-    custo: "",
-    descricao: "",
-  });
+  // Este estado guardará os valores do formulário, incluindo "valor"
+  const [formValues, setFormValues] = useState({});
+
   
- 
+
   // Função do Accordion
   const handleAccordionToggle = () => {
     setExpanded(!expanded);
@@ -76,10 +68,28 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
     setQuem(typeof value === "string" ? value.split(",") : value);
   };
 
-  // Função para input valor
+  // Função de input genérico (se precisar usar para outros campos)
   const handleInputChangeReal = (event) => {
     const { name, value } = event.target;
-    setFormValues({ ...formValues, [name]: value });
+    setFormValues((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Função que formata em moeda
+  const handleCurrencyChange = (event) => {
+    const { name, value } = event.target;
+    // 1) Extrai somente dígitos
+    const onlyNumbers = value.replace(/[^\d]/g, "");
+    // 2) Formata como moeda
+    const formattedValue = new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(onlyNumbers / 100);
+
+    // 3) Atualiza o estado local
+    setFormValues((prev) => ({
+      ...prev,
+      [name]: formattedValue,
+    }));
   };
 
   return (
@@ -92,7 +102,6 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
       }}
     >
       {/* TAREFA 01*/}
-
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         sx={{
@@ -133,7 +142,7 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
           Desenvolver sistema Fokus360 para o Grupo Fokus
         </Typography>
 
-        {/* Campo de Valor */}
+        {/* Campo de Valor (exemplo fixo) */}
         <Typography
           variant="body1"
           sx={{
@@ -233,7 +242,7 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
             { label: "Quem", field: "quem" },
             { label: "Onde", field: "onde" },
             { label: "Como", field: "como" },
-            { label: "Valor", field: "valor" },
+            { label: "Valor gasto", field: "valor" },
           ].map(({ label, field }) => (
             <Box
               display="flex"
@@ -242,8 +251,9 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
               sx={{ flex: "1 1 30%" }}
               key={field}
             >
-              {field === "custo" ? (
-                  <Box
+              {/* Se for "valor", exibimos o TextField + checkbox */}
+              {field === "valor" ? (
+                <Box
                   display="flex"
                   alignItems="center"
                   gap={1}
@@ -253,25 +263,21 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
                     label="Digite o valor do orçamento para essa tarefa..."
                     name="valor"
                     value={formValues.valor}
-                    onChange={(e) => {
-                      const valor = e.target.value;
-                      const onlyNumbers = valor.replace(/[^\d]/g, "");
-                      const formattedValue = new Intl.NumberFormat("pt-BR", {
-                        style: "currency",
-                        currency: "BRL",
-                      }).format(onlyNumbers / 100);
-                      handleInputChangeReal({
-                        target: { name: "valor", value: formattedValue },
-                      });
-                    }}
+                    onChange={handleCurrencyChange} // A FUNÇÃO DE FORMATAÇÃO
                     fullWidth
                     InputLabelProps={{
                       shrink: true,
                       style: { position: "absolute", top: "5px", left: "5px" },
                     }}
                   />
+                  {/* Checkbox do campo "valor" */}
+                  <Checkbox
+                    checked={checkState[field]}
+                    onChange={() => handleCheckChange(field)}
+                  />
                 </Box>
               ) : field === "quem" ? (
+                // Se for "quem", exibimos o multiple Select
                 <Box sx={{ flex: 1, marginRight: 5.4 }}>
                   <Select
                     multiple
@@ -298,9 +304,10 @@ const DiretrizData2 = ({ checkState, handleCheckChange }) => {
                   </Select>
                 </Box>
               ) : (
+                // Caso contrário, campos normais + checkbox
                 <>
                   <TextField
-                    placeholder={`${label.toLowerCase()}...`} 
+                    placeholder={`${label.toLowerCase()}...`}
                     label={label}
                     fullWidth
                     InputLabelProps={{
