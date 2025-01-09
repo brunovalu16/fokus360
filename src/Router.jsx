@@ -17,6 +17,7 @@ import CadastroProjetos from "./scenes/cadastroprojetos";
 import  ListaProjetos from "./scenes/listaprojetos";
 import Diretriz from "./scenes/diretrizes";
 import DashboardProjeto from "./scenes/dashboardprojeto";
+import DataProjeto from "./components/DataProjeto";
 import { Team, Invoices, Contacts, Form, Bar, Line, Pie, FAQ, Geography, Calendar, Stream } from "./scenes";
 
 const AppRouter = () => {
@@ -38,6 +39,7 @@ const AppRouter = () => {
           <Route path="/dashboardprojeto" element={<DashboardProjeto />} />
           <Route path="/vendasdevolucao" element={<VendasDevolucao />} />
           <Route path="/cadastroprojetos" element={<CadastroProjetos />} />
+          <Route path="/dataprojeto" element={<DataProjeto />} />
           <Route path="/diretriz" element={<Diretriz />} />
           <Route path="/listaprojetos" element={<ListaProjetos />} />
           <Route path="/projetos" element={<Projetos />} />

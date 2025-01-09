@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
 import { getFirestore, getDocs, collection } from "firebase/firestore";
 
 /**
@@ -195,6 +196,15 @@ const DiretrizData = ({ diretriz, onUpdate, LimpaEstado }) => {
                 }}
               />
             </Box>
+
+            {/* Seção: 5W2H  */}
+
+            <Box display="flex" alignItems="center" mb={1} sx={{ marginBottom: "40px", marginTop: "40px" }}>
+                    <PlayCircleFilledWhiteIcon
+                      sx={{ color: "#5f53e5", fontSize: 25, marginRight: 1 }}
+                    />
+                    <Typography variant="h6">Plano de Ação (5W2H)</Typography>
+                  </Box>
 
             {/* 5W2H (exemplo simplificado) */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1, marginTop:"50px" }}>
