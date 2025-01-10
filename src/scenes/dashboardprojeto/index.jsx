@@ -1,7 +1,6 @@
 import React from "react";
 import { Box } from "@mui/material";
 
-
 import DataProjeto from "../../components/DataProjeto";
 
 function DashboardProjeto() {
@@ -10,14 +9,11 @@ function DashboardProjeto() {
       {/* Header */}
       <Box
         sx={{
-          
           paddingTop: "50px",
         }}
       >
         {/* Componente <DadosProjeto /> */}
-        
         <DataProjeto />
-        
 
       </Box>
     </>

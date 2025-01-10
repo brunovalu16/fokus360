@@ -39,7 +39,7 @@ const DiretrizData = ({ diretriz, onUpdate, LimpaEstado }) => {
 
     const nova = {
       id: Date.now(),
-      titulo: novaTarefa,
+      tituloTarefa: novaTarefa,
       planoDeAcao: {
         oQue: "",
         porQue: "",
@@ -167,7 +167,7 @@ const DiretrizData = ({ diretriz, onUpdate, LimpaEstado }) => {
                 variant="subtitle1"
                 sx={{ fontWeight: "bold", color: "#5f53e5" }}
               >
-                {t.titulo}
+                {t.tituloTarefa}
               </Typography>
 
               
