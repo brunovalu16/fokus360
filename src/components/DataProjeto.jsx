@@ -13,34 +13,47 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
 
  // FUNÇÃO DO GRÁFICO
  const ProgressStatus = ({ checkState }) => {
-   const totalFields = Object.keys(checkState).length; // Todos os campos associados
-   const completedFields = Object.values(checkState).filter(Boolean).length;
+  const totalFields = 8; // Número fixo de checkbox por tarefa
+  const relevantKeys = Object.keys(checkState).slice(0, totalFields); // Obtém apenas as chaves relevantes (8 primeiras)
+  const completedFields = relevantKeys.filter((key) => checkState[key]).length; // Conta os checkboxes marcados
 
-   const status =
-     completedFields === totalFields
-       ? { color: "#98f713", text: "Finalizado" }
-       : completedFields > 0
-       ? { color: "#00f6fc", text: "Em andamento" }
-       : { color: "#fff", text: "Em aberto" };
+  const status =
+    completedFields === 0
+      ? { color: "#fff", text: "Em aberto" }
+      : completedFields === totalFields
+      ? { color: "#98f713", text: "Finalizado" }
+      : { color: "#00f6fc", text: "Em andamento" };
 
-   return (
-     <Box display="flex" alignItems="center" gap={1}>
-       <CircularProgress
-         variant="determinate"
-         value={(completedFields / totalFields) * 100}
-         sx={{ color: status.color }}
-         thickness={10}
-         size={30}
-       />
-       <Typography
-         variant="h5"
-         sx={{ color: status.color, fontWeight: "bold" }}
-       >
-         {status.text}
-       </Typography>
-     </Box>
-   );
- };
+  return (
+    <Box
+      display="flex"
+      alignItems="center"
+      gap={1}
+      sx={{
+        marginLeft: "auto",
+        marginRight: "30px",
+        padding: "10px",
+        borderRadius: "8px",
+      }}
+    >
+      <CircularProgress
+        variant="determinate"
+        value={(completedFields / totalFields) * 100} // Progresso proporcional
+        sx={{ color: status.color }}
+        thickness={10}
+        size={30}
+      />
+      <Typography
+        variant="h5"
+        sx={{ color: status.color, fontWeight: "bold" }}
+      >
+        {status.text}
+      </Typography>
+    </Box>
+  );
+};
+
+
 
  function DataProjeto() {
    const [users, setUsers] = useState([]);
@@ -67,6 +80,7 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
    const [onde, setOnde] = useState("");
    const [diretrizTitulo, setDiretrizTitulo] = useState("");
    const [diretrizDescricao, setDiretrizDescricao] = useState("");
+   
 
    // Armazenar todas as diretrizes
    const [diretrizes, setDiretrizes] = useState([]);
@@ -200,19 +214,19 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
 
    // Função de formato monetário para o campo "Valor"
    const handleCurrencyChangeValor = (event) => {
-     const { name, value } = event.target;
-     const onlyNumbers = value.replace(/[^\d]/g, "");
-     const formattedValue = new Intl.NumberFormat("pt-BR", {
-       style: "currency",
-       currency: "BRL",
-     }).format(onlyNumbers / 100);
+    const { name, value } = event.target;
+    const onlyNumbers = value.replace(/[^\d]/g, "");
+    const formattedValue = new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(onlyNumbers / 100);
 
-     setValor((prev) => ({ ...prev, [name]: formattedValue }));
-     onUpdate((prev) => ({
-       ...prev,
-       [name]: Number(onlyNumbers) / 100, // salva como número no pai
-     }));
-   };
+    setValor((prev) => ({ ...prev, [name]: formattedValue }));
+    onUpdate((prev) => ({
+      ...prev,
+      [name]: Number(onlyNumbers) / 100, // salva como número no pai
+    }));
+  };
 
    // Função de Data - dia/mês/ano
    const handleDataChange = (value, setState) => {
@@ -505,7 +519,14 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
              </Box>
            </Box>
 
+
+
+
            {/* Seção: DIRETRIZES DO PROJETO */}
+
+
+
+
            <Box>
              <Box display="flex" alignItems="center" mb={1}>
                <PlayCircleFilledWhiteIcon
@@ -594,8 +615,6 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
 
                        return (
                          <Box key={tarefaIndex} sx={{ marginBottom: "20px" }}>
-                           {/* Gráfico para os checkboxes dessa tarefa */}
-                           <ProgressStatus checkState={tarefaCheckState} />
 
                            {/* Input Tarefa */}
                            <Box
@@ -933,14 +952,27 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
                                  label="Valor"
                                  fullWidth
                                  value={tarefa.planoDeAcao?.valor || ""}
-                                 onChange={(e) =>
+                                 onChange={(e) => {
+                                   const rawValue = e.target.value; // Valor bruto do input
+                                   const onlyNumbers = rawValue.replace(
+                                     /[^\d]/g,
+                                     ""
+                                   ); // Remove caracteres não numéricos
+                                   const formattedValue = new Intl.NumberFormat(
+                                     "pt-BR",
+                                     {
+                                       style: "currency",
+                                       currency: "BRL",
+                                     }
+                                   ).format(Number(onlyNumbers) / 100); // Formata como moeda
+
                                    handleTarefaChange(
                                      diretrizIndex,
                                      tarefaIndex,
                                      "planoDeAcao.valor",
-                                     e.target.value
-                                   )
-                                 }
+                                     formattedValue // Passa o valor formatado
+                                   );
+                                 }}
                                />
                                <Checkbox
                                  checked={

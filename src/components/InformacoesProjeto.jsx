@@ -82,26 +82,40 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
     onUpdate((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Exemplo de formato monetário
-  const handleCurrencyChange = (event) => {
-    const { name, value } = event.target;
-    const onlyNumbers = value.replace(/[^\d]/g, "");
+  // Função para formato monetário
+  const handleCurrencyChangeOrcamento = (event) => {
+    const rawValue = event.target.value; // Valor bruto do input
+    const onlyNumbers = rawValue.replace(/[^\d]/g, ""); // Remove caracteres não numéricos
     const formattedValue = new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(onlyNumbers / 100);
-
-    setFormValues((prev) => ({ ...prev, [name]: formattedValue }));
+    }).format(Number(onlyNumbers) / 100); // Formata como moeda
+  
+    // Atualiza o estado local com o valor formatado
+    setFormValues((prev) => ({
+      ...prev,
+      orcamento: formattedValue, // Salva o valor formatado no estado
+    }));
+  
+    // Salva o valor formatado diretamente no banco
     onUpdate((prev) => ({
       ...prev,
-      [name]: Number(onlyNumbers) / 100, // salva como número no pai
+      orcamento: formattedValue, // Salva o valor formatado no banco
     }));
   };
+  
+
+
+
 
   return (
     <Box>
       {/* Você pode usar ou não Accordion por fora, mas deixei para ficar similar ao seu código */}
-      <Accordion disableGutters sx={{ backgroundColor: "transparent" }} expanded>
+      <Accordion
+        disableGutters
+        sx={{ backgroundColor: "transparent" }}
+        expanded
+      >
         <AccordionDetails>
           <Box display="flex" flexDirection="column" gap={2}>
             {/* Nome do Projeto */}
@@ -189,9 +203,13 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
                 <MenuItem value="COMERCIAL">COMERCIAL</MenuItem>
                 <MenuItem value="CONTABILIDADE">CONTABILIDADE</MenuItem>
                 <MenuItem value="CONTROLADORIA">CONTROLADORIA</MenuItem>
-                <MenuItem value="DEPARTAMENTOPESSOAL">DEPARTAMENTO PESSOAL</MenuItem>
+                <MenuItem value="DEPARTAMENTOPESSOAL">
+                  DEPARTAMENTO PESSOAL
+                </MenuItem>
                 <MenuItem value="DIRETORIA">DIRETORIA</MenuItem>
-                <MenuItem value="ESTRATEGIADENEGOCIOS">ESTRATÉGIA DE NEGÓCIOS</MenuItem>
+                <MenuItem value="ESTRATEGIADENEGOCIOS">
+                  ESTRATÉGIA DE NEGÓCIOS
+                </MenuItem>
                 <MenuItem value="FINANCEIRO">FINANCEIRO</MenuItem>
                 <MenuItem value="RECURSOSHUMANOS">RECURSOS HUMANOS</MenuItem>
                 <MenuItem value="LOGISTICA">LOGÍSTICA</MenuItem>
@@ -219,7 +237,9 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
               >
                 {users.map((user) => (
                   <MenuItem key={user.id} value={user.id}>
-                    <Checkbox checked={formValues.colaboradores.includes(user.id)} />
+                    <Checkbox
+                      checked={formValues.colaboradores.includes(user.id)}
+                    />
                     <ListItemText primary={user.username} />
                   </MenuItem>
                 ))}
@@ -238,8 +258,8 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
               <TextField
                 label="Orçamento"
                 name="orcamento"
-                value={formValues.orcamento}
-                onChange={handleCurrencyChange}
+                value={formValues.orcamento || ""}
+                onChange={handleCurrencyChangeOrcamento}
                 fullWidth
               />
             </Box>

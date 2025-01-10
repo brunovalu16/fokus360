@@ -121,6 +121,23 @@ const DiretrizData = ({ diretriz, onUpdate, LimpaEstado }) => {
           }
         }, [LimpaEstado]);
 
+
+        const handleChangeValor = (tarefaId, newValue) => {
+          setDiretrizes((prevDiretrizes) =>
+            prevDiretrizes.map((diretriz) => ({
+              ...diretriz,
+              tarefas: diretriz.tarefas.map((tarefa) =>
+                tarefa.id === tarefaId
+                  ? { ...tarefa, planoDeAcao: { ...tarefa.planoDeAcao, valor: newValue } }
+                  : tarefa
+              ),
+            }))
+          );
+        };
+        
+
+
+
   return (
     <Box>
       {/* Campo para digitar nova tarefa */}
