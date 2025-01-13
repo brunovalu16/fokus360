@@ -26,14 +26,19 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
 
   return (
     <Box
+      marginTop="30px"
       display="flex"
       alignItems="center"
       gap={1}
       sx={{
+        justifyContent: 'center',
+        maxWidth: "25%",
         marginLeft: "auto",
-        marginRight: "30px",
-        padding: "10px",
+        padding: "15px",
         borderRadius: "8px",
+        backgroundColor: "#5f53e5",
+        transform: "scale(0.7)", // Reduz o tamanho proporcionalmente
+        transformOrigin: "center", // Mantém o centro como origem para escalonamento
       }}
     >
       <CircularProgress
@@ -52,6 +57,8 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
     </Box>
   );
 };
+
+// FIM DA FUNÇÃO DO GRÁFICO
 
 
 
@@ -80,8 +87,7 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
    const [onde, setOnde] = useState("");
    const [diretrizTitulo, setDiretrizTitulo] = useState("");
    const [diretrizDescricao, setDiretrizDescricao] = useState("");
-   
-
+  
    // Armazenar todas as diretrizes
    const [diretrizes, setDiretrizes] = useState([]);
 
@@ -358,7 +364,30 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
              backgroundColor: "#f2f0f0",
            }}
          >
+
+
+
+
+
+
+
+
+
+
+
+
            {/* Seção: ADICIONAR INFORMAÇÕES DO PROJETO */}
+
+
+
+
+
+
+
+
+
+
+
 
            <Box mb={3} sx={{ marginBottom: "50px" }}>
              <Box display="flex" alignItems="center" mb={2}>
@@ -522,7 +551,20 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
 
 
 
+
+
+
+
+
            {/* Seção: DIRETRIZES DO PROJETO */}
+
+
+
+
+
+
+
+
 
 
 
@@ -591,13 +633,44 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
                        }}
                      >
                        {valor.valor || "R$ 0,00"}
-                     </Typography>
-
-                     {/* Progresso */}
-                     <ProgressStatus checkState={checkState} />
+                     </Typography> 
                    </AccordionSummary>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                    {/* Ao expandir, mostra o campo "Digite uma tarefa..." e os 5W2H */}
+
+
+
+
+
+
+
+
+
+
+
+
+                       {/* Progresso  */}
+                       <ProgressStatus checkState={checkState} /> 
+                     
+
+
+
                    <AccordionDetails>
                      {/* Campo para adicionar tarefa */}
                      {diretriz.tarefas?.map((tarefa, tarefaIndex) => {
@@ -641,7 +714,7 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
                                  "& .MuiOutlinedInput-root": {
                                    "& fieldset": {
                                      borderColor: "#5f54e7", // Define a cor da borda
-                                     borderWidth: "2px", // Espessura da borda
+                                     borderWidth: "3px", // Espessura da borda
                                    },
                                    "&:hover fieldset": {
                                      borderColor: "#5f54e7", // Cor da borda ao passar o mouse
@@ -668,7 +741,30 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
                              />
                            </Box>
 
+
+
+
+
+
+
+
+
+
+
                            {/* Seção: Plano de Ação (5W2H) */}
+
+
+
+
+
+
+
+
+
+
+
+
+                           
                            <Box
                              display="flex"
                              alignItems="center"
@@ -994,6 +1090,32 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
                    </AccordionDetails>
                  </Accordion>
                ))}
+
+
+
+
+
+
+
+
+
+
+
+
+               {/*  BOTÃO SALVAR ALTERAÇÕES   */}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                <Box
                  sx={{
