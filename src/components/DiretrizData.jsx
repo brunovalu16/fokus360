@@ -15,7 +15,6 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
 import { getFirestore, getDocs, collection } from "firebase/firestore";
-
 /**
  * DiretrizData
  *
@@ -23,14 +22,17 @@ import { getFirestore, getDocs, collection } from "firebase/firestore";
  *   - diretriz (objeto) => { id, titulo, descricao, tarefas: [...] }
  *   - onUpdate(diretrizAtualizada) => callback p/ devolver nova diretriz
  */
+
+
 const DiretrizData = ({ diretriz, onUpdate, LimpaEstado }) => {
   const [users, setUsers] = useState([]);
   const [novaTarefa, setNovaTarefa] = useState("");
+  const [checkState, setCheckState] = useState({});
 
   // Tarefas vêm diretamente de diretriz.tarefas
   const tarefas = diretriz?.tarefas || [];
 
-  // Adicionar Tarefa
+  // Função para adicionar Tarefa
   const handleAddTarefa = () => {
     if (!novaTarefa.trim()) {
       alert("Digite uma tarefa!");
@@ -134,8 +136,9 @@ const DiretrizData = ({ diretriz, onUpdate, LimpaEstado }) => {
             }))
           );
         };
-        
 
+
+    
 
 
   return (
@@ -160,6 +163,7 @@ const DiretrizData = ({ diretriz, onUpdate, LimpaEstado }) => {
       </Box>
 
       {/* Lista de tarefas já existentes */}
+
       <List>
         {tarefas.map((t) => (
           <Box
@@ -187,7 +191,6 @@ const DiretrizData = ({ diretriz, onUpdate, LimpaEstado }) => {
                 {t.tituloTarefa}
               </Typography>
 
-              
               <Button
                 onClick={() => handleDeleteTarefa(t.id)}
                 sx={{
@@ -201,7 +204,7 @@ const DiretrizData = ({ diretriz, onUpdate, LimpaEstado }) => {
                 <DeleteForeverIcon sx={{ fontSize: 24 }} />
               </Button>
               {/* Divider */}
-            <Divider
+              <Divider
                 sx={{
                   marginTop: "70px",
                   marginBottom: "8px",
@@ -216,15 +219,28 @@ const DiretrizData = ({ diretriz, onUpdate, LimpaEstado }) => {
 
             {/* Seção: 5W2H  */}
 
-            <Box display="flex" alignItems="center" mb={1} sx={{ marginBottom: "40px", marginTop: "40px" }}>
-                    <PlayCircleFilledWhiteIcon
-                      sx={{ color: "#5f53e5", fontSize: 25, marginRight: 1 }}
-                    />
-                    <Typography variant="h6">Plano de Ação (5W2H)</Typography>
-                  </Box>
+            <Box
+              display="flex"
+              alignItems="center"
+              mb={1}
+              sx={{ marginBottom: "40px", marginTop: "40px" }}
+            >
+              <PlayCircleFilledWhiteIcon
+                sx={{ color: "#5f53e5", fontSize: 25, marginRight: 1 }}
+              />
+              <Typography variant="h6">Plano de Ação (5W2H)</Typography>
+            </Box>
 
             {/* 5W2H (exemplo simplificado) */}
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1, marginTop:"50px" }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 1,
+                marginTop: "50px",
+              }}
+            >
+              
               <TextField
                 label="O que?"
                 value={t.planoDeAcao.oQue}
@@ -232,6 +248,7 @@ const DiretrizData = ({ diretriz, onUpdate, LimpaEstado }) => {
                   handleChangePlano(t.id, "oQue", e.target.value)
                 }
               />
+              
               <TextField
                 label="Por que?"
                 value={t.planoDeAcao.porQue}
@@ -239,6 +256,9 @@ const DiretrizData = ({ diretriz, onUpdate, LimpaEstado }) => {
                   handleChangePlano(t.id, "porQue", e.target.value)
                 }
               />
+              
+              
+              
 
               {/* Quem... (múltipla seleção) */}
               <Select
