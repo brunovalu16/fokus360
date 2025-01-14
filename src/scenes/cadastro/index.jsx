@@ -18,26 +18,32 @@ const Cadastro = () => {
     cadastrar()
   };
 
-  const cadastrar = async() => {
+  const cadastrar = async () => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       console.log("Usuário criado com sucesso:", userCredential.user);
-        if (userCredential) {
-          // Salvar dados do usuário no Firestore
-          const user = userCredential.user.uid;
-          const userData = {
-            username,
-            email,
-            role,
-            file: ""
-          }; // salvar o ID do usuário gerado pelo firebase
-          const userRef = await setDoc(doc(db, "user", user), userData)
-        }
-      navigate("/login");
+  
+      if (userCredential) {
+        // Salvar dados do usuário no Firestore
+        const user = userCredential.user.uid;
+        const userData = {
+          username,
+          email,
+          role,
+          file: ""
+        }; // salvar o ID do usuário gerado pelo firebase
+        const userRef = await setDoc(doc(db, "user", user), userData);
+  
+        // Exibe alerta de sucesso
+        alert("Usuário cadastrado com sucesso!");
+      }
+  
+      navigate("/cadastro");
     } catch (error) {
       console.error("Erro ao cadastrar usuário:", error.message);
     }
   };
+  
 
   return (
     <Box
@@ -46,13 +52,13 @@ const Cadastro = () => {
       alignItems="center"
       justifyContent="center"
       sx={{
-        backgroundColor: "#312783",
+        //backgroundColor: "#312783",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
         backgroundAttachment: "fixed",
-        width: "100vw",
-        minHeight: "100vh",
+        width: "80vw",
+        minHeight: "70vh",
       }}
     >
       {/* Logo */}
@@ -82,12 +88,12 @@ const Cadastro = () => {
         sx={{
           borderTopRightRadius: "50px",
           backgroundColor: "white",
-          padding: 4,
+          padding: 5.2,
           boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
           width: "90%",
           maxWidth: 400,
           textAlign: "center",
-          border: "1px solid #868dfb",
+          //border: "1px solid #868dfb",
         }}
       >
         <img

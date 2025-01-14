@@ -163,8 +163,8 @@ const CadastroProjetos = () => {
         {/* Accordion: Informações do Projeto */}
         <Accordion sx={{ borderRadius: "10px", marginBottom: "15px" }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <PlayCircleFilledWhiteIcon sx={{ color: "#22d3ee", fontSize: 25 }} />
-            <Typography>ADICIONAR INFORMAÇÕES DO PROJETO</Typography>
+            <PlayCircleFilledWhiteIcon sx={{ color: "#22d3ee", fontSize: 25, marginRight: "10px" }} />
+            <Typography sx={{ marginTop: "4px" }}>ADICIONAR INFORMAÇÕES DO PROJETO</Typography>
           </AccordionSummary>
           <AccordionDetails>
             {/*
@@ -178,8 +178,8 @@ const CadastroProjetos = () => {
         {/* Accordion: Diretrizes */}
         <Accordion sx={{ borderRadius: "10px" }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <PlayCircleFilledWhiteIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
-            <Typography>ADICIONAR DIRETRIZES DO PROJETO</Typography>
+            <PlayCircleFilledWhiteIcon sx={{ color: "#5f53e5", fontSize: 25, marginRight: "10px"  }} />
+            <Typography sx={{ marginTop: "4px" }}>ADICIONAR DIRETRIZES DO PROJETO</Typography>
           </AccordionSummary>
           <AccordionDetails>
             {/*
@@ -197,13 +197,20 @@ const CadastroProjetos = () => {
 
         {/* Botão para efetivar o cadastro */}
         <Box display="flex" justifyContent="flex-end" marginTop="20px">
-          <Button
-            onClick={handleAdicionarProjeto}
-            variant="contained"
-            sx={{ backgroundColor: "#5f53e5", color: "#fff" }}
-          >
-            ADICIONAR PROJETO
-          </Button>
+        <Button
+          onClick={handleAdicionarProjeto}
+          variant="contained"
+          sx={{
+            backgroundColor: "#5f53e5",
+            color: "#fff",
+            "&:hover": {
+              backgroundColor: "#5f53e5", // Mantém a mesma cor ao passar o mouse
+            },
+          }}
+        >
+          ADICIONAR PROJETO
+        </Button>
+
         </Box>
       </Box>
     </>

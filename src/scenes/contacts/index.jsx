@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, Button, IconButton, useTheme, Typography } from "@mui/material";
+import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
 import { Link } from 'react-router-dom';
 import DeleteIcon from "@mui/icons-material/Delete";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -146,6 +147,7 @@ const Contacts = () => {
 
   return (
     <>
+
       {/* Header */}
       <Box
         sx={{
@@ -163,6 +165,30 @@ const Contacts = () => {
             </Box>
           }
         />
+      </Box>
+
+      {/* Botão voltar painel de projetos */}
+
+      <Box display="flex" justifyContent="flex-end" mb={2}>
+         <Button
+          component={Link} // Define que o botão será um Link do React Router
+          to="/cadastro"
+          variant="contained"
+          color="primary"
+          onClick={""}
+          sx={{
+            marginRight: "70px",
+            fontSize: "10px",
+            fontWeight: "bold",
+            borderRadius: "5px",
+            padding: "10px 20px",
+            backgroundColor: "#3f2cb2",
+            boxShadow: "none",
+            "&:hover": { backgroundColor: "#3f2cb2" },
+          }}
+        >
+            NOVO USUÁRIO
+        </Button>
       </Box>
 
       <Box m="45px">
