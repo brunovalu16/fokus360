@@ -84,7 +84,7 @@ const DadosProjeto = ({ orcamento, valorGasto, totalDiretrizes, totalTarefas }) 
       <Box
         display="grid"
         gridTemplateColumns="repeat(auto-fit, minmax(200px, 1fr))"
-        gap="15px"
+        gap="8px"
         paddingBottom="20px"
         paddingTop="20px"
         borderRadius="20px"
@@ -102,7 +102,7 @@ const DadosProjeto = ({ orcamento, valorGasto, totalDiretrizes, totalTarefas }) 
             flexDirection="row"
             alignItems="center"
             justifyContent="space-between"
-            padding="15px"
+            padding="10px"
             minWidth="200px"
             sx={{
               textAlign: "center",
@@ -119,7 +119,7 @@ const DadosProjeto = ({ orcamento, valorGasto, totalDiretrizes, totalTarefas }) 
               sx={{
                 minWidth: "50px",
                 height: "50px",
-                marginLeft: "10px",
+                //marginLeft: "10px",
               }}
             >
               {item.icon}
@@ -130,7 +130,7 @@ const DadosProjeto = ({ orcamento, valorGasto, totalDiretrizes, totalTarefas }) 
                 width: "2px",
                 height: "80%",
                 backgroundColor: "#ffffff4d",
-                margin: "0 20px",
+                margin: "0 10px",
               }}
             />
 
