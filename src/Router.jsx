@@ -27,11 +27,12 @@ const AppRouter = () => {
         {/* Rotas sem Sidebar */}
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
-          <Route path="/cadastro" element={<Cadastro />} />
+          
         </Route>
         
         {/* Rotas com Sidebar */}
         <Route element={<App />}>
+        <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/home" element={<Home />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/user" element={<User />} />

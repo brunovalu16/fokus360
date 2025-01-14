@@ -4,7 +4,13 @@ import PaidIcon from "@mui/icons-material/Paid";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import Lista from "../components/Lista";
 
-const DadosProjeto = ({ orcamento, valorGasto, totalDiretrizes, totalTarefas }) => {
+const DadosProjeto = ({
+  orcamento,
+  valorGasto,
+  totalDiretrizes,
+  totalTarefas,
+  diretrizes,
+}) => {
   const calcularProgressoValorGasto = () => {
     const valorOrcamentoNumerico =
       parseFloat(orcamento.replace("R$", "").replace(".", "").replace(",", ".")) || 0;
@@ -31,6 +37,35 @@ const DadosProjeto = ({ orcamento, valorGasto, totalDiretrizes, totalTarefas }) 
 
   const progressoValorGasto = calcularProgressoValorGasto();
 
+  // Função para calcular o total de tarefas concluídas
+  const calcularTotalTarefasConcluidas = (diretrizes) => {
+    return diretrizes.reduce((acc, diretriz) => {
+      return (
+        acc +
+        (diretriz.tarefas?.filter((tarefa) => tarefa.progresso === 100).length || 0)
+      );
+    }, 0);
+  };
+  
+  const totalTarefasConcluidas = calcularTotalTarefasConcluidas(diretrizes || []);
+
+  // Criar Função para Calcular o Progresso Geral
+  const calcularProgressoGeral = (diretrizIndex) => {
+    const diretriz = diretrizes[diretrizIndex]; // Pega a diretriz pelo índice
+    const totalTarefas = diretriz.tarefas.length; // Total de tarefas dentro da diretriz
+
+    if (totalTarefas === 0) return 0; // Evita divisão por zero
+
+    // Soma os progressos de todas as tarefas
+    const progressoTotal = diretriz.tarefas.reduce((acc, tarefa) => {
+      return acc + (tarefa.progresso || 0); // Adiciona o progresso de cada tarefa
+    }, 0);
+
+    // Calcula a média percentual
+    return Math.round(progressoTotal / totalTarefas);
+  };
+  
+
   const items = [
     {
       title: orcamento,
@@ -47,23 +82,43 @@ const DadosProjeto = ({ orcamento, valorGasto, totalDiretrizes, totalTarefas }) 
       progressColor: definirCorValorGasto(),
     },
     {
-      title: totalDiretrizes,
-      subtitle: "Total de diretrizes",
-      progress: 30,
-      icon: (
-        <AssignmentTurnedInIcon sx={{ color: "#fff", fontSize: "50px" }} />
-      ),
-      progressColor: "#2196f3",
-    },
+      title: `Total de diretrizes: ${totalDiretrizes || 0}  Concluídas: ${
+        diretrizes.filter(
+          (d) => calcularProgressoGeral(diretrizes.indexOf(d)) === 100
+        ).length || 0
+      }`, // Inclui total e as concluídas no título
+      icon: <AssignmentTurnedInIcon sx={{ color: "#fff", fontSize: "50px" }} />,
+      /**
+      progress:
+        totalDiretrizes > 0
+          ? (diretrizes.filter(
+              (d) => calcularProgressoGeral(diretrizes.indexOf(d)) === 100
+            ).length /
+              totalDiretrizes) *
+            100
+          : 0, // Progresso em porcentagem
+      
+      progressColor:
+        diretrizes.filter(
+          (d) => calcularProgressoGeral(diretrizes.indexOf(d)) === 100
+        ).length === totalDiretrizes
+          ? "#4caf50" // Verde se todas as diretrizes estão finalizadas
+          : "#f44336", // Vermelho caso contrário
+      */
+    },    
     {
-      title: totalTarefas,
-      subtitle: "Total de tarefas",
-      progress: 45,
-      icon: (
-        <AssignmentTurnedInIcon sx={{ color: "#fff", fontSize: "50px" }} />
-      ),
-      progressColor: "#f44336",
+      title: `Total de tarefas: ${totalTarefas || 0}  Concluídas: ${totalTarefasConcluidas || 0}`, // Inclui o total e as concluídas no título
+      //subtitle: "Tarefas concluídas",
+      icon: <AssignmentTurnedInIcon sx={{ color: "#fff", fontSize: "50px" }} />,
+      /** 
+      progress: totalTarefas > 0 ? (totalTarefasConcluidas / totalTarefas) * 100 : 0, // Progresso em porcentagem
+      progressColor:
+        totalTarefasConcluidas === totalTarefas
+          ? "#4caf50" // Verde quando todas estão concluídas
+          : "#f44336", // Vermelho caso contrário
+      */
     },
+    
   ];
 
   return (
@@ -119,7 +174,6 @@ const DadosProjeto = ({ orcamento, valorGasto, totalDiretrizes, totalTarefas }) 
               sx={{
                 minWidth: "50px",
                 height: "50px",
-                //marginLeft: "10px",
               }}
             >
               {item.icon}
@@ -185,7 +239,3 @@ const DadosProjeto = ({ orcamento, valorGasto, totalDiretrizes, totalTarefas }) 
 };
 
 export default DadosProjeto;
-
-
-
-

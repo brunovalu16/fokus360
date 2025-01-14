@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Divider, Checkbox, CircularProgress, ListItemText, Accordion, AccordionSummary, AccordionDetails, TextField, Select, IconButton, MenuItem, Button } from "@mui/material";
+import { Box, Typography, Divider, Checkbox,  CircularProgress, ListItemText, Accordion, AccordionSummary, AccordionDetails, TextField, Select, IconButton, MenuItem, Button } from "@mui/material";
 import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
 import { useSearchParams } from "react-router-dom"; // Importar para capturar o ID da URL
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
+import { Link } from 'react-router-dom';
 import "dayjs/locale/pt-br"; // define o idioma português para dayjs
 import  Header  from "../components/Header";
 import DadosProjeto from "../components/DadosProjeto";
@@ -69,14 +71,22 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
  function DataProjeto() {
    const [users, setUsers] = useState([]);
 
+  
+
    const [searchParams] = useSearchParams(); // Hook para acessar os parâmetros da URL
    const projectId = searchParams.get("id"); // Capturar o ID do projeto da URL
 
+   // Estados para as datas
+const [dataInicio, setDataInicio] = useState(""); // Valor puro do banco (ISO)
+const [prazoPrevisto, setPrazoPrevisto] = useState(""); // Valor puro do banco (ISO)
+
+   // Estados temporários para o campo de entrada
+const [dataInicioFormatada, setDataInicioFormatada] = useState("");
+const [prazoPrevistoFormatada, setPrazoPrevistoFormatada] = useState("");
+
    // Estados locais para cada campo, para manipular
    const [nomeProjeto, setNomeProjeto] = useState("");
-   const [dataInicio, setDataInicio] = useState("");
    const [dataFim, setDataFim] = useState("");
-   const [prazoPrevisto, setPrazoPrevisto] = useState("");
    const [descricao, setDescricao] = useState("");
    const [checkState, setCheckState] = useState({});
    const [oQue, setOque] = useState("");
@@ -256,25 +266,88 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
      }));
    };
 
+
+   // Converte de ISO para DD/MM/AAAA
+const formatarDataParaBrasileiro = (dataISO) => {
+  if (!dataISO || dataISO.length !== 10) return "";
+  const [ano, mes, dia] = dataISO.split("-");
+  return `${dia}/${mes}/${ano}`;
+};
+
+// Converte de DD/MM/AAAA para ISO
+const formatarDataParaISO = (dataBR) => {
+  if (!dataBR || dataBR.length !== 10) return "";
+  const [dia, mes, ano] = dataBR.split("/");
+  return `${ano}-${mes}-${dia}`;
+};
+
+
+
+
+
+
+
+
+
+//=======================================================================
+      
+      //FUNÇÕES PARA DATAS
+
+   //=======================================================================
+
+useEffect(() => {
+  // Formatar datas do banco para exibição no formato brasileiro
+  setDataInicioFormatada(formatarDataParaBrasileiro(dataInicio));
+  setPrazoPrevistoFormatada(formatarDataParaBrasileiro(prazoPrevisto));
+}, [dataInicio, prazoPrevisto]);
+
+
+
+
    // Função de Data - dia/mês/ano
    const handleDataChange = (value, setState) => {
-     // Remove tudo que não for número
-     const numericValue = value.replace(/\D/g, "");
+    // Remove tudo que não for número
+    const numericValue = value.replace(/\D/g, "");
+  
+    // Formata no padrão dd/mm/aaaa
+    if (numericValue.length <= 2) {
+      setState(numericValue); // Apenas o dia
+    } else if (numericValue.length <= 4) {
+      setState(`${numericValue.slice(0, 2)}/${numericValue.slice(2)}`); // Dia/Mês
+    } else {
+      setState(
+        `${numericValue.slice(0, 2)}/${numericValue.slice(2, 4)}/${numericValue.slice(4, 8)}` // Dia/Mês/Ano
+      );
+    }
+  };
+  
 
-     // Formata no padrão dd/mm/aaaa
-     if (numericValue.length <= 2) {
-       setState(numericValue); // Apenas o dia
-     } else if (numericValue.length <= 4) {
-       setState(`${numericValue.slice(0, 2)}/${numericValue.slice(2)}`); // Dia/Mês
-     } else if (numericValue.length <= 8) {
-       setState(
-         `${numericValue.slice(0, 2)}/${numericValue.slice(
-           2,
-           4
-         )}/${numericValue.slice(4, 8)}` // Dia/Mês/Ano
-       );
-     }
-   };
+   // Função para formatar a data do banco para o formato brasileiro (DD/MM/AAAA)
+const formatarDataBancoParaBrasileiro = (dataISO) => {
+  if (!dataISO) return ""; // Retorna vazio se a data for nula ou indefinida
+  const [ano, mes, dia] = dataISO.split("-"); // Divide a data no formato YYYY-MM-DD
+  return `${dia}/${mes}/${ano}`; // Retorna no formato DD/MM/AAAA
+};
+
+
+
+
+
+//=======================================================================
+      
+      //FIM  FUNÇÕES PARA DATAS
+
+   //=======================================================================
+
+
+
+
+
+
+
+
+
+
 
    // Carregar usuários do Firebase
    useEffect(() => {
@@ -435,6 +508,17 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
      }));
    };
 
+   //calcular Total Tarefas Concluidas
+   const calcularTotalTarefasConcluidas = () => {
+    return diretrizes.reduce((acc, diretriz) => {
+      return (
+        acc +
+        (diretriz.tarefas?.filter((tarefa) => tarefa.progresso === 100).length || 0)
+      );
+    }, 0);
+  };
+  
+
 
 
 
@@ -528,6 +612,31 @@ const calcularOrcamento = () => {
 
    return (
      <>
+       {/* Botão voltar painel de projetos */}
+
+       <Box display="flex" justifyContent="flex-end" mb={2}>
+         <Button
+          component={Link} // Define que o botão será um Link do React Router
+          to="/dashboard"
+          variant="contained"
+          color="primary"
+          onClick={""}
+          sx={{
+            marginRight: "70px",
+            fontSize: "10px",
+            fontWeight: "bold",
+            borderRadius: "5px",
+            padding: "10px 20px",
+            backgroundColor: "#3f2cb2",
+            boxShadow: "none",
+            "&:hover": { backgroundColor: "#3f2cb2" },
+          }}
+        >
+          <KeyboardReturnIcon sx={{ marginRight: "8px", fontSize: "30px" }} /> {/* Ícone com espaçamento */}
+            Voltar para o painel de projetos
+        </Button>
+      </Box>
+
        {/* Header */}
        <Box sx={{ marginLeft: "20px", paddingTop: "50px" }}>
          <Header
@@ -544,12 +653,14 @@ const calcularOrcamento = () => {
          />
 
          {/* Componente DadosProjeto (já existente) */}
+
          <DadosProjeto
-          orcamento={calcularOrcamento()}
-          valorGasto={calcularValorGasto()}
-          totalDiretrizes={calcularTotalDiretrizes()}
-          totalTarefas={calcularTotalTarefas()}
-        />
+           orcamento={calcularOrcamento()}
+           valorGasto={calcularValorGasto()}
+           totalDiretrizes={calcularTotalDiretrizes()}
+           totalTarefas={calcularTotalTarefas()}
+           diretrizes={diretrizes} // Corrigido para passar diretrizes
+         />
 
          {/* Bloco cinza contendo os campos */}
          <Box
@@ -559,36 +670,7 @@ const calcularOrcamento = () => {
              backgroundColor: "#f2f0f0",
            }}
          >
-
-
-
-
-
-
-
-
-
-
-
-
-
-
            {/* Seção: ADICIONAR INFORMAÇÕES DO PROJETO */}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
            <Box mb={3} sx={{ marginBottom: "50px" }}>
              <Box display="flex" alignItems="center" mb={2}>
@@ -614,21 +696,28 @@ const calcularOrcamento = () => {
                    fullWidth
                    label="Data início"
                    placeholder="dd/mm/aaaa"
-                   value={dataInicio}
-                   onChange={(e) =>
-                     handleDataChange(e.target.value, setDataInicio)
-                   }
+                   value={dataInicioFormatada} // Mostra a data formatada no campo
+                   InputProps={{
+                     readOnly: true, // Torna o campo somente leitura
+                   }}
                    inputProps={{ maxLength: 10 }} // Limita o número de caracteres
                  />
+
                  {/* Prazo Previsto */}
                  <TextField
                    fullWidth
                    label="Prazo previsto"
                    placeholder="dd/mm/aaaa"
-                   value={prazoPrevisto}
-                   onChange={(e) =>
-                     handleDataChange(e.target.value, setPrazoPrevisto)
-                   }
+                   value={prazoPrevistoFormatada} // Mostra a data formatada no campo
+                   onChange={(e) => {
+                     const valor = e.target.value;
+                     handleDataChange(valor, setPrazoPrevistoFormatada); // Aplica a formatação em tempo real
+                   }}
+                   onBlur={() => {
+                     setPrazoPrevisto(
+                       formatarDataParaISO(prazoPrevistoFormatada)
+                     ); // Converte para ISO apenas ao perder o foco
+                   }}
                    inputProps={{ maxLength: 10 }} // Limita o número de caracteres
                  />
 
@@ -746,41 +835,19 @@ const calcularOrcamento = () => {
                  onChange={handleCurrencyChange}
                  fullWidth
                />
-               {/* Data Início */}
+               {/* Data de finalização do projeto */}
                <TextField
-                   fullWidth
-                   label="Data de finalização do projeto"
-                   placeholder="dd/mm/aaaa"
-                   value={dataFim}
-                   onChange={(e) =>
-                     handleDataChange(e.target.value, setDataFim)
-                   }
-                   inputProps={{ maxLength: 10 }} // Limita o número de caracteres
-                 />
+                 fullWidth
+                 label="Data de finalização do projeto"
+                 placeholder="dd/mm/aaaa"
+                 value={dataFim}
+                 onChange={(e) => handleDataChange(e.target.value, setDataFim)}
+                 inputProps={{ maxLength: 10 }} // Limita o número de caracteres
+               />
              </Box>
            </Box>
 
-
-
-
-
-
-
-
-
-
-
            {/* Seção: DIRETRIZES DO PROJETO */}
-
-
-
-
-
-
-
-
-
-
 
            <Box>
              <Box display="flex" alignItems="center" mb={1}>
@@ -870,21 +937,9 @@ const calcularOrcamento = () => {
                          {valorTotalFormatado}
                        </Typography>
 
-
-
-
-
-
-
-
-
-
-
-
-
                        {/* Gráfico de progresso geral */}
 
-                          {/* 
+                       {/* 
                             Lógica das Cores:
 
                             De 0% a 33%: Vermelho.
@@ -892,13 +947,17 @@ const calcularOrcamento = () => {
                             De 67% a 100%: Verde.
                           */}
 
-
-
-
-                       <Box display="flex" alignItems="center" gap={1} marginRight="20px">
-                       <Typography
-                        sx={{ marginRight: "20px", color: "#d6d6d6" }}
-                        >Tarefas concluídas</Typography>
+                       <Box
+                         display="flex"
+                         alignItems="center"
+                         gap={1}
+                         marginRight="20px"
+                       >
+                         <Typography
+                           sx={{ marginRight: "20px", color: "#d6d6d6" }}
+                         >
+                           Tarefas concluídas
+                         </Typography>
                          <CircularProgress
                            variant="determinate"
                            value={calcularProgressoGeral(diretrizIndex)}
@@ -921,54 +980,13 @@ const calcularOrcamento = () => {
                              alignContent: "center",
                              marginRight: "10px",
                            }}
-                         > 
+                         >
                            {calcularProgressoGeral(diretrizIndex)}%
                          </Typography>
                        </Box>
                      </AccordionSummary>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                      {/* Detalhes do Accordion */}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
                      <AccordionDetails>
                        {/* Renderizar tarefas e checkboxes */}
@@ -1036,46 +1054,7 @@ const calcularOrcamento = () => {
                                />
                              </Box>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                              {/* Seção: Plano de Ação (5W2H) */}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
                              <Box
                                display="flex"
@@ -1388,21 +1367,6 @@ const calcularOrcamento = () => {
                    </Accordion>
                  );
                })}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
                {/* Botão Salvar Alterações */}
                <Box
