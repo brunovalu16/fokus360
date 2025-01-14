@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Box, Typography, Divider, Checkbox, CircularProgress, ListItemText, Accordion, AccordionSummary, AccordionDetails, TextField, Select, IconButton, MenuItem, Button } from "@mui/material";
 import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
+import { useSearchParams } from "react-router-dom"; // Importar para capturar o ID da URL
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import "dayjs/locale/pt-br"; // define o idioma português para dayjs
 import  Header  from "../components/Header";
@@ -68,9 +69,13 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
  function DataProjeto() {
    const [users, setUsers] = useState([]);
 
+   const [searchParams] = useSearchParams(); // Hook para acessar os parâmetros da URL
+   const projectId = searchParams.get("id"); // Capturar o ID do projeto da URL
+
    // Estados locais para cada campo, para manipular
    const [nomeProjeto, setNomeProjeto] = useState("");
    const [dataInicio, setDataInicio] = useState("");
+   const [dataFim, setDataFim] = useState("");
    const [prazoPrevisto, setPrazoPrevisto] = useState("");
    const [descricao, setDescricao] = useState("");
    const [checkState, setCheckState] = useState({});
@@ -84,7 +89,6 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
    const [orcamento, setOrcamento] = useState({ orcamento: "" });
    const [quem, setQuem] = useState({ quem: [] });
    const [valor, setValor] = useState({ valor: "" });
-   const [projectId, setProjectId] = useState("");
    const [tituloTarefa, setTituloTarefa] = useState("");
    const [quando, setQuando] = useState("");
    const [onde, setOnde] = useState("");
@@ -96,22 +100,24 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
 
    // Buscar o projectId automaticamente
    useEffect(() => {
-     const fetchProjectId = async () => {
-       try {
-         const querySnapshot = await getDocs(collection(db, "projetos"));
-         if (!querySnapshot.empty) {
-           const firstDoc = querySnapshot.docs[0]; // Obtém o primeiro documento
-           setProjectId(firstDoc.id); // Define o projectId
-         } else {
-           console.error("Nenhum projeto encontrado.");
-         }
-       } catch (error) {
-         console.error("Erro ao buscar projectId:", error);
-       }
-     };
-
-     fetchProjectId();
-   }, []);
+    const fetchProjectId = async () => {
+      try {
+        const urlParams = new URLSearchParams(window.location.search); // Obtém parâmetros da URL
+        const idFromUrl = urlParams.get("id");
+  
+        if (idFromUrl) {
+          setProjectId(idFromUrl); // Define o ID obtido da URL
+        } else {
+          console.error("ID do projeto não encontrado na URL.");
+        }
+      } catch (error) {
+        console.error("Erro ao buscar projectId:", error);
+      }
+    };
+  
+    fetchProjectId();
+  }, []);
+  
 
    // Buscar os dados do projeto usando o projectId
    useEffect(() => {
@@ -128,6 +134,7 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
            // Atualiza os estados básicos
            setNomeProjeto(data.nome || "");
            setDataInicio(data.dataInicio || "");
+           setDataFim(data.dataFim || "");
            setPrazoPrevisto(data.prazoPrevisto || "");
            setUnidade({ unidade: data.unidade || "" });
            setCategoria({ categoria: data.categoria || "" });
@@ -343,58 +350,63 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
 
    // Função para salvar as alterações no Firestore
    const handleSave = async () => {
-     try {
-       if (!projectId) {
-         alert("Projeto não encontrado!");
-         return;
-       }
-
-       const updatedDiretrizes = diretrizes.map((diretriz, diretrizIndex) => ({
-         ...diretriz,
-         tarefas: diretriz.tarefas?.map((tarefa, tarefaIndex) => {
-           const taskKey = `diretriz-${diretrizIndex}-tarefa-${tarefaIndex}`;
-           const tarefaCheckState = checkState[taskKey] || {}; // Obtém o estado dos checkboxes da tarefa
-           const totalFields = 8; // Número fixo de checkbox por tarefa
-           const relevantKeys = Object.keys(tarefaCheckState || {}).slice(
-             0,
-             totalFields
-           );
-           const completedFields = relevantKeys.filter(
-             (key) => tarefaCheckState[key]
-           ).length;
-           const progresso = (completedFields / totalFields) * 100; // Calcula o progresso
-
-           return {
-             ...tarefa,
-             planoDeAcao: {
-               ...tarefa.planoDeAcao,
-               quem: tarefa.planoDeAcao.quem || [],
-             },
-             checkboxState: tarefaCheckState, // Adiciona o estado dos checkboxes
-             progresso, // Adiciona o progresso
-           };
-         }),
-       }));
-
-       const docRef = doc(db, "projetos", projectId);
-       await updateDoc(docRef, {
-         nome: nomeProjeto,
-         dataInicio,
-         prazoPrevisto,
-         unidade: unidade.unidade,
-         categoria: categoria.categoria,
-         solicitante: solicitante.solicitante,
-         descricao,
-         orcamento: orcamento.orcamento,
-         diretrizes: updatedDiretrizes,
-       });
-
-       alert("Dados salvos com sucesso!");
-     } catch (error) {
-       console.error("Erro ao salvar os dados:", error);
-       alert("Erro ao salvar os dados. Tente novamente.");
-     }
-   };
+    try {
+      if (!projectId) {
+        alert("Projeto não encontrado!");
+        return;
+      }
+  
+      const updatedDiretrizes = diretrizes.map((diretriz, diretrizIndex) => ({
+        ...diretriz,
+        tarefas: diretriz.tarefas?.map((tarefa, tarefaIndex) => {
+          const taskKey = `diretriz-${diretrizIndex}-tarefa-${tarefaIndex}`;
+          const tarefaCheckState = checkState[taskKey] || {}; // Obtém o estado dos checkboxes da tarefa
+          const totalFields = 8; // Número fixo de checkbox por tarefa
+          const relevantKeys = Object.keys(tarefaCheckState || {}).slice(0, totalFields);
+          const completedFields = relevantKeys.filter((key) => tarefaCheckState[key]).length;
+          const progresso = (completedFields / totalFields) * 100; // Calcula o progresso
+  
+          return {
+            ...tarefa,
+            tituloTarefa: tarefa.tituloTarefa || "", // Adiciona o título da tarefa
+            planoDeAcao: {
+              ...tarefa.planoDeAcao,
+              oQue: tarefa.planoDeAcao.oQue || "",
+              porQue: tarefa.planoDeAcao.porQue || "",
+              quem: tarefa.planoDeAcao.quem || [],
+              quando: tarefa.planoDeAcao.quando || "",
+              onde: tarefa.planoDeAcao.onde || "",
+              como: tarefa.planoDeAcao.como || "",
+              valor: tarefa.planoDeAcao.valor || "",
+            },
+            checkboxState: tarefaCheckState, // Adiciona o estado dos checkboxes
+            progresso, // Adiciona o progresso
+          };
+        }),
+      }));
+  
+      const docRef = doc(db, "projetos", projectId);
+      await updateDoc(docRef, {
+        nome: nomeProjeto || "",
+        dataInicio: dataInicio || "",
+        dataFim: dataFim || "",
+        prazoPrevisto: prazoPrevisto || "",
+        unidade: unidade.unidade || "",
+        categoria: categoria.categoria || "",
+        solicitante: solicitante.solicitante || "",
+        descricao: descricao || "",
+        orcamento: orcamento.orcamento || "",
+        colaboradores: colaboradores.colaboradores || [],
+        diretrizes: updatedDiretrizes,
+      });
+  
+      alert("Dados salvos com sucesso!");
+    } catch (error) {
+      console.error("Erro ao salvar os dados:", error);
+      alert("Erro ao salvar os dados. Tente novamente.");
+    }
+  };
+  
 
    //inicializa o checkState para incluir uma estrutura para cada diretriz:
    useEffect(() => {
@@ -499,6 +511,9 @@ const calcularOrcamento = () => {
       //FIM  FUNÇÕES PARA CALCULAR DADOS DE DATAPROJETO E PASSAR PARA DADOSPROJETOS
 
    //=======================================================================
+
+
+
 
 
 
@@ -731,6 +746,17 @@ const calcularOrcamento = () => {
                  onChange={handleCurrencyChange}
                  fullWidth
                />
+               {/* Data Início */}
+               <TextField
+                   fullWidth
+                   label="Data de finalização do projeto"
+                   placeholder="dd/mm/aaaa"
+                   value={dataFim}
+                   onChange={(e) =>
+                     handleDataChange(e.target.value, setDataFim)
+                   }
+                   inputProps={{ maxLength: 10 }} // Limita o número de caracteres
+                 />
              </Box>
            </Box>
 

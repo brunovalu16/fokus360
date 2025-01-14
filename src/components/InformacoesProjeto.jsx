@@ -8,8 +8,9 @@ import {
   MenuItem,
   Accordion,
   AccordionDetails,
+  Button,
 } from "@mui/material";
-import { getFirestore, getDocs, collection } from "firebase/firestore";
+import { getFirestore, getDocs, collection, addDoc } from "firebase/firestore";
 
 /**
  *  InformacoesProjeto
@@ -90,23 +91,68 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
       style: "currency",
       currency: "BRL",
     }).format(Number(onlyNumbers) / 100); // Formata como moeda
-  
+
     // Atualiza o estado local com o valor formatado
     setFormValues((prev) => ({
       ...prev,
       orcamento: formattedValue, // Salva o valor formatado no estado
     }));
-  
+
     // Salva o valor formatado diretamente no banco
     onUpdate((prev) => ({
       ...prev,
       orcamento: formattedValue, // Salva o valor formatado no banco
     }));
   };
-  
 
+  // Função para salvar os dados no Firestore
+  const handleSave = async () => {
+    try {
+      // Validações básicas
+      if (!formValues.nome) {
+        alert("O nome do projeto é obrigatório!");
+        return;
+      }
 
+      // Converte datas para o formato ISO (yyyy-MM-dd)
+      const formatarDataParaISO = (data) => {
+        if (!data) return "";
+        const [ano, mes, dia] = data.split("-"); // Ajuste para tratar o input tipo "date"
+        return `${ano}-${mes}-${dia}`;
+      };
 
+      const dataInicioISO = formatarDataParaISO(formValues.dataInicio);
+      const prazoPrevistoISO = formatarDataParaISO(formValues.prazoPrevisto);
+
+      // Atualiza os valores formatados
+      const projetoFormatado = {
+        ...formValues,
+        dataInicio: dataInicioISO,
+        prazoPrevisto: prazoPrevistoISO,
+      };
+
+      // Salva no Firestore
+      const db = getFirestore();
+      await addDoc(collection(db, "projetos"), projetoFormatado);
+
+      alert("Projeto salvo com sucesso!");
+      setFormValues({
+        nome: "",
+        descricao: "",
+        dataInicio: "",
+        prazoPrevisto: "",
+        unidade: "",
+        solicitante: "",
+        categoria: "",
+        colaboradores: [],
+        responsavel: "",
+        orcamento: "",
+      });
+    } catch (error) {
+      console.error("Erro ao salvar o projeto:", error);
+      alert("Erro ao salvar o projeto. Tente novamente.");
+    }
+  };
 
   return (
     <Box>
@@ -263,6 +309,8 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
                 fullWidth
               />
             </Box>
+
+           
           </Box>
         </AccordionDetails>
       </Accordion>
