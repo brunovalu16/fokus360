@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Typography, Button, } from "@mui/material";
 import PermContactCalendarIcon from "@mui/icons-material/PermContactCalendar";
 import Lista from "../../components/Lista";
@@ -6,10 +6,15 @@ import { useTheme } from "@mui/material/styles";
 import { tokens } from "../../theme";
 import { Link } from 'react-router-dom';
 
+
+
+
 const Projetos = () => {
 
   const theme = useTheme(); // Inicializa o tema
   const colors = tokens(theme.palette.mode); // Obtém as cores do tema atual
+  
+  
 
 
   return (

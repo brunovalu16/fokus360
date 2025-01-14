@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { Box, Button, IconButton, Typography, Checkbox, FormControlLabel } from "@mui/material";
 import { DataGrid, GridToolbarContainer, GridToolbarExport, GridToolbarFilterButton, GridToolbarColumnsButton } from "@mui/x-data-grid";
 import { mockDataProjects } from "../data/mockData";
@@ -8,6 +8,8 @@ import PermContactCalendarIcon from "@mui/icons-material/PermContactCalendar";
 import DeleteForeverSharpIcon from "@mui/icons-material/DeleteForeverSharp";
 import { useTheme } from "@mui/material/styles";
 import { Link } from 'react-router-dom';
+import { getFirestore, getDocs, collection, doc, getDoc, updateDoc  } from "firebase/firestore";
+import { db } from "../data/firebase-config"; // Atualize o caminho conforme necessário
 
 
 // Tradução dos textos da Toolbar e rodapé
@@ -68,6 +70,29 @@ const Lista = () => {
   const colors = tokens(theme.palette.mode);
   const navigate = useNavigate();
   const [checkedRows, setCheckedRows] = useState({});
+  const [projetoListe, setProjetoList] = useState([]);
+
+  // Buscar o projectId automaticamente
+     useEffect(() => {
+       const fetchProjectId = async () => {
+         try {
+           const querySnapshot = await getDocs(collection(db, "projetos"));
+           if (!querySnapshot.empty) {
+             const list = querySnapshot.docs.map(doc => ({
+               id: doc.id,
+              ...doc.data(),
+             }))
+             setProjetoList(list);
+           } else {
+             console.error("Nenhum projeto encontrado.");
+           }
+         } catch (error) {
+           console.error("Erro ao buscar projectId:", error);
+         }
+       };
+  
+       fetchProjectId();
+     }, []);
 
   const handleDelete = (id) => console.log(`Excluir projeto com ID: ${id}`);
   const handleNavigateToProject = (id) => navigate(`/projeto?id=${id}`);
@@ -76,7 +101,7 @@ const Lista = () => {
 
   const columns = [
     {
-      field: "name",
+      field: "nome",
       headerName: "Nome do projeto",
       flex: 1.1,
       cellClassName: "name-column--cell",
@@ -87,14 +112,15 @@ const Lista = () => {
       headerName: "Início",
       flex: 0.8,
       renderCell: (params) => {
-        const [day, month, year] = params.row.startDate.split("/");
-        const [deadlineDay, deadlineMonth, deadlineYear] = params.row.deadline.split("/");
+        //const [day, month, year] = params.row.startDate.split("/");
+        //const [deadlineDay, deadlineMonth, deadlineYear] = params.row.deadline.split("/");
 
-        const startDate = new Date(Date.UTC(year, month - 1, day));
-        const deadlineDate = new Date(
-          Date.UTC(deadlineYear, deadlineMonth - 1, deadlineDay)
-        );
+        //const startDate = new Date(Date.UTC(year, month - 1, day));
+        //const deadlineDate = new Date(
+         // Date.UTC(deadlineYear, deadlineMonth - 1, deadlineDay)
+        //);
 
+        /** 
         let backgroundColor;
 
         if (startDate > deadlineDate) {
@@ -106,6 +132,7 @@ const Lista = () => {
         } else {
           backgroundColor = "#4CAF50";
         }
+          */
 
         return (
           <Box
@@ -124,11 +151,11 @@ const Lista = () => {
                 width: "10px",
                 height: "10px",
                 borderRadius: "50%",
-                backgroundColor: backgroundColor || "#583cff",
+                backgroundColor: "#583cff",
                 marginRight: "5px",
               }}
             />
-            {startDate.toLocaleDateString("pt-BR", { timeZone: "UTC" })}
+           {/** {startDate.toLocaleDateString("pt-BR", { timeZone: "UTC" })} */} 
           </Box>
         );
       },
@@ -138,13 +165,16 @@ const Lista = () => {
       headerName: "Prazo previsto",
       flex: 0.8,
       renderCell: (params) => {
-        const [day, month, year] = params.value.split("/");
-        const deadlineDate = new Date(Date.UTC(year, month - 1, day));
+       // const [day, month, year] = params.value.split("/");
+        //const deadlineDate = new Date(Date.UTC(year, month - 1, day));
 
         return (
+          
           <Box>
-            {deadlineDate.toLocaleDateString("pt-BR", { timeZone: "UTC" })}
+            {/** {deadlineDate.toLocaleDateString("pt-BR", { timeZone: "UTC" })} */}
+            {new Date().toLocaleDateString()}
           </Box>
+          
         );
       },
     },
@@ -154,16 +184,18 @@ const Lista = () => {
       flex: 0.9,
       renderCell: (params) => {
         const currentSpending = parseFloat(
-          params.row.currentSpending.replace(/[^0-9.-]+/g, "")
+         // params.row.currentSpending.replace(/[^0-9.-]+/g, "")
         );
-        const budget = parseFloat(params.row.budget.replace(/[^0-9.-]+/g, ""));
+       // const budget = parseFloat(params.row.budget.replace(/[^0-9.-]+/g, ""));
 
+       /** 
         let backgroundColor = "#4CAF50";
         if (currentSpending === budget) backgroundColor = "#583cff";
         else if (currentSpending >= budget) backgroundColor = "#f44336";
         else if (currentSpending >= budget * 0.8) {
           backgroundColor = "#FFC107";
         }
+          */
 
         return (
           <Box
@@ -182,7 +214,7 @@ const Lista = () => {
                 width: "10px",
                 height: "10px",
                 borderRadius: "50%",
-                backgroundColor: backgroundColor || "#583cff",
+                backgroundColor: "#583cff",
                 marginRight: "5px",
               }}
             />
@@ -200,13 +232,7 @@ const Lista = () => {
       flex: 0.7,
       renderCell: (params) => (
         <Box>
-          {parseFloat(params.row.budget.replace(/[^0-9.-]+/g, "")).toLocaleString(
-            "pt-BR",
-            {
-              style: "currency",
-              currency: "BRL",
-            }
-          )}
+          {new Date().toLocaleDateString()}
         </Box>
       ),
     },
@@ -235,7 +261,7 @@ const Lista = () => {
       renderCell: ({ row }) => (
         <Box display="flex" gap={1}>
           <Button
-              component={Link} // Define que o botão será um Link do React Router
+              component={Link} // passar propriedade o id de cada projeto d banco
               size="small"
               to="/dashboardprojeto" // Caminho do link
               sx={{
@@ -265,7 +291,7 @@ const Lista = () => {
     <>
 
       <DataGrid
-        rows={mockDataProjects}
+        rows={projetoListe}
         columns={columns}
         components={{ Toolbar: CustomToolbar }}
         localeText={localeText}
