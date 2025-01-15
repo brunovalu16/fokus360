@@ -151,11 +151,13 @@ const CadastroProjetos = () => {
           },
         }}
       >
-        <DialogContent sx={{ backgroundColor: "transparent", padding: 0 }}>
-          <Alert severity="success" sx={{ backgroundColor: "#f0fff4" }}>
-            <Typography variant="h6">Projeto adicionado com sucesso!</Typography>
-          </Alert>
-        </DialogContent>
+        <DialogContent>
+        <Alert severity="success">
+          <Typography variant="h6">Projeto adicionado com sucesso!</Typography>
+          <Button onClick={() => setShowAlert(false)}>OK</Button>
+        </Alert>
+      </DialogContent>
+
       </Dialog>
 
       {/* Accordion principal */}

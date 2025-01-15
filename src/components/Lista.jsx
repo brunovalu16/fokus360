@@ -82,85 +82,54 @@ const Lista = () => {
   const [projetos, setProjetos] = useState([]);
 
   const handleDeleteProjeto = async () => {
+    console.log("Tentando excluir o projeto com ID:", confirmAlert.projetoId);
+  
     if (!confirmAlert.projetoId) {
       console.warn("Nenhum projeto selecionado para exclusão.");
       return;
     }
   
     try {
-      // Referência do documento no Firestore
       const projetoRef = doc(db, "projetos", confirmAlert.projetoId);
-  
-      // Exclui o documento no Firestore
       await deleteDoc(projetoRef);
   
-      // Atualiza a lista de projetos no estado
-      setProjetos((prev) => prev.filter((projeto) => projeto.id !== confirmAlert.projetoId));
-  
-      // Feedback de sucesso no console
       console.log(`Projeto ${confirmAlert.projetoId} deletado com sucesso!`);
   
-      // Fecha o alerta de confirmação
+      fetchProjetos();
       setConfirmAlert({ show: false, projetoId: null });
     } catch (error) {
       console.error("Erro ao deletar o projeto:", error.message);
-  
-      // Mostra um alerta caso ocorra um erro
-      setConfirmAlert({
-        show: true,
-        projetoId: null,
-        message: "Erro ao deletar o projeto. Por favor, tente novamente.",
-        severity: "error",
-      });
     }
   };
   
   
   
   
+  
+  
+  
+  
 
 
+  const fetchProjetos = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "projetos"));
+      const projetos = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+  
+      setProjetos(projetos); // Atualiza o estado com os projetos do banco
+    } catch (error) {
+      console.error("Erro ao buscar projetos:", error.message);
+    }
+  };
+  
+  // Chamando fetchProjetos ao montar o componente
   useEffect(() => {
-    const fetchProjetos = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "projetos"));
-        const projetos = [];
-  
-        for (const projetoDoc of querySnapshot.docs) {
-          const projeto = { id: projetoDoc.id, ...projetoDoc.data() };
-  
-          // Inicializar o total de valores para o projeto
-          let totalValor = 0;
-  
-          // Percorrer as diretrizes diretamente do objeto do Firestore
-          projeto.diretrizes?.forEach((diretriz) => {
-            diretriz.tarefas?.forEach((tarefa) => {
-              const valor = tarefa.planoDeAcao?.valor || "R$ 0,00";
-  
-              // Limpar e converter o valor para número
-              const somenteNumeros = parseFloat(
-                valor.replace("R$", "").replace(".", "").replace(",", ".")
-              );
-  
-              // Adicionar o valor à soma total
-              totalValor += isNaN(somenteNumeros) ? 0 : somenteNumeros;
-            });
-          });
-  
-          // Adicionar o totalValor ao objeto do projeto
-          projeto.valor = totalValor;
-          projetos.push(projeto);
-        }
-  
-        setProjetoList(projetos);
-      } catch (error) {
-        console.error("Erro ao buscar dados do Firestore:", error);
-      }
-    };
-  
     fetchProjetos();
   }, []);
-
+  
 
   
 
@@ -565,30 +534,31 @@ const Lista = () => {
 
 
     
-    <DataGrid
-        rows={projetoListe}
-        columns={columns}
-        components={{ Toolbar: CustomToolbar }}
-        localeText={localeText}
-        initialState={{ pagination: { paginationModel: { pageSize: 5 } } }}
-        sx={{
-          marginLeft: "-13px",
-          marginTop: "5px",
-          width: "calc(100% - -10px)",
-          minHeight: "50vh",
-          padding: "15px",
-          paddingLeft: "30px",
-          borderRadius: "20px",
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-          bgcolor: "#f2f0f0",
-          overflowX: "hidden",
-          "& .MuiDataGrid-columnHeaders": {
-            backgroundColor: "#312783",
-            color: "#bcbcbc",
-            fontSize: "13px",
-          },
-        }}
-      />
+<DataGrid
+  rows={projetos}
+  columns={columns}
+  components={{ Toolbar: CustomToolbar }}
+  localeText={localeText}
+  initialState={{ pagination: { paginationModel: { pageSize: 5 } } }}
+  sx={{
+    marginLeft: "-13px",
+    marginTop: "5px",
+    width: "calc(100% - -10px)",
+    minHeight: "50vh",
+    padding: "15px",
+    paddingLeft: "30px",
+    borderRadius: "20px",
+    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+    bgcolor: "#f2f0f0",
+    overflowX: "hidden",
+    "& .MuiDataGrid-columnHeaders": {
+      backgroundColor: "#312783",
+      color: "#bcbcbc",
+      fontSize: "13px",
+    },
+  }}
+/>
+
     </>
   );
 };

@@ -16,7 +16,7 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
 
  // FUNÇÃO DO GRÁFICO
  const ProgressStatus = ({ tarefaCheckState }) => {
-   const totalFields = 8; // Número fixo de checkbox por tarefa
+   const totalFields = 1; // Número fixo de checkbox por tarefa
    const relevantKeys = Object.keys(tarefaCheckState || {}).slice(
      0,
      totalFields
@@ -27,7 +27,7 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
 
    const status =
      completedFields === 0
-       ? { color: "#fff", text: "Em aberto" }
+       ? { color: "#fff", text: "Em andamento" }
        : completedFields === totalFields
        ? { color: "#98f713", text: "Finalizado" }
        : { color: "#00f6fc", text: "Em andamento" };
@@ -379,8 +379,17 @@ const formatarDataBancoParaBrasileiro = (dataISO) => {
          },
        };
 
+
+
+
+    //=======================================================================
+      
+      //  FUNÇÃO PARA  Atualiza o progresso EM DIRETRIZ
+
+   //=======================================================================
+
        // Atualiza o progresso
-       const totalFields = 8; // Número fixo de checkbox por tarefa
+       const totalFields = 1; // Número fixo de checkbox por tarefa
        const relevantKeys = Object.keys(updatedState[taskKey] || {}).slice(
          0,
          totalFields
@@ -420,6 +429,19 @@ const formatarDataBancoParaBrasileiro = (dataISO) => {
        </Typography>
      );
    }
+
+
+   //=======================================================================
+      
+      //FIM   FUNÇÃO PARA  Atualiza o progresso EM DIRETRIZ
+
+   //=======================================================================
+
+
+
+
+
+
 
    // Função para salvar as alterações no Firestore
    const handleSave = async () => {
@@ -652,7 +674,35 @@ const calcularOrcamento = () => {
            }
          />
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
          {/* Componente DadosProjeto (já existente) */}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
          <DadosProjeto
            orcamento={calcularOrcamento()}
@@ -847,7 +897,56 @@ const calcularOrcamento = () => {
              </Box>
            </Box>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
            {/* Seção: DIRETRIZES DO PROJETO */}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
            <Box>
              <Box display="flex" alignItems="center" mb={1}>
@@ -1054,7 +1153,33 @@ const calcularOrcamento = () => {
                                />
                              </Box>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
                              {/* Seção: Plano de Ação (5W2H) */}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                              <Box
                                display="flex"
@@ -1103,7 +1228,7 @@ const calcularOrcamento = () => {
                                      )
                                    }
                                  />
-                                 <Checkbox
+                                 {/**<Checkbox
                                    checked={tarefaCheckState[`oque`] || false}
                                    onChange={() =>
                                      handleCheckChange(
@@ -1112,7 +1237,8 @@ const calcularOrcamento = () => {
                                        `oque`
                                      )
                                    }
-                                 />
+                                 /> */}
+                                 
                                </Box>
 
                                {/* Campo Por que? */}
@@ -1136,7 +1262,7 @@ const calcularOrcamento = () => {
                                      )
                                    }
                                  />
-                                 <Checkbox
+                                 {/**<Checkbox
                                    checked={tarefaCheckState[`porque`] || false}
                                    onChange={() =>
                                      handleCheckChange(
@@ -1145,7 +1271,8 @@ const calcularOrcamento = () => {
                                        `porque`
                                      )
                                    }
-                                 />
+                                 /> */}
+                                 
                                </Box>
                                <Box
                                  sx={{
@@ -1204,7 +1331,7 @@ const calcularOrcamento = () => {
                                      </MenuItem>
                                    ))}
                                  </Select>
-                                 <Checkbox
+                                 {/**<Checkbox
                                    checked={tarefaCheckState[`quem`] || false}
                                    onChange={() =>
                                      handleCheckChange(
@@ -1213,7 +1340,8 @@ const calcularOrcamento = () => {
                                        `quem`
                                      )
                                    }
-                                 />
+                                 />*/}
+                                 
                                </Box>
 
                                {/* Campo Quando? */}
@@ -1237,7 +1365,7 @@ const calcularOrcamento = () => {
                                      )
                                    }
                                  />
-                                 <Checkbox
+                                 {/**<Checkbox
                                    checked={tarefaCheckState[`quando`] || false}
                                    onChange={() =>
                                      handleCheckChange(
@@ -1246,7 +1374,8 @@ const calcularOrcamento = () => {
                                        `quando`
                                      )
                                    }
-                                 />
+                                 /> */}
+                                 
                                </Box>
 
                                {/* Campo Onde? */}
@@ -1270,7 +1399,7 @@ const calcularOrcamento = () => {
                                      )
                                    }
                                  />
-                                 <Checkbox
+                                 {/**<Checkbox
                                    checked={tarefaCheckState[`onde`] || false}
                                    onChange={() =>
                                      handleCheckChange(
@@ -1279,7 +1408,8 @@ const calcularOrcamento = () => {
                                        `onde`
                                      )
                                    }
-                                 />
+                                 /> */}
+                                 
                                </Box>
 
                                {/* Campo Como? */}
@@ -1303,7 +1433,7 @@ const calcularOrcamento = () => {
                                      )
                                    }
                                  />
-                                 <Checkbox
+                                 {/**<Checkbox
                                    checked={tarefaCheckState[`como`] || false}
                                    onChange={() =>
                                      handleCheckChange(
@@ -1312,7 +1442,8 @@ const calcularOrcamento = () => {
                                        `como`
                                      )
                                    }
-                                 />
+                                 /> */}
+                                 
                                </Box>
 
                                {/* Campo Valor */}
@@ -1348,7 +1479,7 @@ const calcularOrcamento = () => {
                                      );
                                    }}
                                  />
-                                 <Checkbox
+                                 {/** <Checkbox
                                    checked={tarefaCheckState[`valor`] || false}
                                    onChange={() =>
                                      handleCheckChange(
@@ -1357,7 +1488,8 @@ const calcularOrcamento = () => {
                                        `valor`
                                      )
                                    }
-                                 />
+                                 />*/}
+                                 
                                </Box>
                              </Box>
                            </Box>
@@ -1368,7 +1500,37 @@ const calcularOrcamento = () => {
                  );
                })}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                {/* Botão Salvar Alterações */}
+
+
+
+
+
+
+
+
+
+
+
+
+
                <Box
                  sx={{
                    display: "flex",

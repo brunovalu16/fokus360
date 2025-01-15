@@ -34,6 +34,9 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
     orcamento: "",
   });
 
+
+  
+
   // Carregar usuários do Firebase
   useEffect(() => {
     const fetchUsers = async () => {
@@ -265,7 +268,7 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
               <Select
                 multiple
                 name="colaboradores"
-                value={formValues.colaboradores || []}
+                value={formValues.colaboradores}
                 onChange={handleSelectChange}
                 displayEmpty
                 sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}
