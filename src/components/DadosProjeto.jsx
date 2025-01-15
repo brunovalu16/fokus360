@@ -70,19 +70,28 @@ const DadosProjeto = ({
     {
       title: orcamento,
       subtitle: "Orçamento",
-      progress: 100,
+      progress: 0,
       icon: <PaidIcon sx={{ color: "#fff", fontSize: "50px" }} />,
       progressColor: "#4caf50",
     },
     {
       title: valorGasto,
       subtitle: "Valor gasto",
-      progress: progressoValorGasto,
       icon: <PaidIcon sx={{ color: "#fff", fontSize: "50px" }} />,
-      progressColor: definirCorValorGasto(),
-    },
+      progressColor: definirCorValorGasto(), // Define a cor da bola com base no progresso
+      customIndicator: (
+        <Box
+          sx={{
+            width: "30px",
+            height: "30px",
+            borderRadius: "50%",
+            backgroundColor: definirCorValorGasto(), // Cor da bola
+          }}
+        />
+      ),
+    },    
     {
-      title: `Total de diretrizes: ${totalDiretrizes || 0}  Concluídas: ${
+      title: `Total de diretrizes: ${totalDiretrizes || 0}  \nDiretrizes Concluídas: ${
         diretrizes.filter(
           (d) => calcularProgressoGeral(diretrizes.indexOf(d)) === 100
         ).length || 0
@@ -107,7 +116,7 @@ const DadosProjeto = ({
       */
     },    
     {
-      title: `Total de tarefas: ${totalTarefas || 0}  Concluídas: ${totalTarefasConcluidas || 0}`, // Inclui o total e as concluídas no título
+      title: `Total de tarefas: ${totalTarefas || 0} \nTarefas Concluídas: ${totalTarefasConcluidas || 0}`, // Inclui o total e as concluídas no título
       //subtitle: "Tarefas concluídas",
       icon: <AssignmentTurnedInIcon sx={{ color: "#fff", fontSize: "50px" }} />,
       /** 
@@ -149,16 +158,16 @@ const DadosProjeto = ({
       >
         {items.map((item, index) => (
           <Box
-            key={index}
-            boxShadow={3}
-            borderRadius="20px"
-            bgcolor="#312783"
-            display="flex"
-            flexDirection="row"
-            alignItems="center"
-            justifyContent="space-between"
-            padding="10px"
-            minWidth="200px"
+          key={index}
+          boxShadow={3}
+          borderRadius="20px"
+          bgcolor={item.title === valorGasto ? definirCorValorGasto() : "#312783"} // Altera o fundo com base no item
+          display="flex"
+          flexDirection="row"
+          alignItems="center"
+          justifyContent="space-between"
+          padding="10px"
+          minWidth="200px"
             sx={{
               textAlign: "center",
               overflow: "hidden",
@@ -201,33 +210,13 @@ const DadosProjeto = ({
             >
               <Typography
                 variant="h6"
-                sx={{ fontWeight: "bold", color: "#fff", fontSize: "15px" }}
+                sx={{ color: "#fff", fontSize: "13px", whiteSpace: "pre-line", textJustify: "inter-word", textAlign: "left", }}
               >
                 {item.title}
               </Typography>
-              <Typography variant="subtitle2" sx={{ color: "#b0b0b0" }}>
+              <Typography variant="subtitle2" sx={{ color: "#fff", fontSize: "13px", textJustify: "inter-word", textAlign: "left",  }}>
                 {item.subtitle}
               </Typography>
-            </Box>
-
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                minWidth: "50px",
-                height: "50px",
-              }}
-            >
-              <CircularProgress
-                variant="determinate"
-                value={item.progress}
-                size={50}
-                thickness={5}
-                sx={{
-                  color: item.progressColor,
-                }}
-              />
             </Box>
           </Box>
         ))}
