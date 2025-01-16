@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDoc, getDocs, doc } from "firebase/firestore";
 import { Box, useMediaQuery, useTheme, Typography, CircularProgress } from "@mui/material";
 import { tokens } from "../theme";
 import PaidIcon from "@mui/icons-material/Paid";
@@ -25,58 +25,61 @@ function DadosProjetogeral() {
       //FUNÇÕES PARA "PROJETOS POR quem..."
 
    //=======================================================================
+   
    const [dadosQuem, setDadosQuem] = useState([]);
 
-   useEffect(() => {
-    const fetchQuemDados = async () => {
-      try {
-        const projetosSnapshot = await getDocs(collection(db, "projetos")); // Acessa a coleção "projetos"
-        const quemMap = new Map();
-  
-        projetosSnapshot.forEach((projetoDoc) => {
-          const data = projetoDoc.data();
-          const diretrizes = data.diretrizes || [];
-  
-          diretrizes.forEach((diretriz) => {
-            const tarefas = diretriz.tarefas || [];
-            tarefas.forEach((tarefa) => {
-              const planoDeAcao = tarefa.planoDeAcao || {};
-              const responsaveis = planoDeAcao.quem || []; // Lista de responsáveis
-  
-              responsaveis.forEach((responsavel) => {
-                // Incrementa a contagem para cada responsável (quem)
-                if (quemMap.has(responsavel)) {
-                  quemMap.set(responsavel, quemMap.get(responsavel) + 1);
-                } else {
-                  quemMap.set(responsavel, 1);
-                }
-              });
+useEffect(() => {
+  const fetchQuemDados = async () => {
+    try {
+      const projetosSnapshot = await getDocs(collection(db, "projetos")); // Acessa a coleção "projetos"
+      const quemMap = new Map();
+
+      // Itera pelos projetos para mapear os responsáveis
+      projetosSnapshot.forEach((projetoDoc) => {
+        const data = projetoDoc.data();
+        const diretrizes = data.diretrizes || [];
+
+        diretrizes.forEach((diretriz) => {
+          const tarefas = diretriz.tarefas || [];
+          tarefas.forEach((tarefa) => {
+            const planoDeAcao = tarefa.planoDeAcao || {};
+            const responsaveis = planoDeAcao.quem || []; // Lista de responsáveis
+
+            responsaveis.forEach((responsavel) => {
+              if (quemMap.has(responsavel)) {
+                quemMap.set(responsavel, quemMap.get(responsavel) + 1);
+              } else {
+                quemMap.set(responsavel, 1);
+              }
             });
           });
         });
-  
-        // Converte o Map para um array de objetos
-        const dados = Array.from(quemMap.entries()).map(([nome, valor]) => ({
-          nome,
-          valor,
-        }));
-  
-        // Normaliza os valores para o gráfico (baseado no maior número de tarefas)
-        const maxValor = Math.max(...dados.map((d) => d.valor));
-        const dadosNormalizados = dados.map((d) => ({
-          ...d,
-          percentual: (d.valor / maxValor) * 100, // Percentual da barra
-        }));
-  
-        setDadosQuem(dadosNormalizados); // Atualiza o estado com os dados normalizados
-      } catch (error) {
-        console.error("Erro ao buscar dados de 'quem':", error);
-      }
-    };
-  
-    fetchQuemDados();
-  }, []);
-  
+      });
+
+      // Busca os nomes dos responsáveis no Firestore
+      const quemComNomes = await Promise.all(
+        Array.from(quemMap.entries()).map(async ([responsavelId, valor]) => {
+          const userSnapshot = await getDoc(doc(db, "user", responsavelId));
+          const username = userSnapshot.exists() ? userSnapshot.data().username : "Desconhecido";
+          return { nome: username, valor };
+        })
+      );
+
+      // Normaliza os dados para exibir no gráfico
+      const maxValor = Math.max(...quemComNomes.map((d) => d.valor));
+      const dadosNormalizados = quemComNomes.map((d) => ({
+        ...d,
+        percentual: (d.valor / maxValor) * 100, // Percentual da barra
+      }));
+
+      setDadosQuem(dadosNormalizados); // Atualiza o estado com os dados normalizados
+    } catch (error) {
+      console.error("Erro ao buscar dados de 'quem':", error);
+    }
+  };
+
+  fetchQuemDados();
+}, []);
 
    
 //=======================================================================
@@ -173,50 +176,52 @@ function DadosProjetogeral() {
    //=======================================================================
    const [dadosColaboradores, setDadosColaboradores] = useState([]);
 
-   useEffect(() => {
-     const fetchColaboradores = async () => {
-       try {
-         const projetosSnapshot = await getDocs(collection(db, "projetos")); // Acessa a coleção de projetos
-         const colaboradoresMap = new Map();
-   
-         projetosSnapshot.forEach((projetoDoc) => {
-           const projeto = projetoDoc.data();
-   
-           (projeto.colaboradores || []).forEach((colaboradorId) => {
-             // Incrementa a contagem de projetos para cada colaborador
-             if (colaboradoresMap.has(colaboradorId)) {
-               colaboradoresMap.set(
-                 colaboradorId,
-                 colaboradoresMap.get(colaboradorId) + 1
-               );
-             } else {
-               colaboradoresMap.set(colaboradorId, 1);
-             }
-           });
-         });
-   
-         // Normaliza os dados para exibir no gráfico
-         const dados = Array.from(colaboradoresMap.entries()).map(
-           ([colaboradorId, valor]) => ({
-             nome: colaboradorId,
-             valor,
-           })
-         );
-   
-         const maxValor = Math.max(...dados.map((d) => d.valor));
-         const dadosNormalizados = dados.map((d) => ({
-           ...d,
-           percentual: (d.valor / maxValor) * 100, // Percentual baseado no maior valor
-         }));
-   
-         setDadosColaboradores(dadosNormalizados);
-       } catch (error) {
-         console.error("Erro ao buscar dados dos colaboradores:", error);
-       }
-     };
-   
-     fetchColaboradores();
-   }, []);
+useEffect(() => {
+  const fetchColaboradores = async () => {
+    try {
+      const projetosSnapshot = await getDocs(collection(db, "projetos")); // Acessa a coleção de projetos
+      const colaboradoresMap = new Map();
+
+      // Itera pelos projetos e mapeia os IDs dos colaboradores
+      projetosSnapshot.forEach((projetoDoc) => {
+        const projeto = projetoDoc.data();
+        (projeto.colaboradores || []).forEach((colaboradorId) => {
+          if (colaboradoresMap.has(colaboradorId)) {
+            colaboradoresMap.set(
+              colaboradorId,
+              colaboradoresMap.get(colaboradorId) + 1
+            );
+          } else {
+            colaboradoresMap.set(colaboradorId, 1);
+          }
+        });
+      });
+
+      // Busca os nomes dos colaboradores no Firestore
+      const colaboradoresComNomes = await Promise.all(
+        Array.from(colaboradoresMap.entries()).map(async ([colaboradorId, valor]) => {
+          const userSnapshot = await getDoc(doc(db, "user", colaboradorId));
+          const username = userSnapshot.exists() ? userSnapshot.data().username : "Desconhecido";
+          return { nome: username, valor };
+        })
+      );
+
+      // Normaliza os dados para exibir no gráfico
+      const maxValor = Math.max(...colaboradoresComNomes.map((d) => d.valor));
+      const dadosNormalizados = colaboradoresComNomes.map((d) => ({
+        ...d,
+        percentual: (d.valor / maxValor) * 100, // Percentual baseado no maior valor
+      }));
+
+      setDadosColaboradores(dadosNormalizados); // Atualiza o estado com os dados normalizados
+    } catch (error) {
+      console.error("Erro ao buscar dados dos colaboradores:", error);
+    }
+  };
+
+  fetchColaboradores();
+}, []);
+
    
    
 //=======================================================================
@@ -1021,7 +1026,7 @@ function DadosProjetogeral() {
                   whiteSpace: "nowrap", // Evita quebra de linha
                 }}
               >
-                Projetos
+                Responsáveis
               </Typography>
               <Typography
                 variant="h5"

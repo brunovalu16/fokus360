@@ -456,7 +456,7 @@ const formatarDataBancoParaBrasileiro = (dataISO) => {
         tarefas: diretriz.tarefas?.map((tarefa, tarefaIndex) => {
           const taskKey = `diretriz-${diretrizIndex}-tarefa-${tarefaIndex}`;
           const tarefaCheckState = checkState[taskKey] || {}; // Obtém o estado dos checkboxes da tarefa
-          const totalFields = 8; // Número fixo de checkbox por tarefa
+          const totalFields = 1; // Número fixo de checkbox por tarefa
           const relevantKeys = Object.keys(tarefaCheckState || {}).slice(0, totalFields);
           const completedFields = relevantKeys.filter((key) => tarefaCheckState[key]).length;
           const progresso = (completedFields / totalFields) * 100; // Calcula o progresso
@@ -1066,7 +1066,7 @@ const calcularOrcamento = () => {
                                  ? "#f44336" // Vermelho
                                  : calcularProgressoGeral(diretrizIndex) <= 66
                                  ? "#ffeb3b" // Amarelo
-                                 : "#4caf50", // Verde
+                                 : "#65ff00", // Verde
                            }}
                            thickness={10}
                            size={30}
