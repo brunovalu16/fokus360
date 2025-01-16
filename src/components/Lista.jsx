@@ -64,7 +64,8 @@ const CustomToolbar = () => (
 </GridToolbarContainer>
 );
 
-const Lista = ({ filtroSolicitante, filtroColaborador }) => {
+const Lista = ({ filtroSolicitante, filtroColaborador, filtroQuem }) => {
+  const [dadosColaboradores, setDadosColaboradores] = useState([]);
   const [filtroAtivo, setFiltroAtivo] = useState(null); // Filtro para os projetos
   const [checkedRows, setCheckedRows] = useState({});
   const [projetoListe, setProjetoList] = useState([]);
@@ -74,6 +75,9 @@ const Lista = ({ filtroSolicitante, filtroColaborador }) => {
     message: "",
     severity: "success", // ou "error" dependendo do caso
   });
+
+  console.log("Valor de filtroQuem:", filtroQuem);
+
   
   
 
@@ -434,29 +438,28 @@ const Lista = ({ filtroSolicitante, filtroColaborador }) => {
   const [projetosExibidos, setProjetosExibidos] = useState([]); // Lista final para o DataGrid
 
   useEffect(() => {
-    let exibidos = projetos;
+    console.log("Aplicando filtros: filtroQuem:", filtroQuem, "filtroColaborador:", filtroColaborador, "filtroSolicitante:", filtroSolicitante);
   
-    if (filtroColaborador && filtroSolicitante) {
-      exibidos = projetos.filter(
-        (projeto) =>
-          Array.isArray(projeto.colaboradores) &&
-          projeto.colaboradores.includes(filtroColaborador) &&
-          projeto.solicitante === filtroSolicitante
-      );
-    } else if (filtroColaborador) {
-      exibidos = projetos.filter(
-        (projeto) =>
-          Array.isArray(projeto.colaboradores) &&
-          projeto.colaboradores.includes(filtroColaborador)
-      );
-    } else if (filtroSolicitante) {
-      exibidos = projetos.filter(
-        (projeto) => projeto.solicitante === filtroSolicitante
+    let exibidos = [...projetos];
+  
+    if (filtroQuem) {
+      exibidos = exibidos.filter((proj) =>
+        Array.isArray(proj.quem) && proj.quem.includes(filtroQuem)
       );
     }
+    if (filtroColaborador) {
+      exibidos = exibidos.filter((proj) =>
+        Array.isArray(proj.colaboradores) &&
+        proj.colaboradores.includes(filtroColaborador)
+      );
+    }
+    if (filtroSolicitante) {
+      exibidos = exibidos.filter((proj) => proj.solicitante === filtroSolicitante);
+    }
   
+    console.log("Projetos exibidos após filtro:", exibidos);
     setProjetosExibidos(exibidos);
-  }, [filtroColaborador, filtroSolicitante, projetos]);
+  }, [filtroQuem, filtroColaborador, filtroSolicitante, projetos]);
   
 
 
@@ -472,35 +475,64 @@ const [projetosFiltrados, setProjetosFiltrados] = useState([]); // Projetos filt
 
    
 // Função para buscar todos os projetos do Firebase
+// Função para buscar projetos e mapear responsáveis
 const fetchProjetos = async () => {
   try {
     const querySnapshot = await getDocs(collection(db, "projetos"));
-    const projetosCarregados = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    setProjetos(projetosCarregados); // Armazena todos os projetos
+    const projetosCarregados = querySnapshot.docs.map((docSnap) => {
+      const data = docSnap.data();
+
+      let allQuem = [];
+      if (Array.isArray(data.diretrizes)) {
+        data.diretrizes.forEach((diretriz) => {
+          if (Array.isArray(diretriz.tarefas)) {
+            diretriz.tarefas.forEach((tarefa) => {
+              const planoDeAcao = tarefa.planoDeAcao || {};
+              const responsaveis = planoDeAcao.quem || [];
+              allQuem = [...allQuem, ...responsaveis];
+            });
+          }
+        });
+      }
+
+      data.quem = allQuem; // Adicione os IDs de responsáveis
+      return { id: docSnap.id, ...data };
+    });
+
+    console.log("Projetos carregados:", projetosCarregados);
+    setProjetos(projetosCarregados);
   } catch (error) {
-    
+    console.error("Erro ao buscar projetos:", error);
   }
 };
 
-// Atualiza os projetos filtrados sempre que o filtro mudar
-useEffect(() => {
-  if (filtroSolicitante) {
-    const filtrados = projetos.filter(
-      (projeto) => projeto.solicitante === filtroSolicitante
-    );
-    setProjetosFiltrados(filtrados);
-  } else {
-    setProjetosFiltrados(projetos); // Exibe todos os projetos se não houver filtro
-  }
-}, [filtroSolicitante, projetos]);
 
-// Busca os projetos na montagem do componente
+// Filtro de projetos por responsável
 useEffect(() => {
-  fetchProjetos();
-}, []);
+  console.log("Aplicando filtro por quem:", filtroQuem);
+
+  if (filtroQuem) {
+    const filtrados = projetos.filter((proj) => {
+      console.log("Analisando projeto:", proj);
+
+      const diretrizes = proj.diretrizes || [];
+      return diretrizes.some((diretriz) => {
+        const tarefas = diretriz.tarefas || [];
+        return tarefas.some((tarefa) => {
+          const planoDeAcao = tarefa.planoDeAcao || {};
+          console.log("IDs encontrados no 'quem':", planoDeAcao.quem); // Loga os IDs no campo "quem"
+          return Array.isArray(planoDeAcao.quem) && planoDeAcao.quem.includes(filtroQuem); // Verifica se o ID está em "quem"
+        });
+      });
+    });
+
+    console.log("Projetos filtrados por filtroQuem:", filtrados);
+    setProjetosExibidos(filtrados);
+  } else {
+    console.log("Sem filtroQuem, exibindo todos os projetos.");
+    setProjetosExibidos(projetos);
+  }
+}, [filtroQuem, projetos]);
 
 
 

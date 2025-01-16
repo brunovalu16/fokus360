@@ -13,7 +13,8 @@ function DadosProjetogeral() {
   const isXlDevices = useMediaQuery("(min-width: 1260px)");
   const isMdDevices = useMediaQuery("(min-width: 724px)");
 
-
+  const [filtroQuem, setFiltroQuem] = useState(null);
+  const [dadosQuem, setDadosQuem] = useState([]);
 
 
 
@@ -26,7 +27,7 @@ function DadosProjetogeral() {
 
    //=======================================================================
    
-   const [dadosQuem, setDadosQuem] = useState([]);
+ 
 
 useEffect(() => {
   const fetchQuemDados = async () => {
@@ -461,7 +462,6 @@ useEffect(() => {
 
 
   
-  const [filtroQuem, setFiltroQuem] = useState(null);
   const [filtroSolicitante, setFiltroSolicitante] = useState(null);
   // Função chamada ao clicar no botão
   const handleBolinhaClickSolicitante = (nome) => {
@@ -476,15 +476,213 @@ useEffect(() => {
     console.log("Colaborador clicado (ID):", colabId);
     setFiltroColaborador(colabId);
   };
+
+  const handleBolinhaClickQuem = async (nomeResponsavel) => {
+    try {
+      console.log("Procurando responsável com o nome:", nomeResponsavel);
+  
+      // Buscar o ID do responsável com base no nome
+      const usersSnapshot = await getDocs(collection(db, "user"));
+  
+      const docEncontrado = usersSnapshot.docs.find(
+        (docSnap) => docSnap.data().username === nomeResponsavel
+      );
+  
+      if (!docEncontrado) {
+        console.warn("Responsável não encontrado no Firestore:", nomeResponsavel);
+        setFiltroQuem(null);
+        return;
+      }
+  
+      const idResponsavel = docEncontrado.id; // ID encontrado
+      console.log("ID do responsável encontrado:", idResponsavel);
+  
+      // Buscar todos os projetos e verificar se o responsável está em "quem"
+      const projetosSnapshot = await getDocs(collection(db, "projetos"));
+  
+      const projetosComResponsavel = [];
+  
+      projetosSnapshot.forEach((projetoDoc) => {
+        const data = projetoDoc.data();
+        const diretrizes = data.diretrizes || [];
+  
+        diretrizes.forEach((diretriz) => {
+          const tarefas = diretriz.tarefas || [];
+          tarefas.forEach((tarefa) => {
+            const planoDeAcao = tarefa.planoDeAcao || {};
+            const responsaveis = planoDeAcao.quem || []; // Lista de IDs de responsáveis
+  
+            if (responsaveis.includes(idResponsavel)) {
+              projetosComResponsavel.push({
+                projetoId: projetoDoc.id,
+                tarefa: tarefa.descricao || "Descrição não informada",
+              });
+            }
+          });
+        });
+      });
+  
+      if (projetosComResponsavel.length > 0) {
+        console.log("Projetos encontrados com o responsável:", projetosComResponsavel);
+        setFiltroQuem(idResponsavel); // Atualiza o estado com o ID
+      } else {
+        console.warn("Responsável não encontrado em nenhum projeto:", nomeResponsavel);
+        setFiltroQuem(null);
+      }
+  
+      return projetosComResponsavel; // Retorna os projetos encontrados
+    } catch (error) {
+      console.error("Erro ao buscar projetos e IDs associados ao responsável:", error);
+    }
+  };
   
 
-  //=======================================================================
-      
-      //FIM  FUNÇÃO PARA FILTRAR OS "SOLICITANTE" PARA FILTRAR LÁ NA LISTA
+  
+  
+  
+  
+  
 
-   //=====================================================================
+  useEffect(() => {
+    const fetchQuemDados = async () => {
+      try {
+        const projetosSnapshot = await getDocs(collection(db, "projetos"));
+        const quemMap = new Map();
+
+        projetosSnapshot.forEach((projetoDoc) => {
+          const data = projetoDoc.data();
+          const diretrizes = data.diretrizes || [];
+
+          diretrizes.forEach((diretriz) => {
+            const tarefas = diretriz.tarefas || [];
+            tarefas.forEach((tarefa) => {
+              const planoDeAcao = tarefa.planoDeAcao || {};
+              const responsaveis = planoDeAcao.quem || [];
+
+              responsaveis.forEach((responsavelId) => {
+                if (quemMap.has(responsavelId)) {
+                  quemMap.set(responsavelId, quemMap.get(responsavelId) + 1);
+                } else {
+                  quemMap.set(responsavelId, 1);
+                }
+              });
+            });
+          });
+        });
+
+        // Busca nomes desses IDs na coleção "user"
+        const quemComNomes = await Promise.all(
+          Array.from(quemMap.entries()).map(async ([responsavelId, valor]) => {
+            const userSnapshot = await getDoc(doc(db, "user", responsavelId));
+            const username = userSnapshot.exists()
+              ? userSnapshot.data().username
+              : "Desconhecido";
+
+            return { id: responsavelId, nome: username, valor };
+          })
+        );
+
+        setDadosQuem(quemComNomes);
+      } catch (error) {
+        console.error("Erro ao buscar dados de 'quem':", error);
+      }
+    };
+
+    fetchQuemDados();
+  }, []);
+
+  // ---------------------------
+  // ESTADOS E FUNÇÕES PARA "GERENCIA" (Solicitantes)
+  // ---------------------------
   
-  
+  useEffect(() => {
+    const fetchProjetosPorSolicitante = async () => {
+      try {
+        const projetosSnapshot = await getDocs(collection(db, "projetos"));
+        const solicitantesMap = new Map();
+
+        projetosSnapshot.forEach((projetoDoc) => {
+          const data = projetoDoc.data();
+          const solicitante = data.solicitante || "Não informado";
+
+          if (solicitantesMap.has(solicitante)) {
+            solicitantesMap.set(solicitante, solicitantesMap.get(solicitante) + 1);
+          } else {
+            solicitantesMap.set(solicitante, 1);
+          }
+        });
+
+        const dados = Array.from(solicitantesMap.entries()).map(([nome, valor]) => ({
+          nome,
+          valor
+        }));
+
+        const maxValor = Math.max(...dados.map((d) => d.valor));
+        const dadosNormalizados = dados.map((d) => ({
+          ...d,
+          percentual: maxValor > 0 ? (d.valor / maxValor) * 100 : 0
+        }));
+
+        setDadosGerencia(dadosNormalizados);
+      } catch (error) {
+        console.error("Erro ao buscar projetos por solicitante:", error);
+      }
+    };
+    fetchProjetosPorSolicitante();
+  }, []);
+
+  // ---------------------------
+  // ESTADOS E FUNÇÕES PARA "COLABORADORES"
+  // ---------------------------
+
+  useEffect(() => {
+    const fetchColaboradores = async () => {
+      try {
+        const projetosSnapshot = await getDocs(collection(db, "projetos"));
+        const colaboradoresMap = new Map();
+
+        projetosSnapshot.forEach((projetoDoc) => {
+          const projeto = projetoDoc.data();
+          (projeto.colaboradores || []).forEach((colaboradorId) => {
+            if (colaboradoresMap.has(colaboradorId)) {
+              colaboradoresMap.set(
+                colaboradorId,
+                colaboradoresMap.get(colaboradorId) + 1
+              );
+            } else {
+              colaboradoresMap.set(colaboradorId, 1);
+            }
+          });
+        });
+
+        const colaboradoresComNomes = await Promise.all(
+          Array.from(colaboradoresMap.entries()).map(async ([colaboradorId, valor]) => {
+            const userSnapshot = await getDoc(doc(db, "user", colaboradorId));
+            const username = userSnapshot.exists()
+              ? userSnapshot.data().username
+              : "Desconhecido";
+
+            return {
+              id: colaboradorId,
+              nome: username,
+              valor
+            };
+          })
+        );
+
+        const maxValor = Math.max(...colaboradoresComNomes.map((d) => d.valor));
+        const dadosNormalizados = colaboradoresComNomes.map((d) => ({
+          ...d,
+          percentual: maxValor > 0 ? (d.valor / maxValor) * 100 : 0
+        }));
+
+        setDadosColaboradores(dadosNormalizados);
+      } catch (error) {
+        console.error("Erro ao buscar dados dos colaboradores:", error);
+      }
+    };
+    fetchColaboradores();
+  }, []);
 
 
 
@@ -1223,7 +1421,8 @@ useEffect(() => {
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleBolinhaClick(item.nome, "quem");
+                  handleBolinhaClickQuem(item.nome, "quem");
+                   
                 }}
               >
                 {item.valor}
@@ -1240,8 +1439,8 @@ useEffect(() => {
           <Lista
             filtroSolicitante={filtroSolicitante}
             filtroColaborador={filtroColaborador}
+            filtroQuem={filtroQuem}
           />
-          filtroColaborador
         </Box>
       </Box>
     </>
