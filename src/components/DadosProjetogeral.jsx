@@ -176,51 +176,62 @@ useEffect(() => {
    //=======================================================================
    const [dadosColaboradores, setDadosColaboradores] = useState([]);
 
-useEffect(() => {
-  const fetchColaboradores = async () => {
-    try {
-      const projetosSnapshot = await getDocs(collection(db, "projetos")); // Acessa a coleção de projetos
-      const colaboradoresMap = new Map();
-
-      // Itera pelos projetos e mapeia os IDs dos colaboradores
-      projetosSnapshot.forEach((projetoDoc) => {
-        const projeto = projetoDoc.data();
-        (projeto.colaboradores || []).forEach((colaboradorId) => {
-          if (colaboradoresMap.has(colaboradorId)) {
-            colaboradoresMap.set(
-              colaboradorId,
-              colaboradoresMap.get(colaboradorId) + 1
-            );
-          } else {
-            colaboradoresMap.set(colaboradorId, 1);
-          }
+   useEffect(() => {
+    const fetchColaboradores = async () => {
+      try {
+        const projetosSnapshot = await getDocs(collection(db, "projetos")); 
+        const colaboradoresMap = new Map();
+  
+        // Itera pelos projetos e mapeia os IDs dos colaboradores
+        projetosSnapshot.forEach((projetoDoc) => {
+          const projeto = projetoDoc.data();
+          (projeto.colaboradores || []).forEach((colaboradorId) => {
+            if (colaboradoresMap.has(colaboradorId)) {
+              colaboradoresMap.set(
+                colaboradorId,
+                colaboradoresMap.get(colaboradorId) + 1
+              );
+            } else {
+              colaboradoresMap.set(colaboradorId, 1);
+            }
+          });
         });
-      });
-
-      // Busca os nomes dos colaboradores no Firestore
-      const colaboradoresComNomes = await Promise.all(
-        Array.from(colaboradoresMap.entries()).map(async ([colaboradorId, valor]) => {
-          const userSnapshot = await getDoc(doc(db, "user", colaboradorId));
-          const username = userSnapshot.exists() ? userSnapshot.data().username : "Desconhecido";
-          return { nome: username, valor };
-        })
-      );
-
-      // Normaliza os dados para exibir no gráfico
-      const maxValor = Math.max(...colaboradoresComNomes.map((d) => d.valor));
-      const dadosNormalizados = colaboradoresComNomes.map((d) => ({
-        ...d,
-        percentual: (d.valor / maxValor) * 100, // Percentual baseado no maior valor
-      }));
-
-      setDadosColaboradores(dadosNormalizados); // Atualiza o estado com os dados normalizados
-    } catch (error) {
-      console.error("Erro ao buscar dados dos colaboradores:", error);
-    }
-  };
-
-  fetchColaboradores();
-}, []);
+  
+        // Busca os nomes dos colaboradores no Firestore
+        const colaboradoresComNomes = await Promise.all(
+          Array.from(colaboradoresMap.entries()).map(async ([colaboradorId, valor]) => {
+            const userSnapshot = await getDoc(doc(db, "user", colaboradorId));
+            const username = userSnapshot.exists()
+              ? userSnapshot.data().username
+              : "Desconhecido";
+  
+            // Adicionamos "id: colaboradorId"
+            return {
+              id: colaboradorId,  // <-- ID para filtrar
+              nome: username,     // <-- Nome para exibir
+              valor,              // Exemplo: contagem de projetos
+            };
+          })
+        );
+  
+        // Normaliza os dados para exibir no gráfico (percentual, se desejar)
+        const maxValor = Math.max(...colaboradoresComNomes.map((d) => d.valor));
+        const dadosNormalizados = colaboradoresComNomes.map((d) => ({
+          ...d,
+          percentual: maxValor > 0 ? (d.valor / maxValor) * 100 : 0,
+        }));
+  
+        // Atualiza o estado com os dados normalizados (agora inclui id)
+        setDadosColaboradores(dadosNormalizados);
+      } catch (error) {
+        console.error("Erro ao buscar dados dos colaboradores:", error);
+      }
+    };
+  
+    fetchColaboradores();
+  }, []);
+  
+  
 
    
    
@@ -431,10 +442,65 @@ useEffect(() => {
     fetchProjectId();
   }, []);
 
+
+
+
+
+
+
+
+
+
+
+
+  //=======================================================================
+      
+      //FUNÇÃO PARA FILTRAR OS "SOLICITANTE" PARA FILTRAR LÁ NA LISTA
+
+   //=====================================================================
+
+
+  
+  const [filtroQuem, setFiltroQuem] = useState(null);
+  const [filtroSolicitante, setFiltroSolicitante] = useState(null);
+  // Função chamada ao clicar no botão
+  const handleBolinhaClickSolicitante = (nome) => {
+    setFiltroSolicitante(nome); // Atualiza o filtro de solicitante
+  };
+
+
+  // Exemplo de item que possui { id: "gAP66jz0EH6pL78uIMUW", nome: "Lucinete" }
+  const [filtroColaborador, setFiltroColaborador] = useState(null);
+
+  const handleBolinhaClickColaborador = (colabId) => {
+    console.log("Colaborador clicado (ID):", colabId);
+    setFiltroColaborador(colabId);
+  };
+  
+
+  //=======================================================================
+      
+      //FIM  FUNÇÃO PARA FILTRAR OS "SOLICITANTE" PARA FILTRAR LÁ NA LISTA
+
+   //=====================================================================
+  
+  
+
+
+
+
+
+
+
+
+
+
   return (
     <>
       {/* Header */}
       <Box sx={{ marginLeft: "40px", paddingTop: "10px" }}></Box>
+
+      
 
       {/* Container Principal */}
       <Box
@@ -778,6 +844,14 @@ useEffect(() => {
                     fontWeight: "bold",
                     lineHeight: "24px",
                     borderRadius: "50%",
+                    cursor: "pointer",
+                    border: "none", // Remove a borda padrão de botão
+                    padding: "0", // Remove o preenchimento padrão
+                    outline: "none", // Remove o destaque ao focar
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Impede que o clique se propague para elementos superiores
+                    handleBolinhaClickSolicitante(item.nome, "solicitante"); // Executa a ação ao clicar
                   }}
                 >
                   {item.valor}
@@ -890,7 +964,7 @@ useEffect(() => {
             color: "#9d9d9c",
           }}
         >
-          {item.nome ? item.nome : "Colaborador desconhecido"}
+          {item.nome}
         </Typography>
 
         {/* Linha de Progresso */}
@@ -938,7 +1012,6 @@ useEffect(() => {
                 marginRight: "10px",
                 cursor: "pointer",
               }}
-              onClick={() => setColaboradorFiltrado(item.nome)} // Define o colaborador filtrado
             />
           </Box>
         </Box>
@@ -960,7 +1033,15 @@ useEffect(() => {
             fontWeight: "bold",
             lineHeight: "24px",
             borderRadius: "50%",
+            cursor: "pointer", // Torna o botão clicável
+            border: "none", // Remove a borda padrão de botão
+            padding: "0", // Remove o preenchimento padrão
+            outline: "none", // Remove o destaque ao focar
           }}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleBolinhaClickColaborador(item.id, "solicitante");
+        }}
         >
           {item.valor}
         </Box>
@@ -1120,25 +1201,34 @@ useEffect(() => {
 
                 {/* Número de Tarefas */}
                 <Box
-                  sx={{
-                    minWidth: "25px",
-                    backgroundColor:
-                      index % 4 === 0
-                        ? "#4caf50"
-                        : index % 4 === 1
-                        ? "#ff9800"
-                        : index % 4 === 2
-                        ? "#1976d2"
-                        : "#9c27b0", // Cor dinâmica
-                    textAlign: "center",
-                    color: "#fff",
-                    fontWeight: "bold",
-                    lineHeight: "24px",
-                    borderRadius: "50%",
-                  }}
-                >
-                  {item.valor}
-                </Box>
+                sx={{
+                  minWidth: "25px",
+                  backgroundColor:
+                    index % 4 === 0
+                      ? "#4caf50"
+                      : index % 4 === 1
+                      ? "#ff9800"
+                      : index % 4 === 2
+                      ? "#1976d2"
+                      : "#9c27b0",
+                  textAlign: "center",
+                  color: "#fff",
+                  fontWeight: "bold",
+                  lineHeight: "24px",
+                  borderRadius: "50%",
+                  cursor: "pointer",
+                  border: "none",
+                  padding: "0",
+                  outline: "none",
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleBolinhaClick(item.nome, "quem");
+                }}
+              >
+                {item.valor}
+              </Box>
+
               </Box>
             ))}
           </Box>
@@ -1146,7 +1236,12 @@ useEffect(() => {
 
         {/** COMPONENTE */}
         <Box marginTop="20px" marginLeft="40px" marginRight="40px">
-          <Lista />
+          {/* Passa o filtro para a Lista */}
+          <Lista
+            filtroSolicitante={filtroSolicitante}
+            filtroColaborador={filtroColaborador}
+          />
+          filtroColaborador
         </Box>
       </Box>
     </>

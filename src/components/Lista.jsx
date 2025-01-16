@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import PermContactCalendarIcon from "@mui/icons-material/PermContactCalendar";
 import { Link } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
-import { getDocs, collection, deleteDoc, doc  } from "firebase/firestore";
+import { getDocs, getDoc, collection, deleteDoc, doc } from "firebase/firestore";
 import { Margin } from "@mui/icons-material";
 
 // Tradução dos textos da Toolbar e rodapé
@@ -64,7 +64,8 @@ const CustomToolbar = () => (
 </GridToolbarContainer>
 );
 
-const Lista = () => {
+const Lista = ({ filtroSolicitante, filtroColaborador }) => {
+  const [filtroAtivo, setFiltroAtivo] = useState(null); // Filtro para os projetos
   const [checkedRows, setCheckedRows] = useState({});
   const [projetoListe, setProjetoList] = useState([]);
   const [confirmAlert, setConfirmAlert] = useState({
@@ -74,6 +75,10 @@ const Lista = () => {
     severity: "success", // ou "error" dependendo do caso
   });
   
+  
+
+
+
 
 
 
@@ -82,10 +87,10 @@ const Lista = () => {
   const [projetos, setProjetos] = useState([]);
 
   const handleDeleteProjeto = async () => {
-    console.log("Tentando excluir o projeto com ID:", confirmAlert.projetoId);
+   
   
     if (!confirmAlert.projetoId) {
-      console.warn("Nenhum projeto selecionado para exclusão.");
+      
       return;
     }
   
@@ -104,31 +109,8 @@ const Lista = () => {
   
   
   
-  
-  
-  
-  
-  
+ 
 
-
-  const fetchProjetos = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, "projetos"));
-      const projetos = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-  
-      setProjetos(projetos); // Atualiza o estado com os projetos do banco
-    } catch (error) {
-      console.error("Erro ao buscar projetos:", error.message);
-    }
-  };
-  
-  // Chamando fetchProjetos ao montar o componente
-  useEffect(() => {
-    fetchProjetos();
-  }, []);
   
 
   
@@ -224,7 +206,7 @@ const Lista = () => {
             backgroundColor = "#FFC107"; // Amarelo (prazo próximo de expirar)
           }
         } catch (error) {
-          console.error("Erro ao processar datas:", error.message);
+          
         }
     
         return (
@@ -282,7 +264,7 @@ const Lista = () => {
             </Box>
           );
         } catch (error) {
-          console.error("Erro ao processar prazo previsto:", error);
+          
           return <Box>Data inválida</Box>;
         }
       },
@@ -351,7 +333,7 @@ const Lista = () => {
           
           orcamento = parseFloat(cleanedOrcamento); // Converte para número decimal
         } catch (error) {
-          console.error("Erro ao processar orçamento:", error.message);
+          
         }
     
         return (
@@ -420,6 +402,256 @@ const Lista = () => {
     },
     
   ];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//=======================================================================
+      
+      //FUNÇÃO PARA AGRUPAR TODAS AS 3 FUNÇÕES PARA PASSAR PARA O DATAGRID
+
+//=======================================================================
+
+
+
+
+  const [projetosExibidos, setProjetosExibidos] = useState([]); // Lista final para o DataGrid
+
+  useEffect(() => {
+    let exibidos = projetos;
+  
+    if (filtroColaborador && filtroSolicitante) {
+      exibidos = projetos.filter(
+        (projeto) =>
+          Array.isArray(projeto.colaboradores) &&
+          projeto.colaboradores.includes(filtroColaborador) &&
+          projeto.solicitante === filtroSolicitante
+      );
+    } else if (filtroColaborador) {
+      exibidos = projetos.filter(
+        (projeto) =>
+          Array.isArray(projeto.colaboradores) &&
+          projeto.colaboradores.includes(filtroColaborador)
+      );
+    } else if (filtroSolicitante) {
+      exibidos = projetos.filter(
+        (projeto) => projeto.solicitante === filtroSolicitante
+      );
+    }
+  
+    setProjetosExibidos(exibidos);
+  }, [filtroColaborador, filtroSolicitante, projetos]);
+  
+
+
+//=======================================================================
+      
+      //FUNÇÃO PARA LISTAR PROJETO POR CADA "SOLICITANTE" NA LISTA
+
+//=======================================================================
+
+
+
+const [projetosFiltrados, setProjetosFiltrados] = useState([]); // Projetos filtrados
+
+   
+// Função para buscar todos os projetos do Firebase
+const fetchProjetos = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, "projetos"));
+    const projetosCarregados = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    setProjetos(projetosCarregados); // Armazena todos os projetos
+  } catch (error) {
+    
+  }
+};
+
+// Atualiza os projetos filtrados sempre que o filtro mudar
+useEffect(() => {
+  if (filtroSolicitante) {
+    const filtrados = projetos.filter(
+      (projeto) => projeto.solicitante === filtroSolicitante
+    );
+    setProjetosFiltrados(filtrados);
+  } else {
+    setProjetosFiltrados(projetos); // Exibe todos os projetos se não houver filtro
+  }
+}, [filtroSolicitante, projetos]);
+
+// Busca os projetos na montagem do componente
+useEffect(() => {
+  fetchProjetos();
+}, []);
+
+
+
+
+//=======================================================================
+      
+      //FIM   FUNÇÃO PARA LISTAR PROJETO POR CADA "SOLICITANTE" NA LISTA
+
+//=======================================================================
+
+
+
+
+//=======================================================================
+      
+      //FUNÇÃO PARA LISTAR PROJETO POR CADA "COLABORADOR" NA LISTA
+
+//=======================================================================
+
+
+// ------------------
+// ESTADOS
+// ------------------
+const [listaProjetos, setListaProjetos] = useState([]); // Armazena todos os projetos
+const [projetosFiltradosColaborador, setProjetosFiltradosColaborador] = useState([]);
+
+const fetchProjetosColaborador = async () => {
+  try {
+    // 1) Carrega a coleção "projetos"
+    const querySnapshot = await getDocs(collection(db, "projetos"));
+    const projetosCarregados = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    // Armazena os projetos no estado
+    setProjetos(projetosCarregados);
+    console.log("Total de projetos carregados:", projetosCarregados.length);
+
+    // 2) Cria o mapa de { colaboradorId -> contagem } a partir dos projetos
+    const colaboradoresMap = new Map();
+    for (const projeto of projetosCarregados) {
+      // Se "colaboradores" existir, percorra
+      if (Array.isArray(projeto.colaboradores)) {
+        for (const colaboradorId of projeto.colaboradores) {
+          if (colaboradoresMap.has(colaboradorId)) {
+            colaboradoresMap.set(
+              colaboradorId,
+              colaboradoresMap.get(colaboradorId) + 1
+            );
+          } else {
+            colaboradoresMap.set(colaboradorId, 1);
+          }
+        }
+      }
+    }
+
+    // 3) Para cada colaboradorId no mapa, busca o nome na coleção "user"
+    const colaboradoresComNomes = await Promise.all(
+      Array.from(colaboradoresMap.entries()).map(async ([colaboradorId, valor]) => {
+        const userSnapshot = await getDoc(doc(db, "user", colaboradorId));
+        const username = userSnapshot.exists()
+          ? userSnapshot.data().username
+          : "Desconhecido";
+        return {
+          id: colaboradorId, // ID do colaborador para filtrar
+          nome: username,    // Nome do colaborador para exibir
+          valor,             // Exemplo: contagem de projetos
+        };
+      })
+    );
+
+    // 4) (Opcional) Calcular percentual, se quiser
+    const maxValor = Math.max(...colaboradoresComNomes.map((d) => d.valor));
+    const dadosNormalizados = colaboradoresComNomes.map((d) => ({
+      ...d,
+      percentual: maxValor > 0 ? (d.valor / maxValor) * 100 : 0
+    }));
+
+    // 5) Guarda em outro estado, se for renderizar
+    setDadosColaboradores(dadosNormalizados);
+    // Agora você tem "dadosColaboradores" para exibir um gráfico, por exemplo
+
+  } catch (error) {
+    console.error("Erro ao buscar projetos:", error.message);
+  }
+};
+
+// useEffect para chamar na montagem
+useEffect(() => {
+  fetchProjetosColaborador();
+}, []);
+
+// Lógica de filtro
+useEffect(() => {
+  console.log("== Aplicando filtro de colaborador ==");
+  console.log("Filtro ativo (ID):", filtroColaborador);
+  console.log("Projetos disponíveis:", projetos);
+
+  if (filtroColaborador) {
+    const filtrados = projetos.filter((projeto) =>
+      Array.isArray(projeto.colaboradores)
+        ? projeto.colaboradores.includes(filtroColaborador)
+        : false
+    );
+    console.log("Projetos filtrados por ID:", filtrados);
+    setProjetosFiltradosColaborador(filtrados);
+  } else {
+    console.log("Sem filtro, exibindo todos os projetos:", projetos);
+    setProjetosFiltradosColaborador(projetos);
+  }
+}, [filtroColaborador, projetos]);
+
+
+
+
+
+
+
+//=======================================================================
+      
+      //FIM   FUNÇÃO PARA LISTAR PROJETO POR CADA "COLABORADOR" NA LISTA
+
+//=======================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   return (
     <>
@@ -535,7 +767,7 @@ const Lista = () => {
 
     
 <DataGrid
-  rows={projetos}
+  rows={projetosExibidos}
   columns={columns}
   components={{ Toolbar: CustomToolbar }}
   localeText={localeText}
