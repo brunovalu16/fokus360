@@ -13,6 +13,7 @@ import { useTheme } from "@mui/material/styles";
 import { getDocs, getDoc, collection, deleteDoc, doc } from "firebase/firestore";
 import { Margin } from "@mui/icons-material";
 
+
 // Tradução dos textos da Toolbar e rodapé
 const localeText = {
   toolbarColumns: "Colunas",
@@ -64,8 +65,10 @@ const CustomToolbar = () => (
 </GridToolbarContainer>
 );
 
-const Lista = ({ filtroSolicitante, filtroColaborador, filtroQuem }) => {
+const Lista = ({ filtroSolicitante, filtroColaborador, filtroQuem, setFiltroSolicitante, setFiltroColaborador, setFiltroQuem }) => {
   const [dadosColaboradores, setDadosColaboradores] = useState([]);
+  const [projetos, setProjetos] = useState([]);
+  const [projetosExibidos, setProjetosExibidos] = useState([]);
   const [filtroAtivo, setFiltroAtivo] = useState(null); // Filtro para os projetos
   const [checkedRows, setCheckedRows] = useState({});
   const [projetoListe, setProjetoList] = useState([]);
@@ -76,11 +79,61 @@ const Lista = ({ filtroSolicitante, filtroColaborador, filtroQuem }) => {
     severity: "success", // ou "error" dependendo do caso
   });
 
-  console.log("Valor de filtroQuem:", filtroQuem);
+  //console.log("Valor de filtroQuem:", filtroQuem);
 
   
   
 
+// Função para resetar os filtros
+// Função para resetar os filtros
+const handleLimparFiltros = () => {
+  setFiltroSolicitante(null);
+  setFiltroColaborador(null);
+  setFiltroQuem(null);
+};
+
+// Atualiza os projetos exibidos com base nos filtros
+useEffect(() => {
+  if (!projetos.length) {
+    // Se não houver projetos, não tente filtrar
+    setProjetosExibidos([]);
+    return;
+  }
+
+  let exibidos = [...projetos];
+
+  if (filtroColaborador && filtroSolicitante && filtroQuem) {
+    exibidos = exibidos.filter(
+      (proj) =>
+        Array.isArray(proj.colaboradores) &&
+        proj.colaboradores.includes(filtroColaborador) &&
+        proj.solicitante === filtroSolicitante &&
+        Array.isArray(proj.quem) &&
+        proj.quem.includes(filtroQuem)
+    );
+  } else if (filtroColaborador && filtroSolicitante) {
+    exibidos = exibidos.filter(
+      (proj) =>
+        Array.isArray(proj.colaboradores) &&
+        proj.colaboradores.includes(filtroColaborador) &&
+        proj.solicitante === filtroSolicitante
+    );
+  } else if (filtroColaborador) {
+    exibidos = exibidos.filter(
+      (proj) =>
+        Array.isArray(proj.colaboradores) &&
+        proj.colaboradores.includes(filtroColaborador)
+    );
+  } else if (filtroSolicitante) {
+    exibidos = exibidos.filter((proj) => proj.solicitante === filtroSolicitante);
+  } else if (filtroQuem) {
+    exibidos = exibidos.filter(
+      (proj) => Array.isArray(proj.quem) && proj.quem.includes(filtroQuem)
+    );
+  }
+
+  setProjetosExibidos(exibidos);
+}, [filtroColaborador, filtroSolicitante, filtroQuem, projetos]);
 
 
 
@@ -88,7 +141,7 @@ const Lista = ({ filtroSolicitante, filtroColaborador, filtroQuem }) => {
 
 
 //função para deletar o projeto
-  const [projetos, setProjetos] = useState([]);
+
 
   const handleDeleteProjeto = async () => {
    
@@ -435,7 +488,7 @@ const Lista = ({ filtroSolicitante, filtroColaborador, filtroQuem }) => {
 
 
 
-  const [projetosExibidos, setProjetosExibidos] = useState([]); // Lista final para o DataGrid
+ 
 
   useEffect(() => {
     console.log("Aplicando filtros: filtroQuem:", filtroQuem, "filtroColaborador:", filtroColaborador, "filtroSolicitante:", filtroSolicitante);
@@ -675,18 +728,31 @@ useEffect(() => {
 
 
 
-
-
-
-
-
-
-
-
-
-
   return (
     <>
+
+
+    {/* Botão de limpar filtro */}
+    <Box sx={{ display: "flex", justifyContent: "flex-end", marginRight: "20px", marginBottom: "10px" }}>
+        <Button
+          variant="contained"
+          onClick={handleLimparFiltros}
+          sx={{
+            backgroundColor: "#3f2cb2",
+            fontSize: "10px",
+            fontWeight: "bold",
+            borderRadius: "5px",
+            padding: "10px 20px",
+            boxShadow: "none",
+            "&:hover": { backgroundColor: "#3f2cb2" },
+          }}
+          >
+          Limpar Filtros
+        </Button>
+      </Box>
+
+
+    
   {confirmAlert.show && (
   <div
     style={{

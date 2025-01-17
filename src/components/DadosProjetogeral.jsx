@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { collection, getDoc, getDocs, doc } from "firebase/firestore";
-import { Box, useMediaQuery, useTheme, Typography, CircularProgress } from "@mui/material";
+import { Accordion, AccordionSummary, AccordionDetails, Box, useMediaQuery, useTheme, Typography, CircularProgress } from "@mui/material";
 import { tokens } from "../theme";
 import PaidIcon from "@mui/icons-material/Paid";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import { db } from "../data/firebase-config"; // Atualize o caminho conforme necessário
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 import Lista from "../components/Lista";
 
@@ -887,7 +888,28 @@ useEffect(() => {
 
 
 
-        {/* Gráfico Horizontal - Projetos por Gerência */}
+        <Accordion
+          sx={{
+            borderRadius: "10px",
+            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+            margin: "20px 0",
+            backgroundColor: "#f2f0f0",
+            padding: "10px",
+            overflow: "hidden",
+           }}
+        >
+      <AccordionSummary
+        expandIcon={<ExpandMoreIcon />}
+        aria-controls="conteudo-acordion"
+        id="cabecalho-acordion"
+      >
+        <Typography variant="h5" sx={{ fontWeight: "bold", color: "#312783" }}>
+          Dados Detalhados
+        </Typography>
+      </AccordionSummary>
+      <AccordionDetails>
+        {/* TODO O CONTEÚDO AQUI */}
+         {/* Gráfico Horizontal - Projetos por Gerência */}
 
 
 
@@ -902,12 +924,13 @@ useEffect(() => {
 
 
 
-        <Box
+         <Box
           padding="50px"
           sx={{
             gap: "20px",
             gridColumn: "span 12",
             alignItems: "stretch",
+            marginBottom: "-60px"
           }}
         >
           {/* Coluna Esquerda - Título */}
@@ -923,7 +946,7 @@ useEffect(() => {
                 display: "flex", // Alinha os elementos em linha
                 alignItems: "center", // Alinha verticalmente ao centro
                 gap: "10px", // Espaço entre os elementos
-                marginBottom: "30px", //
+                marginBottom: "20px", //
               }}
             >
               <Typography
@@ -954,7 +977,7 @@ useEffect(() => {
               flex: 1,
               display: "flex",
               flexDirection: "column",
-              gap: "20px", // Espaço entre os elementos
+              gap: "5px", // Espaço entre os elementos
               paddingLeft: "10px",
               paddingRight: "10px",
             }}
@@ -1096,6 +1119,7 @@ useEffect(() => {
     gap: "20px",
     gridColumn: "span 12",
     alignItems: "stretch",
+    marginBottom: "-60px"
   }}
 >
   {/* Coluna Esquerda - Título */}
@@ -1111,7 +1135,7 @@ useEffect(() => {
         display: "flex", // Alinha os elementos em linha
         alignItems: "center", // Alinha verticalmente ao centro
         gap: "10px", // Espaço entre os elementos
-        marginBottom: "30px",
+        marginBottom: "20px",
       }}
     >
       <Typography
@@ -1142,7 +1166,7 @@ useEffect(() => {
       flex: 1,
       display: "flex",
       flexDirection: "column",
-      gap: "20px", // Espaço entre os elementos
+      gap: "5px", // Espaço entre os elementos
       paddingLeft: "10px",
       paddingRight: "10px",
     }}
@@ -1325,7 +1349,7 @@ useEffect(() => {
               flex: 1,
               display: "flex",
               flexDirection: "column",
-              gap: "20px", // Espaço entre os elementos
+              gap: "5px", // Espaço entre os elementos
               paddingLeft: "10px",
               paddingRight: "10px",
             }}
@@ -1432,6 +1456,8 @@ useEffect(() => {
             ))}
           </Box>
         </Box>
+      </AccordionDetails>
+    </Accordion>
 
         {/** COMPONENTE */}
         <Box marginTop="20px" marginLeft="40px" marginRight="40px">
@@ -1440,7 +1466,11 @@ useEffect(() => {
             filtroSolicitante={filtroSolicitante}
             filtroColaborador={filtroColaborador}
             filtroQuem={filtroQuem}
+            setFiltroSolicitante={setFiltroSolicitante} // Passando o setter
+            setFiltroColaborador={setFiltroColaborador} // Passando o setter
+            setFiltroQuem={setFiltroQuem}               // Passando o setter
           />
+
         </Box>
       </Box>
     </>

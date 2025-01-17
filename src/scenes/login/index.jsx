@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import { Box, Button, TextField } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../data/firebase-config.js";
+import { doc, getDoc } from "firebase/firestore"; // Importar do Firestore
+import { auth, db } from "../../data/firebase-config"; // Importar do arquivo de configuração
+
 
 
 const Login = () => {
@@ -10,50 +12,37 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-
     if (!email || !password) {
       alert("Por favor, preencha todos os campos.");
       return;
     }
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      alert("Por favor, insira um e-mail válido.");
-      return;
-    }
 
-    logar();
-  };
-
-  const logar = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate("/home");
-    } catch (error) {
-      console.error("Erro ao fazer login:", error.code, error.message);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-      switch (error.code) {
-        case "auth/user-not-found":
-          alert("E-mail não encontrado. Verifique e tente novamente.");
-          break;
-        case "auth/wrong-password":
-          alert("Senha incorreta. Tente novamente.");
-          break;
-        case "auth/invalid-email":
-          alert("E-mail inválido. Verifique o formato do e-mail.");
-          break;
-        case "auth/too-many-requests":
-          alert("Muitas tentativas de login. Tente novamente mais tarde.");
-          break;
-        case "auth/invalid-credential":
-          alert("Credenciais inválidas. Verifique o e-mail e a senha.");
-          break;
-        default:
-          alert("Erro ao realizar login. Tente novamente mais tarde.");
-          break;
+      // Buscar perfil do usuário no Firestore
+      const userDoc = await getDoc(doc(db, "user", user.uid));
+      if (userDoc.exists()) {
+        const userRole = userDoc.data().role;
+
+        // Redirecionamento com base no perfil
+        if (userRole === "07") {
+          navigate("/projetos");
+        } else {
+          navigate("/home");
+        }
+      } else {
+        alert("Usuário não encontrado no banco de dados.");
       }
+    } catch (error) {
+      console.error("Erro ao realizar login:", error.code, error.message);
+      alert(`Erro ao realizar login: ${error.message}`);
     }
   };
+    
 
   return (
     <Box
