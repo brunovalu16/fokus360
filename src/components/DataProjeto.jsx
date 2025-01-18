@@ -70,6 +70,7 @@ import { db } from "../data/firebase-config"; // Atualize o caminho conforme nec
 
  function DataProjeto() {
    const [users, setUsers] = useState([]);
+  
 
   
 
@@ -88,6 +89,7 @@ const [prazoPrevistoFormatada, setPrazoPrevistoFormatada] = useState("");
    const [nomeProjeto, setNomeProjeto] = useState("");
    const [dataFim, setDataFim] = useState("");
    const [descricao, setDescricao] = useState("");
+   const [solicitanteEmail, setSolicitanteEmail] = useState("");
    const [checkState, setCheckState] = useState({});
    const [oQue, setOque] = useState("");
    const [como, setComo] = useState("");
@@ -104,6 +106,12 @@ const [prazoPrevistoFormatada, setPrazoPrevistoFormatada] = useState("");
    const [onde, setOnde] = useState("");
    const [diretrizTitulo, setDiretrizTitulo] = useState("");
    const [diretrizDescricao, setDiretrizDescricao] = useState("");
+
+
+  
+  
+  
+   
 
    // Armazenar todas as diretrizes
    const [diretrizes, setDiretrizes] = useState([]);
@@ -150,6 +158,7 @@ const [prazoPrevistoFormatada, setPrazoPrevistoFormatada] = useState("");
            setCategoria({ categoria: data.categoria || "" });
            setSolicitante({ solicitante: data.solicitante || "" });
            setDescricao(data.descricao || "");
+           setSolicitanteEmail(data.solicitanteEmail || "");
            setOrcamento({ orcamento: data.orcamento || "" });
            setColaboradores({ colaboradores: data.colaboradores || [] });
 
@@ -490,6 +499,7 @@ const formatarDataBancoParaBrasileiro = (dataISO) => {
         categoria: categoria.categoria || "",
         solicitante: solicitante.solicitante || "",
         descricao: descricao || "",
+        solicitanteEmail: solicitanteEmail || "",
         orcamento: orcamento.orcamento || "",
         colaboradores: colaboradores.colaboradores || [],
         diretrizes: updatedDiretrizes,
@@ -878,6 +888,15 @@ const calcularOrcamento = () => {
                  value={descricao}
                  onChange={(e) => setDescricao(e.target.value)}
                />
+               <TextField
+                fullWidth
+                label="Email do Solicitante"
+                placeholder="Digite o email do solicitante"
+                multiline
+                rows={2}
+                value={solicitanteEmail}
+                onChange={(e) => setSolicitanteEmail(e.target.value)} // Atualiza o estado local
+              />
                <TextField
                  label="Orçamento"
                  name="orcamento"

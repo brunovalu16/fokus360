@@ -303,6 +303,7 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
                 onChange={handleChange}
                 fullWidth
               />
+              {/* Descrição do projeto email */}
               <TextField
                 label="E-mail do Solicitante"
                 name="solicitanteEmail" // Nome associado ao estado para o e-mail do solicitante
