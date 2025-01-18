@@ -131,7 +131,7 @@ const Relatorios = () => {
               Nenhum relatório no momento.
             </Typography>
             <Typography sx={{ mt: 2 }}>
-              Você não tem acesso a relatórios no momento. Entre em contato com
+              Entre em contato com
               o administrador do sistema para mais informações.
             </Typography>
             {/** 

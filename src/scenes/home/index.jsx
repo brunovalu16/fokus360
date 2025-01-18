@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, Typography, CircularProgress } from "@mui/material";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import { Link } from 'react-router-dom';
+import capasistema360relatorios from "../../assets/images/capasistema360relatorios.webp";
 
 const Home = () => {
   const [userRole, setUserRole] = useState("");
@@ -51,7 +52,7 @@ const Home = () => {
         {/* Estrutura da Imagem */}
         <div style={{ position: "relative", width: "100%", top: "-40px" }}>
           <img
-            src="src/assets/images/capasistema360relatorios.webp" // Caminho da imagem
+            src={capasistema360relatorios}
             alt="Relatório de Vendas e Devoluções"
             style={{
               width: "100%",

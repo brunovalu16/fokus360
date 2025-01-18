@@ -28,6 +28,7 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
     prazoPrevisto: "",
     unidade: "",
     solicitante: "",
+    solicitanteEmail: "", // Adicionado para o e-mail do solicitante
     categoria: "",
     colaboradores: [],
     responsavel: "",
@@ -302,6 +303,14 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
                 onChange={handleChange}
                 fullWidth
               />
+              <TextField
+                label="E-mail do Solicitante"
+                name="solicitanteEmail" // Nome associado ao estado para o e-mail do solicitante
+                value={formValues.solicitanteEmail} // Valor do e-mail do solicitante
+                onChange={handleChange} // Atualiza o estado ao alterar o campo
+                fullWidth
+              />
+
 
               {/* Orçamento (formato monetário) */}
               <TextField
