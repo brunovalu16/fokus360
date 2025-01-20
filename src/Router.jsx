@@ -9,7 +9,7 @@ import Dashboard from "./scenes/dashboard";
 import Relatorios from "./scenes/relatorios";
 import PainelIndustrias from "./scenes/painel-industrias";
 import Kanban from "./scenes/kanban";
-import  Home  from "./scenes/home";
+import Home  from "./scenes/home";
 import Arquivos from "./scenes/arquivos";
 import VendasDevolucao from "./scenes/vendasdevolucao";
 import Projetos from "./scenes/projetos";
@@ -18,6 +18,7 @@ import  ListaProjetos from "./scenes/listaprojetos";
 import Diretriz from "./scenes/diretrizes";
 import DashboardProjeto from "./scenes/dashboardprojeto";
 import DataProjeto from "./components/DataProjeto";
+import UserDetalhe from "./components/UserDetalhe";
 import { Team, Invoices, Contacts, Form, Bar, Line, Pie, FAQ, Geography, Calendar, Stream } from "./scenes";
 
 const AppRouter = () => {
@@ -58,6 +59,7 @@ const AppRouter = () => {
           <Route path="/line" element={<Line />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/geography" element={<Geography />} />
+          <Route path="/usuario/editar" element={<UserDetalhe />} /> {/* Rota corrigida */}
         </Route>
       </Routes>
     </Router>

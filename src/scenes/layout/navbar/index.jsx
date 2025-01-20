@@ -1,21 +1,6 @@
 import React, { useEffect, useState } from "react";
-import {
-  AppBar,
-  Box,
-  IconButton,
-  InputBase,
-  Toolbar,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
-import {
-  MenuOutlined,
-  NotificationsOutlined,
-  PersonOutlined,
-  SearchOutlined,
-  SettingsOutlined,
-} from "@mui/icons-material";
+import { AppBar, Box, IconButton, InputBase, Toolbar, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { MenuOutlined, NotificationsOutlined, PersonOutlined, SearchOutlined, SettingsOutlined } from "@mui/icons-material";
 import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import { ToggledContext } from "../../../App";
@@ -23,6 +8,8 @@ import { auth, db } from "../../../data/firebase-config";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
+import colibri from "../../../assets/images/colibri.png";
+import fokus360cinza from "../../../assets/images/fokus360cinza.png";
 import { Link } from 'react-router-dom'; // Certifique-se de importar o Link
 
 const Navbar = () => {
@@ -122,7 +109,7 @@ const Navbar = () => {
         >
           Desenvolvido por:
           <img
-            src="src/assets/images/colibri.png"
+            src={colibri}
             alt="Logo Colibri"
             style={{
               width: "100px",
@@ -192,7 +179,7 @@ const Navbar = () => {
             }}
           >
             <img
-              src="src/assets/images/fokus360cinza.png"
+              src={fokus360cinza}
               alt="Logo"
               style={{
                 maxWidth: "150px",

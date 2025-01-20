@@ -19,6 +19,7 @@ import { auth, db } from "../../../data/firebase-config";
 import { ToggledContext } from "../../../App";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
+import icon_logo from "../../../assets/images/icon_logo.png"
 
 const SideBar = () => {
   const [userRole, setUserRole] = useState("");
@@ -310,7 +311,7 @@ const SideBar = () => {
           }}
         >
           <img
-            src="src/assets/images/icon_logo.png"
+            src={icon_logo}
             alt="Logo"
             style={{
               maxWidth: "30px",

@@ -1,18 +1,19 @@
-import React from "react";
-import { Box, Button, IconButton, useTheme, Typography } from "@mui/material";
-import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
+import React, { useState, useEffect   } from "react";
+import { Box, Button, IconButton, useTheme, Typography, Modal, Icon } from "@mui/material";
 import { Link } from 'react-router-dom';
-import DeleteIcon from "@mui/icons-material/Delete";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { Header } from "../../components";
 import { DataGrid } from "@mui/x-data-grid";
 import { GridToolbarContainer, GridToolbarExport, GridToolbarFilterButton, GridToolbarDensitySelector, GridToolbarColumnsButton } from "@mui/x-data-grid";
-import { mockDataContacts } from "../../data/mockData";
-import { tokens } from "../../theme";
 import { useNavigate } from "react-router-dom";
-import PersonIcon from '@mui/icons-material/Person';
 import DeleteForeverSharpIcon from "@mui/icons-material/DeleteForeverSharp";
 import PermContactCalendarIcon from '@mui/icons-material/PermContactCalendar';
+import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { db } from "../../data/firebase-config"; // Certifique-se de importar o Firestore configurado
+import EditIcon from "@mui/icons-material/Edit";
+import Avatar from "@mui/material/Avatar";
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
+
+
 // Tradução dos textos da Toolbar
 const localeText = {
   toolbarColumns: "Colunas",
@@ -20,6 +21,9 @@ const localeText = {
   toolbarDensity: "Densidade",
   toolbarExport: "Exportar",
 };
+
+
+
 
 // Barra de ferramentas personalizada
 const CustomToolbar = () => {
@@ -69,84 +73,221 @@ const CustomToolbar = () => {
 };
 
 const Contacts = () => {
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
+  const [users, setUsers] = useState([]); // Estado para armazenar os usuários
   const navigate = useNavigate();
+  const [selectedUserId, setSelectedUserId] = useState(null); // ID do usuário a ser deletado
+  const [isModalOpen, setIsModalOpen] = useState(false); // Controle do modal
 
-  const handleDelete = (id) => {
-    console.log(`Excluir usuário com ID: ${id}`);
+
+
+   // Abrir o modal e definir o ID do usuário
+   const handleOpenModal = (id) => {
+    setSelectedUserId(id);
+    setIsModalOpen(true);
   };
 
-  const handleNavigateToUser = (id) => {
-    navigate(`/usuario?id=${id}`);
+  // Fechar o modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedUserId(null);
   };
+  
 
-  const columns = [
-    { field: "id", headerName: "ID", flex: 0.5 },
-    { field: "registrarId", headerName: "Registrar ID" },
-    {
-      field: "name",
-      headerName: "Nome",
-      flex: 1,
-      cellClassName: "name-column--cell",
-    },
-    {
-      field: "phone",
-      headerName: "Telefone",
-      flex: 1,
-    },
-    {
-      field: "email",
-      headerName: "Email",
-      flex: 1,
-    },
-    {
-      field: "city",
-      headerName: "Unidade",
-      flex: 1,
-    },
-    {
-      field: "actions",
-      headerName: "Ações",
-      flex: 1,
-      renderCell: ({ row }) => (
-        <Box display="flex" gap={1}>
-          <Link
-            to="/user"
-            style={{
-              display: "inline-block",
-              backgroundColor: "#583cff",
-              color: "#fff",
-              padding: "10px 12px",
-              marginTop: "5px",
-              fontSize: "0.75rem",
-              borderRadius: "4px",
-              textDecoration: "none",
-              textAlign: "center",
-              fontWeight: "bold",
-              hover: { backgroundColor: "#3f2cb2" },
-            }}
-          >
-            Editar
-          </Link>
+  // Função para buscar os usuários no Firestore
+const fetchUsers = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, "user")); // Nome da coleção no Firestore
+    const userList = querySnapshot.docs.map((doc) => ({
+      id: doc.id, // O DataGrid exige que o campo ID seja 'id'
+      ...doc.data(),
+    }));
+    setUsers(userList);
+  } catch (error) {
+    console.error("Erro ao buscar usuários:", error);
+  }
+};
 
-          <IconButton
-            onClick={() => handleDelete(row.id)}
-            sx={{
-              color: "#d32f2f",
-              width: "45px",
-              height: "auto",
-            }}
-          >
-            <DeleteForeverSharpIcon sx={{ fontSize: "25px" }} />
-          </IconButton>
-        </Box>
-      ),
-    },
-  ];
+useEffect(() => {
+  fetchUsers();
+}, []);
+
+//lógica de exclusão do documento no Firestore.
+ const handleConfirmDelete = async () => {
+  try {
+    const docRef = doc(db, "user", selectedUserId);
+    await deleteDoc(docRef);
+
+    // Atualizar a lista de usuários
+    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== selectedUserId));
+
+    console.log(`Usuário com ID ${selectedUserId} excluído com sucesso.`);
+  } catch (error) {
+    console.error("Erro ao excluir usuário:", error);
+  }
+
+  handleCloseModal(); // Fechar o modal após exclusão
+};
+  
+
+
+const columns = [
+  {
+    field: "avatar",
+    headerName: "Foto",
+    flex: 0.5, // Ajusta o tamanho da coluna
+    renderCell: ({ row }) => (
+      <Avatar
+        src={row.photoURL} // Substitua "photoURL" pelo campo do Firestore que contém a URL da foto
+        alt={row.username || "Usuário"}
+        sx={{
+          bgcolor: "#9e9e9e", // Cor de fundo caso não haja foto
+          width: 32,
+          height: 32,
+          fontSize: "14px",
+          border: "2px solid #312783", // Adiciona a borda com a cor especificada
+        }}
+      >
+        {row.username ? row.username.charAt(0).toUpperCase() : "U"} {/* Exibe a inicial do nome */}
+      </Avatar>
+    ),
+  },
+  {
+    field: "id",
+    headerName: "ID",
+    flex: 1,
+  },
+  {
+    field: "username",
+    headerName: "Nome",
+    flex: 1,
+    cellClassName: "name-column--cell",
+  },
+  {
+    field: "email",
+    headerName: "Email",
+    flex: 1.5,
+  },
+  {
+    field: "role",
+    headerName: "Perfil",
+    flex: 0.4,
+  },
+  {
+    field: "unidade",
+    headerName: "Unidade",
+    flex: 1,
+  },
+  {
+    field: "actions",
+    headerName: "Ações",
+    flex: 1,
+    renderCell: ({ row }) => (
+      <Box display="flex" gap={1}>
+        {/* Botão Editar */}
+        <IconButton
+          onClick={() => navigate(`/usuario/editar?id=${row.id}`)} // Certifique-se de que o ID do usuário está sendo passado
+          sx={{
+            color: "#9d9d9c",
+            width: "45px",
+            height: "auto",
+          }}
+        >
+          <EditIcon sx={{ fontSize: "20px" }} />
+        </IconButton>
+
+
+
+        {/* Botão Excluir */}
+        <IconButton
+          onClick={() => handleOpenModal(row.id)} // Abre o modal para exclusão
+          sx={{
+            color: "#d32f2f",
+            width: "45px",
+            height: "auto",
+          }}
+        >
+          <DeleteForeverSharpIcon sx={{ fontSize: "25px" }} />
+        </IconButton>
+      </Box>
+    ),
+  },
+];
+
+
+
+const handleEdit = (id) => {
+  console.log(`Editar usuário com ID: ${id}`);
+  navigate(`/usuario/editar?id=${id}`); // Redireciona para a página de edição com o ID
+};
+
+  
 
   return (
     <>
+    {/* Modal de Confirmação */}
+    <Modal
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Box
+          sx={{
+            width: 400,
+            bgcolor: "white",
+            p: 4,
+            borderRadius: 4,
+            boxShadow: 24,
+            textAlign: "center",
+            backgroundColor: "#d32f2f",
+            color: "#fff",
+          }}
+        >
+          {/* Ícone no topo */}
+          <Box display="flex" justifyContent="center" mb={2}>
+            <ReportProblemIcon sx={{ fontSize: 40, color: "#ffeb3b" }} /> {/* Ícone amarelo */}
+          </Box>
+
+          <Typography variant="h6" mb={2}>
+            Confirmar Exclusão
+          </Typography>
+          <Typography variant="body2" mb={4}>
+            Tem certeza que deseja excluir este usuário? Essa ação não pode ser desfeita.
+          </Typography>
+          <Box display="flex" justifyContent="space-around">
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleConfirmDelete}
+              sx={{
+                boxShadow: "none", // Remove sombra
+                border: "none",    // Remove borda
+                "&:hover": {
+                  boxShadow: "none", // Garante que também não tenha sombra no hover
+                },
+              }}
+            >
+              SIM
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={handleCloseModal}
+              sx={{
+                color: "#fff",
+                border: "none", // Remove borda
+                "&:hover": {
+                  border: "none", // Garante que também não tenha borda no hover
+                },
+              }}
+            >
+              NÃO
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
 
       {/* Header */}
       <Box
@@ -167,15 +308,16 @@ const Contacts = () => {
         />
       </Box>
 
+
+
       {/* Botão voltar painel de projetos */}
 
       <Box display="flex" justifyContent="flex-end" mb={2}>
-         <Button
-          component={Link} // Define que o botão será um Link do React Router
+        <Button
+          component={Link}
           to="/cadastro"
           variant="contained"
           color="primary"
-          onClick={""}
           sx={{
             marginRight: "70px",
             fontSize: "10px",
@@ -187,56 +329,29 @@ const Contacts = () => {
             "&:hover": { backgroundColor: "#3f2cb2" },
           }}
         >
-            NOVO USUÁRIO
+          NOVO USUÁRIO
         </Button>
       </Box>
 
       <Box m="45px">
         <Box
-          mt="40px"
-          marginTop="-2px"
           height="75vh"
           width="100%"
           sx={{
-            "& .MuiDataGrid-root": {
-              border: "none",
-            },
-            "& .MuiDataGrid-cell": {
-              border: "none",
-            },
-            "& .name-column--cell": {
-              color: colors.gray[100],
-            },
+            "& .MuiDataGrid-root": { border: "none" },
+            "& .MuiDataGrid-cell": { border: "none" },
             "& .MuiDataGrid-columnHeaders": {
-              backgroundColor: colors.blueAccent[700],
-              borderBottom: "none",
-            },
-            "& .MuiDataGrid-virtualScroller": {
-              backgroundColor: colors.primary[400],
-            },
-            "& .MuiDataGrid-footerContainer": {
-              borderTop: "none",
-              backgroundColor: colors.gray[900],
-            },
-            "& .MuiCheckbox-root": {
-              color: `${colors.blueAccent[1300]} !important`,
-            },
-            "& .MuiDataGrid-iconSeparator": {
-              color: colors.primary[500],
-            },
-            "& .MuiDataGrid-columnHeaders": {
-              backgroundColor: "#312783", // Cor de fundo do cabeçalho
-              color: "#bcbcbc", // Cor do texto do cabeçalho
-
-              fontSize: "13px", // Ajusta o tamanho do texto
+              backgroundColor: "#312783",
+              color: "#bcbcbc",
+              fontSize: "13px",
             },
           }}
         >
           <DataGrid
-            rows={mockDataContacts}
+            rows={users} // Usando o estado com dados do Firestore
             columns={columns}
             components={{ Toolbar: CustomToolbar }}
-            localeText={localeText} // Aplica as traduções para português
+            localeText={localeText}
             initialState={{
               pagination: {
                 paginationModel: {
@@ -244,7 +359,7 @@ const Contacts = () => {
                 },
               },
             }}
-            checkboxSelection
+            //checkboxSelection
           />
         </Box>
       </Box>

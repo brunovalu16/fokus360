@@ -3,7 +3,7 @@ import { Box, Typography, Modal, Alert } from "@mui/material";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import { Link } from "react-router-dom";
 import capaSistema from "../../assets/images/capasistema360.webp"; // Importação dinâmica
-import { getDocs, collection } from "firebase/firestore";
+import { getDocs, getDoc, doc, collection } from "firebase/firestore";
 import { db } from "../../data/firebase-config";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import IconButton from '@mui/material/IconButton';
@@ -16,89 +16,109 @@ const Projetos = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userId, setUserId] = useState(null);
   const [isSolicitanteAssociated, setIsSolicitanteAssociated] = useState(false); // Verificação específica para solicitante
-
+  const [userRole, setUserRole] = useState(null); // Armazena o perfil do usuário
+  
   const auth = getAuth();
 
-  // Verifica se o usuário está associado a algum projeto (colaboradores ou quem)
-  const checkUserAssociation = async () => {
-    if (!userId) {
-      console.log("Nenhum usuário logado.");
-      setIsUserAssociated(false);
-      return;
-    }
+// Verifica se o usuário está associado a algum projeto
+const checkUserAssociation = async () => {
+  if (!userId) {
+    console.log("Nenhum usuário logado.");
+    setIsUserAssociated(false);
+    return;
+  }
 
-    try {
-      const projetosSnapshot = await getDocs(collection(db, "projetos"));
-      let associated = false;
+  try {
+    const projetosSnapshot = await getDocs(collection(db, "projetos"));
+    let associated = false;
 
-      for (let docSnap of projetosSnapshot.docs) {
-        const data = docSnap.data();
+    for (let docSnap of projetosSnapshot.docs) {
+      const data = docSnap.data();
 
-        // Verifica se o usuário é um colaborador
-        if (Array.isArray(data.colaboradores) && data.colaboradores.includes(userId)) {
-          associated = true;
-          break;
-        }
+      // Verifica se o usuário é um colaborador
+      if (Array.isArray(data.colaboradores) && data.colaboradores.includes(userId)) {
+        associated = true;
+        break;
+      }
 
-        // Verifica se o usuário está em algum "quem" nas diretrizes/tarefas
-        const diretrizes = data.diretrizes || [];
-        for (let diretriz of diretrizes) {
-          const tarefas = diretriz.tarefas || [];
-          for (let tarefa of tarefas) {
-            const planoDeAcao = tarefa.planoDeAcao || {};
-            const responsaveis = planoDeAcao.quem || [];
-            if (responsaveis.includes(userId)) {
-              associated = true;
-              break;
-            }
+      // Verifica se o usuário está em algum "quem" nas diretrizes/tarefas
+      const diretrizes = data.diretrizes || [];
+      for (let diretriz of diretrizes) {
+        const tarefas = diretriz.tarefas || [];
+        for (let tarefa of tarefas) {
+          const planoDeAcao = tarefa.planoDeAcao || {};
+          const responsaveis = planoDeAcao.quem || [];
+          if (responsaveis.includes(userId)) {
+            associated = true;
+            break;
           }
-          if (associated) break;
         }
         if (associated) break;
       }
-
-      // Atualiza o estado com o resultado da verificação
-      setIsUserAssociated(associated);
-    } catch (error) {
-      console.error("Erro ao verificar associação do usuário:", error);
-      setIsUserAssociated(false);
+      if (associated) break;
     }
-  };
 
-  // Verifica se o usuário logado é solicitante (usando solicitanteEmail)
-  const checkSolicitanteAssociation = async () => {
-    try {
-      const user = auth.currentUser;
+    setIsUserAssociated(associated);
+  } catch (error) {
+    console.error("Erro ao verificar associação do usuário:", error);
+    setIsUserAssociated(false);
+  }
+};
 
-      if (!user) {
-        console.log("Nenhum usuário logado.");
-        return false;
-      }
+ // Verifica se o usuário logado é solicitante
+ const checkSolicitanteAssociation = async () => {
+  try {
+    const user = auth.currentUser;
 
-      const userEmail = user.email; // Obtém o e-mail do usuário logado
-      console.log("E-mail do usuário logado:", userEmail);
-
-      // Obtemos todos os projetos
-      const projetosSnapshot = await getDocs(collection(db, "projetos"));
-
-      // Verifica se o e-mail está no campo solicitanteEmail de algum projeto
-      for (let docSnap of projetosSnapshot.docs) {
-        const data = docSnap.data();
-        if (data.solicitanteEmail === userEmail) {
-          console.log(`Usuário associado como solicitante no projeto: ${docSnap.id}`);
-          return true; // Associado como solicitante
-        }
-      }
-
-      console.log("Usuário não associado como solicitante.");
-      return false; // Não associado
-    } catch (error) {
-      console.error("Erro ao verificar associação como solicitante:", error);
+    if (!user) {
+      console.log("Nenhum usuário logado.");
       return false;
     }
-  };
 
-  // Monitora a autenticação do usuário e verifica associações
+    const userEmail = user.email;
+    console.log("E-mail do usuário logado:", userEmail);
+
+    const projetosSnapshot = await getDocs(collection(db, "projetos"));
+
+    for (let docSnap of projetosSnapshot.docs) {
+      const data = docSnap.data();
+      if (data.solicitanteEmail === userEmail) {
+        console.log(`Usuário associado como solicitante no projeto: ${docSnap.id}`);
+        return true;
+      }
+    }
+
+    console.log("Usuário não associado como solicitante.");
+    return false;
+  } catch (error) {
+    console.error("Erro ao verificar associação como solicitante:", error);
+    return false;
+  }
+};
+
+  // Busca o perfil do usuário no Firestore
+  const fetchUserRole = async () => {
+    if (!userId) return;
+  
+    try {
+      const userDoc = await getDoc(doc(db, "user", userId));
+  
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        console.log("Dados do usuário:", userData); // Exibe todos os dados do documento
+        setUserRole(userData.role || null); // Garante que role será definido
+      } else {
+        console.log("Documento do usuário não encontrado no Firestore.");
+      }
+    } catch (error) {
+      console.error("Erro ao buscar perfil do usuário no Firestore:", error);
+    }
+  };
+  
+
+  
+
+  // Verifica a associação do usuário após logar
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
@@ -109,25 +129,32 @@ const Projetos = () => {
         setUserId(null);
         setIsUserAssociated(false);
         setIsSolicitanteAssociated(false);
+        setUserRole(null);
       }
     });
 
     return () => unsubscribe();
   }, []);
 
-  // Verifica a associação do usuário após logar
   useEffect(() => {
     if (userId) {
-      checkUserAssociation(); // Verifica colaboradores e quem
-      checkSolicitanteAssociation().then(setIsSolicitanteAssociated); // Verifica solicitanteEmail
+      fetchUserRole();
+      checkUserAssociation();
+      checkSolicitanteAssociation().then(setIsSolicitanteAssociated);
     }
   }, [userId]);
 
   // Controla o clique nos links
   const handleLinkClick = (e) => {
+    console.log("UserRole atual:", userRole);
+    if (userRole === "08") {
+      console.log("Acesso liberado para Admin.");
+      return; // Permite o acesso automaticamente para Admin
+    }
+
     if (!isUserAssociated && !isSolicitanteAssociated) {
-      e.preventDefault(); // Impede a navegação
-      setIsModalOpen(true); // Mostra o modal de alerta
+      e.preventDefault();
+      setIsModalOpen(true);
     }
   };
 
@@ -267,7 +294,9 @@ const Projetos = () => {
           >
             <Link
               to={
-                isUserAssociated || isSolicitanteAssociated ? "/dashboard" : "#"
+                userRole === "08" || isUserAssociated || isSolicitanteAssociated
+                ? "/dashboard"
+                : "#"
               }
               onClick={handleLinkClick}
               style={{
@@ -294,9 +323,10 @@ const Projetos = () => {
           >
             <Link
               to={
-                isUserAssociated || isSolicitanteAssociated
+                userRole === "08" || isUserAssociated || isSolicitanteAssociated
                   ? "/listaprojetos"
                   : "#"
+                 
               }
               onClick={handleLinkClick}
               style={{

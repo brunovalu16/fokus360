@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { collection, getDoc, getDocs, doc } from "firebase/firestore";
-import { Accordion, AccordionSummary, AccordionDetails, Box, useMediaQuery, useTheme, Typography, CircularProgress } from "@mui/material";
+import { Accordion, AccordionSummary, AccordionDetails, Button, Box, useMediaQuery, useTheme, Typography, CircularProgress } from "@mui/material";
 import { tokens } from "../theme";
 import PaidIcon from "@mui/icons-material/Paid";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
@@ -18,7 +18,12 @@ function DadosProjetogeral() {
   const [dadosQuem, setDadosQuem] = useState([]);
 
 
-
+// Função para resetar os filtros
+const handleLimparFiltros = () => {
+  setFiltroSolicitante(null);
+  setFiltroColaborador(null);
+  setFiltroQuem(null);
+};
 
 
 
@@ -699,8 +704,6 @@ useEffect(() => {
       {/* Header */}
       <Box sx={{ marginLeft: "40px", paddingTop: "10px" }}></Box>
 
-      
-
       {/* Container Principal */}
       <Box
         sx={{
@@ -874,20 +877,6 @@ useEffect(() => {
           ))}
         </Box>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         <Accordion
           sx={{
             borderRadius: "10px",
@@ -896,512 +885,151 @@ useEffect(() => {
             backgroundColor: "#f2f0f0",
             padding: "10px",
             overflow: "hidden",
-           }}
-        >
-      <AccordionSummary
-        expandIcon={<ExpandMoreIcon />}
-        aria-controls="conteudo-acordion"
-        id="cabecalho-acordion"
-      >
-        <Typography variant="h5" sx={{ fontWeight: "bold", color: "#312783" }}>
-          Dados Detalhados
-        </Typography>
-      </AccordionSummary>
-      <AccordionDetails>
-        {/* TODO O CONTEÚDO AQUI */}
-         {/* Gráfico Horizontal - Projetos por Gerência */}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-         <Box
-          padding="50px"
-          sx={{
-            gap: "20px",
-            gridColumn: "span 12",
-            alignItems: "stretch",
-            marginBottom: "-60px"
           }}
         >
-          {/* Coluna Esquerda - Título */}
-          <Box
-            display="flex"
-            flexDirection="column"
-            justifyContent="center"
-            alignItems="flex-start"
-            marginLeft="10px"
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="conteudo-acordion"
+            id="cabecalho-acordion"
           >
+            <Typography
+              variant="h5"
+              sx={{ fontWeight: "bold", color: "#312783" }}
+            >
+              Dados Detalhados
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            {/* TODO O CONTEÚDO AQUI */}
+            {/* Gráfico Horizontal - Projetos por Gerência */}
             <Box
+              padding="50px"
               sx={{
-                display: "flex", // Alinha os elementos em linha
-                alignItems: "center", // Alinha verticalmente ao centro
-                gap: "10px", // Espaço entre os elementos
-                marginBottom: "20px", //
+                gap: "20px",
+                gridColumn: "span 12",
+                alignItems: "stretch",
+                marginBottom: "-60px",
               }}
             >
-              <Typography
-                variant="h3"
-                sx={{
-                  fontWeight: "bold",
-                  color: "#312783",
-                  whiteSpace: "nowrap", // Evita quebra de linha
-                }}
-              >
-                Projetos
-              </Typography>
-              <Typography
-                variant="h5"
-                sx={{
-                  color: "#afaeae",
-                  whiteSpace: "nowrap", // Evita quebra de linha
-                }}
-              >
-                por Solicitantes
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Coluna Direita - Gráficos com Linhas e Bolinhas */}
-          <Box
-            sx={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              gap: "5px", // Espaço entre os elementos
-              paddingLeft: "10px",
-              paddingRight: "10px",
-            }}
-          >
-            {dadosGerencia.map((item, index) => (
+              {/* Coluna Esquerda - Título */}
               <Box
-                key={index}
                 display="flex"
-                alignItems="center"
-                gap="10px"
-                sx={{ width: "100%" }}
+                flexDirection="column"
+                justifyContent="center"
+                alignItems="flex-start"
+                marginLeft="10px"
               >
-                {/* Nome do Solicitante */}
-                <Typography
-                  sx={{
-                    minWidth: "120px",
-                    color: "#9d9d9c",
-                  }}
-                >
-                  {item.nome}
-                </Typography>
-
-                {/* Linha de Progresso */}
                 <Box
                   sx={{
-                    flex: 1,
-                    height: "3px",
-                    backgroundColor: "#e8e5e5",
-                    borderRadius: "4px",
-                    position: "relative",
+                    display: "flex", // Alinha os elementos em linha
+                    alignItems: "center", // Alinha verticalmente ao centro
+                    gap: "10px", // Espaço entre os elementos
+                    marginBottom: "20px", //
                   }}
                 >
-                  <Box
+                  <Typography
+                    variant="h3"
                     sx={{
-                      width: `${item.percentual}%`, // Proporção da barra
-                      backgroundColor:
-                        index % 4 === 0
-                          ? "#4caf50"
-                          : index % 4 === 1
-                          ? "#ff9800"
-                          : index % 4 === 2
-                          ? "#1976d2"
-                          : "#9c27b0", // Cor dinâmica
-                      height: "100%",
-                      borderRadius: "4px",
+                      fontWeight: "bold",
+                      color: "#312783",
+                      whiteSpace: "nowrap", // Evita quebra de linha
                     }}
                   >
-                    {/* Bolinha no Final */}
-                    <Box
-                      sx={{
-                        width: "10px",
-                        height: "10px",
-                        backgroundColor:
-                          index % 4 === 0
-                            ? "#4caf50"
-                            : index % 4 === 1
-                            ? "#ff9800"
-                            : index % 4 === 2
-                            ? "#1976d2"
-                            : "#9c27b0", // Cor dinâmica
-                        borderRadius: "50%",
-                        position: "absolute",
-                        right: "-7px",
-                        transform: "translateY(-50%)",
-                        marginRight: "10px",
-                      }}
-                    />
-                  </Box>
-                </Box>
-
-                {/* Número de Projetos */}
-                <Box
-                  sx={{
-                    minWidth: "25px",
-                    backgroundColor:
-                      index % 4 === 0
-                        ? "#4caf50"
-                        : index % 4 === 1
-                        ? "#ff9800"
-                        : index % 4 === 2
-                        ? "#1976d2"
-                        : "#9c27b0", // Cor dinâmica
-                    textAlign: "center",
-                    color: "#fff",
-                    fontWeight: "bold",
-                    lineHeight: "24px",
-                    borderRadius: "50%",
-                    cursor: "pointer",
-                    border: "none", // Remove a borda padrão de botão
-                    padding: "0", // Remove o preenchimento padrão
-                    outline: "none", // Remove o destaque ao focar
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation(); // Impede que o clique se propague para elementos superiores
-                    handleBolinhaClickSolicitante(item.nome, "solicitante"); // Executa a ação ao clicar
-                  }}
-                >
-                  {item.valor}
+                    Projetos
+                  </Typography>
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      color: "#afaeae",
+                      whiteSpace: "nowrap", // Evita quebra de linha
+                    }}
+                  >
+                    por Solicitantes
+                  </Typography>
                 </Box>
               </Box>
-            ))}
-          </Box>
-        </Box>
 
-
-
-
-
-
-
-
-
-
-
-
-
-        {/* Gráfico Horizontal - Projetos por colaboradores */}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        <Box
-  padding="50px"
-  sx={{
-    gap: "20px",
-    gridColumn: "span 12",
-    alignItems: "stretch",
-    marginBottom: "-60px"
-  }}
->
-  {/* Coluna Esquerda - Título */}
-  <Box
-    display="flex"
-    flexDirection="column"
-    justifyContent="center"
-    alignItems="flex-start"
-    marginLeft="10px"
-  >
-    <Box
-      sx={{
-        display: "flex", // Alinha os elementos em linha
-        alignItems: "center", // Alinha verticalmente ao centro
-        gap: "10px", // Espaço entre os elementos
-        marginBottom: "20px",
-      }}
-    >
-      <Typography
-        variant="h3"
-        sx={{
-          fontWeight: "bold",
-          color: "#312783",
-          whiteSpace: "nowrap", // Evita quebra de linha
-        }}
-      >
-        Projetos
-      </Typography>
-      <Typography
-        variant="h5"
-        sx={{
-          color: "#afaeae",
-          whiteSpace: "nowrap", // Evita quebra de linha
-        }}
-      >
-        por Colaboradores
-      </Typography>
-    </Box>
-  </Box>
-
-  {/* Coluna Direita - Gráficos com Linhas e Bolinhas */}
-  <Box
-    sx={{
-      flex: 1,
-      display: "flex",
-      flexDirection: "column",
-      gap: "5px", // Espaço entre os elementos
-      paddingLeft: "10px",
-      paddingRight: "10px",
-    }}
-  >
-    {dadosColaboradores.map((item, index) => (
-      <Box
-        key={index}
-        display="flex"
-        alignItems="center"
-        gap="10px"
-        sx={{ width: "100%" }}
-      >
-        {/* Nome do Colaborador */}
-        <Typography
-          sx={{
-            minWidth: "120px",
-            color: "#9d9d9c",
-          }}
-        >
-          {item.nome}
-        </Typography>
-
-        {/* Linha de Progresso */}
-        <Box
-          sx={{
-            flex: 1,
-            height: "3px",
-            backgroundColor: "#e8e5e5",
-            borderRadius: "4px",
-            position: "relative",
-          }}
-        >
-          <Box
-            sx={{
-              width: `${item.percentual}%`, // Proporção da barra
-              backgroundColor:
-                index % 4 === 0
-                  ? "#4caf50"
-                  : index % 4 === 1
-                  ? "#ff9800"
-                  : index % 4 === 2
-                  ? "#1976d2"
-                  : "#9c27b0", // Cor dinâmica
-              height: "100%",
-              borderRadius: "4px",
-            }}
-          >
-            {/* Bolinha no Final */}
-            <Box
-              sx={{
-                width: "10px",
-                height: "10px",
-                backgroundColor:
-                  index % 4 === 0
-                    ? "#4caf50"
-                    : index % 4 === 1
-                    ? "#ff9800"
-                    : index % 4 === 2
-                    ? "#1976d2"
-                    : "#9c27b0", // Cor dinâmica
-                borderRadius: "50%",
-                position: "absolute",
-                right: "-7px",
-                transform: "translateY(-50%)",
-                marginRight: "10px",
-                cursor: "pointer",
-              }}
-            />
-          </Box>
-        </Box>
-
-        {/* Número de Projetos */}
-        <Box
-          sx={{
-            minWidth: "25px",
-            backgroundColor:
-              index % 4 === 0
-                ? "#4caf50"
-                : index % 4 === 1
-                ? "#ff9800"
-                : index % 4 === 2
-                ? "#1976d2"
-                : "#9c27b0", // Cor dinâmica
-            textAlign: "center",
-            color: "#fff",
-            fontWeight: "bold",
-            lineHeight: "24px",
-            borderRadius: "50%",
-            cursor: "pointer", // Torna o botão clicável
-            border: "none", // Remove a borda padrão de botão
-            padding: "0", // Remove o preenchimento padrão
-            outline: "none", // Remove o destaque ao focar
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleBolinhaClickColaborador(item.id, "solicitante");
-        }}
-        >
-          {item.valor}
-        </Box>
-      </Box>
-    ))}
-  </Box>
-</Box>
-
-
-
-
-
-
-
-
-
-
-
-        {/* Gráfico Horizontal - Projetos por quem... */}
-
-
-
-
-
-
-
-
-
-
-
-
-        
-
-        <Box
-          padding="50px"
-          sx={{
-            gap: "20px",
-            gridColumn: "span 12",
-            alignItems: "stretch",
-          }}
-        >
-          {/* Coluna Esquerda - Título */}
-          <Box
-            display="flex"
-            flexDirection="column"
-            justifyContent="center"
-            alignItems="flex-start"
-            marginLeft="10px"
-          >
-            <Box
-              sx={{
-                display: "flex", // Alinha os elementos em linha
-                alignItems: "center", // Alinha verticalmente ao centro
-                gap: "10px", // Espaço entre os elementos
-                marginBottom: "30px",
-              }}
-            >
-              <Typography
-                variant="h3"
-                sx={{
-                  fontWeight: "bold",
-                  color: "#312783",
-                  whiteSpace: "nowrap", // Evita quebra de linha
-                }}
-              >
-                Responsáveis
-              </Typography>
-              <Typography
-                variant="h5"
-                sx={{
-                  color: "#afaeae",
-                  whiteSpace: "nowrap", // Evita quebra de linha
-                }}
-              >
-                por Tarefas
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Coluna Direita - Gráficos com Linhas e Bolinhas */}
-          <Box
-            sx={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              gap: "5px", // Espaço entre os elementos
-              paddingLeft: "10px",
-              paddingRight: "10px",
-            }}
-          >
-            {dadosQuem.map((item, index) => (
+              {/* Coluna Direita - Gráficos com Linhas e Bolinhas */}
               <Box
-                key={index}
-                display="flex"
-                alignItems="center"
-                gap="10px"
-                sx={{ width: "100%" }}
+                sx={{
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "5px", // Espaço entre os elementos
+                  paddingLeft: "10px",
+                  paddingRight: "10px",
+                }}
               >
-                {/* Nome do Responsável */}
-                <Typography
-                  sx={{
-                    minWidth: "120px",
-                    color: "#9d9d9c",
-                  }}
-                >
-                  {item.nome}
-                </Typography>
-
-                {/* Linha de Progresso */}
-                <Box
-                  sx={{
-                    flex: 1,
-                    height: "3px",
-                    backgroundColor: "#e8e5e5",
-                    borderRadius: "4px",
-                    position: "relative",
-                  }}
-                >
+                {dadosGerencia.map((item, index) => (
                   <Box
-                    sx={{
-                      width: `${item.percentual}%`, // Proporção da barra
-                      backgroundColor:
-                        index % 4 === 0
-                          ? "#4caf50"
-                          : index % 4 === 1
-                          ? "#ff9800"
-                          : index % 4 === 2
-                          ? "#1976d2"
-                          : "#9c27b0", // Cor dinâmica
-                      height: "100%",
-                      borderRadius: "4px",
-                    }}
+                    key={index}
+                    display="flex"
+                    alignItems="center"
+                    gap="10px"
+                    sx={{ width: "100%" }}
                   >
-                    {/* Bolinha no Final */}
+                    {/* Nome do Solicitante */}
+                    <Typography
+                      sx={{
+                        minWidth: "120px",
+                        color: "#9d9d9c",
+                      }}
+                    >
+                      {item.nome}
+                    </Typography>
+
+                    {/* Linha de Progresso */}
                     <Box
                       sx={{
-                        width: "10px",
-                        height: "10px",
+                        flex: 1,
+                        height: "3px",
+                        backgroundColor: "#e8e5e5",
+                        borderRadius: "4px",
+                        position: "relative",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: `${item.percentual}%`, // Proporção da barra
+                          backgroundColor:
+                            index % 4 === 0
+                              ? "#4caf50"
+                              : index % 4 === 1
+                              ? "#ff9800"
+                              : index % 4 === 2
+                              ? "#1976d2"
+                              : "#9c27b0", // Cor dinâmica
+                          height: "100%",
+                          borderRadius: "4px",
+                        }}
+                      >
+                        {/* Bolinha no Final */}
+                        <Box
+                          sx={{
+                            width: "10px",
+                            height: "10px",
+                            backgroundColor:
+                              index % 4 === 0
+                                ? "#4caf50"
+                                : index % 4 === 1
+                                ? "#ff9800"
+                                : index % 4 === 2
+                                ? "#1976d2"
+                                : "#9c27b0", // Cor dinâmica
+                            borderRadius: "50%",
+                            position: "absolute",
+                            right: "-7px",
+                            transform: "translateY(-50%)",
+                            marginRight: "10px",
+                          }}
+                        />
+                      </Box>
+                    </Box>
+
+                    {/* Número de Projetos */}
+                    <Box
+                      sx={{
+                        minWidth: "25px",
                         backgroundColor:
                           index % 4 === 0
                             ? "#4caf50"
@@ -1410,54 +1038,376 @@ useEffect(() => {
                             : index % 4 === 2
                             ? "#1976d2"
                             : "#9c27b0", // Cor dinâmica
+                        textAlign: "center",
+                        color: "#fff",
+                        fontWeight: "bold",
+                        lineHeight: "24px",
                         borderRadius: "50%",
-                        position: "absolute",
-                        right: "-7px",
-                        transform: "translateY(-50%)",
-                        marginRight: "10px",
                         cursor: "pointer",
+                        border: "none", // Remove a borda padrão de botão
+                        padding: "0", // Remove o preenchimento padrão
+                        outline: "none", // Remove o destaque ao focar
                       }}
-                    />
+                      onClick={(e) => {
+                        e.stopPropagation(); // Impede que o clique se propague para elementos superiores
+                        handleBolinhaClickSolicitante(item.nome, "solicitante"); // Executa a ação ao clicar
+                      }}
+                    >
+                      {item.valor}
+                    </Box>
                   </Box>
-                </Box>
+                ))}
+              </Box>
+            </Box>
 
-                {/* Número de Tarefas */}
+            {/* Gráfico Horizontal - Projetos por colaboradores */}
+
+            <Box
+              padding="50px"
+              sx={{
+                gap: "20px",
+                gridColumn: "span 12",
+                alignItems: "stretch",
+                marginBottom: "-60px",
+              }}
+            >
+              {/* Coluna Esquerda - Título */}
+              <Box
+                display="flex"
+                flexDirection="column"
+                justifyContent="center"
+                alignItems="flex-start"
+                marginLeft="10px"
+              >
                 <Box
+                  sx={{
+                    display: "flex", // Alinha os elementos em linha
+                    alignItems: "center", // Alinha verticalmente ao centro
+                    gap: "10px", // Espaço entre os elementos
+                    marginBottom: "20px",
+                  }}
+                >
+                  <Typography
+                    variant="h3"
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#312783",
+                      whiteSpace: "nowrap", // Evita quebra de linha
+                    }}
+                  >
+                    Projetos
+                  </Typography>
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      color: "#afaeae",
+                      whiteSpace: "nowrap", // Evita quebra de linha
+                    }}
+                  >
+                    por Colaboradores
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Coluna Direita - Gráficos com Linhas e Bolinhas */}
+              <Box
                 sx={{
-                  minWidth: "25px",
-                  backgroundColor:
-                    index % 4 === 0
-                      ? "#4caf50"
-                      : index % 4 === 1
-                      ? "#ff9800"
-                      : index % 4 === 2
-                      ? "#1976d2"
-                      : "#9c27b0",
-                  textAlign: "center",
-                  color: "#fff",
-                  fontWeight: "bold",
-                  lineHeight: "24px",
-                  borderRadius: "50%",
-                  cursor: "pointer",
-                  border: "none",
-                  padding: "0",
-                  outline: "none",
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleBolinhaClickQuem(item.nome, "quem");
-                   
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "5px", // Espaço entre os elementos
+                  paddingLeft: "10px",
+                  paddingRight: "10px",
                 }}
               >
-                {item.valor}
+                {dadosColaboradores.map((item, index) => (
+                  <Box
+                    key={index}
+                    display="flex"
+                    alignItems="center"
+                    gap="10px"
+                    sx={{ width: "100%" }}
+                  >
+                    {/* Nome do Colaborador */}
+                    <Typography
+                      sx={{
+                        minWidth: "120px",
+                        color: "#9d9d9c",
+                      }}
+                    >
+                      {item.nome}
+                    </Typography>
+
+                    {/* Linha de Progresso */}
+                    <Box
+                      sx={{
+                        flex: 1,
+                        height: "3px",
+                        backgroundColor: "#e8e5e5",
+                        borderRadius: "4px",
+                        position: "relative",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: `${item.percentual}%`, // Proporção da barra
+                          backgroundColor:
+                            index % 4 === 0
+                              ? "#4caf50"
+                              : index % 4 === 1
+                              ? "#ff9800"
+                              : index % 4 === 2
+                              ? "#1976d2"
+                              : "#9c27b0", // Cor dinâmica
+                          height: "100%",
+                          borderRadius: "4px",
+                        }}
+                      >
+                        {/* Bolinha no Final */}
+                        <Box
+                          sx={{
+                            width: "10px",
+                            height: "10px",
+                            backgroundColor:
+                              index % 4 === 0
+                                ? "#4caf50"
+                                : index % 4 === 1
+                                ? "#ff9800"
+                                : index % 4 === 2
+                                ? "#1976d2"
+                                : "#9c27b0", // Cor dinâmica
+                            borderRadius: "50%",
+                            position: "absolute",
+                            right: "-7px",
+                            transform: "translateY(-50%)",
+                            marginRight: "10px",
+                            cursor: "pointer",
+                          }}
+                        />
+                      </Box>
+                    </Box>
+
+                    {/* Número de Projetos */}
+                    <Box
+                      sx={{
+                        minWidth: "25px",
+                        backgroundColor:
+                          index % 4 === 0
+                            ? "#4caf50"
+                            : index % 4 === 1
+                            ? "#ff9800"
+                            : index % 4 === 2
+                            ? "#1976d2"
+                            : "#9c27b0", // Cor dinâmica
+                        textAlign: "center",
+                        color: "#fff",
+                        fontWeight: "bold",
+                        lineHeight: "24px",
+                        borderRadius: "50%",
+                        cursor: "pointer", // Torna o botão clicável
+                        border: "none", // Remove a borda padrão de botão
+                        padding: "0", // Remove o preenchimento padrão
+                        outline: "none", // Remove o destaque ao focar
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleBolinhaClickColaborador(item.id, "solicitante");
+                      }}
+                    >
+                      {item.valor}
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+
+            {/* Gráfico Horizontal - Projetos por quem... */}
+
+            <Box
+              padding="50px"
+              sx={{
+                gap: "20px",
+                gridColumn: "span 12",
+                alignItems: "stretch",
+              }}
+            >
+              {/* Coluna Esquerda - Título */}
+              <Box
+                display="flex"
+                flexDirection="column"
+                justifyContent="center"
+                alignItems="flex-start"
+                marginLeft="10px"
+              >
+                <Box
+                  sx={{
+                    display: "flex", // Alinha os elementos em linha
+                    alignItems: "center", // Alinha verticalmente ao centro
+                    gap: "10px", // Espaço entre os elementos
+                    marginBottom: "30px",
+                  }}
+                >
+                  <Typography
+                    variant="h3"
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#312783",
+                      whiteSpace: "nowrap", // Evita quebra de linha
+                    }}
+                  >
+                    Responsáveis
+                  </Typography>
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      color: "#afaeae",
+                      whiteSpace: "nowrap", // Evita quebra de linha
+                    }}
+                  >
+                    por Tarefas
+                  </Typography>
+                </Box>
               </Box>
 
+              {/* Coluna Direita - Gráficos com Linhas e Bolinhas */}
+              <Box
+                sx={{
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "5px", // Espaço entre os elementos
+                  paddingLeft: "10px",
+                  paddingRight: "10px",
+                }}
+              >
+                {dadosQuem.map((item, index) => (
+                  <Box
+                    key={index}
+                    display="flex"
+                    alignItems="center"
+                    gap="10px"
+                    sx={{ width: "100%" }}
+                  >
+                    {/* Nome do Responsável */}
+                    <Typography
+                      sx={{
+                        minWidth: "120px",
+                        color: "#9d9d9c",
+                      }}
+                    >
+                      {item.nome}
+                    </Typography>
+
+                    {/* Linha de Progresso */}
+                    <Box
+                      sx={{
+                        flex: 1,
+                        height: "3px",
+                        backgroundColor: "#e8e5e5",
+                        borderRadius: "4px",
+                        position: "relative",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: `${item.percentual}%`, // Proporção da barra
+                          backgroundColor:
+                            index % 4 === 0
+                              ? "#4caf50"
+                              : index % 4 === 1
+                              ? "#ff9800"
+                              : index % 4 === 2
+                              ? "#1976d2"
+                              : "#9c27b0", // Cor dinâmica
+                          height: "100%",
+                          borderRadius: "4px",
+                        }}
+                      >
+                        {/* Bolinha no Final */}
+                        <Box
+                          sx={{
+                            width: "10px",
+                            height: "10px",
+                            backgroundColor:
+                              index % 4 === 0
+                                ? "#4caf50"
+                                : index % 4 === 1
+                                ? "#ff9800"
+                                : index % 4 === 2
+                                ? "#1976d2"
+                                : "#9c27b0", // Cor dinâmica
+                            borderRadius: "50%",
+                            position: "absolute",
+                            right: "-7px",
+                            transform: "translateY(-50%)",
+                            marginRight: "10px",
+                            cursor: "pointer",
+                          }}
+                        />
+                      </Box>
+                    </Box>
+
+                    {/* Número de Tarefas */}
+                    <Box
+                      sx={{
+                        minWidth: "25px",
+                        backgroundColor:
+                          index % 4 === 0
+                            ? "#4caf50"
+                            : index % 4 === 1
+                            ? "#ff9800"
+                            : index % 4 === 2
+                            ? "#1976d2"
+                            : "#9c27b0",
+                        textAlign: "center",
+                        color: "#fff",
+                        fontWeight: "bold",
+                        lineHeight: "24px",
+                        borderRadius: "50%",
+                        cursor: "pointer",
+                        border: "none",
+                        padding: "0",
+                        outline: "none",
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleBolinhaClickQuem(item.nome, "quem");
+                      }}
+                    >
+                      {item.valor}
+                    </Box>
+                  </Box>
+                ))}
               </Box>
-            ))}
-          </Box>
-        </Box>
-      </AccordionDetails>
-    </Accordion>
+            </Box>
+          </AccordionDetails>
+        </Accordion>
+        {/* Botão de limpar filtro */}
+        <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                marginRight: "20px",
+                marginBottom: "10px",
+              }}
+            >
+              <Button
+                variant="contained"
+                onClick={handleLimparFiltros}
+                sx={{
+                  backgroundColor: "#3f2cb2",
+                  fontSize: "10px",
+                  fontWeight: "bold",
+                  borderRadius: "5px",
+                  padding: "10px 20px",
+                  boxShadow: "none",
+                  marginRight: "45px",
+                  "&:hover": { backgroundColor: "#3f2cb2" },
+                }}
+              >
+                Limpar Filtros
+              </Button>
+            </Box>
 
         {/** COMPONENTE */}
         <Box marginTop="20px" marginLeft="40px" marginRight="40px">
@@ -1468,9 +1418,8 @@ useEffect(() => {
             filtroQuem={filtroQuem}
             setFiltroSolicitante={setFiltroSolicitante} // Passando o setter
             setFiltroColaborador={setFiltroColaborador} // Passando o setter
-            setFiltroQuem={setFiltroQuem}               // Passando o setter
+            setFiltroQuem={setFiltroQuem} // Passando o setter
           />
-
         </Box>
       </Box>
     </>

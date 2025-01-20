@@ -85,7 +85,6 @@ const Lista = ({ filtroSolicitante, filtroColaborador, filtroQuem, setFiltroSoli
   
 
 // Função para resetar os filtros
-// Função para resetar os filtros
 const handleLimparFiltros = () => {
   setFiltroSolicitante(null);
   setFiltroColaborador(null);
@@ -732,24 +731,7 @@ useEffect(() => {
     <>
 
 
-    {/* Botão de limpar filtro */}
-    <Box sx={{ display: "flex", justifyContent: "flex-end", marginRight: "20px", marginBottom: "10px" }}>
-        <Button
-          variant="contained"
-          onClick={handleLimparFiltros}
-          sx={{
-            backgroundColor: "#3f2cb2",
-            fontSize: "10px",
-            fontWeight: "bold",
-            borderRadius: "5px",
-            padding: "10px 20px",
-            boxShadow: "none",
-            "&:hover": { backgroundColor: "#3f2cb2" },
-          }}
-          >
-          Limpar Filtros
-        </Button>
-      </Box>
+    
 
 
     
