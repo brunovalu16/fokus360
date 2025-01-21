@@ -137,20 +137,21 @@ const columns = [
     flex: 0.5, // Ajusta o tamanho da coluna
     renderCell: ({ row }) => (
       <Avatar
-        src={row.photoURL} // Substitua "photoURL" pelo campo do Firestore que contém a URL da foto
+        src={row.photoURL || "/default-avatar.png"} // URL padrão caso photoURL não exista
         alt={row.username || "Usuário"}
         sx={{
-          bgcolor: "#9e9e9e", // Cor de fundo caso não haja foto
+          bgcolor: row.photoURL ? "transparent" : "#9e9e9e", // Fundo cinza apenas se não houver foto
           width: 32,
           height: 32,
           fontSize: "14px",
           border: "2px solid #312783", // Adiciona a borda com a cor especificada
         }}
       >
-        {row.username ? row.username.charAt(0).toUpperCase() : "U"} {/* Exibe a inicial do nome */}
+        {row.photoURL ? "" : row.username?.charAt(0).toUpperCase() || "U"} {/* Exibe inicial se não houver foto */}
       </Avatar>
     ),
   },
+  
   {
     field: "id",
     headerName: "ID",
