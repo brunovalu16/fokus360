@@ -84,6 +84,12 @@ const handleUploadPhoto = async () => {
 
   return (
     <Box
+    sx={{
+      transform: "scale(0.8)",
+      transformOrigin: "top center", // Define o ponto de origem da transformação
+    }}
+  >
+    <Box
       display="flex"
       flexDirection="row"
       alignItems="center"
@@ -95,14 +101,15 @@ const handleUploadPhoto = async () => {
         backgroundRepeat: "no-repeat",
         backgroundAttachment: "fixed",
         width: "80vw",
-        minHeight: "70vh",
+        minHeight: "90vh",
       }}
     >
       {/* Logo */}
       <Box
         sx={{
           backgroundColor: "#312783",
-          padding: "139px",
+          padding: "232px",
+          paddingRight: "80px",
           boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
           display: "flex",
           justifyContent: "center",
@@ -114,8 +121,9 @@ const handleUploadPhoto = async () => {
           src="src/assets/images/icone_logo.png"
           alt="Logo"
           style={{
-            width: "330px",
+            width: "75%",
             height: "auto",
+            marginRight: "100px",
           }}
         />
       </Box>
@@ -149,31 +157,41 @@ const handleUploadPhoto = async () => {
         >
           {/* Campo de Avatar */}
           <Box textAlign="center" mb={2}>
-          {avatar && (
-            <Avatar
-            src={avatarPreview || ""}
-            alt="Avatar do Usuário"
-            sx={{
-              width: 100,
-              height: 100,
-              margin: "0 auto",
-              border: "2px solid #583cff",
-            }}
+          <Avatar
+          src={avatarPreview || ""} // Pode deixar em branco ou usar uma imagem padrão
+          alt="Avatar do Usuário"
+          sx={{
+            width: 100,
+            height: 100,
+            margin: "0 auto",
+            border: "2px solid #9d9d9c",
+            borderRadius: 5, // Formato quadrado
+          }}
+        />
+
+        <Button
+          variant="outlined"
+          component="label"
+          sx={{
+            textTransform: "none",
+            marginBottom: 2,
+            marginTop: "10px",
+            backgroundColor: "#312783",
+            color: "#fff",
+            border: "none",
+            width: "50%",
+            borderRadius: "10px",
+          }}
+        >
+          Selecionar Foto
+          <input
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={handleAvatarChange}
           />
-          )}
-            <Button
-            variant="outlined"
-            component="label"
-            sx={{ textTransform: "none", marginBottom: 2 }}
-          >
-            Selecionar Foto
-            <input
-              type="file"
-              accept="image/*"
-              hidden
-              onChange={handleAvatarChange}
-            />
-          </Button>
+        </Button>
+
 
 
           </Box>
@@ -255,7 +273,7 @@ const handleUploadPhoto = async () => {
             type="submit"
             fullWidth
             sx={{
-              borderRadius: 5,
+              borderRadius: 2,
               backgroundColor: "#312783",
               color: "white",
               boxShadow: "none",
@@ -270,6 +288,7 @@ const handleUploadPhoto = async () => {
         </Box>
       </Box>
     </Box>
+  </Box>
   );
 };
 

@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import colibri from "../../../assets/images/colibri.png";
 import fokus360cinza from "../../../assets/images/fokus360cinza.png";
 import { Link } from 'react-router-dom'; // Certifique-se de importar o Link
+import { Avatar } from "@mui/material";
 
 const Navbar = () => {
   const theme = useTheme();
@@ -20,6 +21,14 @@ const Navbar = () => {
   const navigate = useNavigate(); // Para redirecionar após logout
    const [userRole, setUserRole] = useState(""); // Armazena o perfil do usuário logado
    const [userName, setUserName] = useState("");
+   const [formValues, setFormValues] = useState({
+     username: "",
+     email: "",
+     role: "",
+     unidade: "",
+     photoURL: "",
+   });
+     
 
    // esconde o botão do usuário logado
   useEffect(() => {
@@ -70,6 +79,33 @@ const Navbar = () => {
 
     return () => unsubscribe();
   }, []);
+
+
+//FUNÇÃO PARA BUSCAR A FOTO DO USUÁRIO NO BANCO
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        try {
+          const docRef = doc(db, "user", currentUser.uid);
+          const docSnap = await getDoc(docRef);
+  
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setFormValues({
+              photoURL: data.photoURL || "",    // Define o photoURL no estado
+              username: data.username || "",
+              // ...outros campos, se necessário
+            });
+          }
+        } catch (error) {
+          console.error("Erro ao buscar dados do usuário:", error);
+        }
+      }
+    });
+  
+    return () => unsubscribe();
+  }, []);
+  
 
 
   return (
@@ -203,36 +239,37 @@ const Navbar = () => {
             <NotificationsOutlined />
           </IconButton>
 
+          {userRole !== "01" &&
+            userRole !== "02" &&
+            userRole !== "03" &&
+            userRole !== "04" &&
+            userRole !== "05" &&
+            userRole !== "06" &&
+            userRole !== "07" && (
+              <IconButton
+                component={Link}
+                to="/contacts"
+                sx={{
+                  color: "#312783",
+                  "&:hover": {
+                    backgroundColor: "#f5f5f5",
+                  },
+                }}
+              >
+                <SettingsOutlined />
+              </IconButton>
+            )}
 
-          {userRole !== "01" && userRole !== "02" && userRole !== "03" &&
-          userRole !== "04" && userRole !== "05" && userRole !== "06" && userRole !== "07" && (
-            <IconButton
-              component={Link}
-              to="/contacts"
-              sx={{
-                color: "#312783",
-                "&:hover": {
-                  backgroundColor: "#f5f5f5",
-                },
-              }}
-            >
-              <SettingsOutlined />
-            </IconButton>
-          )}
-
-          <Box
+          <Avatar
+            src={formValues.photoURL || ""}
             sx={{
-              width: "30px",
-              height: "30px",
-              borderRadius: "50%",
-              backgroundColor: "#5f53e5",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
+              width: 45,
+              height: 45,
+              border: "2px solid #9d9d9c",
+              borderRadius: 3,  // Define formato quadrado
             }}
-          >
-            <PersonOutlined sx={{ fontSize: "24px", color: "#fff" }} />
-          </Box>
+          />
+
 
           <Box sx={{ textAlign: "center" }}>
             <Typography

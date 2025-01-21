@@ -23,6 +23,7 @@ import {
 } from "firebase/storage"; // Correção na importação do Storage
 import { db } from "../data/firebase-config";
 import { useLocation } from "react-router-dom";
+import { Divider } from "@mui/material";
 
 const UserDetalhe = () => {
   const location = useLocation();
@@ -152,42 +153,73 @@ const UserDetalhe = () => {
     >
       {/* Card com Informações do Usuário */}
       <Box
-        sx={{
-          width: { xs: "100%", md: "30%" },
-          backgroundColor: "white",
-          boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-          borderRadius: 5,
-          padding: 3,
-          textAlign: "center",
-          marginRight: { md: 4 },
-          marginBottom: { xs: 4, md: 0 },
-        }}
-      >
-        <Avatar
-          alt={formValues.username || "Nome do Usuário"}
-          src={formValues.photoURL || ""}
-          sx={{
-            width: 100,
-            height: 100,
-            margin: "0 auto 16px",
-            border: "2px solid #583cff",
-          }}
-        />
-        <Typography variant="h4" fontWeight="bold" color="#312783">
-          {formValues.username || "Nome do Usuário"}
-        </Typography>
-        <Typography variant="body2" color="textSecondary" mb={2}>
-          <Typography> Unidade </Typography>
-          {formValues.unidade || "Unidade"}
-        </Typography>
-        <Button
+  sx={{
+    width: { xs: "100%", md: "30%" },
+    backgroundColor: "white",
+    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+    borderRadius: 5,
+    padding: 3,
+    textAlign: "center",
+    marginRight: { md: 4 },
+    marginBottom: { xs: 4, md: 0 },
+    display: "flex",           // Ativa Flexbox no container
+    flexDirection: "column",   // Empilha itens verticalmente
+    alignItems: "center",      // Centraliza horizontalmente
+  }}
+>
+  <Avatar
+    alt={formValues.username || "Nome do Usuário"}
+    src={formValues.photoURL || ""}
+    sx={{
+      width: 100,
+      height: 100,
+      marginBottom: 2,               // Espaçamento inferior
+      border: "4px solid #312783",
+    }}
+  />
+  <Typography variant="h4" fontWeight="bold" color="#312783">
+    {formValues.username || "Nome do Usuário"}
+  </Typography>
+
+  <Box
+    sx={{
+      display: "flex",
+      alignItems: "center",    // Alinha verticalmente os itens no centro
+      justifyContent: "center",// Centraliza horizontalmente
+      mt: 2,                   // Margin-top para espaçamento
+    }}
+  >
+    <Typography sx={{ marginRight: "5px", marginTop: "-13px" }}>
+      Unidade:
+    </Typography>
+    <Typography variant="body2" color="textSecondary" mb={2} marginTop="5px">
+      {formValues.unidade || "Unidade"}
+    </Typography>
+  </Box>
+
+  <Button
   variant="text"
   component="label"
   disabled={uploading} // Desabilita o botão enquanto o upload está em progresso
   sx={{
-    color: "#583cff",
+    borderRadius: "10px",
     textTransform: "none",
     fontWeight: "bold",
+    border: "1px solid",
+    width: "90%",
+    mt: 2,
+    color: "#fff",              // Define a cor do texto principal como branca
+    backgroundColor: "#312783",
+    "&:hover": {
+      backgroundColor: "#312783",
+      color: "#fff",
+      boxShadow: "none",
+    },
+    "&.Mui-disabled": {         // Estilização específica para estado desabilitado
+      color: "#fff",            // Garante que o texto permaneça branco
+      backgroundColor: "#312783", // Mantém a mesma cor de fundo se necessário
+      opacity: 1,               // Remove a opacidade padrão para elementos desabilitados, se desejado
+    },
   }}
 >
   {uploading ? "Carregando..." : "Carregar Foto"}
@@ -199,7 +231,8 @@ const UserDetalhe = () => {
   />
 </Button>
 
-      </Box>
+</Box>
+
 
       {/* Formulário de Cadastro */}
       <Box
@@ -217,7 +250,7 @@ const UserDetalhe = () => {
             alignItems: "center",
             padding: "10px",
             borderRadius: "8px",
-            backgroundColor: "#583cff",
+            backgroundColor: "#312783",
             color: "white",
             fontWeight: "bold",
           }}
@@ -335,7 +368,7 @@ const UserDetalhe = () => {
               marginLeft: "auto",
               backgroundColor: "#312783",
               boxShadow: "none",
-              borderRadius: 5,
+              borderRadius: 2,
               "&:hover": {
                 backgroundColor: "#483dbd",
                 boxShadow: "none",
