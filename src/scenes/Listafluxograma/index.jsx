@@ -59,7 +59,7 @@ const Listafluxograma = () => {
         <Box display="flex" alignItems="center" gap={1}>
           <AccountTreeIcon sx={{ color: "#5f53e5", fontSize: 30 }} />
           <Typography sx={{ color: "#858585" }}>
-            FLUXOGRAMA DE PROJETOS
+          EAP - Estrutura Analítica do Projeto
           </Typography>
         </Box>
         <TextField
@@ -71,7 +71,7 @@ const Listafluxograma = () => {
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">
-            <ArrowRightIcon style={{ color: "#9e9e9e" }} />
+            <ArrowRightIcon style={{ color: "#312783" }} />
           </InputAdornment>
         ),
         style: {

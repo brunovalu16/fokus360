@@ -1,6 +1,10 @@
-import React from "react";
-import { Box, Typography, Grid, Divider, InputBase, Toolbar, IconButton } from "@mui/material";
+import React, { useState, useRef } from "react";
+import { Box, Typography, Grid, Divider, InputBase, Button } from "@mui/material";
 import { styled } from "@mui/system";
+import { jsPDF } from "jspdf";
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
+
 
 const StyledInput = styled(InputBase)(({ theme }) => ({
   backgroundColor: "transparent",
@@ -53,6 +57,9 @@ const CircleProgress = ({ percentage }) => {
 };
 
 const FluxoGrama = ({ project }) => {
+  const [expanded, setExpanded] = useState(false); // Estado para controlar a expansão da tela
+  const containerRef = useRef(); // Referência ao container para PDF e impressão
+
   if (!project) {
     return (
       <Typography sx={{ textAlign: "center", marginTop: 4 }}>
@@ -67,18 +74,15 @@ const FluxoGrama = ({ project }) => {
     orcamento = "R$ 0,00", // Orçamento vindo do banco como string formatada
   } = project;
 
-  // Converter o orçamento para número
   const orcamentoNumerico = parseFloat(
     orcamento.replace("R$", "").replace(".", "").replace(",", ".")
   ) || 0;
 
-  // Formatar o orçamento
   const orcamentoFormatado = new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
   }).format(orcamentoNumerico);
 
-  // Calcular valor gasto somando os valores de todas as tarefas
   const valorGasto = diretrizes.reduce((total, diretriz) => {
     const valorDiretriz = diretriz.tarefas?.reduce((acc, tarefa) => {
       const valor = parseFloat(
@@ -92,30 +96,34 @@ const FluxoGrama = ({ project }) => {
     return total + valorDiretriz;
   }, 0);
 
-  // Formatar valor gasto
   const valorGastoFormatado = new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
   }).format(valorGasto);
 
-  // Lógica de cores para o valor gasto
-  const definirCorValorGasto = () => {
-    const progresso = (valorGasto / orcamentoNumerico) * 100;
-    if (progresso <= 50) {
-      return "#4caf50"; // Verde
-    } else if (progresso > 50 && progresso <= 100) {
-      return "#ffc107"; // Amarelo
-    } else {
-      return "#f44336"; // Vermelho
-    }
+  const handleExpand = () => setExpanded(!expanded);
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleSavePDF = () => {
+    const doc = new jsPDF("p", "pt", "a4");
+    doc.html(containerRef.current, {
+      callback: function (doc) {
+        doc.save("fluxograma.pdf");
+      },
+      x: 10,
+      y: 10,
+    });
   };
 
   return (
-
-    
     <Box
+      ref={containerRef}
       sx={{
-        transform: "scale(0.98)",
+        width: expanded ? "100vw" : "110%", // Usa 100vw quando expandido
+        transform: expanded ? "none" : "scale(0.98)",
         transformOrigin: "top left",
         padding: 3,
         paddingTop: "0%",
@@ -124,21 +132,30 @@ const FluxoGrama = ({ project }) => {
         border: "1px solid #ccc",
         borderRadius: 4,
         boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+        position: expanded ? "fixed" : "relative",
+        top: expanded ? 0 : "auto",
+        left: expanded ? 0 : "auto",
+        right: expanded ? 0 : "auto",
+        bottom: expanded ? 0 : "auto",
+        zIndex: expanded ? 9999 : "auto",
+        height: expanded ? "100vh" : "auto",
+        overflow: "auto",
       }}
     >
-      <Grid container spacing={2} alignItems="center">
-        {/* Nome do Projeto */}
+      <Grid container spacing={2} alignItems="center"
+      sx={{ marginBottom: "50px" }}
+      >
         <Grid item xs={3}>
           <StyledInput defaultValue={nome} disabled />
         </Grid>
 
-        {/* Diretrizes e Tarefas */}
         <Grid item xs={9}>
           {diretrizes.map((diretriz, index) => {
-            const progressoDiretriz = diretriz.tarefas.reduce(
-              (acc, tarefa) => acc + (tarefa.progresso || 0),
-              0
-            ) / (diretriz.tarefas.length || 1); // Calcular progresso médio
+            const progressoDiretriz =
+              diretriz.tarefas.reduce(
+                (acc, tarefa) => acc + (tarefa.progresso || 0),
+                0
+              ) / (diretriz.tarefas.length || 1);
             return (
               <Grid
                 container
@@ -147,7 +164,6 @@ const FluxoGrama = ({ project }) => {
                 sx={{ mb: 2 }}
                 key={index}
               >
-                {/* Nome da Diretriz com Gráfico */}
                 <Grid item xs={4}>
                   <Box sx={{ display: "flex", alignItems: "center" }}>
                     <StyledInput defaultValue={diretriz.descricao} disabled />
@@ -155,7 +171,6 @@ const FluxoGrama = ({ project }) => {
                   </Box>
                 </Grid>
 
-                {/* Linha Pontilhada */}
                 <Grid item xs={1}>
                   <Box
                     sx={{
@@ -171,7 +186,6 @@ const FluxoGrama = ({ project }) => {
                   />
                 </Grid>
 
-                {/* Nome das Tarefas */}
                 <Grid item xs={6}>
                   {diretriz.tarefas.map((task, i) => (
                     <Box
@@ -180,13 +194,13 @@ const FluxoGrama = ({ project }) => {
                         display: "flex",
                         alignItems: "center",
                         mb: 1,
-                        justifyContent: "space-between", // Garante alinhamento horizontal
+                        justifyContent: "space-between",
                       }}
                     >
                       <StyledInput
                         defaultValue={task.tituloTarefa}
                         disabled
-                        sx={{ width: "60%" }} // Ajusta largura do input
+                        sx={{ width: "60%" }}
                       />
                       <CircleProgress percentage={task.progresso || 0} />
                       <Typography
@@ -197,12 +211,11 @@ const FluxoGrama = ({ project }) => {
                           borderBottom: "1px solid #b7b7b7",
                           borderLeft: "1px solid #b7b7b7",
                           textAlign: "center",
-                          minWidth: "95px", // Garante largura mínima
+                          minWidth: "95px",
                           marginTop: "30px",
                         }}
                       >
-                        {task.planoDeAcao?.valor || "R$ 0,00"}{" "}
-                        {/* Mostra o valor da tarefa */}
+                        {task.planoDeAcao?.valor || "R$ 0,00"}
                       </Typography>
                     </Box>
                   ))}
@@ -213,94 +226,131 @@ const FluxoGrama = ({ project }) => {
         </Grid>
       </Grid>
 
-      {/* Rodapé */}
-      <Divider sx={{ my: 4 }} />
+      {/**<Divider sx={{ my: 4 }} /> */}
       <Box
-  sx={{
-    //display: "flex",
-    justifyContent: "space-between",
-    fontSize: 14,
-    fontWeight: "bold",
-    alignItems: "center", // Garante alinhamento vertical
-    gap: 1,
-    //backgroundColor: "#f9f9f9",
-    padding: "12px",
-    borderTop: "1px solid #ccc",
-    borderBottom: "1px solid #ccc",
-    color: "#9d9d9c",
-  }}
->
-  {/* Orçamento */}
-  <Typography>
-    Orçamento:{" "}
-    <span style={{ color: "#2c2c88", fontWeight: "bold" }}>{orcamentoFormatado}</span>
-  </Typography>
+        sx={{
+          //display: "flex",
+          justifyContent: "space-between",
+          fontSize: 14,
+          fontWeight: "bold",
+          alignItems: "center", // Garante alinhamento vertical
+          gap: 1,
+          //backgroundColor: "#f9f9f9",
+          padding: "12px",
+          borderTop: "1px solid #ccc",
+          borderBottom: "1px solid #ccc",
+          color: "#9d9d9c",
+        }}
+      >
+        {/* Orçamento */}
+        <Typography>
+          Orçamento:{" "}
+          <span style={{ color: "#2c2c88", fontWeight: "bold" }}>
+            {orcamentoFormatado}
+          </span>
+        </Typography>
 
-  {/* Valor Gasto com Indicador */}
-  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-    <Typography>
-      Valor gasto:{" "}
-      <span style={{ color: "#000" }}>{valorGastoFormatado}</span>
-    </Typography>
-    <Box
-      sx={{
-        width: "10px",
-        height: "10px",
-        borderRadius: "50%",
-        backgroundColor:
-          valorGasto <= orcamentoNumerico * 0.5
-            ? "#4caf50" // Verde
-            : valorGasto <= orcamentoNumerico
-            ? "#ffc107" // Amarelo
-            : "#f44336", // Vermelho
-      }}
-    ></Box>
-  </Box>
+        {/* Valor Gasto com Indicador */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Typography>
+            Valor gasto:{" "}
+            <span style={{ color: "#000" }}>{valorGastoFormatado}</span>
+          </Typography>
+          <Box
+            sx={{
+              width: "10px",
+              height: "10px",
+              borderRadius: "50%",
+              backgroundColor:
+                valorGasto <= orcamentoNumerico * 0.5
+                  ? "#4caf50" // Verde
+                  : valorGasto <= orcamentoNumerico
+                  ? "#ffc107" // Amarelo
+                  : "#f44336", // Vermelho
+            }}
+          ></Box>
+        </Box>
 
-  {/* Total de Diretrizes */}
-  <Typography>
-    Diretrizes:{" "}
-    <span style={{ color: "#2c2c88", fontWeight: "bold"  }}>{diretrizes?.length || 0}</span>
-  </Typography>
+        {/* Total de Diretrizes */}
+        <Typography>
+          Diretrizes:{" "}
+          <span style={{ color: "#2c2c88", fontWeight: "bold" }}>
+            {diretrizes?.length || 0}
+          </span>
+        </Typography>
 
-  {/* Diretrizes Concluídas */}
-  <Typography>
-    Diretrizes concluídas:{" "}
-    <span style={{ color: "#312783", fontWeight: "bold"  }}>
-      {
-        diretrizes?.filter((diretriz) =>
-          diretriz.tarefas.every((tarefa) => tarefa.progresso === 100)
-        ).length || 0
-      }
-    </span>
-  </Typography>
+        {/* Diretrizes Concluídas */}
+        <Typography>
+          Diretrizes concluídas:{" "}
+          <span style={{ color: "#312783", fontWeight: "bold" }}>
+            {diretrizes?.filter((diretriz) =>
+              diretriz.tarefas.every((tarefa) => tarefa.progresso === 100)
+            ).length || 0}
+          </span>
+        </Typography>
 
-  {/* Total de Tarefas */}
-  <Typography>
-    Tarefas:{" "}
-    <span style={{ color: "#312783", fontWeight: "bold"  }}>
-      {diretrizes?.reduce(
-        (acc, diretriz) => acc + (diretriz.tarefas?.length || 0),
-        0
-      ) || 0}
-    </span>
-  </Typography>
+        {/* Total de Tarefas */}
+        <Typography>
+          Tarefas:{" "}
+          <span style={{ color: "#312783", fontWeight: "bold" }}>
+            {diretrizes?.reduce(
+              (acc, diretriz) => acc + (diretriz.tarefas?.length || 0),
+              0
+            ) || 0}
+          </span>
+        </Typography>
 
-  {/* Tarefas Concluídas */}
-  <Typography>
-    Tarefas Concluídas:{" "}
-    <span style={{ color: "#312783", fontWeight: "bold"  }}>
-      {diretrizes?.reduce(
-        (acc, diretriz) =>
-          acc +
-          (diretriz.tarefas?.filter((tarefa) => tarefa.progresso === 100)
-            .length || 0),
-        0
-      ) || 0}
-    </span>
-  </Typography>
-</Box>
+        {/* Tarefas Concluídas */}
+        <Typography>
+          Tarefas Concluídas:{" "}
+          <span style={{ color: "#312783", fontWeight: "bold" }}>
+            {diretrizes?.reduce(
+              (acc, diretriz) =>
+                acc +
+                (diretriz.tarefas?.filter((tarefa) => tarefa.progresso === 100)
+                  .length || 0),
+              0
+            ) || 0}
+          </span>
+        </Typography>
+      </Box>
+      
 
+      <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
+      <Button
+        onClick={handleExpand}
+        sx={{
+          minWidth: "auto", // Remove o espaço extra do botão
+          padding: 0, // Remove o preenchimento interno
+          "& .MuiButton-startIcon": {
+            margin: 0, // Remove o espaço entre o ícone e o botão
+          },
+        }}
+      >
+        {expanded ? (
+          <FullscreenExitIcon sx={{ fontSize: 32, color: "#312783" }} /> // Aumenta o tamanho do ícone
+        ) : (
+          <FullscreenIcon sx={{ fontSize: 32, color: "#312783" }} /> // Aumenta o tamanho do ícone
+        )}
+      </Button>
+
+
+        <Button variant="contained" color="secondary" onClick={handlePrint}
+        sx={{ 
+          backgroundColor: "#312783",
+          color: "#fff",
+            "&:hover": {
+              backgroundColor: "#312783"
+            }, }}
+        >
+          Imprimir
+        </Button>
+        {/** 
+        <Button variant="contained" color="success" onClick={handleSavePDF}>
+          Salvar PDF
+        </Button>
+        */}
+      </Box>
     </Box>
   );
 };
