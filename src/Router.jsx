@@ -19,6 +19,8 @@ import Diretriz from "./scenes/diretrizes";
 import DashboardProjeto from "./scenes/dashboardprojeto";
 import DataProjeto from "./components/DataProjeto";
 import UserDetalhe from "./components/UserDetalhe";
+import FluxoGrama from "./components/FluxoGrama";
+import Listafluxograma from "./scenes/Listafluxograma";
 import { Team, Invoices, Contacts, Form, Bar, Line, Pie, FAQ, Geography, Calendar, Stream } from "./scenes";
 
 const AppRouter = () => {
@@ -52,6 +54,8 @@ const AppRouter = () => {
           <Route path="/contacts" element={<Contacts />} />
           <Route path="/invoices" element={<Invoices />} />
           <Route path="/form" element={<Form />} />
+          <Route path="/fluxograma" element={<FluxoGrama />} />
+          <Route path="/listafluxograma" element={<Listafluxograma />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/bar" element={<Bar />} />
           <Route path="/pie" element={<Pie />} />

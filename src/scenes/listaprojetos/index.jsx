@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, Typography, Button, } from "@mui/material";
 import PermContactCalendarIcon from "@mui/icons-material/PermContactCalendar";
 import Lista from "../../components/Lista";
+import FluxoGrama from "../../components/FluxoGrama";
 import { useTheme } from "@mui/material/styles";
 import { tokens } from "../../theme";
 import { Link } from 'react-router-dom';
@@ -75,6 +76,7 @@ const Projetos = () => {
       >
         <Lista />
       </Box>
+      <FluxoGrama />
     </>
   );
 };

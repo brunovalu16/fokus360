@@ -317,7 +317,7 @@ const checkUserAssociation = async () => {
           <Box
             sx={{
               position: "absolute",
-              top: "48%", // Posição para "Resumo Projetos"
+              top: "48%", // Posição para "Projetos"
               right: "6%",
             }}
           >
@@ -335,7 +335,35 @@ const checkUserAssociation = async () => {
                 textDecoration: "none",
                 fontWeight: "bold",
                 paddingRight: "280px",
-                paddingBottom: "50px",
+                paddingBottom: "30px",
+              }}
+            >
+              Projetos
+            </Link>
+          </Box>
+
+          <Box
+            sx={{
+              position: "absolute",
+              top: "58%", // Posição para "Fluxograma"
+              right: "6%",
+            }}
+          >
+            <Link
+              to={
+                userRole === "08" || isUserAssociated || isSolicitanteAssociated
+                  ? "/Listafluxograma"
+                  : "#"
+                 
+              }
+              onClick={handleLinkClick}
+              style={{
+                backgroundColor: "transparent",
+                color: "transparent",
+                textDecoration: "none",
+                fontWeight: "bold",
+                paddingRight: "280px",
+                paddingBottom: "40px",
               }}
             >
               Projetos
