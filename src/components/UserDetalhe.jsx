@@ -29,13 +29,19 @@ const UserDetalhe = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const userId = queryParams.get("id"); // Obtém o ID do usuário da URL
+  const [senhaLocal, setSenhaLocal] = useState("");
+  const [password, setPassword] = useState(""); // para salvar a senha do formulário
+  const [senhaMask, setSenhaMask] = useState(""); // para exibir "******" depois
+  const [editando, setEditando] = useState(false);
 
   const [formValues, setFormValues] = useState({
     username: "",
     email: "",
     role: "",
+    password,
     unidade: "",
     photoURL: "",
+    senha: "",
   });
 
   const [uploading, setUploading] = useState(false); // Estado para controle do upload de foto
@@ -50,6 +56,7 @@ const UserDetalhe = () => {
         setFormValues({
           username: docSnap.data().username || "",
           email: docSnap.data().email || "",
+          password: docSnap.data().password || "",
           role: docSnap.data().role || "",
           unidade: docSnap.data().unidade || "",
           photoURL: docSnap.data().photoURL || "",
@@ -72,6 +79,7 @@ const UserDetalhe = () => {
       await updateDoc(userRef, {
         username: formValues.username,
         email: formValues.email,
+        password: formValues.password,
         role: formValues.role,
         unidade: formValues.unidade,
         photoURL: formValues.photoURL,
@@ -131,6 +139,22 @@ const UserDetalhe = () => {
       }
     );
   };
+
+
+//setar o senhaMask para "******" e limpar o senhaLocal se quiser
+// (para não ficar guardando a senha em memória).
+  const handleSavePassword = async () => {
+    // Exemplo no Firebase
+    await updateDoc(doc(db, "users", userId), {
+      senha: senhaLocal, 
+      // Na prática, você enviaria a senha hashada
+    });
+  
+    // Depois de salvar, você mostra apenas asteriscos no front
+    setSenhaMask("******");
+    setSenhaLocal("");
+  };
+  
   
 
   
@@ -299,6 +323,17 @@ const UserDetalhe = () => {
               value={formValues.username}
               onChange={(e) =>
                 setFormValues({ ...formValues, username: e.target.value })
+              }
+            />
+            <TextField
+              label="Senha"
+              type="password"
+              variant="outlined"
+              fullWidth
+              required
+              value={formValues.password}
+              onChange={(e) =>
+                setFormValues({ ...formValues, password: e.target.value })
               }
             />
             <TextField

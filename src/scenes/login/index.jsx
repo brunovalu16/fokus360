@@ -9,12 +9,14 @@ import IconButton from '@mui/material/IconButton';
 import Collapse from '@mui/material/Collapse';
 import CloseIcon from '@mui/icons-material/Close';
 import WarningIcon from '@mui/icons-material/Warning';
+import { updatePassword } from "firebase/auth";
 
 
 
 
 
 const Login = () => {
+  
   const [open, setOpen] = React.useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -77,6 +79,46 @@ const Login = () => {
       });
     }
   };
+
+
+
+
+//Atualizar a senha no Firebase Authentication:
+const handlePasswordUpdate = async () => {
+  try {
+    const newPassword = "novaSenha123"; // Pode ser capturado de um campo de entrada
+    const user = auth.currentUser;
+
+    if (user) {
+      await updatePassword(user, newPassword);
+      console.log("Senha atualizada com sucesso no Firebase Authentication.");
+    } else {
+      console.log("Nenhum usuário autenticado.");
+    }
+  } catch (error) {
+    console.error("Erro ao atualizar a senha:", error.message);
+  }
+};
+
+
+  // Atualiza a senha no Firestore e no Firebase Authentication
+const updatePasswordInFirestoreAndAuth = async (userId, newPassword) => {
+  try {
+    // Atualiza a senha no Firebase Authentication
+    const user = auth.currentUser;
+    if (user) {
+      await updatePassword(user, newPassword);
+    }
+
+    // Atualiza a senha no Firestore
+    const userDocRef = doc(db, "user", userId);
+    await updateDoc(userDocRef, { password: newPassword });
+
+    console.log("Senha atualizada no Firestore e Firebase Authentication!");
+  } catch (error) {
+    console.error("Erro ao atualizar a senha:", error.message);
+  }
+};
   
     
 

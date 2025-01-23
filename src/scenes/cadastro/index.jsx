@@ -65,6 +65,7 @@ const handleUploadPhoto = async () => {
       const userData = {
         username,
         email,
+        password,
         role,
         unidade,
         photoURL, // Salva a URL da foto

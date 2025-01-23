@@ -29,6 +29,7 @@
     "@nivo/stream": "^0.84.0",
     "dayjs": "^1.11.13",
     "firebase": "^11.0.2",
+    "firebase-admin": "^12.7.0",
     "formik": "^2.4.5",
     "jspdf": "^2.5.2",
     "lodash.debounce": "^4.0.8",
