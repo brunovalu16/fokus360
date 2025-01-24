@@ -6,6 +6,8 @@ import { auth, db } from "../../data/firebase-config.js";
 import { collection, addDoc, setDoc, doc } from "firebase/firestore";
 import { storage } from "../../data/firebase-config";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { sendEmailVerification } from "firebase/auth";
+
 
 const Cadastro = () => {
   const [username, setUsername] = useState("");
@@ -47,39 +49,47 @@ const handleUploadPhoto = async () => {
   }
 };
 
- // Função para cadastrar o usuário
- const handleCadastro = async (e) => {
+
+// Função para cadastrar o usuário
+const handleCadastro = async (e) => {
   e.preventDefault();
 
   try {
+    // Cria o usuário no Firebase Authentication
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     console.log("Usuário criado com sucesso:", userCredential.user);
 
+    // Enviar e-mail de verificação
+    await sendEmailVerification(userCredential.user);
+    console.log("E-mail de verificação enviado para:", userCredential.user.email);
+
+    // Upload de foto (se houver)
     let photoURL = "";
     if (avatar) {
-      photoURL = await handleUploadPhoto(); // Faz o upload da foto e obtém a URL
+      photoURL = await handleUploadPhoto();
     }
 
-    if (userCredential) {
-      const user = userCredential.user.uid;
-      const userData = {
-        username,
-        email,
-        password,
-        role,
-        unidade,
-        photoURL, // Salva a URL da foto
-      };
-      await setDoc(doc(db, "user", user), userData);
+    // Salva os dados do usuário no Firestore
+    const userId = userCredential.user.uid;
+    const userData = {
+      username,
+      email,
+      role,
+      unidade,
+      photoURL, // URL da foto de perfil
+    };
 
-      alert("Usuário cadastrado com sucesso!");
-    }
+    await setDoc(doc(db, "user", userId), userData);
 
+    alert("Usuário cadastrado com sucesso! Verifique seu e-mail para confirmar.");
     navigate("/cadastro");
   } catch (error) {
     console.error("Erro ao cadastrar usuário:", error.message);
+    alert(`Erro ao cadastrar usuário: ${error.message}`);
   }
 };
+
+
   
   
 

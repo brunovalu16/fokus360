@@ -4,6 +4,7 @@ import { styled } from "@mui/system";
 import { jsPDF } from "jspdf";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
+import PrintIcon from "@mui/icons-material/Print";
 
 
 const StyledInput = styled(InputBase)(({ theme }) => ({
@@ -122,16 +123,14 @@ const FluxoGrama = ({ project }) => {
     <Box
       ref={containerRef}
       sx={{
-        width: expanded ? "100vw" : "110%", // Usa 100vw quando expandido
+        width: expanded ? "100vw" : "100%",
         transform: expanded ? "none" : "scale(0.98)",
         transformOrigin: "top left",
-        padding: 3,
-        paddingTop: "0%",
-        fontFamily: "Arial",
-        backgroundColor: "#fff",
-        border: "1px solid #ccc",
-        borderRadius: 4,
-        boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+        padding: 4,
+        backgroundColor: "#f9f9fb", // Fundo mais moderno
+        border: "1px solid #e0e0e0", // Cor suave para borda
+        borderRadius: "12px", // Cantos arredondados
+        boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.1)", // Sombras suaves
         position: expanded ? "fixed" : "relative",
         top: expanded ? 0 : "auto",
         left: expanded ? 0 : "auto",
@@ -139,15 +138,42 @@ const FluxoGrama = ({ project }) => {
         bottom: expanded ? 0 : "auto",
         zIndex: expanded ? 9999 : "auto",
         height: expanded ? "100vh" : "auto",
-        overflow: "auto",
+        overflowX: "hidden",
+        overflowY: "auto",
+        marginBottom: "auto",
       }}
     >
-      <Grid container spacing={2} alignItems="center"
-      sx={{ marginBottom: "50px" }}
+      <Grid
+        container
+        spacing={2}
+        alignItems="center"
+        sx={{ marginBottom: "50px" }}
       >
         <Grid item xs={3}>
-          <StyledInput defaultValue={nome} disabled />
+          {/* Nome do Projeto */}
+          <Typography
+            sx={{
+              fontSize: "9px", // Texto pequeno
+              color: "#555", // Cor cinza escuro
+              marginTop: "60px", // Espaçamento superior
+              marginBottom: "-28px",
+              marginLeft: "10px",
+            }}
+          >
+           Projeto
+          </Typography>
+          <StyledInput
+            defaultValue={nome}
+            disabled
+            sx={{
+              backgroundColor: "#fff", // Fundo branco para destaque
+              borderRadius: "8px", // Cantos arredondados
+              border: "1px solid #dcdcdc", // Borda leve
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)", // Leve profundidade
+            }}
+          />
         </Grid>
+
 
         <Grid item xs={9}>
           {diretrizes.map((diretriz, index) => {
@@ -156,6 +182,7 @@ const FluxoGrama = ({ project }) => {
                 (acc, tarefa) => acc + (tarefa.progresso || 0),
                 0
               ) / (diretriz.tarefas.length || 1);
+
             return (
               <Grid
                 container
@@ -164,21 +191,45 @@ const FluxoGrama = ({ project }) => {
                 sx={{ mb: 2 }}
                 key={index}
               >
-                <Grid item xs={4}>
+                <Grid item xs={4.5}>
+                  {/* Descrição da Diretriz */}
+                  <Typography
+                    sx={{
+                      fontSize: "9px", // Texto pequeno
+                      color: "#555", // Cor cinza escuro
+                      marginTop: "60px", // Espaçamento superior
+                      marginBottom: "-28px",
+                      marginLeft: "10px",
+                    }}
+                  >
+                    Diretriz
+                  </Typography>
                   <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <StyledInput defaultValue={diretriz.descricao} disabled />
-                    <CircleProgress percentage={Math.round(progressoDiretriz)} />
+                    <StyledInput
+                      defaultValue={diretriz.descricao}
+                      disabled
+                      sx={{
+                        backgroundColor: "#fff",
+                        borderRadius: "8px",
+                        border: "1px solid #dcdcdc",
+                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                        width: "120%",
+                      }}
+                    />
+                    <CircleProgress
+                      percentage={Math.round(progressoDiretriz)}
+                    />
                   </Box>
                 </Grid>
 
-                <Grid item xs={1}>
+                <Grid item xs={0.5}>
                   <Box
                     sx={{
                       height: "2px",
                       width: "100%",
-                      borderTop: "2px dashed #ccc",
+                      borderTop: "2px dashed #dcdcdc",
                       position: "relative",
-                      top: "50%",
+                      top: "23px",
                       left: "50%",
                       transform: "translate(-50%, -50%)",
                       marginTop: "30px",
@@ -187,10 +238,22 @@ const FluxoGrama = ({ project }) => {
                 </Grid>
 
                 <Grid item xs={6}>
+                  {/* Tarefas da Diretriz */}
+                  <Typography
+                    sx={{
+                      fontSize: "9px", // Texto pequeno
+                      color: "#555", // Cor cinza escuro
+                      marginLeft: "10px",
+                      marginTop: "65px", // Espaçamento superior
+                    }}
+                  >
+                    Tarefas
+                  </Typography>
                   {diretriz.tarefas.map((task, i) => (
                     <Box
                       key={i}
                       sx={{
+                        marginTop: "-28px",
                         display: "flex",
                         alignItems: "center",
                         mb: 1,
@@ -200,22 +263,31 @@ const FluxoGrama = ({ project }) => {
                       <StyledInput
                         defaultValue={task.tituloTarefa}
                         disabled
-                        sx={{ width: "60%" }}
+                        sx={{
+                          marginTop: "30px",
+                          backgroundColor: "#fff",
+                          borderRadius: "8px",
+                          border: "1px solid #dcdcdc",
+                          width: "100%",
+                          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                          marginRight: "3px",
+                        }}
                       />
                       <CircleProgress percentage={task.progresso || 0} />
                       <Typography
                         sx={{
                           ml: 2,
-                          color: "#333",
+                          color: "#555",
                           padding: "6px 12px",
-                          borderBottom: "1px solid #b7b7b7",
-                          borderLeft: "1px solid #b7b7b7",
                           textAlign: "center",
-                          minWidth: "95px",
+                          minWidth: "1px",
+                          width: "20px",
                           marginTop: "30px",
+                          marginLeft: "-5px",
+                          fontWeight: "bold",
                         }}
                       >
-                        {task.planoDeAcao?.valor || "R$ 0,00"}
+                       <Typography sx={{ fontSize: "10px" }}>Valor</Typography> {task.planoDeAcao?.valor || "R$ 0,00"} 
                       </Typography>
                     </Box>
                   ))}
@@ -226,10 +298,19 @@ const FluxoGrama = ({ project }) => {
         </Grid>
       </Grid>
 
+
+
+
+
+
+
+
+
+
       {/**<Divider sx={{ my: 4 }} /> */}
       <Box
         sx={{
-          //display: "flex",
+          display: "flex",
           justifyContent: "space-between",
           fontSize: 14,
           fontWeight: "bold",
@@ -245,38 +326,56 @@ const FluxoGrama = ({ project }) => {
         {/* Orçamento */}
         <Typography>
           Orçamento:{" "}
-          <span style={{ color: "#2c2c88", fontWeight: "bold" }}>
+          <span style={{ color: "#4caf50", fontWeight: "bold" }}>
             {orcamentoFormatado}
           </span>
         </Typography>
 
         {/* Valor Gasto com Indicador */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Typography>
-            Valor gasto:{" "}
-            <span style={{ color: "#000" }}>{valorGastoFormatado}</span>
-          </Typography>
-          <Box
+          <Typography>Valor gasto:</Typography>
+          <Typography
             sx={{
-              width: "10px",
-              height: "10px",
-              borderRadius: "50%",
-              backgroundColor:
+              color:
                 valorGasto <= orcamentoNumerico * 0.5
                   ? "#4caf50" // Verde
                   : valorGasto <= orcamentoNumerico
                   ? "#ffc107" // Amarelo
                   : "#f44336", // Vermelho
+              fontWeight: "bold",
             }}
-          ></Box>
+          >
+            {valorGastoFormatado}
+          </Typography>
+          <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+            <rect
+              width="20"
+              height="20"
+              rx="2" /* Para bordas arredondadas */
+              fill={
+                valorGasto <= orcamentoNumerico * 0.5
+                  ? "#4caf50" // Verde
+                  : valorGasto <= orcamentoNumerico
+                  ? "#ffc107" // Amarelo
+                  : "#f44336" // Vermelho
+              }
+            />
+          </svg>
         </Box>
 
         {/* Total de Diretrizes */}
-        <Typography>
+        <Typography sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           Diretrizes:{" "}
-          <span style={{ color: "#2c2c88", fontWeight: "bold" }}>
+          <Box
+            sx={{
+              marginTop: "3px",
+              color: "#2c2c88", // Texto em azul escuro
+              fontWeight: "bold",
+              marginLeft: "-3px",
+            }}
+          >
             {diretrizes?.length || 0}
-          </span>
+          </Box>
         </Typography>
 
         {/* Diretrizes Concluídas */}
@@ -314,14 +413,17 @@ const FluxoGrama = ({ project }) => {
           </span>
         </Typography>
       </Box>
-      
 
       <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
       <Button
         onClick={handleExpand}
+        disableRipple // Remove o efeito de clique
         sx={{
           minWidth: "auto", // Remove o espaço extra do botão
           padding: 0, // Remove o preenchimento interno
+          "&:hover": {
+            backgroundColor: "transparent", // Garante que não haja efeito ao passar o mouse
+          },
           "& .MuiButton-startIcon": {
             margin: 0, // Remove o espaço entre o ícone e o botão
           },
@@ -335,16 +437,27 @@ const FluxoGrama = ({ project }) => {
       </Button>
 
 
-        <Button variant="contained" color="secondary" onClick={handlePrint}
-        sx={{ 
-          backgroundColor: "#312783",
-          color: "#fff",
+
+        
+
+        <Button
+          onClick={handlePrint}
+          disableRipple // Remove o efeito de clique
+          sx={{
+            backgroundColor: "transparent", // Remove o fundo
+            border: "none", // Remove bordas padrão
+            padding: "8px", // Espaço interno para tornar o botão clicável
+            minWidth: "auto", // Ajusta o tamanho ao conteúdo
             "&:hover": {
-              backgroundColor: "#312783"
-            }, }}
+              backgroundColor: "#f9f9fb", // Efeito de hover suave
+            },
+          }}
         >
-          Imprimir
+          <PrintIcon sx={{ color: "#312783", fontSize: "24px" }} />
         </Button>
+
+
+
         {/** 
         <Button variant="contained" color="success" onClick={handleSavePDF}>
           Salvar PDF

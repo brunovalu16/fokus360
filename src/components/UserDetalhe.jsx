@@ -21,9 +21,13 @@ import {
   uploadBytesResumable,
   getDownloadURL,
 } from "firebase/storage"; // Correção na importação do Storage
-import { db } from "../data/firebase-config";
 import { useLocation } from "react-router-dom";
 import { Divider } from "@mui/material";
+import { auth, db } from "../data/firebase-config";
+import { updateEmail, sendEmailVerification } from "firebase/auth";
+
+
+
 
 const UserDetalhe = () => {
   const location = useLocation();
@@ -33,6 +37,8 @@ const UserDetalhe = () => {
   const [password, setPassword] = useState(""); // para salvar a senha do formulário
   const [senhaMask, setSenhaMask] = useState(""); // para exibir "******" depois
   const [editando, setEditando] = useState(false);
+  const [originalEmail, setOriginalEmail] = useState("");
+
 
   const [formValues, setFormValues] = useState({
     username: "",
@@ -41,57 +47,83 @@ const UserDetalhe = () => {
     password,
     unidade: "",
     photoURL: "",
-    senha: "",
   });
 
   const [uploading, setUploading] = useState(false); // Estado para controle do upload de foto
 
   // Função para buscar os dados do usuário
   useEffect(() => {
-    const fetchUserDetails = async () => {
-      if (!userId) return;
-      const docRef = doc(db, "user", userId);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setFormValues({
-          username: docSnap.data().username || "",
-          email: docSnap.data().email || "",
-          password: docSnap.data().password || "",
-          role: docSnap.data().role || "",
-          unidade: docSnap.data().unidade || "",
-          photoURL: docSnap.data().photoURL || "",
-        });
-      } else {
-        console.log("Usuário não encontrado.");
-      }
-    };
-    fetchUserDetails();
+    if (userId) {
+      const fetchUserDetails = async () => {
+        const userDoc = await getDoc(doc(db, "user", userId));
+        if (userDoc.exists()) {
+          setOriginalEmail(userDoc.data().email);
+          setFormValues({
+            username: userDoc.data().username || "",
+            email: userDoc.data().email || "",
+            role: userDoc.data().role || "",
+            unidade: userDoc.data().unidade || "",
+            photoURL: userDoc.data().photoURL || "",
+          });
+        }
+      };
+      fetchUserDetails();
+    }
   }, [userId]);
+  
+  
+  
 
   // Função para salvar as alterações
   const handleUser = async (e) => {
     e.preventDefault();
+  
     try {
-      // Referência ao documento do usuário no Firestore
       const userRef = doc(db, "user", userId);
-
-      // Atualiza os campos no banco de dados
+  
+      const emailChanged = formValues.email !== originalEmail;
+  
       await updateDoc(userRef, {
         username: formValues.username,
         email: formValues.email,
-        password: formValues.password,
         role: formValues.role,
         unidade: formValues.unidade,
         photoURL: formValues.photoURL,
       });
-
-      console.log("Dados do usuário atualizados com sucesso!");
-      alert("Usuário atualizado com sucesso!");
+  
+      if (emailChanged) {
+        const response = await fetch("http://localhost:5000/update-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            uid: userId,
+            newEmail: formValues.email,
+          }),
+        });
+  
+        const data = await response.json();
+        if (data.success) {
+          //alert("E-mail atualizado com sucesso! Verifique o link enviado ao novo endereço.");
+        } else {
+          alert("Erro ao atualizar o e-mail. Tente novamente.");
+        }
+      }
+  
+      alert("Dados do usuário atualizados com sucesso!");
     } catch (error) {
-      console.error("Erro ao atualizar os dados do usuário:", error);
-      alert("Erro ao atualizar os dados. Tente novamente.");
+      console.error("Erro ao atualizar os dados do usuário:", error.message);
+      alert("Erro ao atualizar os dados. Verifique as permissões e tente novamente.");
     }
   };
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
   // Função para carregar foto
   const handleUploadPhoto = (event) => {
@@ -326,26 +358,13 @@ const UserDetalhe = () => {
               }
             />
             <TextField
-              label="Senha"
-              type="password"
-              variant="outlined"
-              fullWidth
-              required
-              value={formValues.password}
-              onChange={(e) =>
-                setFormValues({ ...formValues, password: e.target.value })
-              }
-            />
-            <TextField
               label="Email"
               type="email"
               variant="outlined"
               fullWidth
               required
               value={formValues.email}
-              onChange={(e) =>
-                setFormValues({ ...formValues, email: e.target.value })
-              }
+              onChange={(e) => setFormValues({ ...formValues, email: e.target.value })}
               sx={{ flex: 1 }}
             />
           </Box>

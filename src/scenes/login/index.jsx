@@ -1,33 +1,42 @@
 import React, { useState } from "react";
-import { Box, Button, TextField, Modal, Typography  } from "@mui/material";
+import {
+  Box,
+  Button,
+  TextField,
+  Modal,
+  Typography,
+  Alert,
+  Collapse,
+  IconButton,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore"; // Importar do Firestore
-import { auth, db } from "../../data/firebase-config"; // Importar do arquivo de configuração
-import Alert from '@mui/material/Alert';
-import IconButton from '@mui/material/IconButton';
-import Collapse from '@mui/material/Collapse';
-import CloseIcon from '@mui/icons-material/Close';
-import WarningIcon from '@mui/icons-material/Warning';
-import { updatePassword } from "firebase/auth";
-
-
-
-
+import {
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+} from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "../../data/firebase-config";
+import CloseIcon from "@mui/icons-material/Close";
+import WarningIcon from "@mui/icons-material/Warning";
 
 const Login = () => {
-  
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = useState(false); // Controla o modal de redefinição de senha
+  const [resetEmail, setResetEmail] = useState(""); // Armazena o e-mail para redefinição
+  const [alertReset, setAlertReset] = useState({
+    open: false,
+    message: "",
+    severity: "info",
+  });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const [errors, setErrors] = useState({ email: "", password: "" }); // Estado para armazenar os erros
   const [alert, setAlert] = useState({
     open: false,
     message: "",
     severity: "error",
   });
 
+  // Login
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -41,22 +50,28 @@ const Login = () => {
     }
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const user = userCredential.user;
+
+      // Verificar se o e-mail foi confirmado
+      if (!user.emailVerified) {
+        window.alert("Por favor, verifique seu e-mail antes de fazer login.");
+        await auth.signOut(); // Desconecta o usuário
+        return;
+      }
 
       const userDoc = await getDoc(doc(db, "user", user.uid));
       if (userDoc.exists()) {
         const userRole = userDoc.data().role;
-
-        if (userRole === "07") {
-          navigate("/projetos");
-        } else {
-          navigate("/home");
-        }
+        navigate(userRole === "07" ? "/projetos" : "/home");
       } else {
         setAlert({
           open: true,
-          message: "Por favor, preencha todos os campos.",
+          message: "Usuário não encontrado no Firestore.",
           severity: "error",
         });
       }
@@ -68,8 +83,6 @@ const Login = () => {
         errorMessage = "Senha incorreta. Tente novamente.";
       } else if (error.code === "auth/invalid-email") {
         errorMessage = "Email inválido. Por favor, insira um email válido.";
-      } else if (error.code === "auth/invalid-credential") {
-        errorMessage = "Credenciais inválidas. Tente novamente.";
       }
 
       setAlert({
@@ -80,50 +93,86 @@ const Login = () => {
     }
   };
 
-
-
-
-//Atualizar a senha no Firebase Authentication:
-const handlePasswordUpdate = async () => {
-  try {
-    const newPassword = "novaSenha123"; // Pode ser capturado de um campo de entrada
-    const user = auth.currentUser;
-
-    if (user) {
-      await updatePassword(user, newPassword);
-      console.log("Senha atualizada com sucesso no Firebase Authentication.");
-    } else {
-      console.log("Nenhum usuário autenticado.");
-    }
-  } catch (error) {
-    console.error("Erro ao atualizar a senha:", error.message);
-  }
-};
-
-
-  // Atualiza a senha no Firestore e no Firebase Authentication
-const updatePasswordInFirestoreAndAuth = async (userId, newPassword) => {
-  try {
-    // Atualiza a senha no Firebase Authentication
-    const user = auth.currentUser;
-    if (user) {
-      await updatePassword(user, newPassword);
+  // Função para enviar o e-mail de redefinição de senha
+  const handlePasswordReset = async () => {
+    if (!resetEmail) {
+      setAlertReset({
+        open: true,
+        message: "Por favor, insira seu e-mail.",
+        severity: "error",
+      });
+      return;
     }
 
-    // Atualiza a senha no Firestore
-    const userDocRef = doc(db, "user", userId);
-    await updateDoc(userDocRef, { password: newPassword });
-
-    console.log("Senha atualizada no Firestore e Firebase Authentication!");
-  } catch (error) {
-    console.error("Erro ao atualizar a senha:", error.message);
-  }
-};
-  
-    
+    try {
+      await sendPasswordResetEmail(auth, resetEmail);
+      setAlertReset({
+        open: true,
+        message:
+          "E-mail de redefinição de senha enviado com sucesso! Verifique sua caixa de entrada.",
+        severity: "success",
+      });
+      setOpen(false); // Fecha o modal
+    } catch (error) {
+      console.error("Erro ao enviar e-mail de redefinição:", error.message);
+      setAlertReset({
+        open: true,
+        message:
+          "Erro ao enviar e-mail de redefinição. Verifique se o e-mail está correto.",
+        severity: "error",
+      });
+    }
+  };
 
   return (
     <>
+      {/* Modal para redefinição de senha */}
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        aria-labelledby="reset-password-modal-title"
+        aria-describedby="reset-password-modal-description"
+      >
+        <Box
+          sx={{
+            width: "30%",
+            backgroundColor: "white",
+            padding: 4,
+            borderRadius: 3,
+            boxShadow: 3,
+            textAlign: "center",
+            margin: "0 auto",
+            marginTop: "10%",
+          }}
+        >
+          <Typography variant="h6" mb={2}>
+            Redefinir Senha
+          </Typography>
+          <TextField
+            label="E-mail"
+            type="email"
+            fullWidth
+            variant="outlined"
+            value={resetEmail}
+            onChange={(e) => setResetEmail(e.target.value)}
+            sx={{ marginBottom: 3 }}
+          />
+          <Button
+            variant="contained"
+            fullWidth
+            sx={{
+              backgroundColor: "#312783",
+              color: "white",
+              "&:hover": { backgroundColor: "#868dfb" },
+            }}
+            onClick={handlePasswordReset}
+          >
+            Enviar Email de Redefinição
+          </Button>
+        </Box>
+      </Modal>
+
+      {/* Modal de alerta */}
       <Modal
         open={alert.open}
         onClose={() => setAlert({ ...alert, open: false })}
@@ -132,32 +181,27 @@ const updatePasswordInFirestoreAndAuth = async (userId, newPassword) => {
       >
         <Box
           sx={{
-            width: "50%", // Ajusta o tamanho horizontal
-            height: "100vh", // Ocupar a altura total da tela
+            width: "50%",
+            height: "100vh",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            margin: "0 auto", // Garante o alinhamento horizontal
-            outline: "none", // Remove o contorno padrão do modal
-            background: "transparent", // Define o fundo transparente, se necessário
-            boxShadow: "none", // Remove sombras ao redor
+            margin: "0 auto",
+            outline: "none",
+            background: "transparent",
+            boxShadow: "none",
           }}
         >
           <Collapse in={alert.open}>
             <Alert
-              icon={
-                <WarningIcon
-                  fontSize="inherit"
-                  style={{ color: "yellow" }} // Cor amarela para o ícone
-                />
-              }
+              icon={<WarningIcon fontSize="inherit" style={{ color: "yellow" }} />}
               action={
                 <IconButton
                   aria-label="close"
                   color="inherit"
                   size="small"
                   onClick={() => {
-                    setAlert({ ...alert, open: false }); // Fechar o alerta e o modal
+                    setAlert({ ...alert, open: false });
                   }}
                 >
                   <CloseIcon fontSize="inherit" />
@@ -165,11 +209,11 @@ const updatePasswordInFirestoreAndAuth = async (userId, newPassword) => {
               }
               sx={{
                 mb: 2,
-                backgroundColor: "#dc2626", // Fundo vermelho
+                backgroundColor: "#dc2626",
                 border: "none",
-                color: "white", // Texto em branco
+                color: "white",
                 "& .MuiAlert-icon": {
-                  color: "yellow", // Garantia de que o ícone fique amarelo
+                  color: "yellow",
                 },
               }}
             >
@@ -179,6 +223,27 @@ const updatePasswordInFirestoreAndAuth = async (userId, newPassword) => {
         </Box>
       </Modal>
 
+      {/* Alerta verde */}
+      <Box
+        sx={{
+          position: "fixed",
+          top: "10px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          zIndex: 1000,
+        }}
+      >
+        {alertReset.open && (
+          <Alert
+            severity={alertReset.severity}
+            onClose={() => setAlertReset({ ...alertReset, open: false })}
+          >
+            {alertReset.message}
+          </Alert>
+        )}
+      </Box>
+
+      {/* Formulário de login */}
       <Box
         display="flex"
         flexDirection="row"
@@ -272,6 +337,15 @@ const updatePasswordInFirestoreAndAuth = async (userId, newPassword) => {
               }}
             >
               Entrar
+            </Button>
+
+            {/* Botão "Esqueci a senha" */}
+            <Button
+              variant="text"
+              onClick={() => setOpen(true)}
+              sx={{ color: "#312783" }}
+            >
+              Esqueci a senha
             </Button>
           </Box>
         </Box>
