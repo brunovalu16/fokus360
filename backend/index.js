@@ -20,41 +20,32 @@ admin.initializeApp({
 });
 
 // Rota para atualizar a senha
-app.post("/update-password", async (req, res) => {
-  const { uid, newPassword } = req.body;
-
-  try {
-    await admin.auth().updateUser(uid, { password: newPassword });
-    res.status(200).json({ success: true, message: "Senha atualizada com sucesso!" });
-  } catch (error) {
-    console.error("Erro ao atualizar a senha:", error.message);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-// Rota para atualizar o e-mail e enviar um link de verificação
 app.post("/update-email", async (req, res) => {
   const { uid, newEmail } = req.body;
 
   try {
-    console.log("Atualizando e-mail para UID:", uid, "Novo e-mail:", newEmail);
+    // Atualizar o e-mail no Firebase Authentication
     await admin.auth().updateUser(uid, { email: newEmail });
 
+    // Gerar link de verificação de e-mail
     const emailVerificationLink = await admin.auth().generateEmailVerificationLink(newEmail);
-    console.log("Link de verificação gerado:", emailVerificationLink);
+
+    // (Opcional) Enviar o link de verificação por e-mail usando um serviço de envio (ex.: Nodemailer)
+    console.log(`Link de verificação enviado: ${emailVerificationLink}`);
 
     res.status(200).json({
       success: true,
-      message: "E-mail atualizado com sucesso! Link de verificação enviado.",
+      message: "E-mail atualizado com sucesso!",
     });
   } catch (error) {
-    console.error("Erro ao atualizar o e-mail no backend:", error.message);
+    console.error("Erro ao atualizar o e-mail:", error.message);
     res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 });
+
 
 
 

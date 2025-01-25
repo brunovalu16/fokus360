@@ -103,9 +103,11 @@ const Login = () => {
       });
       return;
     }
-
+  
     try {
+      console.log("Enviando e-mail para:", resetEmail);
       await sendPasswordResetEmail(auth, resetEmail);
+      console.log("E-mail enviado com sucesso!");
       setAlertReset({
         open: true,
         message:
@@ -114,7 +116,7 @@ const Login = () => {
       });
       setOpen(false); // Fecha o modal
     } catch (error) {
-      console.error("Erro ao enviar e-mail de redefinição:", error.message);
+      console.error("Erro ao enviar e-mail de redefinição:", error.code, error.message);
       setAlertReset({
         open: true,
         message:
@@ -123,6 +125,7 @@ const Login = () => {
       });
     }
   };
+  
 
   return (
     <>
