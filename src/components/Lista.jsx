@@ -154,12 +154,12 @@ useEffect(() => {
       const projetoRef = doc(db, "projetos", confirmAlert.projetoId);
       await deleteDoc(projetoRef);
   
-      console.log(`Projeto ${confirmAlert.projetoId} deletado com sucesso!`);
+      //console.log(`Projeto ${confirmAlert.projetoId} deletado com sucesso!`);
   
       fetchProjetos();
       setConfirmAlert({ show: false, projetoId: null });
     } catch (error) {
-      console.error("Erro ao deletar o projeto:", error.message);
+      //console.error("Erro ao deletar o projeto:", error.message);
     }
   };
   
@@ -490,7 +490,7 @@ useEffect(() => {
  
 
   useEffect(() => {
-    console.log("Aplicando filtros: filtroQuem:", filtroQuem, "filtroColaborador:", filtroColaborador, "filtroSolicitante:", filtroSolicitante);
+    //console.log("Aplicando filtros: filtroQuem:", filtroQuem, "filtroColaborador:", filtroColaborador, "filtroSolicitante:", filtroSolicitante);
   
     let exibidos = [...projetos];
   
@@ -509,7 +509,7 @@ useEffect(() => {
       exibidos = exibidos.filter((proj) => proj.solicitante === filtroSolicitante);
     }
   
-    console.log("Projetos exibidos após filtro:", exibidos);
+    //console.log("Projetos exibidos após filtro:", exibidos);
     setProjetosExibidos(exibidos);
   }, [filtroQuem, filtroColaborador, filtroSolicitante, projetos]);
   
@@ -551,7 +551,7 @@ const fetchProjetos = async () => {
       return { id: docSnap.id, ...data };
     });
 
-    console.log("Projetos carregados:", projetosCarregados);
+    //console.log("Projetos carregados:", projetosCarregados);
     setProjetos(projetosCarregados);
   } catch (error) {
     console.error("Erro ao buscar projetos:", error);
@@ -561,27 +561,27 @@ const fetchProjetos = async () => {
 
 // Filtro de projetos por responsável
 useEffect(() => {
-  console.log("Aplicando filtro por quem:", filtroQuem);
+  //console.log("Aplicando filtro por quem:", filtroQuem);
 
   if (filtroQuem) {
     const filtrados = projetos.filter((proj) => {
-      console.log("Analisando projeto:", proj);
+      //console.log("Analisando projeto:", proj);
 
       const diretrizes = proj.diretrizes || [];
       return diretrizes.some((diretriz) => {
         const tarefas = diretriz.tarefas || [];
         return tarefas.some((tarefa) => {
           const planoDeAcao = tarefa.planoDeAcao || {};
-          console.log("IDs encontrados no 'quem':", planoDeAcao.quem); // Loga os IDs no campo "quem"
+          //console.log("IDs encontrados no 'quem':", planoDeAcao.quem); // Loga os IDs no campo "quem"
           return Array.isArray(planoDeAcao.quem) && planoDeAcao.quem.includes(filtroQuem); // Verifica se o ID está em "quem"
         });
       });
     });
 
-    console.log("Projetos filtrados por filtroQuem:", filtrados);
+    //console.log("Projetos filtrados por filtroQuem:", filtrados);
     setProjetosExibidos(filtrados);
   } else {
-    console.log("Sem filtroQuem, exibindo todos os projetos.");
+    //console.log("Sem filtroQuem, exibindo todos os projetos.");
     setProjetosExibidos(projetos);
   }
 }, [filtroQuem, projetos]);
@@ -622,7 +622,7 @@ const fetchProjetosColaborador = async () => {
 
     // Armazena os projetos no estado
     setProjetos(projetosCarregados);
-    console.log("Total de projetos carregados:", projetosCarregados.length);
+    //console.log("Total de projetos carregados:", projetosCarregados.length);
 
     // 2) Cria o mapa de { colaboradorId -> contagem } a partir dos projetos
     const colaboradoresMap = new Map();
@@ -680,9 +680,9 @@ useEffect(() => {
 
 // Lógica de filtro
 useEffect(() => {
-  console.log("== Aplicando filtro de colaborador ==");
-  console.log("Filtro ativo (ID):", filtroColaborador);
-  console.log("Projetos disponíveis:", projetos);
+  //console.log("== Aplicando filtro de colaborador ==");
+  //console.log("Filtro ativo (ID):", filtroColaborador);
+  //console.log("Projetos disponíveis:", projetos);
 
   if (filtroColaborador) {
     const filtrados = projetos.filter((projeto) =>
@@ -690,10 +690,10 @@ useEffect(() => {
         ? projeto.colaboradores.includes(filtroColaborador)
         : false
     );
-    console.log("Projetos filtrados por ID:", filtrados);
+    //console.log("Projetos filtrados por ID:", filtrados);
     setProjetosFiltradosColaborador(filtrados);
   } else {
-    console.log("Sem filtro, exibindo todos os projetos:", projetos);
+    //console.log("Sem filtro, exibindo todos os projetos:", projetos);
     setProjetosFiltradosColaborador(projetos);
   }
 }, [filtroColaborador, projetos]);
@@ -852,6 +852,7 @@ useEffect(() => {
   components={{ Toolbar: CustomToolbar }}
   localeText={localeText}
   initialState={{ pagination: { paginationModel: { pageSize: 5 } } }}
+  pageSizeOptions={[5, 10, 20, 50]} // Adicione as opções aqui
   sx={{
     marginLeft: "-13px",
     marginTop: "5px",

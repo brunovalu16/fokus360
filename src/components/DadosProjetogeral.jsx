@@ -13,6 +13,7 @@ function DadosProjetogeral() {
   const theme = useTheme();
   const isXlDevices = useMediaQuery("(min-width: 1260px)");
   const isMdDevices = useMediaQuery("(min-width: 724px)");
+  const [projectId, setProjectId] = useState();
 
   const [filtroQuem, setFiltroQuem] = useState(null);
   const [dadosQuem, setDadosQuem] = useState([]);
@@ -337,23 +338,23 @@ useEffect(() => {
         let total = 0;
   
         for (const projetoDoc of projetosSnapshot.docs) {
-          console.log("Projeto ID:", projetoDoc.id, projetoDoc.data());
+          //console.log("Projeto ID:", projetoDoc.id, projetoDoc.data());
           const data = projetoDoc.data();
   
           // Acessa o array de diretrizes no documento do projeto
           const diretrizes = data.diretrizes || [];
           diretrizes.forEach((diretriz) => {
-            console.log("Diretriz:", diretriz);
+            //console.log("Diretriz:", diretriz);
   
             // Acessa o array de tarefas dentro de cada diretriz
             const tarefas = diretriz.tarefas || [];
             tarefas.forEach((tarefa) => {
-              console.log("Tarefa:", tarefa);
+              //console.log("Tarefa:", tarefa);
   
               // Acessa o campo planoDeAcao dentro de cada tarefa
               const planoDeAcao = tarefa.planoDeAcao;
               if (planoDeAcao?.valor) {
-                console.log("Valor encontrado:", planoDeAcao.valor);
+                //console.log("Valor encontrado:", planoDeAcao.valor);
                 const valor = parseFloat(
                   planoDeAcao.valor
                     .replace("R$", "")
@@ -362,13 +363,13 @@ useEffect(() => {
                 );
                 total += valor; // Soma o valor
               } else {
-                console.warn("Campo 'valor' não encontrado:", planoDeAcao);
+                //console.warn("Campo 'valor' não encontrado:", planoDeAcao);
               }
             });
           });
         }
   
-        console.log("Total Calculado:", total);
+        //console.log("Total Calculado:", total);
         setCustoTotal(total); // Atualiza o estado com o valor total
       } catch (error) {
         console.error("Erro ao buscar valores:", error);
@@ -439,7 +440,7 @@ useEffect(() => {
         if (idFromUrl) {
           setProjectId(idFromUrl); // Define o ID obtido da URL
         } else {
-          console.error("ID do projeto não encontrado na URL.");
+          //console.error("ID do projeto não encontrado na URL.");
         }
       } catch (error) {
         console.error("Erro ao buscar projectId:", error);
@@ -479,13 +480,13 @@ useEffect(() => {
   const [filtroColaborador, setFiltroColaborador] = useState(null);
 
   const handleBolinhaClickColaborador = (colabId) => {
-    console.log("Colaborador clicado (ID):", colabId);
+    //console.log("Colaborador clicado (ID):", colabId);
     setFiltroColaborador(colabId);
   };
 
   const handleBolinhaClickQuem = async (nomeResponsavel) => {
     try {
-      console.log("Procurando responsável com o nome:", nomeResponsavel);
+      //console.log("Procurando responsável com o nome:", nomeResponsavel);
   
       // Buscar o ID do responsável com base no nome
       const usersSnapshot = await getDocs(collection(db, "user"));
@@ -501,7 +502,7 @@ useEffect(() => {
       }
   
       const idResponsavel = docEncontrado.id; // ID encontrado
-      console.log("ID do responsável encontrado:", idResponsavel);
+      //console.log("ID do responsável encontrado:", idResponsavel);
   
       // Buscar todos os projetos e verificar se o responsável está em "quem"
       const projetosSnapshot = await getDocs(collection(db, "projetos"));
@@ -529,7 +530,7 @@ useEffect(() => {
       });
   
       if (projetosComResponsavel.length > 0) {
-        console.log("Projetos encontrados com o responsável:", projetosComResponsavel);
+        //console.log("Projetos encontrados com o responsável:", projetosComResponsavel);
         setFiltroQuem(idResponsavel); // Atualiza o estado com o ID
       } else {
         console.warn("Responsável não encontrado em nenhum projeto:", nomeResponsavel);

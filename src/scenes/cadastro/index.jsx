@@ -41,10 +41,10 @@ const handleUploadPhoto = async () => {
     const storageRef = ref(storage, `users/${Date.now()}_${avatar.name}`);
     await uploadBytes(storageRef, avatar); // Faz o upload do arquivo
     const downloadURL = await getDownloadURL(storageRef); // Obtém a URL pública
-    console.log("URL da foto:", downloadURL);
+    //console.log("URL da foto:", downloadURL);
     return downloadURL;
   } catch (error) {
-    console.error("Erro ao carregar a foto:", error);
+    //console.error("Erro ao carregar a foto:", error);
     throw error;
   }
 };
@@ -57,11 +57,11 @@ const handleCadastro = async (e) => {
   try {
     // Cria o usuário no Firebase Authentication
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    console.log("Usuário criado com sucesso:", userCredential.user);
+    console.log("Usuário criado com sucesso.");
 
     // Enviar e-mail de verificação
     await sendEmailVerification(userCredential.user);
-    console.log("E-mail de verificação enviado para:", userCredential.user.email);
+    //console.log("E-mail de verificação enviado para:", userCredential.user.email);
 
     // Upload de foto (se houver)
     let photoURL = "";
@@ -84,8 +84,8 @@ const handleCadastro = async (e) => {
     alert("Usuário cadastrado com sucesso! Verifique seu e-mail para confirmar.");
     navigate("/cadastro");
   } catch (error) {
-    console.error("Erro ao cadastrar usuário:", error.message);
-    alert(`Erro ao cadastrar usuário: ${error.message}`);
+    //console.error("Erro ao cadastrar usuário:", error.message);
+    alert(`Erro ao cadastrar usuário, email já cadastrado.`);
   }
 };
 
@@ -119,7 +119,7 @@ const handleCadastro = async (e) => {
       <Box
         sx={{
           backgroundColor: "#312783",
-          padding: "232px",
+          padding: "192px",
           paddingRight: "80px",
           boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
           display: "flex",
@@ -152,6 +152,7 @@ const handleCadastro = async (e) => {
           //border: "1px solid #868dfb",
         }}
       >
+        {/** 
         <img
           src="src/assets/images/fokus360cinza.png"
           alt="Logo"
@@ -161,6 +162,7 @@ const handleCadastro = async (e) => {
             marginBottom: 23,
           }}
         />
+        */}
         <Box
           component="form"
           onSubmit={handleCadastro}

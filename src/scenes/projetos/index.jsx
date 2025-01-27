@@ -23,7 +23,7 @@ const Projetos = () => {
 // Verifica se o usuário está associado a algum projeto
 const checkUserAssociation = async () => {
   if (!userId) {
-    console.log("Nenhum usuário logado.");
+    //console.log("Nenhum usuário logado.");
     setIsUserAssociated(false);
     return;
   }
@@ -71,27 +71,27 @@ const checkUserAssociation = async () => {
     const user = auth.currentUser;
 
     if (!user) {
-      console.log("Nenhum usuário logado.");
+      //console.log("Nenhum usuário logado.");
       return false;
     }
 
     const userEmail = user.email;
-    console.log("E-mail do usuário logado:", userEmail);
+    //console.log("E-mail do usuário logado:", userEmail);
 
     const projetosSnapshot = await getDocs(collection(db, "projetos"));
 
     for (let docSnap of projetosSnapshot.docs) {
       const data = docSnap.data();
       if (data.solicitanteEmail === userEmail) {
-        console.log(`Usuário associado como solicitante no projeto: ${docSnap.id}`);
+        //console.log(`Usuário associado como solicitante no projeto: ${docSnap.id}`);
         return true;
       }
     }
 
-    console.log("Usuário não associado como solicitante.");
+    //console.log("Usuário não associado como solicitante.");
     return false;
   } catch (error) {
-    console.error("Erro ao verificar associação como solicitante:", error);
+    //console.error("Erro ao verificar associação como solicitante:", error);
     return false;
   }
 };
@@ -105,13 +105,13 @@ const checkUserAssociation = async () => {
   
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        console.log("Dados do usuário:", userData); // Exibe todos os dados do documento
+        //console.log("Dados do usuário:", userData); // Exibe todos os dados do documento
         setUserRole(userData.role || null); // Garante que role será definido
       } else {
-        console.log("Documento do usuário não encontrado no Firestore.");
+        //console.log("Documento do usuário não encontrado no Firestore.");
       }
     } catch (error) {
-      console.error("Erro ao buscar perfil do usuário no Firestore:", error);
+      //console.error("Erro ao buscar perfil do usuário no Firestore:", error);
     }
   };
   
@@ -122,10 +122,10 @@ const checkUserAssociation = async () => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
-        console.log(`Usuário logado: ${currentUser.uid}`);
+        //console.log(`Usuário logado: ${currentUser.uid}`);
         setUserId(currentUser.uid);
       } else {
-        console.log("Nenhum usuário logado.");
+        //console.log("Nenhum usuário logado.");
         setUserId(null);
         setIsUserAssociated(false);
         setIsSolicitanteAssociated(false);
@@ -146,9 +146,9 @@ const checkUserAssociation = async () => {
 
   // Controla o clique nos links
   const handleLinkClick = (e) => {
-    console.log("UserRole atual:", userRole);
+    //console.log("UserRole atual:", userRole);
     if (userRole === "08") {
-      console.log("Acesso liberado para Admin.");
+      //console.log("Acesso liberado para Admin.");
       return; // Permite o acesso automaticamente para Admin
     }
 

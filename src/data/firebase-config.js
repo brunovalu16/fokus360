@@ -24,7 +24,7 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app); // Adicionando Firebase Storage
 
-console.log("Firebase configurado com sucesso");
+//console.log("Firebase configurado com sucesso");
 
 
 

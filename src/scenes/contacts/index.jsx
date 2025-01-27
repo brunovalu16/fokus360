@@ -103,7 +103,7 @@ const fetchUsers = async () => {
     }));
     setUsers(userList);
   } catch (error) {
-    console.error("Erro ao buscar usuários:", error);
+    //console.error("Erro ao buscar usuários:", error);
   }
 };
 
@@ -112,21 +112,39 @@ useEffect(() => {
 }, []);
 
 //lógica de exclusão do documento no Firestore.
- const handleConfirmDelete = async () => {
-  try {
-    const docRef = doc(db, "user", selectedUserId);
-    await deleteDoc(docRef);
+const handleConfirmDelete = async () => {
+  //console.log("UID do usuário para exclusão:", selectedUserId);
 
-    // Atualizar a lista de usuários
+  try {
+    const response = await fetch("http://localhost:5000/delete-user", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ uid: selectedUserId }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Erro ao excluir usuário.");
+    }
+
+    // Atualizar a lista local de usuários
     setUsers((prevUsers) => prevUsers.filter((user) => user.id !== selectedUserId));
 
-    console.log(`Usuário com ID ${selectedUserId} excluído com sucesso.`);
+    alert(data.message);
   } catch (error) {
-    console.error("Erro ao excluir usuário:", error);
+    console.error("Erro ao excluir usuário:", error.message);
+    alert(`Erro ao excluir usuário: ${error.message}`);
   }
 
-  handleCloseModal(); // Fechar o modal após exclusão
+  handleCloseModal();
 };
+
+
+
+
   
 
 
@@ -151,12 +169,16 @@ const columns = [
       </Avatar>
     ),
   },
+
+  /** 
   
   {
     field: "id",
     headerName: "ID",
     flex: 1,
   },
+
+  */
   {
     field: "username",
     headerName: "Nome",
@@ -217,7 +239,7 @@ const columns = [
 
 
 const handleEdit = (id) => {
-  console.log(`Editar usuário com ID: ${id}`);
+  //console.log(`Editar usuário com ID: ${id}`);
   navigate(`/usuario/editar?id=${id}`); // Redireciona para a página de edição com o ID
 };
 
@@ -353,6 +375,7 @@ const handleEdit = (id) => {
             columns={columns}
             components={{ Toolbar: CustomToolbar }}
             localeText={localeText}
+            pageSizeOptions={[5, 10, 25, 50]} // Inclui 10 como uma das opções
             initialState={{
               pagination: {
                 paginationModel: {

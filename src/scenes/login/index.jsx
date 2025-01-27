@@ -39,7 +39,7 @@ const Login = () => {
   // Login
   const handleLogin = async (e) => {
     e.preventDefault();
-
+  
     if (!email || !password) {
       setAlert({
         open: true,
@@ -48,7 +48,7 @@ const Login = () => {
       });
       return;
     }
-
+  
     try {
       const userCredential = await signInWithEmailAndPassword(
         auth,
@@ -56,17 +56,23 @@ const Login = () => {
         password
       );
       const user = userCredential.user;
-
+  
       // Verificar se o e-mail foi confirmado
       if (!user.emailVerified) {
         window.alert("Por favor, verifique seu e-mail antes de fazer login.");
         await auth.signOut(); // Desconecta o usuário
         return;
       }
-
+  
       const userDoc = await getDoc(doc(db, "user", user.uid));
       if (userDoc.exists()) {
         const userRole = userDoc.data().role;
+  
+        // Armazenar autenticação no localStorage
+        localStorage.setItem("token", user.accessToken); // Salva o token no localStorage
+        localStorage.setItem("userRole", userRole); // Armazena o papel do usuário (opcional)
+  
+        // Redirecionar com base no papel do usuário
         navigate(userRole === "07" ? "/projetos" : "/home");
       } else {
         setAlert({
@@ -84,7 +90,7 @@ const Login = () => {
       } else if (error.code === "auth/invalid-email") {
         errorMessage = "Email inválido. Por favor, insira um email válido.";
       }
-
+  
       setAlert({
         open: true,
         message: errorMessage,
@@ -92,6 +98,7 @@ const Login = () => {
       });
     }
   };
+  
 
   // Função para enviar o e-mail de redefinição de senha
   const handlePasswordReset = async () => {

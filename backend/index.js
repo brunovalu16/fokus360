@@ -30,7 +30,6 @@ app.post("/update-email", async (req, res) => {
     // Gerar link de verificação de e-mail
     const emailVerificationLink = await admin.auth().generateEmailVerificationLink(newEmail);
 
-    // (Opcional) Enviar o link de verificação por e-mail usando um serviço de envio (ex.: Nodemailer)
     console.log(`Link de verificação enviado: ${emailVerificationLink}`);
 
     res.status(200).json({
@@ -45,6 +44,61 @@ app.post("/update-email", async (req, res) => {
     });
   }
 });
+
+// Rota para excluir o usuário do Firebase Authentication e Firestore
+app.post("/delete-user", async (req, res) => {
+  const { uid } = req.body;
+
+  console.log(`Recebendo solicitação para excluir UID: ${uid}`);
+
+  try {
+    if (!uid) {
+      throw new Error("UID não fornecido.");
+    }
+
+    // Verificar se o usuário existe no Firebase Authentication
+    const userRecord = await admin.auth().getUser(uid).catch((error) => {
+      if (error.code === "auth/user-not-found") {
+        console.log(`Usuário com UID ${uid} não encontrado no Authentication.`);
+        return null;
+      }
+      throw error;
+    });
+
+    if (!userRecord) {
+      // O usuário não existe no Authentication, mas ainda pode estar no Firestore
+      const db = admin.firestore();
+      const userDoc = await db.collection("user").doc(uid).get();
+      if (!userDoc.exists) {
+        throw new Error("Usuário não encontrado no Authentication ou Firestore.");
+      }
+
+      // Excluir somente do Firestore
+      await db.collection("user").doc(uid).delete();
+      console.log(`Usuário com UID ${uid} excluído apenas do Firestore.`);
+      return res.status(200).json({
+        success: true,
+        message: "Usuário excluído apenas do Firestore.",
+      });
+    }
+
+    // Excluir do Firebase Authentication
+    await admin.auth().deleteUser(uid);
+    console.log(`Usuário com UID ${uid} excluído do Firebase Authentication.`);
+
+    // Excluir do Firestore
+    const db = admin.firestore();
+    await db.collection("user").doc(uid).delete();
+    console.log(`Usuário com UID ${uid} excluído do Firestore.`);
+
+    res.status(200).json({ success: true, message: "Usuário excluído com sucesso." });
+  } catch (error) {
+    console.error("Erro ao excluir usuário no backend:", error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+
 
 
 

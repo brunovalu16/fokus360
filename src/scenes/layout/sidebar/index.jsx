@@ -28,6 +28,8 @@ const SideBar = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const navigate = useNavigate();
+  const [isLoadingRole, setIsLoadingRole] = useState(true); // Adiciona o estado de carregamento
+
 
   
 
@@ -42,7 +44,7 @@ const SideBar = () => {
             const role = docSnap.data().role;
             setUserRole(role);
           } else {
-            console.error("Dados do usuário não encontrados!");
+            //console.error("Dados do usuário não encontrados!");
           }
         } catch (error) {
           console.error("Erro ao buscar dados do usuário:", error);
@@ -62,12 +64,20 @@ const SideBar = () => {
 
   const handleLogout = async () => {
     try {
+      // Realiza o logout no Firebase
       await signOut(auth);
+  
+      // Remove o estado de autenticação armazenado
+      localStorage.removeItem("token");
+      localStorage.removeItem("userRole");
+  
+      // Redireciona o usuário para a página de login
       navigate("/login");
     } catch (error) {
       console.error("Erro ao deslogar:", error);
     }
   };
+  
 
   return (
     <Sidebar
@@ -89,8 +99,8 @@ const SideBar = () => {
         onClick={() => setCollapsed(!collapsed)}
         sx={{
           color: "#312783",
-          margin: "10px auto", // Centraliza horizontalmente
-          marginLeft: "20px",
+          margin: "15px auto", // Centraliza horizontalmente
+          marginLeft: "10px",
           transition: "all 0.3s ease", // Suaviza a transição
         }}
       >
@@ -138,7 +148,7 @@ const SideBar = () => {
           display: "flex",
           flexDirection: "column",
           gap: "0px",
-          marginLeft: "7px",
+          marginLeft: "3px",
         }}
       >
         <Menu
@@ -153,87 +163,30 @@ const SideBar = () => {
             },
           }}
         >
-          <MenuItem>
-            <Link
-              to="/home"
-              style={{
-                textDecoration: "none",
-                color: "inherit",
-                display: "flex",
-                alignItems: "center",
-                gap: "20px",
-              }}
-            >
-              <HomeIcon />
-              Home
-            </Link>
+          <MenuItem component={<Link to="/home" />} icon={<HomeIcon />}>
+            Home
           </MenuItem>
 
-          
-        <MenuItem>
-          <Link
-            to="/relatorios"
-            style={{
-              textDecoration: "none",
-              color: "inherit",
-              display: "flex",
-              alignItems: "center",
-              gap: "20px",
-            }}
+          <MenuItem
+            component={<Link to="/relatorios" />}
+            icon={<AssessmentIcon />}
           >
-            <AssessmentIcon />
             Relatórios
-          </Link>
-        </MenuItem>
- 
-
-          <MenuItem>
-            <Link
-              to="/arquivos"
-              style={{
-                textDecoration: "none",
-                color: "inherit",
-                display: "flex",
-                alignItems: "center",
-                gap: "20px",
-              }}
-            >
-              <SourceIcon />
-              Arquivos
-            </Link>
           </MenuItem>
 
-          <MenuItem>
-            <Link
-              to="/kanban"
-              style={{
-                textDecoration: "none",
-                color: "inherit",
-                display: "flex",
-                alignItems: "center",
-                gap: "20px",
-              }}
-            >
-              <AssignmentTurnedInIcon />
-              Tarefas
-            </Link>
+          <MenuItem component={<Link to="/arquivos" />} icon={<SourceIcon />}>
+            Arquivos
           </MenuItem>
 
+          <MenuItem
+            component={<Link to="/kanban" />}
+            icon={<AssignmentTurnedInIcon />}
+          >
+            Tarefas
+          </MenuItem>
 
-          <MenuItem>
-            <Link
-              to="/projetos"
-              style={{
-                textDecoration: "none",
-                color: "inherit",
-                display: "flex",
-                alignItems: "center",
-                gap: "20px",
-              }}
-            >
-              <PieChartIcon />
-              Fokus360
-            </Link>
+          <MenuItem component={<Link to="/projetos" />} icon={<PieChartIcon />}>
+            Fokus360
           </MenuItem>
         </Menu>
       </Box>
@@ -286,7 +239,7 @@ const SideBar = () => {
                   boxShadow: "none",
                   color: "#22d3ee",
                   transition: "all 0.3s ease", // Transição suave
-              },
+                },
               }}
             />
             {!collapsed && ""}
