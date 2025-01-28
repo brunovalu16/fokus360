@@ -750,16 +750,18 @@ useEffect(() => {
                 minimumFractionDigits: 2,
               })}`,
               subtitle: "Total de gastos",
-              progress: 75,
-              //increase: "+14%",
               icon: <PaidIcon sx={{ color: "#fff", fontSize: "40px" }} />,
               backgroundColor:
-                custoTotal <= 10000
-                  ? "#4caf50" // Verde para valores baixos
-                  : custoTotal <= 50000
-                  ? "#ff9800" // Laranja para valores médios
-                  : "#f44336", // Vermelho para valores altos
+                custoTotal > orcamentoTotal
+                  ? "#f44336"   // Vermelho se passou do orçamento
+                  : custoTotal === orcamentoTotal
+                  ? "#0048ff"   // Azul se é exatamente igual
+                  : custoTotal >= orcamentoTotal * 0.8
+                  ? "#ffb600"   // Laranja/Amarelo se acima de 80%
+                  : "#4caf50",  // Verde abaixo de 80% do orçamento
             },
+            
+            
 
             {
               id: "projetos",

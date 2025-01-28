@@ -11,31 +11,32 @@ const DadosProjeto = ({
   totalTarefas,
   diretrizes,
 }) => {
+  // 1) Função para calcular progresso de Valor Gasto vs. Orçamento
   const calcularProgressoValorGasto = () => {
-    const valorOrcamentoNumerico =
-      parseFloat(orcamento.replace("R$", "").replace(".", "").replace(",", ".")) || 0;
-
-    const valorGastoNumerico =
-      parseFloat(valorGasto.replace("R$", "").replace(".", "").replace(",", ".")) || 0;
-
-    if (valorOrcamentoNumerico === 0) return 0;
-
-    return (valorGastoNumerico / valorOrcamentoNumerico) * 100;
+    const orcamentoNum = parseFloat(
+      orcamento.replace("R$", "").replace(".", "").replace(",", ".") || 0
+    );
+    const gastoNum = parseFloat(
+      valorGasto.replace("R$", "").replace(".", "").replace(",", ".") || 0
+    );
+    if (orcamentoNum === 0) return 0;
+    return (gastoNum / orcamentoNum) * 100;
   };
 
+  // 2) Define cor dinâmica para “Valor Gasto”
   const definirCorValorGasto = () => {
     const progresso = calcularProgressoValorGasto();
 
-    if (progresso <= 70) {
-      return "#4caf50"; // Verde
-    } else if (progresso > 70 && progresso <= 100) {
-      return "#ffeb3b"; // Amarelo
+    if (progresso > 100) {
+      return "#f44336"; // Vermelho se passou do orçamento
+    } else if (progresso === 100) {
+      return "#0048ff"; // Azul se bateu exatamente o orçamento
+    } else if (progresso >= 70) {
+      return "#ffb600"; // Amarelo se ≥ 70% do orçamento
     } else {
-      return "#f44336"; // Vermelho
+      return "#4caf50"; // Verde se < 70% do orçamento
     }
   };
-
-  const progressoValorGasto = calcularProgressoValorGasto();
 
   // Função para calcular o total de tarefas concluídas
   const calcularTotalTarefasConcluidas = (diretrizes) => {
@@ -46,88 +47,71 @@ const DadosProjeto = ({
       );
     }, 0);
   };
-  
+
   const totalTarefasConcluidas = calcularTotalTarefasConcluidas(diretrizes || []);
 
-  // Criar Função para Calcular o Progresso Geral
+  // Criar Função para Calcular o Progresso Geral de cada diretriz
   const calcularProgressoGeral = (diretrizIndex) => {
-    const diretriz = diretrizes[diretrizIndex]; // Pega a diretriz pelo índice
-    const totalTarefas = diretriz.tarefas.length; // Total de tarefas dentro da diretriz
+    const diretriz = diretrizes[diretrizIndex];
+    const totalTarefas = diretriz.tarefas.length;
 
     if (totalTarefas === 0) return 0; // Evita divisão por zero
 
     // Soma os progressos de todas as tarefas
     const progressoTotal = diretriz.tarefas.reduce((acc, tarefa) => {
-      return acc + (tarefa.progresso || 0); // Adiciona o progresso de cada tarefa
+      return acc + (tarefa.progresso || 0);
     }, 0);
 
     // Calcula a média percentual
     return Math.round(progressoTotal / totalTarefas);
   };
-  
 
   const items = [
+    // 1) Orçamento (cor fixa)
     {
       title: orcamento,
       subtitle: "Orçamento",
-      progress: 0,
       icon: <PaidIcon sx={{ color: "#fff", fontSize: "50px" }} />,
-      progressColor: "#4caf50",
-    },
-    {
-      title: valorGasto,
-      subtitle: "Valor gasto",
-      icon: <PaidIcon sx={{ color: "#fff", fontSize: "50px" }} />,
-      progressColor: definirCorValorGasto(), // Define a cor da bola com base no progresso
+      bgColor: "#312783",
       customIndicator: (
         <Box
           sx={{
             width: "30px",
             height: "30px",
             borderRadius: "50%",
-            backgroundColor: definirCorValorGasto(), // Cor da bola
           }}
         />
       ),
-    },    
+    },
+    // 2) Valor Gasto (cor dinâmica)
+    {
+      title: valorGasto,
+      subtitle: "Valor gasto",
+      icon: <PaidIcon sx={{ color: "#fff", fontSize: "50px" }} />,
+      progressColor: definirCorValorGasto(),
+      customIndicator: (
+        <Box
+          sx={{
+            width: "30px",
+            height: "30px",
+            borderRadius: "50%",
+            backgroundColor: definirCorValorGasto(),
+          }}
+        />
+      ),
+    },
     {
       title: `Total de diretrizes: ${totalDiretrizes || 0}  \nDiretrizes Concluídas: ${
         diretrizes.filter(
           (d) => calcularProgressoGeral(diretrizes.indexOf(d)) === 100
         ).length || 0
-      }`, // Inclui total e as concluídas no título
+      }`,
       icon: <AssignmentTurnedInIcon sx={{ color: "#fff", fontSize: "50px" }} />,
-      /**
-      progress:
-        totalDiretrizes > 0
-          ? (diretrizes.filter(
-              (d) => calcularProgressoGeral(diretrizes.indexOf(d)) === 100
-            ).length /
-              totalDiretrizes) *
-            100
-          : 0, // Progresso em porcentagem
-      
-      progressColor:
-        diretrizes.filter(
-          (d) => calcularProgressoGeral(diretrizes.indexOf(d)) === 100
-        ).length === totalDiretrizes
-          ? "#4caf50" // Verde se todas as diretrizes estão finalizadas
-          : "#f44336", // Vermelho caso contrário
-      */
-    },    
-    {
-      title: `Total de tarefas: ${totalTarefas || 0} \nTarefas Concluídas: ${totalTarefasConcluidas || 0}`, // Inclui o total e as concluídas no título
-      //subtitle: "Tarefas concluídas",
-      icon: <AssignmentTurnedInIcon sx={{ color: "#fff", fontSize: "50px" }} />,
-      /** 
-      progress: totalTarefas > 0 ? (totalTarefasConcluidas / totalTarefas) * 100 : 0, // Progresso em porcentagem
-      progressColor:
-        totalTarefasConcluidas === totalTarefas
-          ? "#4caf50" // Verde quando todas estão concluídas
-          : "#f44336", // Vermelho caso contrário
-      */
     },
-    
+    {
+      title: `Total de tarefas: ${totalTarefas || 0} \nTarefas Concluídas: ${totalTarefasConcluidas || 0}`,
+      icon: <AssignmentTurnedInIcon sx={{ color: "#fff", fontSize: "50px" }} />,
+    },
   ];
 
   return (
@@ -158,16 +142,26 @@ const DadosProjeto = ({
       >
         {items.map((item, index) => (
           <Box
-          key={index}
-          boxShadow={3}
-          borderRadius="20px"
-          bgcolor={item.title === valorGasto ? definirCorValorGasto() : "#312783"} // Altera o fundo com base no item
-          display="flex"
-          flexDirection="row"
-          alignItems="center"
-          justifyContent="space-between"
-          padding="10px"
-          minWidth="200px"
+            key={index}
+            boxShadow={3}
+            borderRadius="20px"
+            // Ajuste da cor de fundo:
+            // Se o item for "Orçamento", usar item.bgColor
+            // Se for "Valor gasto", usar definirCorValorGasto()
+            // Senão usa "#312783"
+            bgcolor={
+              item.subtitle === "Orçamento"
+                ? item.bgColor
+                : item.subtitle === "Valor gasto"
+                ? definirCorValorGasto()
+                : "#312783"
+            }
+            display="flex"
+            flexDirection="row"
+            alignItems="center"
+            justifyContent="space-between"
+            padding="10px"
+            minWidth="200px"
             sx={{
               textAlign: "center",
               overflow: "hidden",
@@ -210,18 +204,32 @@ const DadosProjeto = ({
             >
               <Typography
                 variant="h6"
-                sx={{ color: "#fff", fontSize: "13px", whiteSpace: "pre-line", textJustify: "inter-word", textAlign: "left", }}
+                sx={{
+                  color: "#fff",
+                  fontSize: "13px",
+                  whiteSpace: "pre-line",
+                  textJustify: "inter-word",
+                  textAlign: "left",
+                }}
               >
                 {item.title}
               </Typography>
-              <Typography variant="subtitle2" sx={{ color: "#fff", fontSize: "13px", textJustify: "inter-word", textAlign: "left",  }}>
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  color: "#fff",
+                  fontSize: "13px",
+                  textJustify: "inter-word",
+                  textAlign: "left",
+                }}
+              >
                 {item.subtitle}
               </Typography>
             </Box>
           </Box>
         ))}
       </Box>
-      {/** COMPONENTE */}
+      {/* Componente */}
       <Lista />
     </Box>
   );

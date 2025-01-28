@@ -28,6 +28,7 @@
     "@nivo/pie": "^0.84.0",
     "@nivo/stream": "^0.84.0",
     "dayjs": "^1.11.13",
+    "express": "^4.21.2",
     "firebase": "^11.0.2",
     "firebase-admin": "^12.7.0",
     "formik": "^2.4.5",

@@ -325,22 +325,28 @@ useEffect(() => {
         }
       },
     },
-    
-    
     {
-      field: "valor", // Nome do campo calculado no projeto
+      field: "valor",
       headerName: "Gasto atual",
       flex: 0.9,
       renderCell: (params) => {
-        const valor = params.row.valor || 0; // Garantir que o valor esteja presente
+        // Define valores padrão caso os campos estejam ausentes
+        const rawValor = params.row.valor || "0"; // Garante que valor exista
+        const rawOrcamento = params.row.orcamento || "0"; // Garante que orçamento exista
     
-        const orcamento = params.row.orcamento
-          ? parseFloat(params.row.orcamento.replace("R$", "").replace(".", "").replace(",", "."))
-          : 0;
+        // Converte valores para números, removendo caracteres desnecessários
+        const valor = parseFloat(
+          String(rawValor).replace("R$", "").replace(/\./g, "").replace(",", ".")
+        );
     
-        let backgroundColor = "#4CAF50"; // Verde
+        const orcamento = parseFloat(
+          String(rawOrcamento).replace("R$", "").replace(/\./g, "").replace(",", ".")
+        );
+    
+        // Define cor de fundo com base no valor e orçamento
+        let backgroundColor = "#4CAF50"; // Verde por padrão
         if (valor === orcamento) {
-          backgroundColor = "#3f51b5"; // Azul
+          backgroundColor = "#0048ff"; // Azul
         } else if (valor > orcamento) {
           backgroundColor = "#f44336"; // Vermelho
         } else if (valor >= orcamento * 0.8) {
@@ -372,6 +378,10 @@ useEffect(() => {
         );
       },
     },
+    
+   
+    
+
     {
       field: "orcamento",
       headerName: "Orçamento",
@@ -534,54 +544,118 @@ const fetchProjetos = async () => {
     const projetosCarregados = querySnapshot.docs.map((docSnap) => {
       const data = docSnap.data();
 
-      let allQuem = [];
-      if (Array.isArray(data.diretrizes)) {
-        data.diretrizes.forEach((diretriz) => {
-          if (Array.isArray(diretriz.tarefas)) {
-            diretriz.tarefas.forEach((tarefa) => {
-              const planoDeAcao = tarefa.planoDeAcao || {};
-              const responsaveis = planoDeAcao.quem || [];
-              allQuem = [...allQuem, ...responsaveis];
-            });
-          }
+      // 1) SOMAR VALOR DENTRO DE DIRETRIZES
+      let somaValor = 0;
+      const diretrizes = data.diretrizes || [];
+      diretrizes.forEach((dir) => {
+        const tarefas = dir.tarefas || [];
+        tarefas.forEach((t) => {
+          const raw = t.planoDeAcao?.valor || "R$ 0,00";
+          // Converte a string (ex: "R$ 1.555,55") para número
+          const somenteNumero = parseFloat(
+            raw.replace("R$", "").replace(/\./g, "").replace(",", ".")
+          ) || 0;
+          somaValor += somenteNumero;
         });
-      }
+      });
 
-      data.quem = allQuem; // Adicione os IDs de responsáveis
-      return { id: docSnap.id, ...data };
+      // Converte a soma total em formato de moeda "R$ ..."
+      const somaFormatada = new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      }).format(somaValor);
+
+      // 2) MANTER ORÇAMENTO NO FORMATO ORIGINAL (STRING)
+      const orcamentoString = data.orcamento || "R$ 0,00";
+
+      return {
+        id: docSnap.id,
+        // Agora 'valor' será a soma de TODAS as tarefas
+        valor: somaFormatada,
+        // Deixe o orçamento como string
+        orcamento: orcamentoString,
+        ...data,
+      };
     });
 
-    //console.log("Projetos carregados:", projetosCarregados);
+    // 3) LÓGICA DE COLABORADORES
+    const colaboradoresMap = new Map();
+    for (const projeto of projetosCarregados) {
+      if (Array.isArray(projeto.colaboradores)) {
+        for (const colaboradorId of projeto.colaboradores) {
+          colaboradoresMap.set(
+            colaboradorId,
+            (colaboradoresMap.get(colaboradorId) || 0) + 1
+          );
+        }
+      }
+    }
+
+    const colaboradoresComNomes = await Promise.all(
+      Array.from(colaboradoresMap.entries()).map(async ([colaboradorId, valor]) => {
+        const userSnapshot = await getDoc(doc(db, "user", colaboradorId));
+        const username = userSnapshot.exists()
+          ? userSnapshot.data().username
+          : "Desconhecido";
+        return {
+          id: colaboradorId,
+          nome: username,
+          valor,
+        };
+      })
+    );
+
+    const maxValor = Math.max(...colaboradoresComNomes.map((d) => d.valor));
+    const dadosNormalizados = colaboradoresComNomes.map((d) => ({
+      ...d,
+      percentual: maxValor > 0 ? (d.valor / maxValor) * 100 : 0,
+    }));
+
+    // Armazena no estado
+    setDadosColaboradores(dadosNormalizados);
+
+    // Finalmente, define os projetos (com 'valor' já somado e formatado)
     setProjetos(projetosCarregados);
   } catch (error) {
     console.error("Erro ao buscar projetos:", error);
   }
 };
 
+useEffect(() => {
+  fetchProjetos();
+}, []);
+
+
+
+
+
+
+
+
 
 // Filtro de projetos por responsável
 useEffect(() => {
-  //console.log("Aplicando filtro por quem:", filtroQuem);
+  console.log("Aplicando filtro por quem:", filtroQuem);
 
   if (filtroQuem) {
     const filtrados = projetos.filter((proj) => {
-      //console.log("Analisando projeto:", proj);
+      console.log("Analisando projeto:", proj);
 
       const diretrizes = proj.diretrizes || [];
       return diretrizes.some((diretriz) => {
         const tarefas = diretriz.tarefas || [];
         return tarefas.some((tarefa) => {
           const planoDeAcao = tarefa.planoDeAcao || {};
-          //console.log("IDs encontrados no 'quem':", planoDeAcao.quem); // Loga os IDs no campo "quem"
+          console.log("IDs encontrados no 'quem':", planoDeAcao.quem); // Loga os IDs no campo "quem"
           return Array.isArray(planoDeAcao.quem) && planoDeAcao.quem.includes(filtroQuem); // Verifica se o ID está em "quem"
         });
       });
     });
 
-    //console.log("Projetos filtrados por filtroQuem:", filtrados);
+    console.log("Projetos filtrados por filtroQuem:", filtrados);
     setProjetosExibidos(filtrados);
   } else {
-    //console.log("Sem filtroQuem, exibindo todos os projetos.");
+    console.log("Sem filtroQuem, exibindo todos os projetos.");
     setProjetosExibidos(projetos);
   }
 }, [filtroQuem, projetos]);
@@ -611,78 +685,13 @@ useEffect(() => {
 const [listaProjetos, setListaProjetos] = useState([]); // Armazena todos os projetos
 const [projetosFiltradosColaborador, setProjetosFiltradosColaborador] = useState([]);
 
-const fetchProjetosColaborador = async () => {
-  try {
-    // 1) Carrega a coleção "projetos"
-    const querySnapshot = await getDocs(collection(db, "projetos"));
-    const projetosCarregados = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
 
-    // Armazena os projetos no estado
-    setProjetos(projetosCarregados);
-    //console.log("Total de projetos carregados:", projetosCarregados.length);
-
-    // 2) Cria o mapa de { colaboradorId -> contagem } a partir dos projetos
-    const colaboradoresMap = new Map();
-    for (const projeto of projetosCarregados) {
-      // Se "colaboradores" existir, percorra
-      if (Array.isArray(projeto.colaboradores)) {
-        for (const colaboradorId of projeto.colaboradores) {
-          if (colaboradoresMap.has(colaboradorId)) {
-            colaboradoresMap.set(
-              colaboradorId,
-              colaboradoresMap.get(colaboradorId) + 1
-            );
-          } else {
-            colaboradoresMap.set(colaboradorId, 1);
-          }
-        }
-      }
-    }
-
-    // 3) Para cada colaboradorId no mapa, busca o nome na coleção "user"
-    const colaboradoresComNomes = await Promise.all(
-      Array.from(colaboradoresMap.entries()).map(async ([colaboradorId, valor]) => {
-        const userSnapshot = await getDoc(doc(db, "user", colaboradorId));
-        const username = userSnapshot.exists()
-          ? userSnapshot.data().username
-          : "Desconhecido";
-        return {
-          id: colaboradorId, // ID do colaborador para filtrar
-          nome: username,    // Nome do colaborador para exibir
-          valor,             // Exemplo: contagem de projetos
-        };
-      })
-    );
-
-    // 4) (Opcional) Calcular percentual, se quiser
-    const maxValor = Math.max(...colaboradoresComNomes.map((d) => d.valor));
-    const dadosNormalizados = colaboradoresComNomes.map((d) => ({
-      ...d,
-      percentual: maxValor > 0 ? (d.valor / maxValor) * 100 : 0
-    }));
-
-    // 5) Guarda em outro estado, se for renderizar
-    setDadosColaboradores(dadosNormalizados);
-    // Agora você tem "dadosColaboradores" para exibir um gráfico, por exemplo
-
-  } catch (error) {
-    console.error("Erro ao buscar projetos:", error.message);
-  }
-};
-
-// useEffect para chamar na montagem
-useEffect(() => {
-  fetchProjetosColaborador();
-}, []);
 
 // Lógica de filtro
 useEffect(() => {
-  //console.log("== Aplicando filtro de colaborador ==");
-  //console.log("Filtro ativo (ID):", filtroColaborador);
-  //console.log("Projetos disponíveis:", projetos);
+  console.log("== Aplicando filtro de colaborador ==");
+  console.log("Filtro ativo (ID):", filtroColaborador);
+  console.log("Projetos disponíveis:", projetos);
 
   if (filtroColaborador) {
     const filtrados = projetos.filter((projeto) =>
@@ -690,10 +699,10 @@ useEffect(() => {
         ? projeto.colaboradores.includes(filtroColaborador)
         : false
     );
-    //console.log("Projetos filtrados por ID:", filtrados);
+    console.log("Projetos filtrados por ID:", filtrados);
     setProjetosFiltradosColaborador(filtrados);
   } else {
-    //console.log("Sem filtro, exibindo todos os projetos:", projetos);
+    console.log("Sem filtro, exibindo todos os projetos:", projetos);
     setProjetosFiltradosColaborador(projetos);
   }
 }, [filtroColaborador, projetos]);
@@ -877,3 +886,4 @@ useEffect(() => {
 };
 
 export default Lista;
+
