@@ -6,14 +6,14 @@ import { getStorage } from "firebase/storage";
 
 // Configuração do Firebase
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_AUTHDOMAIN,
-  databaseURL: import.meta.env.VITE_DATABASEURL,
-  projectId: import.meta.env.VITE_PROJECTID,
-  storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_MESSAGINSENDERID,
-  appId: import.meta.env.VITE_APPID,
-  measurementId: import.meta.env.VITE_MEASUREMENTID,
+  apiKey: "AIzaSyBn_sNe6UfJzZVQkZWTC-zSl1eoy78g0XE",
+  authDomain: "bancopowerbi.firebaseapp.com",
+  databaseURL: "https://bancopowerbi-default-rtdb.firebaseio.com",
+  projectId: "bancopowerbi",
+  storageBucket: "bancopowerbi.appspot.com",
+  messagingSenderId: "630219075006",
+  appId: "1:630219075006:web:9a0acd2446d0c5b8145def",
+  measurementId: "G-072KHB9PGE",
 };
 
 // Inicializando o Firebase
@@ -25,6 +25,8 @@ export const db = getFirestore(app);
 export const storage = getStorage(app); // Adicionando Firebase Storage
 
 //console.log("Firebase configurado com sucesso");
+
+
 
 
 
