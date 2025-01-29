@@ -9,6 +9,8 @@ const serviceAccount = JSON.parse(
   fs.readFileSync("./firebase-service-account.json", "utf8")
 );
 
+console.log(serviceAccount);
+
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
