@@ -18,6 +18,9 @@ import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../../data/firebase-config";
 import CloseIcon from "@mui/icons-material/Close";
 import WarningIcon from "@mui/icons-material/Warning";
+import background from "../../assets/images/backlogin2.webp";
+import logo from "../../assets/images/logo360verde.png";
+
 
 const Login = () => {
   const [open, setOpen] = useState(false); // Controla o modal de redefinição de senha
@@ -173,7 +176,7 @@ const Login = () => {
             sx={{
               backgroundColor: "#312783",
               color: "white",
-              "&:hover": { backgroundColor: "#868dfb" },
+              "&:hover": { backgroundColor: "#312783" },
             }}
             onClick={handlePasswordReset}
           >
@@ -260,7 +263,7 @@ const Login = () => {
         alignItems="center"
         justifyContent="center"
         sx={{
-          backgroundImage: 'url("src/assets/images/backlogin2.webp")',
+          backgroundImage: `url(${background})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
@@ -284,7 +287,7 @@ const Login = () => {
           }}
         >
           <img
-            src="src/assets/images/logo360verde.png"
+            src={logo}
             alt="Logo"
             style={{
               width: "450px",
