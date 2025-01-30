@@ -116,7 +116,7 @@ const handleConfirmDelete = async () => {
   //console.log("UID do usuário para exclusão:", selectedUserId);
 
   try {
-    const response = await fetch("http://localhost:5000/delete-user", {
+    const response = await fetch("https://fokus360-backend-git-main-grupo-fokus-projects.vercel.app/delete-user", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
