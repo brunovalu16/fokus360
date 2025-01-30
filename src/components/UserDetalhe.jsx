@@ -86,7 +86,7 @@ const UserDetalhe = () => {
   
       if (emailChanged) {
         // Gera o link de verificação para o novo e-mail
-        const response = await fetch("http://localhost:5000/update-email", {
+        const response = await fetch(`${import.meta.env.VITE_DATABASEURL}/api/update-email`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
