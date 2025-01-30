@@ -1,0 +1,13 @@
+{
+    "version": 2,
+    "functions": {
+      "api/index.js": {
+        "runtime": "nodejs18.x"
+      }
+    },
+    "env": {
+      "FIREBASE_DATABASE_URL": "https://bancopowerbi-default-rtdb.firebaseio.com",
+      "FIREBASE_SERVICE_ACCOUNT": "@firebase-service-account"
+    }
+  }
+  
