@@ -5,36 +5,209 @@ import {
   Button,
   Typography,
   Accordion,
+  List,
+  Select,
+  MenuItem,
+  Checkbox,
+  ListItemText,
   AccordionSummary,
   AccordionDetails,
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
+import ArrowDropDownCircleIcon from '@mui/icons-material/ArrowDropDownCircle';
+import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { doc, updateDoc, getFirestore, collection, getDocs } from "firebase/firestore";
+import { db } from "../data/firebase-config";
 
 // Seu componente de tarefas (5W2H)
 import DiretrizData from "./DiretrizData";
 
-/**
- * BaseDiretriz
- *
- * Hierarquia:
- *   1) Diretrizes Estratégicas (quantas o usuário quiser)
- *       -> Diretriz Tática
- *           -> Diretriz Operacional
- *               -> <DiretrizData /> (tarefas, 5W2H)
- *
- * Props:
- *   - onUpdate(dadosAtualizados): callback ao atualizar a lista
- *   - LimpaEstado (boolean): se mudar para true, limpa tudo
- */
-const BaseDiretriz = ({ onUpdate, LimpaEstado }) => {
-  // Lista de Diretrizes Estratégicas
-  const [estrategicas, setEstrategicas] = useState([]);
+
+const BaseDiretriz = ({ projectId, estrategicas: propEstrategicas, onUpdate, LimpaEstado }) => {
 
   // Inputs para criar nova Diretriz Estratégica
   const [novaEstrategica, setNovaEstrategica] = useState("");
   const [descEstrategica, setDescEstrategica] = useState("");
+  const [estrategicas, setEstrategicas] = useState(propEstrategicas || []);
+  const [users, setUsers] = useState([]);
+  const [novaTarefa, setNovaTarefa] = useState("");
+  const [tarefasLocais, setTarefasLocais] = useState([]);
+  const [formValues, setFormValues] = useState({
+    tituloTarefa: novaTarefa,
+    planoDeAcao: {
+      oQue: "",
+      porQue: "",
+      quem: [],
+      quando: "",
+      onde: "",
+      como: "",
+      valor: "",
+    },
+    });
+
+
+
+
+    // Monitorando a mensagem para limpar os inputs
+  useEffect(() => {
+    if (LimpaEstado) {
+      setFormValues({
+        tituloTarefa: novaTarefa,
+        planoDeAcao: {
+          oQue: "",
+          porQue: "",
+          quem: [],
+          quando: "",
+          onde: "",
+          como: "",
+          valor: "",
+        },
+      });
+    }
+  }, [LimpaEstado]);
+
+
+  useEffect(() => {
+    if (onUpdate) {
+      onUpdate(estrategicas); // ✅ Envia atualizações para CadastroProjetos
+    }
+  }, [estrategicas]);
+  
+  
+     // 🔹 Carregar usuários do Firebase
+useEffect(() => {
+  const fetchUsers = async () => {
+    try {
+      const db = getFirestore();  // 🔥 Agora está definido corretamente
+      const querySnapshot = await getDocs(collection(db, "user"));
+      const usersList = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        username: doc.data().username,
+      }));
+      setUsers(usersList);
+    } catch (error) {
+      console.error("Erro ao buscar usuários:", error);
+    }
+  };
+
+  fetchUsers();
+}, []);
+
+
+useEffect(() => {
+  if (!projectId) return;
+
+  const fetchData = async () => {
+    try {
+      const docRef = doc(db, "projetos", projectId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data() || {};
+        setEstrategicas(data.estrategicas || []); // ✅ Atualizando corretamente
+        if (onUpdate) onUpdate(data.estrategicas || []);
+      }
+    } catch (error) {
+      console.error("❌ Erro ao buscar projeto:", error);
+    }
+  };
+
+  fetchData();
+}, [projectId]);
+
+
+useEffect(() => {
+  if (onUpdate && estrategicas.length > 0) {
+    console.log("📢 BaseDiretriz enviando estratégicas para CadastroProjetos:", JSON.stringify(estrategicas, null, 2));
+    onUpdate([...estrategicas]);
+  }
+}, [estrategicas]);
+
+
+const handleEditTarefa = (tarefaId, campo, valor) => {
+  setEstrategicas((prevEstrategicas) =>
+    prevEstrategicas.map((estrategica) => ({
+      ...estrategica,
+      taticas: estrategica.taticas.map((tatica) => ({
+        ...tatica,
+        operacionais: tatica.operacionais.map((operacional) => ({
+          ...operacional,
+          tarefas: operacional.tarefas.map((tarefa) =>
+            tarefa.id === tarefaId
+              ? {
+                  ...tarefa,
+                  planoDeAcao: {
+                    ...tarefa.planoDeAcao, // Garante que não é undefined
+                    [campo]: valor,
+                  },
+                }
+              : tarefa
+          ),
+        })),
+      })),
+    }))
+  );
+};
+
+
+
+
+
+
+const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => {
+  if (!novaTarefa || typeof novaTarefa !== "string" || !novaTarefa.trim()) {
+    alert("Nome da tarefa é obrigatório.");
+    return;
+  }
+
+  const novaTarefaObj = {
+    id: Date.now(),
+    tituloTarefa: novaTarefa,
+    planoDeAcao: {
+      oQue: "",
+      porQue: "",
+      quem: [],
+      quando: "",
+      onde: "",
+      como: "",
+      valor: "",
+    },
+  };
+
+  console.log("📌 Adicionando nova tarefa:", JSON.stringify(novaTarefaObj, null, 2));
+
+  setEstrategicas((prevEstrategicas) => {
+    return prevEstrategicas.map((estrategica) => {
+      if (estrategica.id !== idEstrategica) return estrategica;
+
+      return {
+        ...estrategica,
+        taticas: estrategica.taticas.map((tatica) => {
+          if (tatica.id !== idTatica) return tatica;
+
+          return {
+            ...tatica,
+            operacionais: tatica.operacionais.map((operacional) => {
+              if (operacional.id !== idOperacional) return operacional;
+
+              return {
+                ...operacional,
+                tarefas: [...(operacional.tarefas || []), novaTarefaObj],
+              };
+            }),
+          };
+        }),
+      };
+    });
+  });
+
+  setNovaTarefa(""); // Limpa o campo de entrada
+};
+
+
+
 
   // -------------------------------------
   // Criar nova Diretriz Estratégica
@@ -48,16 +221,19 @@ const BaseDiretriz = ({ onUpdate, LimpaEstado }) => {
       id: Date.now(),
       titulo: novaEstrategica,
       descricao: descEstrategica,
-      taticas: [], // array de Diretrizes Táticas
+      taticas: [],
     };
     const atualizado = [...estrategicas, item];
     setEstrategicas(atualizado);
+  
+    console.log("📌 Atualizando lista de diretrizes (Estrategicas):", JSON.stringify(atualizado, null, 2));
+  
     onUpdate && onUpdate(atualizado);
-
-    // Limpa inputs
+  
     setNovaEstrategica("");
     setDescEstrategica("");
   };
+  
 
   // -------------------------------------
   // Remover Diretriz Estratégica
@@ -80,7 +256,7 @@ const BaseDiretriz = ({ onUpdate, LimpaEstado }) => {
       id: Date.now(),
       titulo,
       descricao,
-      operacionais: [], // array de Diretrizes Operacionais
+      operacionais: [],
     };
     const atualizadas = estrategicas.map((est) => {
       if (est.id === idEstrategica) {
@@ -89,8 +265,12 @@ const BaseDiretriz = ({ onUpdate, LimpaEstado }) => {
       return est;
     });
     setEstrategicas(atualizadas);
+  
+    console.log("📌 Atualizando lista de diretrizes (Táticas):", JSON.stringify(atualizadas, null, 2));
+  
     onUpdate && onUpdate(atualizadas);
   };
+  
 
   // -------------------------------------
   // Remover Diretriz Tática
@@ -121,15 +301,15 @@ const BaseDiretriz = ({ onUpdate, LimpaEstado }) => {
       id: Date.now(),
       titulo,
       descricao,
+      tarefas: [],
     };
     const atualizadas = estrategicas.map((est) => {
       if (est.id === idEstrategica) {
         const novasTaticas = est.taticas.map((t) => {
           if (t.id === idTatica) {
-            const opers = t.operacionais || [];
             return {
               ...t,
-              operacionais: [...opers, novo],
+              operacionais: [...t.operacionais, novo],
             };
           }
           return t;
@@ -139,8 +319,12 @@ const BaseDiretriz = ({ onUpdate, LimpaEstado }) => {
       return est;
     });
     setEstrategicas(atualizadas);
+  
+    console.log("📌 Atualizando lista de diretrizes (Operacionais):", JSON.stringify(atualizadas, null, 2));
+  
     onUpdate && onUpdate(atualizadas);
   };
+  
 
   // -------------------------------------
   // Remover Diretriz Operacional
@@ -168,26 +352,58 @@ const BaseDiretriz = ({ onUpdate, LimpaEstado }) => {
   // -------------------------------------
   // Atualiza a Diretriz Operacional quando `DiretrizData` muda (tarefas, 5W2H)
   // -------------------------------------
-  const handleUpdateOperacional = (idEstrategica, idTatica, operacionalAtualizada) => {
-    // Substitui a Operacional dentro do array
-    const atualizadas = estrategicas.map((est) => {
-      if (est.id === idEstrategica) {
-        const novasTaticas = est.taticas.map((t) => {
-          if (t.id === idTatica) {
-            const novasOps = t.operacionais.map((op) =>
-              op.id === operacionalAtualizada.id ? operacionalAtualizada : op
-            );
-            return { ...t, operacionais: novasOps };
-          }
-          return t;
-        });
-        return { ...est, taticas: novasTaticas };
-      }
-      return est;
+  const handleUpdateOperacional = (idEstrategica, idTatica, operAtualizada) => {
+    console.log("📌 BaseDiretriz recebeu atualização de tarefas:", JSON.stringify(operAtualizada, null, 2));
+
+    setEstrategicas((prevEstrategicas) => {
+      const atualizado = prevEstrategicas.map((est) => {
+        if (est.id !== idEstrategica) return est;
+        return {
+          ...est,
+          taticas: est.taticas.map((t) => {
+            if (t.id !== idTatica) return t;
+            return {
+              ...t,
+              operacionais: t.operacionais.map((op) =>
+                op.id === operAtualizada.id
+                  ? { ...op, tarefas: operAtualizada.tarefas || [] }
+                  : op
+              ),
+            };
+          }),
+        };
+      });
+    
+      return atualizado;
     });
-    setEstrategicas(atualizadas);
-    onUpdate && onUpdate(atualizadas);
-  };
+    
+};
+
+
+  //useEffect que monitora LimpaEstado para resetar estrategicas
+  useEffect(() => {
+    if (LimpaEstado) {
+      setEstrategicas([]); // 🔹 Limpa as diretrizes estratégicas
+    }
+  }, [LimpaEstado]);
+  
+  
+  
+// 🔹 Função para salvar diretrizes no Firestore
+const saveEstrategicas = async (projectId, novoArray) => {
+  if (!projectId) {
+    console.error("❌ projectId está indefinido ao tentar salvar estratégicas!");
+    return;
+  }
+
+  try {
+    const docRef = doc(db, "projetos", projectId);
+    await updateDoc(docRef, { estrategicas: novoArray });
+    console.log("✅ Estratégicas atualizadas no Firestore!");
+  } catch (err) {
+    console.error("❌ Erro ao atualizar estratégicas:", err);
+  }
+};
 
   // -------------------------------------
   // Limpar tudo quando LimpaEstado mudar
@@ -205,11 +421,14 @@ const BaseDiretriz = ({ onUpdate, LimpaEstado }) => {
   // -------------------------------------
   return (
     <Box>
-
       {/* ***************************** */}
       {/* Form para criar EstratÉgica */}
       {/* ***************************** */}
-      <Typography variant="h6" fontWeight="bold" sx={{ color: "#5f53e5", mb: 1 }}>
+      <Typography
+        variant="h6"
+        fontWeight="bold"
+        sx={{ color: "#312783", mb: 1 }}
+      >
         Criar Diretriz Estratégica
       </Typography>
       <Box display="flex" flexDirection="column" gap={2} mb={4}>
@@ -242,16 +461,29 @@ const BaseDiretriz = ({ onUpdate, LimpaEstado }) => {
             },
           }}
         >
-          <AddCircleOutlineIcon sx={{ fontSize: 25, color: "#5f53e5" }} />
+          <AddCircleOutlineIcon sx={{ fontSize: 25, color: "#312783" }} />
         </Button>
+      </Box>
+
+      <Box display="flex" alignItems="center" marginBottom="20px">
+        <ArrowDropDownCircleIcon
+          sx={{ fontSize: 25, color: "#312783", mr: 1 }}
+        />
+        <Typography
+          variant="h6"
+          fontWeight="bold"
+          sx={{ color: "#483ebd", marginTop: 0.5 }}
+        >
+          Diretriz Estratégica
+        </Typography>
       </Box>
 
       {/* ************************************ */}
       {/* Accordion p/ cada Diretriz Estratégica */}
       {/* ************************************ */}
-      {estrategicas.map((est) => (
+      {estrategicas.map((estrategica) => (
         <Accordion
-          key={est.id}
+          key={estrategica.id}
           disableGutters
           sx={{
             backgroundColor: "transparent",
@@ -265,7 +497,7 @@ const BaseDiretriz = ({ onUpdate, LimpaEstado }) => {
             expandIcon={<ExpandMoreIcon sx={{ color: "#b7b7b7" }} />}
             sx={{
               borderRadius: "8px",
-              backgroundColor: "#5f53e5",
+              backgroundColor: "#312783",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
@@ -274,10 +506,10 @@ const BaseDiretriz = ({ onUpdate, LimpaEstado }) => {
           >
             <Box sx={{ flex: 1, textAlign: "left" }}>
               <Typography fontWeight="bold" sx={{ color: "#fff" }}>
-                {est.titulo}
+                {estrategica.titulo}
               </Typography>
               <Typography sx={{ color: "#b7b7b7", fontSize: "0.9em" }}>
-                {est.descricao}
+                {estrategica.descricao}
               </Typography>
             </Box>
             <Button
@@ -294,29 +526,53 @@ const BaseDiretriz = ({ onUpdate, LimpaEstado }) => {
                 "&:hover": { backgroundColor: "transparent" },
               }}
             >
-              <DeleteForeverIcon sx={{ fontSize: 24, color: "#b7b7b7" }} />
+              <DeleteForeverIcon sx={{ fontSize: 24, color: "#dddddd" }} />
             </Button>
           </AccordionSummary>
 
           {/* Detalhes: Diretriz TÁTICA */}
           <AccordionDetails>
-            <Typography
-              variant="subtitle1"
-              fontWeight="bold"
-              sx={{ color: "#5f53e5", mb: 2 }}
-            >
-              Diretriz Tática
-            </Typography>
+            <Box display="flex" alignItems="center" marginBottom="20px">
+              <SubdirectoryArrowRightIcon
+                sx={{ fontSize: 30, color: "#4caf50", mr: 1 }}
+              />
+              <Typography
+                variant="h6"
+                fontWeight="bold"
+                sx={{ color: "#29c42e", marginTop: 1 }}
+              >
+                Diretriz Tática
+              </Typography>
+            </Box>
 
             {/* Form para adicionar Tática dentro da Estratégica */}
             <NovaTaticaForm
-              onAdd={(titulo, desc) => handleAddTatica(est.id, titulo, desc)}
+              onAdd={(titulo, desc) => handleAddTatica(estrategica.id, titulo, desc)}
+
             />
 
+            <Box
+              display="flex"
+              alignItems="center"
+              marginBottom="20px"
+              marginTop="30px"
+            >
+              <ArrowDropDownCircleIcon
+                sx={{ fontSize: 20, color: "#4caf50", mr: 1, marginTop: 1 }}
+              />
+              <Typography
+                variant="h6"
+                fontWeight="bold"
+                sx={{ color: "#29c42e", marginTop: 1 }}
+              >
+                Diretriz Tática
+              </Typography>
+            </Box>
+
             {/* Accordion das Táticas */}
-            {est.taticas.map((tat) => (
+            {estrategica.taticas.map((tatica) => (
               <Accordion
-                key={tat.id}
+                key={tatica.id}
                 disableGutters
                 sx={{
                   backgroundColor: "transparent",
@@ -329,7 +585,7 @@ const BaseDiretriz = ({ onUpdate, LimpaEstado }) => {
                   expandIcon={<ExpandMoreIcon sx={{ color: "#b7b7b7" }} />}
                   sx={{
                     borderRadius: "8px",
-                    backgroundColor: "#5f53e5",
+                    backgroundColor: "#4caf50",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
@@ -339,10 +595,10 @@ const BaseDiretriz = ({ onUpdate, LimpaEstado }) => {
                   {/* Cabeçalho da Tática */}
                   <Box sx={{ flex: 1, textAlign: "left" }}>
                     <Typography fontWeight="bold" sx={{ color: "#fff" }}>
-                      {tat.titulo}
+                      {tatica.titulo}
                     </Typography>
-                    <Typography sx={{ color: "#b7b7b7", fontSize: "0.9em" }}>
-                      {tat.descricao}
+                    <Typography sx={{ color: "#dddddd", fontSize: "0.9em" }}>
+                      {tatica.descricao}
                     </Typography>
                   </Box>
                   <Button
@@ -360,32 +616,60 @@ const BaseDiretriz = ({ onUpdate, LimpaEstado }) => {
                     }}
                   >
                     <DeleteForeverIcon
-                      sx={{ fontSize: 24, color: "#b7b7b7" }}
+                      sx={{ fontSize: 24, color: "#dddddd" }}
                     />
                   </Button>
                 </AccordionSummary>
 
                 {/* Detalhes: Diretriz Operacional */}
                 <AccordionDetails>
-                  <Typography
-                    variant="subtitle2"
-                    fontWeight="bold"
-                    sx={{ color: "#5f53e5", mb: 2 }}
-                  >
-                    Diretriz Operacional
-                  </Typography>
+                  <Box display="flex" alignItems="center" marginBottom="20px">
+                    <SubdirectoryArrowRightIcon
+                      sx={{ fontSize: 30, color: "#f44336", mr: 1 }}
+                    />
+                    <Typography
+                      variant="h6"
+                      fontWeight="bold"
+                      sx={{ color: "#ef6b62", marginTop: 1 }}
+                    >
+                      Diretriz Operacional
+                    </Typography>
+                  </Box>
 
                   {/* Form para adicionar Operacional */}
                   <NovaOperacionalForm
                     onAdd={(titulo, desc) =>
-                      handleAddOperacional(est.id, tat.id, titulo, desc)
+                      handleAddOperacional(estrategica.id, tatica.id, titulo, desc)
                     }
                   />
 
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    marginBottom="20px"
+                    marginTop="30px"
+                  >
+                    <ArrowDropDownCircleIcon
+                      sx={{
+                        fontSize: 20,
+                        color: "#f44336",
+                        mr: 1,
+                        marginTop: 1,
+                      }}
+                    />
+                    <Typography
+                      variant="h6"
+                      fontWeight="bold"
+                      sx={{ color: "#ef6b62", marginTop: 1 }}
+                    >
+                      Diretriz Operacional
+                    </Typography>
+                  </Box>
+
                   {/* Lista de Operacionais */}
-                  {tat.operacionais?.map((op) => (
+                  {tatica.operacionais.map((operacional) => (
                     <Accordion
-                      key={op.id}
+                      key={operacional.id}
                       disableGutters
                       sx={{
                         backgroundColor: "transparent",
@@ -395,10 +679,12 @@ const BaseDiretriz = ({ onUpdate, LimpaEstado }) => {
                       }}
                     >
                       <AccordionSummary
-                        expandIcon={<ExpandMoreIcon sx={{ color: "#b7b7b7" }} />}
+                        expandIcon={
+                          <ExpandMoreIcon sx={{ color: "#b7b7b7" }} />
+                        }
                         sx={{
                           borderRadius: "8px",
-                          backgroundColor: "#5f53e5",
+                          backgroundColor: "#f44336",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "space-between",
@@ -408,12 +694,12 @@ const BaseDiretriz = ({ onUpdate, LimpaEstado }) => {
                         {/* Cabeçalho da Operacional */}
                         <Box sx={{ flex: 1, textAlign: "left" }}>
                           <Typography fontWeight="bold" sx={{ color: "#fff" }}>
-                            {op.titulo}
+                            {operacional.titulo}
                           </Typography>
                           <Typography
-                            sx={{ color: "#b7b7b7", fontSize: "0.9em" }}
+                            sx={{ color: "#dddddd", fontSize: "0.9em" }}
                           >
-                            {op.descricao}
+                            {operacional.descricao}
                           </Typography>
                         </Box>
                         <Button
@@ -431,20 +717,269 @@ const BaseDiretriz = ({ onUpdate, LimpaEstado }) => {
                           }}
                         >
                           <DeleteForeverIcon
-                            sx={{ fontSize: 24, color: "#b7b7b7" }}
+                            sx={{ fontSize: 24, color: "#dddddd" }}
                           />
                         </Button>
                       </AccordionSummary>
 
                       {/* Detalhes (tarefas, 5W2H) */}
                       <AccordionDetails>
-                        <DiretrizData
-                          diretriz={op}
-                          onUpdate={(operAtualizada) =>
-                            handleUpdateOperacional(est.id, tat.id, operAtualizada)
-                          }
-                          LimpaEstado={LimpaEstado}
-                        />
+                        <Box>
+                          {/* 🔹 Campo para adicionar nova tarefa */}
+                          <Box
+                            sx={{
+                              display: "flex",
+                              gap: 1,
+                              marginBottom: "20px",
+                              marginTop: "20px",
+                            }}
+                          >
+                            <TextField
+                              label="Nome do Plano de ação..."
+                              value={novaTarefa}
+                              onChange={(e) => setNovaTarefa(e.target.value)}
+                              fullWidth
+                            />
+                            <Button
+                              onClick={() => handleAddTarefa( estrategica.id, tatica.id, operacional.id, novaTarefa)}
+                              sx={{ minWidth: "40px" }}
+                            >
+                              <AddCircleOutlineIcon
+                                sx={{ fontSize: 25, color: "#f44336" }}
+                              />
+                            </Button>
+                          </Box>
+
+
+                          {/* 🔹 Exibir as tarefas já adicionadas */}
+
+
+                          {operacional.tarefas.length > 0 && (
+                            <List>
+                              {operacional.tarefas.map((tarefa) => (
+                                <Accordion
+                                  key={tarefa.id}
+                                  sx={{
+                                    backgroundColor: "#fff",
+                                    marginBottom: "8px",
+                                    borderRadius: "8px",
+                                  }}
+                                >
+                                  <AccordionSummary
+                                    expandIcon={<ExpandMoreIcon />}
+                                    sx={{ backgroundColor: "#f9f9f9" }}
+                                  >
+                                    <Typography
+                                      variant="subtitle1"
+                                      sx={{
+                                        fontWeight: "bold",
+                                        color: "#f44336",
+                                        flex: 1,
+                                      }}
+                                    >
+                                      {tarefa.tituloTarefa}
+                                    </Typography>
+
+                                    {/* 🔹 Botão de deletar */}
+                                    <Button
+                                      onClick={() =>
+                                        setTarefasLocais((prevTarefas) =>
+                                          prevTarefas.filter(
+                                            (task) => task.id !== t.id
+                                          )
+                                        )
+                                      }
+                                      sx={{
+                                        color: "#dc2626",
+                                        minWidth: "40px",
+                                        padding: "5px",
+                                        backgroundColor: "transparent",
+                                        "&:hover": {
+                                          backgroundColor: "transparent",
+                                        },
+                                      }}
+                                    >
+                                      <DeleteForeverIcon
+                                        sx={{ fontSize: 24 }}
+                                      />
+                                    </Button>
+                                  </AccordionSummary>
+                                  
+
+
+                                  {/* 🔹 Detalhes do Accordion (Plano de Ação - 5W2H) */}
+
+
+
+                                  <AccordionDetails>
+                                    <Box
+                                      display="flex"
+                                      alignItems="center"
+                                      mb={1}
+                                      sx={{
+                                        marginBottom: "20px",
+                                        marginTop: "10px",
+                                      }}
+                                    >
+                                      <PlayCircleFilledWhiteIcon
+                                        sx={{
+                                          color: "#f44336",
+                                          fontSize: 25,
+                                          marginRight: 1,
+                                        }}
+                                      />
+                                      <Typography variant="h6">
+                                        Plano de Ação (5W2H)
+                                      </Typography>
+                                    </Box>
+
+
+
+                                    {/* 🔹 Campos do 5W2H */}
+
+
+
+
+                                    <Box
+                                      sx={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: 1,
+                                      }}
+                                    >
+                                      <TextField
+                                        label="O que?"
+                                        value={tarefa.planoDeAcao?.oQue ?? ""}
+                                        onChange={(e) =>
+                                          handleEditTarefa(
+                                            tarefa.id,
+                                            "oQue",
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+
+                                      <TextField
+                                        label="Por que?"
+                                        value={tarefa.planoDeAcao.porQue ?? ""}
+                                        onChange={(e) =>
+                                          handleEditTarefa(
+                                            tarefa.id,
+                                            "porQue",
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+
+                                      {/* 🔹 Campo "Quem" com múltipla seleção */}
+                                      <Select
+                                        multiple
+                                        value={tarefa.planoDeAcao.quem ?? []}
+                                        onChange={(event) =>
+                                          handleEditTarefa(
+                                            tarefa.id,
+                                            "quem",
+                                            event.target.value
+                                          )
+                                        }
+                                        displayEmpty
+                                        sx={{
+                                          minWidth: "200px",
+                                          backgroundColor: "#fff",
+                                        }}
+                                        renderValue={(selected) =>
+                                          selected.length === 0
+                                            ? "Quem..."
+                                            : selected
+                                                .map(
+                                                  (id) =>
+                                                    users?.find(
+                                                      (user) => user.id === id
+                                                    )?.username ||
+                                                    "Desconhecido"
+                                                )
+                                                .join(", ")
+                                        }
+                                      >
+                                        {users?.map((user) => (
+                                          <MenuItem
+                                            key={user.id}
+                                            value={user.id}
+                                          >
+                                            <Checkbox
+                                              checked={
+                                                tarefa.planoDeAcao.quem?.includes(
+                                                  user.id
+                                                ) || false
+                                              }
+                                            />
+                                            <ListItemText
+                                              primary={user.username}
+                                            />
+                                          </MenuItem>
+                                        ))}
+                                      </Select>
+
+                                      <TextField
+                                        label="Quando?"
+                                        value={tarefa.planoDeAcao.quando ?? ""}
+                                        onChange={(e) =>
+                                          handleEditTarefa(
+                                            tarefa.id,
+                                            "quando",
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                      <TextField
+                                        label="Onde?"
+                                        value={tarefa.planoDeAcao.onde ?? ""}
+                                        onChange={(e) =>
+                                          handleEditTarefa(
+                                            tarefa.id,
+                                            "onde",
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                      <TextField
+                                        label="Como?"
+                                        value={tarefa.planoDeAcao.como ?? ""}
+                                        onChange={(e) =>
+                                          handleEditTarefa(
+                                            tarefa.id,
+                                            "como",
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+
+                                      {/* 🔹 Campo Valor Formatado */}
+                                      <TextField
+                                        label="Valor"
+                                        value={tarefa.planoDeAcao.valor ?? ""}
+                                        onChange={(e) => {
+                                          const rawValue =
+                                            e.target.value.replace(/\D/g, "");
+                                          const formattedValue =
+                                            new Intl.NumberFormat("pt-BR", {
+                                              style: "currency",
+                                              currency: "BRL",
+                                            }).format(Number(rawValue) / 100);
+                                          handleEditTarefa(
+                                            tarefa.id,
+                                            "valor",
+                                            formattedValue
+                                          );
+                                        }}
+                                      />
+                                    </Box>
+                                  </AccordionDetails>
+                                </Accordion>
+                              ))}
+                            </List>
+                          )}
+                        </Box>
                       </AccordionDetails>
                     </Accordion>
                   ))}
@@ -460,10 +995,30 @@ const BaseDiretriz = ({ onUpdate, LimpaEstado }) => {
 
 export default BaseDiretriz;
 
-/* 
-  Exemplos de sub-formulários para Tática e Operacional,
-  para manter a lógica isolada e legível
-*/
+
+
+
+
+
+
+
+
+
+
+// CRIAR DIRETRIZ TÁTICA
+
+
+
+
+
+
+
+
+
+
+
+
+
 function NovaTaticaForm({ onAdd }) {
   const [titulo, setTitulo] = useState("");
   const [desc, setDesc] = useState("");
@@ -503,11 +1058,33 @@ function NovaTaticaForm({ onAdd }) {
           },
         }}
       >
-        <AddCircleOutlineIcon sx={{ fontSize: 25, color: "#5f53e5" }} />
+        <AddCircleOutlineIcon sx={{ fontSize: 25, color: "#4caf50" }} />
       </Button>
     </Box>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+// CRIAR DIRETRIZ OPERACIONAL
+
+
+
+
+
+
+
+
+
+
 
 function NovaOperacionalForm({ onAdd }) {
   const [titulo, setTitulo] = useState("");
@@ -548,7 +1125,7 @@ function NovaOperacionalForm({ onAdd }) {
           },
         }}
       >
-        <AddCircleOutlineIcon sx={{ fontSize: 25, color: "#5f53e5" }} />
+        <AddCircleOutlineIcon sx={{ fontSize: 25, color: "#f44336" }} />
       </Button>
     </Box>
   );

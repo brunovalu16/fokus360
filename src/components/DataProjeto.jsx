@@ -22,9 +22,12 @@ import KeyboardReturnIcon from "@mui/icons-material/KeyboardReturn";
 import { Link } from "react-router-dom";
 import "dayjs/locale/pt-br"; // define o idioma português para dayjs
 import Header from "../components/Header";
-import DadosProjeto from "../components/DadosProjeto";
+//import DadosProjeto from "../components/DadosProjeto";
+
+// Firestore
 import { getFirestore, getDocs, collection, doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../data/firebase-config"; // Atualize o caminho conforme necessário
+import BaseDiretriz2 from "./BaseDiretriz2";
 
 // FUNÇÃO DO GRÁFICO
 const ProgressStatus = ({ tarefaCheckState }) => {
@@ -112,24 +115,26 @@ function DataProjeto() {
   const [diretrizes, setDiretrizes] = useState([]);
 
   // Buscar o projectId automaticamente
-  useEffect(() => {
-    const fetchProjectId = async () => {
-      try {
-        const urlParams = new URLSearchParams(window.location.search); // Obtém parâmetros da URL
-        const idFromUrl = urlParams.get("id");
+// 🔹 Função para buscar o ID do projeto
+const fetchProjectId = async () => {
+  try {
+    const docRef = doc(db, "projetos", "seuDocumentoID"); // Altere "seuDocumentoID" para um ID válido
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      setProjectId(docSnap.id);
+      console.log("✅ projectId definido:", docSnap.id);
+    } else {
+      console.warn("⚠️ Nenhum projeto encontrado no Firestore.");
+    }
+  } catch (error) {
+    console.error("❌ Erro ao buscar projectId:", error);
+  }
+};
 
-        if (idFromUrl) {
-          setProjectId(idFromUrl); // Define o ID obtido da URL
-        } else {
-          console.error("ID do projeto não encontrado na URL.");
-        }
-      } catch (error) {
-        console.error("Erro ao buscar projectId:", error);
-      }
-    };
-
-    fetchProjectId();
-  }, []);
+// 🔹 Buscar projectId quando o componente carregar
+useEffect(() => {
+  fetchProjectId();
+}, []);
 
   // Função para garantir que cada diretriz possua tarefas como array
   function normalizarDiretrizes(diretrizesDoBanco = []) {
@@ -217,8 +222,6 @@ function DataProjeto() {
   const handleChange = (event) => {
     const { name, value } = event.target;
     setUnidade((prev) => ({ ...prev, [name]: value }));
-    // Se houver um onUpdate, descomente
-    // onUpdate((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleChangeSolicitante = (event) => {
@@ -251,8 +254,6 @@ function DataProjeto() {
     }).format(onlyNumbers / 100);
 
     setOrcamento((prev) => ({ ...prev, [name]: formattedValue }));
-    // Se houver onUpdate, descomente:
-    // onUpdate((prev) => ({ ...prev, [name]: Number(onlyNumbers) / 100 }));
   };
 
   // Função de formato monetário para o campo "Valor"
@@ -265,8 +266,6 @@ function DataProjeto() {
     }).format(onlyNumbers / 100);
 
     setValor((prev) => ({ ...prev, [name]: formattedValue }));
-    // Se houver onUpdate, descomente:
-    // onUpdate((prev) => ({ ...prev, [name]: Number(onlyNumbers) / 100 }));
   };
 
   // Converte de ISO para DD/MM/AAAA
@@ -296,13 +295,13 @@ function DataProjeto() {
 
     // Formata no padrão dd/mm/aaaa
     if (numericValue.length <= 2) {
-      setState(numericValue); // Apenas o dia
+      setState(numericValue);
     } else if (numericValue.length <= 4) {
-      setState(`${numericValue.slice(0, 2)}/${numericValue.slice(2)}`); // Dia/Mês
+      setState(`${numericValue.slice(0, 2)}/${numericValue.slice(2)}`);
     } else {
       setState(
         `${numericValue.slice(0, 2)}/${numericValue.slice(2, 4)}/${numericValue.slice(4, 8)}`
-      ); // Dia/Mês/Ano
+      );
     }
   };
 
@@ -337,7 +336,7 @@ function DataProjeto() {
       };
 
       // Atualiza o progresso
-      const totalFields = 1; // Número fixo de checkbox por tarefa
+      const totalFields = 1;
       const relevantKeys = Object.keys(updatedState[taskKey] || {}).slice(0, totalFields);
       const completedFields = relevantKeys.filter((k) => updatedState[taskKey][k]).length;
       const progresso = (completedFields / totalFields) * 100;
@@ -345,7 +344,6 @@ function DataProjeto() {
       // Atualiza o progresso no estado das diretrizes
       setDiretrizes((prevDiretrizes) => {
         const updatedDiretrizes = [...prevDiretrizes];
-        // Protege contra diretriz ou tarefas indefinidas
         const tarefas = updatedDiretrizes[diretrizIndex]?.tarefas || [];
         if (!tarefas[tarefaIndex]) return updatedDiretrizes;
 
@@ -365,78 +363,77 @@ function DataProjeto() {
         alert("Projeto não encontrado!");
         return;
       }
-
-      // Garante que cada diretriz possua tarefas como array
-      const diretrizesSeguras = diretrizes.map((diretriz) => ({
-        ...diretriz,
-        tarefas: Array.isArray(diretriz.tarefas) ? diretriz.tarefas : [],
-      }));
-
-      const updatedDiretrizes = diretrizesSeguras.map((diretriz, diretrizIndex) => ({
-        ...diretriz,
-        tarefas: diretriz.tarefas.map((tarefa, tarefaIndex) => {
-          const taskKey = `diretriz-${diretrizIndex}-tarefa-${tarefaIndex}`;
-          const tarefaCheckState = checkState[taskKey] || {};
-          const totalFields = 1; // Número fixo de checkbox por tarefa
-          const relevantKeys = Object.keys(tarefaCheckState).slice(0, totalFields);
-          const completedFields = relevantKeys.filter((key) => tarefaCheckState[key]).length;
-          const progresso = (completedFields / totalFields) * 100;
-
-          return {
-            ...tarefa,
-            tituloTarefa: tarefa.tituloTarefa || "",
-            planoDeAcao: {
-              ...tarefa.planoDeAcao,
-              oQue: tarefa.planoDeAcao?.oQue || "",
-              porQue: tarefa.planoDeAcao?.porQue || "",
-              quem: tarefa.planoDeAcao?.quem || [],
-              quando: tarefa.planoDeAcao?.quando || "",
-              onde: tarefa.planoDeAcao?.onde || "",
-              como: tarefa.planoDeAcao?.como || "",
-              valor: tarefa.planoDeAcao?.valor || "",
-            },
-            checkboxState: tarefaCheckState,
-            progresso,
-          };
-        }),
-      }));
-
-      const docRef = doc(db, "projetos", projectId);
-      await updateDoc(docRef, {
-        nome: nomeProjeto || "",
-        dataInicio: dataInicio || "",
-        dataFim: dataFim || "",
-        prazoPrevisto: prazoPrevisto || "",
-        unidade: unidade.unidade || "",
-        categoria: categoria.categoria || "",
-        solicitante: solicitante.solicitante || "",
-        descricao: descricao || "",
-        solicitanteEmail: solicitanteEmail || "",
-        orcamento: orcamento.orcamento || "",
-        colaboradores: colaboradores.colaboradores || [],
-        diretrizes: updatedDiretrizes,
+  
+      // Pegamos o estado mais recente antes de salvar
+      setDiretrizes((prevDiretrizes) => {
+        const diretrizesSeguras = prevDiretrizes.map((diretriz) => ({
+          ...diretriz,
+          tarefas: Array.isArray(diretriz.tarefas) ? diretriz.tarefas : [],
+        }));
+  
+        const updatedDiretrizes = diretrizesSeguras.map((diretriz, diretrizIndex) => ({
+          ...diretriz,
+          tarefas: diretriz.tarefas.map((tarefa, tarefaIndex) => {
+            const taskKey = `diretriz-${diretrizIndex}-tarefa-${tarefaIndex}`;
+            const tarefaCheckState = checkState[taskKey] || {};
+            const totalFields = 1;
+            const relevantKeys = Object.keys(tarefaCheckState).slice(0, totalFields);
+            const completedFields = relevantKeys.filter((key) => tarefaCheckState[key]).length;
+            const progresso = (completedFields / totalFields) * 100;
+  
+            return {
+              ...tarefa,
+              tituloTarefa: tarefa.tituloTarefa || "",
+              planoDeAcao: {
+                ...tarefa.planoDeAcao,
+                oQue: tarefa.planoDeAcao?.oQue || "",
+                porQue: tarefa.planoDeAcao?.porQue || "",
+                quem: tarefa.planoDeAcao?.quem || [],
+                quando: tarefa.planoDeAcao?.quando || "",
+                onde: tarefa.planoDeAcao?.onde || "",
+                como: tarefa.planoDeAcao?.como || "",
+                valor: tarefa.planoDeAcao?.valor || "",
+              },
+              checkboxState: tarefaCheckState,
+              progresso,
+            };
+          }),
+        }));
+  
+        // Agora atualiza o Firestore com os dados mais recentes
+        const docRef = doc(db, "projetos", projectId);
+        updateDoc(docRef, {
+          nome: nomeProjeto || "",
+          dataInicio: dataInicio || "",
+          dataFim: dataFim || "",
+          prazoPrevisto: prazoPrevisto || "",
+          unidade: unidade.unidade || "",
+          categoria: categoria.categoria || "",
+          solicitante: solicitante.solicitante || "",
+          descricao: descricao || "",
+          solicitanteEmail: solicitanteEmail || "",
+          orcamento: orcamento.orcamento || "",
+          colaboradores: colaboradores.colaboradores || [],
+          diretrizes: updatedDiretrizes,
+        })
+          .then(() => {
+            alert("Dados salvos com sucesso!");
+          })
+          .catch((error) => {
+            console.error("Erro ao salvar os dados:", error);
+            alert("Erro ao salvar os dados. Tente novamente.");
+          });
+  
+        return updatedDiretrizes; // Retorna o estado atualizado
       });
-
-      alert("Dados salvos com sucesso!");
     } catch (error) {
       console.error("Erro ao salvar os dados:", error);
       alert("Erro ao salvar os dados. Tente novamente.");
     }
   };
+  
 
-  // Ao adicionar uma nova diretriz (ou tarefa), também inicialize o estado de checkState para a nova diretriz:
-  const handleAddDiretriz = () => {
-    const newDiretriz = { descricao: "", tarefas: [] };
-    setDiretrizes((prevDiretrizes) => [...prevDiretrizes, newDiretriz]);
-
-    // Inicializa o estado de checkboxes para a nova diretriz
-    setCheckState((prevState) => ({
-      ...prevState,
-      [diretrizes.length]: {}, // Novo índice com estado vazio
-    }));
-  };
-
-  // calcular Total Tarefas Concluidas
+  // Funções de cálculo (tarefas concluídas, progresso, orçamento, etc.)
   const calcularTotalTarefasConcluidas = () => {
     return diretrizes.reduce((acc, diretriz) => {
       const tarefas = diretriz?.tarefas || [];
@@ -444,26 +441,17 @@ function DataProjeto() {
     }, 0);
   };
 
-  // Criar Função para Calcular o Progresso Geral
   const calcularProgressoGeral = (diretrizIndex) => {
-    const diretriz = diretrizes[diretrizIndex];
-    if (!diretriz) return 0;
-    const tarefas = Array.isArray(diretriz.tarefas) ? diretriz.tarefas : [];
-    if (tarefas.length === 0) return 0;
-
-    const progressoTotal = tarefas.reduce((acc, tarefa) => {
-      return acc + (tarefa.progresso || 0);
-    }, 0);
-
-    return Math.round(progressoTotal / tarefas.length);
+    if (!Array.isArray(diretrizes) || diretrizes.length === 0) return 0; // 🔹 Verifica se `diretrizes` é um array válido
+  
+    const diretriz = diretrizes[diretrizIndex]; 
+    if (!diretriz || !Array.isArray(diretriz.tarefas) || diretriz.tarefas.length === 0) return 0; // 🔹 Evita erro se `diretriz` ou `tarefas` forem undefined
+  
+    const progressoTotal = diretriz.tarefas.reduce((acc, tarefa) => acc + (tarefa.progresso || 0), 0);
+    return Math.round(progressoTotal / diretriz.tarefas.length);
   };
+  
 
-  // Calcular o orçamento
-  const calcularOrcamento = () => {
-    return orcamento.orcamento || "R$ 0,00";
-  };
-
-  // Calcular valor gasto
   const calcularValorGasto = () => {
     const valorTotal = diretrizes.reduce((acc, diretriz) => {
       const tarefas = Array.isArray(diretriz.tarefas) ? diretriz.tarefas : [];
@@ -493,12 +481,22 @@ function DataProjeto() {
     }, 0);
   };
 
+  const handleDiretrizesUpdate = (diretrizesAtualizadas) => {
+    // Se houver alguma estrutura "setInformacoesProjeto" 
+    // ou manipulação de estado pai, inclua aqui
+  };
+
+  const calcularOrcamento = () => {
+    return orcamento.orcamento || "R$ 0,00"; // 🔹 Verifica se `orcamento.orcamento` tem valor, caso contrário, retorna "R$ 0,00"
+  };
+  
+
   return (
     <>
       {/* Botão voltar painel de projetos */}
       <Box display="flex" justifyContent="flex-end" mb={2}>
         <Button
-          component={Link} // Define que o botão será um Link do React Router
+          component={Link}
           to="/dashboard"
           variant="contained"
           color="primary"
@@ -515,7 +513,6 @@ function DataProjeto() {
           }}
         >
           <KeyboardReturnIcon sx={{ marginRight: "8px", fontSize: "30px" }} />
-          {/* Ícone com espaçamento */}
           Voltar para o painel de projetos
         </Button>
       </Box>
@@ -533,15 +530,20 @@ function DataProjeto() {
           }
         />
 
-        {/* Componente DadosProjeto (já existente) */}
+        {/**
+         
         <DadosProjeto
           orcamento={calcularOrcamento()}
           valorGasto={calcularValorGasto()}
           totalDiretrizes={calcularTotalDiretrizes()}
           totalTarefas={calcularTotalTarefas()}
-          diretrizes={diretrizes} // Corrigido para passar diretrizes
+          diretrizes={diretrizes} 
         />
 
+         * 
+         */}
+
+        
         {/* Bloco cinza contendo os campos */}
         <Box
           sx={{
@@ -568,37 +570,33 @@ function DataProjeto() {
                 onChange={(e) => setNomeProjeto(e.target.value)}
               />
 
-              {/* Campos de datas e selects num row flex */}
               <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-                {/* Data Início */}
                 <TextField
                   fullWidth
                   label="Data início"
                   placeholder="dd/mm/aaaa"
-                  value={dataInicioFormatada} // Mostra a data formatada no campo
+                  value={dataInicioFormatada}
                   InputProps={{
-                    readOnly: true, // Torna o campo somente leitura
+                    readOnly: true,
                   }}
-                  inputProps={{ maxLength: 10 }} // Limita o número de caracteres
+                  inputProps={{ maxLength: 10 }}
                 />
 
-                {/* Prazo Previsto */}
                 <TextField
                   fullWidth
                   label="Prazo previsto"
                   placeholder="dd/mm/aaaa"
-                  value={prazoPrevistoFormatada} // Mostra a data formatada no campo
+                  value={prazoPrevistoFormatada}
                   onChange={(e) => {
                     const valor = e.target.value;
-                    handleDataChange(valor, setPrazoPrevistoFormatada); // Aplica a formatação em tempo real
+                    handleDataChange(valor, setPrazoPrevistoFormatada);
                   }}
                   onBlur={() => {
-                    setPrazoPrevisto(formatarDataParaISO(prazoPrevistoFormatada)); // Converte para ISO apenas ao perder o foco
+                    setPrazoPrevisto(formatarDataParaISO(prazoPrevistoFormatada));
                   }}
-                  inputProps={{ maxLength: 10 }} // Limita o número de caracteres
+                  inputProps={{ maxLength: 10 }}
                 />
 
-                {/* Selecione a unidade do projeto */}
                 <Select
                   name="unidade"
                   value={unidade.unidade}
@@ -618,7 +616,6 @@ function DataProjeto() {
                 </Select>
               </Box>
 
-              {/* solicitante, categoria, colaboradores */}
               <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
                 {/* solicitante */}
                 <Select
@@ -710,7 +707,7 @@ function DataProjeto() {
                 multiline
                 rows={2}
                 value={solicitanteEmail}
-                onChange={(e) => setSolicitanteEmail(e.target.value)} // Atualiza o estado local
+                onChange={(e) => setSolicitanteEmail(e.target.value)}
               />
               <TextField
                 label="Orçamento"
@@ -719,390 +716,20 @@ function DataProjeto() {
                 onChange={handleCurrencyChange}
                 fullWidth
               />
-              {/* Data de finalização do projeto */}
               <TextField
                 fullWidth
                 label="Data de finalização do projeto"
                 placeholder="dd/mm/aaaa"
                 value={dataFim}
                 onChange={(e) => handleDataChange(e.target.value, setDataFim)}
-                inputProps={{ maxLength: 10 }} // Limita o número de caracteres
+                inputProps={{ maxLength: 10 }}
               />
             </Box>
           </Box>
 
           {/* Seção: DIRETRIZES DO PROJETO */}
           <Box>
-            <Box display="flex" alignItems="center" mb={1}>
-              <PlayCircleFilledWhiteIcon
-                sx={{ color: "#5f53e5", fontSize: 25, marginRight: 1 }}
-              />
-              <Typography variant="h6">DIRETRIZES DO PROJETO</Typography>
-            </Box>
-
-            {/* Lista de diretrizes adicionadas */}
-            <Box sx={{ marginTop: 2 }}>
-              {diretrizes.map((diretriz, diretrizIndex) => {
-                const tarefas = diretriz?.tarefas || [];
-
-                // Calcular o valor total das tarefas da diretriz
-                const valorTotal = tarefas.reduce((acc, tarefa) => {
-                  const valor = tarefa.planoDeAcao?.valor || "R$ 0,00";
-                  const somenteNumeros =
-                    parseFloat(
-                      valor.replace("R$", "").replace(".", "").replace(",", ".")
-                    ) || 0;
-                  return acc + somenteNumeros;
-                }, 0);
-
-                // Formatar o valor total para exibir como moeda
-                const valorTotalFormatado = new Intl.NumberFormat("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                }).format(valorTotal);
-
-                return (
-                  <Accordion
-                    key={diretrizIndex}
-                    disableGutters
-                    sx={{
-                      backgroundColor: "transparent",
-                      borderRadius: "8px",
-                      boxShadow: "none",
-                      marginBottom: "10px",
-                    }}
-                  >
-                    {/* Cabeçalho roxo */}
-                    <AccordionSummary
-                      expandIcon={<ExpandMoreIcon sx={{ color: "#b7b7b7" }} />}
-                      sx={{
-                        borderRadius: "8px",
-                        backgroundColor: "#5f53e5",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
-                      }}
-                    >
-                      {/* Título e descrição da diretriz */}
-                      <Box sx={{ flex: 1, textAlign: "left" }}>
-                        <Typography fontWeight="bold" sx={{ color: "#fff" }}>
-                          {diretriz.descricao || "Descrição não definida"}
-                        </Typography>
-                        <Typography sx={{ color: "#d6d6d6", fontSize: "0.9em" }}>
-                          {diretriz.descricao || "Descrição não definida"}
-                        </Typography>
-                      </Box>
-
-                      {/* Campo de Valor */}
-                      <Typography
-                        sx={{
-                          color: "#d6d6d6",
-                          fontSize: "1.2em",
-                          alignContent: "center",
-                          marginRight: "10px",
-                        }}
-                      >
-                        Valor gasto:
-                      </Typography>
-                      <Typography
-                        sx={{
-                          color: "#00f6fc",
-                          fontWeight: "bold",
-                          fontSize: "1.2em",
-                          alignContent: "center",
-                          marginRight: "60px",
-                        }}
-                      >
-                        {valorTotalFormatado}
-                      </Typography>
-
-                      {/* Gráfico de progresso geral */}
-                      {/* Lógica das Cores:
-                          De 0% a 33%: Vermelho.
-                          De 34% a 66%: Amarelo.
-                          De 67% a 100%: Verde. */}
-                      <Box display="flex" alignItems="center" gap={1} marginRight="20px">
-                        <Typography sx={{ marginRight: "20px", color: "#d6d6d6" }}>
-                          Tarefas concluídas
-                        </Typography>
-                        <CircularProgress
-                          variant="determinate"
-                          value={calcularProgressoGeral(diretrizIndex)}
-                          sx={{
-                            color:
-                              calcularProgressoGeral(diretrizIndex) <= 33
-                                ? "#f44336" // Vermelho
-                                : calcularProgressoGeral(diretrizIndex) <= 66
-                                ? "#ffeb3b" // Amarelo
-                                : "#65ff00", // Verde
-                          }}
-                          thickness={10}
-                          size={30}
-                        />
-                        <Typography
-                          sx={{
-                            color: "#fff",
-                            fontWeight: "bold",
-                            fontSize: "1.2em",
-                            alignContent: "center",
-                            marginRight: "10px",
-                          }}
-                        >
-                          {calcularProgressoGeral(diretrizIndex)}%
-                        </Typography>
-                      </Box>
-                    </AccordionSummary>
-
-                    {/* Detalhes do Accordion */}
-                    <AccordionDetails>
-                      {/* Renderizar tarefas e checkboxes */}
-                      {tarefas.map((tarefa, tarefaIndex) => {
-                        // Gerar o estado filtrado dos checkboxes relacionados à tarefa
-                        const taskKey = `diretriz-${diretrizIndex}-tarefa-${tarefaIndex}`;
-                        const tarefaCheckState = checkState[taskKey] || {};
-
-                        return (
-                          <Box key={tarefaIndex} sx={{ marginBottom: "20px" }}>
-                            {/* Gráfico de progresso específico para esta tarefa */}
-                            <ProgressStatus tarefaCheckState={tarefaCheckState} />
-
-                            {/* Input Tarefa */}
-                            <Box
-                              sx={{
-                                display: "flex",
-                                gap: 1,
-                                marginBottom: "20px",
-                              }}
-                            >
-                              <TextField
-                                label="Tarefa"
-                                fullWidth
-                                value={tarefa.tituloTarefa || ""}
-                                onChange={(e) =>
-                                  handleTarefaChange(
-                                    diretrizIndex,
-                                    tarefaIndex,
-                                    "tituloTarefa",
-                                    e.target.value
-                                  )
-                                }
-                                sx={{
-                                  marginTop: "20px",
-                                  "& .MuiOutlinedInput-root": {
-                                    "& fieldset": {
-                                      borderColor: "#5f54e7", // Define a cor da borda
-                                      borderWidth: "3px", // Espessura da borda
-                                    },
-                                    "&:hover fieldset": {
-                                      borderColor: "#5f54e7", // Cor da borda ao passar o mouse
-                                      borderWidth: "2px", // Espessura da borda ao passar o mouse
-                                    },
-                                    "&.Mui-focused fieldset": {
-                                      borderColor: "#5f54e7", // Cor da borda ao focar
-                                      borderWidth: "3px", // Espessura da borda ao focar
-                                    },
-                                  },
-                                }}
-                              />
-                              <Checkbox
-                                checked={tarefaCheckState[`tarefa`] || false}
-                                onChange={() => handleCheckChange(diretrizIndex, tarefaIndex, `tarefa`)}
-                              />
-                            </Box>
-
-                            {/* Seção: Plano de Ação (5W2H) */}
-                            <Box
-                              display="flex"
-                              alignItems="center"
-                              mb={1}
-                              sx={{ marginBottom: "40px", marginTop: "40px" }}
-                            >
-                              <PlayCircleFilledWhiteIcon
-                                sx={{
-                                  color: "#5f53e5",
-                                  fontSize: 25,
-                                  marginRight: 1,
-                                }}
-                              />
-                              <Typography variant="h6">Plano de Ação (5W2H)</Typography>
-                            </Box>
-
-                            {/* Campos 5W2H */}
-                            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                              {/* Campo O que? */}
-                              <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                                <TextField
-                                  label="O que?"
-                                  fullWidth
-                                  value={tarefa.planoDeAcao?.oQue || ""}
-                                  onChange={(e) =>
-                                    handleTarefaChange(
-                                      diretrizIndex,
-                                      tarefaIndex,
-                                      "planoDeAcao.oQue",
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                              </Box>
-
-                              {/* Campo Por que? */}
-                              <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                                <TextField
-                                  label="Por que?"
-                                  fullWidth
-                                  value={tarefa.planoDeAcao?.porQue || ""}
-                                  onChange={(e) =>
-                                    handleTarefaChange(
-                                      diretrizIndex,
-                                      tarefaIndex,
-                                      "planoDeAcao.porQue",
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                              </Box>
-
-                              {/* Campo Quem? (Select Múltiplo) */}
-                              <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                                <Select
-                                  multiple
-                                  name="quem"
-                                  value={tarefa.planoDeAcao?.quem || []}
-                                  onChange={(e) =>
-                                    handleTarefaChange(
-                                      diretrizIndex,
-                                      tarefaIndex,
-                                      "planoDeAcao.quem",
-                                      e.target.value
-                                    )
-                                  }
-                                  displayEmpty
-                                  sx={{
-                                    flex: "1 1 calc(33.33% - 16px)",
-                                    minWidth: "200px",
-                                  }}
-                                  renderValue={(selected) =>
-                                    selected.length === 0
-                                      ? "Selecione responsáveis"
-                                      : selected
-                                          .map(
-                                            (id) =>
-                                              users.find((user) => user.id === id)?.username ||
-                                              "Desconhecido"
-                                          )
-                                          .join(", ")
-                                  }
-                                >
-                                  {users.map((user) => (
-                                    <MenuItem key={user.id} value={user.id}>
-                                      <Checkbox
-                                        checked={tarefa.planoDeAcao?.quem?.includes(user.id) || false}
-                                        onChange={() =>
-                                          handleCheckChange(
-                                            diretrizIndex,
-                                            tarefaIndex,
-                                            `diretriz-${diretrizIndex}-tarefa-${tarefaIndex}-quem-${user.id}`
-                                          )
-                                        }
-                                      />
-                                      <ListItemText primary={user.username} />
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                              </Box>
-
-                              {/* Campo Quando? */}
-                              <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                                <TextField
-                                  label="Quando?"
-                                  fullWidth
-                                  value={tarefa.planoDeAcao?.quando || ""}
-                                  onChange={(e) =>
-                                    handleTarefaChange(
-                                      diretrizIndex,
-                                      tarefaIndex,
-                                      "planoDeAcao.quando",
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                              </Box>
-
-                              {/* Campo Onde? */}
-                              <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                                <TextField
-                                  label="Onde?"
-                                  fullWidth
-                                  value={tarefa.planoDeAcao?.onde || ""}
-                                  onChange={(e) =>
-                                    handleTarefaChange(
-                                      diretrizIndex,
-                                      tarefaIndex,
-                                      "planoDeAcao.onde",
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                              </Box>
-
-                              {/* Campo Como? */}
-                              <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                                <TextField
-                                  label="Como?"
-                                  fullWidth
-                                  value={tarefa.planoDeAcao?.como || ""}
-                                  onChange={(e) =>
-                                    handleTarefaChange(
-                                      diretrizIndex,
-                                      tarefaIndex,
-                                      "planoDeAcao.como",
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                              </Box>
-
-                              {/* Campo Valor */}
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  gap: 1,
-                                  alignItems: "center",
-                                  marginBottom: "50px",
-                                }}
-                              >
-                                <TextField
-                                  label="Valor"
-                                  fullWidth
-                                  value={tarefa.planoDeAcao?.valor || ""}
-                                  onChange={(e) => {
-                                    const rawValue = e.target.value; // Valor bruto do input
-                                    const onlyNumbers = rawValue.replace(/[^\d]/g, ""); // Remove caracteres não numéricos
-                                    const formattedValue = new Intl.NumberFormat("pt-BR", {
-                                      style: "currency",
-                                      currency: "BRL",
-                                    }).format(Number(onlyNumbers) / 100);
-
-                                    handleTarefaChange(
-                                      diretrizIndex,
-                                      tarefaIndex,
-                                      "planoDeAcao.valor",
-                                      formattedValue
-                                    );
-                                  }}
-                                />
-                              </Box>
-                            </Box>
-                          </Box>
-                        );
-                      })}
-                    </AccordionDetails>
-                  </Accordion>
-                );
-              })}
-            </Box>
+            <BaseDiretriz2 projectId={projectId} onDiretrizesUpdate={setDiretrizes} />
           </Box>
 
           {/* Botão Salvar Alterações */}
@@ -1116,7 +743,7 @@ function DataProjeto() {
             <Button
               variant="contained"
               color="primary"
-              onClick={handleSave}
+              onClick={handleSave} // Chama a função handleSave
               sx={{
                 backgroundColor: "#5f54e7",
                 fontSize: "10px",
@@ -1129,6 +756,8 @@ function DataProjeto() {
             >
               Salvar Alterações
             </Button>
+
+
           </Box>
         </Box>
       </Box>

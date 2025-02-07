@@ -20,6 +20,7 @@ import { getFirestore, getDocs, collection, addDoc } from "firebase/firestore";
  */
 const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
   const [users, setUsers] = useState([]);
+  const [mensagem, setMensagem] = useState(LimpaEstado);
 
   const [formValues, setFormValues] = useState({
     nome: "",
@@ -66,6 +67,7 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
         prazoPrevisto: "",
         unidade: "",
         solicitante: "",
+        solicitanteEmail: "",
         categoria: "",
         colaboradores: [],
         responsavel: "",
@@ -147,6 +149,7 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
         prazoPrevisto: "",
         unidade: "",
         solicitante: "",
+        solicitanteEmail: "",
         categoria: "",
         colaboradores: [],
         responsavel: "",

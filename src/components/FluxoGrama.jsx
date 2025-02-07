@@ -58,8 +58,13 @@ const CircleProgress = ({ percentage }) => {
 };
 
 const FluxoGrama = ({ project }) => {
+  console.log("Dados do projeto recebidos:", project);
+  console.log("Estratégicas:", project?.estrategicas);
   const [expanded, setExpanded] = useState(false); // Estado para controlar a expansão da tela
   const containerRef = useRef(); // Referência ao container para PDF e impressão
+
+
+
 
   if (!project) {
     return (
@@ -69,10 +74,13 @@ const FluxoGrama = ({ project }) => {
     );
   }
 
+  const estrategicas = project?.diretrizes || [];
+  // ✅ Agora sempre existe, evitando undefined
+
   const {
-    nome = "Nome do Projeto",
+    nome = project?.nome || "Nome do Projeto",
     diretrizes = [],
-    orcamento = "R$ 0,00", // Orçamento vindo do banco como string formatada
+    orcamento = project?.orcamento || "R$ 0,00",
   } = project;
 
   const orcamentoNumerico = parseFloat(
@@ -143,160 +151,117 @@ const FluxoGrama = ({ project }) => {
         marginBottom: "auto",
       }}
     >
-      <Grid
-        container
-        spacing={2}
-        alignItems="center"
-        sx={{ marginBottom: "50px" }}
-      >
-        <Grid item xs={3}>
-          {/* Nome do Projeto */}
-          <Typography
-            sx={{
-              fontSize: "9px", // Texto pequeno
-              color: "#555", // Cor cinza escuro
-              marginTop: "60px", // Espaçamento superior
-              marginBottom: "-28px",
-              marginLeft: "10px",
-            }}
-          >
-           Projeto
-          </Typography>
-          <StyledInput
-            defaultValue={nome}
-            disabled
-            sx={{
-              backgroundColor: "#fff", // Fundo branco para destaque
-              borderRadius: "8px", // Cantos arredondados
-              border: "1px solid #dcdcdc", // Borda leve
-              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)", // Leve profundidade
-            }}
-          />
-        </Grid>
 
 
-        <Grid item xs={9}>
-          {diretrizes.map((diretriz, index) => {
-            const progressoDiretriz =
-              diretriz.tarefas.reduce(
-                (acc, tarefa) => acc + (tarefa.progresso || 0),
-                0
-              ) / (diretriz.tarefas.length || 1);
 
-            return (
-              <Grid
-                container
-                spacing={2}
-                alignItems="center"
-                sx={{ mb: 2 }}
-                key={index}
-              >
-                <Grid item xs={4.5}>
-                  {/* Descrição da Diretriz */}
-                  <Typography
-                    sx={{
-                      fontSize: "9px", // Texto pequeno
-                      color: "#555", // Cor cinza escuro
-                      marginTop: "60px", // Espaçamento superior
-                      marginBottom: "-28px",
-                      marginLeft: "10px",
-                    }}
-                  >
-                    Diretriz
-                  </Typography>
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <StyledInput
-                      defaultValue={diretriz.descricao}
-                      disabled
-                      sx={{
-                        backgroundColor: "#fff",
-                        borderRadius: "8px",
-                        border: "1px solid #dcdcdc",
-                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                        width: "120%",
-                      }}
-                    />
-                    <CircleProgress
-                      percentage={Math.round(progressoDiretriz)}
-                    />
-                  </Box>
-                </Grid>
 
-                <Grid item xs={0.5}>
-                  <Box
-                    sx={{
-                      height: "2px",
-                      width: "100%",
-                      borderTop: "2px dashed #dcdcdc",
-                      position: "relative",
-                      top: "23px",
-                      left: "50%",
-                      transform: "translate(-50%, -50%)",
-                      marginTop: "30px",
-                    }}
-                  />
-                </Grid>
 
-                <Grid item xs={6}>
-                  {/* Tarefas da Diretriz */}
-                  <Typography
-                    sx={{
-                      fontSize: "9px", // Texto pequeno
-                      color: "#555", // Cor cinza escuro
-                      marginLeft: "10px",
-                      marginTop: "65px", // Espaçamento superior
-                    }}
-                  >
-                    Tarefas
-                  </Typography>
-                  {diretriz.tarefas.map((task, i) => (
-                    <Box
-                      key={i}
-                      sx={{
-                        marginTop: "-28px",
-                        display: "flex",
-                        alignItems: "center",
-                        mb: 1,
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <StyledInput
-                        defaultValue={task.tituloTarefa}
-                        disabled
-                        sx={{
-                          marginTop: "30px",
-                          backgroundColor: "#fff",
-                          borderRadius: "8px",
-                          border: "1px solid #dcdcdc",
-                          width: "100%",
-                          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                          marginRight: "3px",
-                        }}
-                      />
-                      <CircleProgress percentage={task.progresso || 0} />
-                      <Typography
-                        sx={{
-                          ml: 2,
-                          color: "#555",
-                          padding: "6px 12px",
-                          textAlign: "center",
-                          minWidth: "1px",
-                          width: "20px",
-                          marginTop: "30px",
-                          marginLeft: "-5px",
-                          fontWeight: "bold",
-                        }}
-                      >
-                       <Typography sx={{ fontSize: "10px" }}>Valor</Typography> {task.planoDeAcao?.valor || "R$ 0,00"} 
-                      </Typography>
-                    </Box>
-                  ))}
-                </Grid>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<Grid container spacing={2} alignItems="center" sx={{ marginBottom: "50px" }}>
+  <Grid item xs={3}>
+    <Typography sx={{ fontSize: "9px", color: "#555", marginTop: "60px", marginBottom: "-28px", marginLeft: "10px" }}>
+      Projeto
+    </Typography>
+    <StyledInput defaultValue={nome} disabled sx={{
+      backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #dcdcdc",
+      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+    }} />
+  </Grid>
+
+  <Grid item xs={9}>
+    {estrategicas.map((estrategica, indexEstr) =>
+      estrategica.taticas.map((tatica, indexTat) =>
+        tatica.operacionais.map((operacional, indexOp) => {
+          const progressoOperacional =
+            operacional.tarefas.reduce((acc, tarefa) => acc + (tarefa.progresso || 0), 0) /
+            (operacional.tarefas.length || 1);
+
+          return (
+            <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }} key={`${indexEstr}-${indexTat}-${indexOp}`}>
+              
+              <Grid item xs={3}>
+                <Typography sx={{ fontSize: "9px", color: "#555", marginTop: "60px", marginBottom: "-28px", marginLeft: "10px" }}>
+                  Diretriz Estratégica
+                </Typography>
+                <StyledInput defaultValue={estrategica.titulo} disabled sx={{
+                  backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #dcdcdc",
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+                }} />
               </Grid>
-            );
-          })}
-        </Grid>
-      </Grid>
+
+              <Grid item xs={3}>
+                <Typography sx={{ fontSize: "9px", color: "#555", marginTop: "60px", marginBottom: "-28px", marginLeft: "10px" }}>
+                  Diretriz Tática
+                </Typography>
+                <StyledInput defaultValue={tatica.titulo} disabled sx={{
+                  backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #dcdcdc",
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+                }} />
+              </Grid>
+
+              <Grid item xs={3}>
+                <Typography sx={{ fontSize: "9px", color: "#555", marginTop: "60px", marginBottom: "-28px", marginLeft: "10px" }}>
+                  Diretriz Operacional
+                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <StyledInput defaultValue={operacional.titulo} disabled sx={{
+                    backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #dcdcdc",
+                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)", width: "120%"
+                  }} />
+                  <CircleProgress percentage={Math.round(progressoOperacional)} />
+                </Box>
+              </Grid>
+
+              <Grid item xs={3}>
+                <Typography sx={{ fontSize: "9px", color: "#555", marginLeft: "10px", marginTop: "65px" }}>
+                  Tarefas
+                </Typography>
+                {operacional.tarefas.map((task, i) => (
+                  <Box key={i} sx={{
+                    marginTop: "-28px", display: "flex", alignItems: "center",
+                    mb: 1, justifyContent: "space-between"
+                  }}>
+                    <StyledInput defaultValue={task.tituloTarefa} disabled sx={{
+                      marginTop: "30px", backgroundColor: "#fff", borderRadius: "8px",
+                      border: "1px solid #dcdcdc", width: "100%",
+                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)", marginRight: "3px"
+                    }} />
+                    <CircleProgress percentage={task.progresso || 0} />
+                    <Typography sx={{
+                      ml: 2, color: "#555", padding: "6px 12px",
+                      textAlign: "center", minWidth: "1px", width: "20px",
+                      marginTop: "30px", marginLeft: "-5px", fontWeight: "bold"
+                    }}>
+                      <Typography sx={{ fontSize: "10px" }}>Valor</Typography>
+                      {task.planoDeAcao?.valor || "R$ 0,00"}
+                    </Typography>
+                  </Box>
+                ))}
+              </Grid>
+            </Grid>
+          );
+        })
+      )
+    )}
+  </Grid>
+</Grid>
+
 
 
 
@@ -383,7 +348,7 @@ const FluxoGrama = ({ project }) => {
           Diretrizes concluídas:{" "}
           <span style={{ color: "#312783", fontWeight: "bold" }}>
             {diretrizes?.filter((diretriz) =>
-              diretriz.tarefas.every((tarefa) => tarefa.progresso === 100)
+              Array.isArray(diretriz.tarefas) && diretriz.tarefas.every((tarefa) => tarefa.progresso === 100)
             ).length || 0}
           </span>
         </Typography>
@@ -413,6 +378,15 @@ const FluxoGrama = ({ project }) => {
           </span>
         </Typography>
       </Box>
+
+
+
+
+
+
+
+
+      
 
       <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
       <Button
