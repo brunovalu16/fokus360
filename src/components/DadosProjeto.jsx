@@ -53,18 +53,19 @@ const DadosProjeto = ({
   // Criar Função para Calcular o Progresso Geral de cada diretriz
   const calcularProgressoGeral = (diretrizIndex) => {
     const diretriz = diretrizes[diretrizIndex];
-    const totalTarefas = diretriz.tarefas.length;
-
-    if (totalTarefas === 0) return 0; // Evita divisão por zero
-
-    // Soma os progressos de todas as tarefas
+  
+    // Verifica se diretriz existe e se tem tarefas antes de acessar `.length`
+    if (!diretriz || !Array.isArray(diretriz.tarefas) || diretriz.tarefas.length === 0) {
+      return 0; // Retorna 0 se não houver diretriz ou tarefas
+    }
+  
     const progressoTotal = diretriz.tarefas.reduce((acc, tarefa) => {
       return acc + (tarefa.progresso || 0);
     }, 0);
-
-    // Calcula a média percentual
-    return Math.round(progressoTotal / totalTarefas);
+  
+    return Math.round(progressoTotal / diretriz.tarefas.length);
   };
+  
 
   const items = [
     // 1) Orçamento (cor fixa)
