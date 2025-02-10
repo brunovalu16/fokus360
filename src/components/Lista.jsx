@@ -126,10 +126,19 @@ useEffect(() => {
   } else if (filtroSolicitante) {
     exibidos = exibidos.filter((proj) => proj.solicitante === filtroSolicitante);
   } else if (filtroQuem) {
-    exibidos = exibidos.filter(
-      (proj) => Array.isArray(proj.quem) && proj.quem.includes(filtroQuem)
+    exibidos = exibidos.filter((proj) =>
+      proj.diretrizes?.some((diretriz) =>
+        diretriz.taticas?.some((tatica) =>
+          tatica.operacionais?.some((operacional) =>
+            operacional.tarefas?.some((tarefa) =>
+              tarefa.planoDeAcao?.quem?.includes(filtroQuem)
+            )
+          )
+        )
+      )
     );
   }
+  
 
   setProjetosExibidos(exibidos);
 }, [filtroColaborador, filtroSolicitante, filtroQuem, projetos]);
@@ -437,33 +446,91 @@ useEffect(() => {
       headerName: "Ações",
       flex: 0.9,
       renderCell: ({ row }) => (
-        <Box display="flex" gap={1}>
-          <Button
-            component={Link}
-            size="small"
-            to={`/dashboardprojeto?id=${row.id}`}
-            sx={{
-              color: "#fff",
-              backgroundColor: "#583cff",
-              fontSize: "0.65rem",
-              "&:hover": { backgroundColor: "#3f2cb2" },
-            }}
-          >
-            Editar
-          </Button>
-          <IconButton
-            onClick={() =>
-              setConfirmAlert({
-                show: true,
-                projetoId: row.id,
-                message: "Tem certeza de que deseja deletar este projeto?",
-                severity: "error",
-              })
-            }
-          >
-            <DeleteForeverSharpIcon sx={{ fontSize: 25, color: "#f44336" }} />
-          </IconButton>
-        </Box>
+        <Box
+        display="flex"
+        gap={1}
+        onMouseDown={(e) => e.stopPropagation()} // 🔹 Impede que o clique ative a seleção da célula do DataGrid
+        sx={{
+          outline: "none !important", // 🔹 Remove qualquer borda preta
+          border: "none !important",
+          boxShadow: "none !important",
+          userSelect: "none",
+          "&:focus": {
+            outline: "none !important",
+            border: "none !important",
+            boxShadow: "none !important",
+          },
+          "&.Mui-focusVisible": {
+            boxShadow: "none !important",
+            pointerEvents: "none",
+          },
+        }}
+      >
+        {/* Botão Editar */}
+        <Button
+          component={Link}
+          size="small"
+          to={`/dashboardprojeto?id=${row.id}`}
+          disableRipple
+          disableFocusRipple
+          tabIndex={-1} 
+          onMouseDown={(e) => e.preventDefault()} 
+          sx={{
+            color: "#fff",
+            backgroundColor: "#583cff",
+            fontSize: "0.65rem",
+            boxShadow: "none",
+            outline: "none !important",
+            border: "none",
+            userSelect: "none",
+            "&:hover": { backgroundColor: "#3f2cb2" },
+            "&:active": { backgroundColor: "#3f2cb2" },
+            "&:focus": { outline: "none !important", border: "none" },
+            "&.Mui-focusVisible": { boxShadow: "none", pointerEvents: "none" },
+          }}
+        >
+          Editar
+        </Button>
+      
+        {/* Botão Deletar */}
+        <IconButton
+          disableRipple
+          disableFocusRipple
+          tabIndex={-1} 
+          aria-hidden="true"
+          onMouseDown={(e) => e.preventDefault()} 
+          onClick={(e) => {
+            e.currentTarget.blur();
+            setConfirmAlert({
+              show: true,
+              projetoId: row.id,
+              message: "Tem certeza de que deseja deletar este projeto?",
+              severity: "error",
+            });
+          }}
+          sx={{
+            outline: "none !important",
+            border: "none !important",
+            boxShadow: "none !important",
+            userSelect: "none",
+            "&:focus": {
+              outline: "none !important",
+              border: "none !important",
+              boxShadow: "none !important",
+              backgroundColor: "transparent !important",
+            },
+            "&.Mui-focusVisible": {
+              boxShadow: "none !important",
+              pointerEvents: "none",
+              backgroundColor: "transparent !important",
+            },
+          }}
+        >
+          <DeleteForeverSharpIcon sx={{ fontSize: 25, color: "#f44336" }} />
+        </IconButton>
+      </Box>
+      
+
       ),
     },
     
@@ -505,9 +572,24 @@ useEffect(() => {
     let exibidos = [...projetos];
   
     if (filtroQuem) {
-      exibidos = exibidos.filter((proj) =>
-        Array.isArray(proj.quem) && proj.quem.includes(filtroQuem)
-      );
+      exibidos = exibidos.filter((proj) => {
+        return proj.diretrizes?.some((diretriz) =>
+          diretriz.taticas?.some((tatica) =>
+            tatica.operacionais?.some((operacional) =>
+              operacional.tarefas?.some((tarefa) => {
+                console.log(
+                  `🧐 Verificando projeto: ${proj.nome || "Sem Nome"}`,
+                  "Tarefa:",
+                  tarefa.descricao || "Sem Descrição",
+                  "Quem:",
+                  tarefa.planoDeAcao?.quem
+                );
+                return tarefa.planoDeAcao?.quem?.includes(filtroQuem);
+              })
+            )
+          )
+        );
+      });
     }
     if (filtroColaborador) {
       exibidos = exibidos.filter((proj) =>
@@ -635,30 +717,41 @@ useEffect(() => {
 
 // Filtro de projetos por responsável
 useEffect(() => {
-  console.log("Aplicando filtro por quem:", filtroQuem);
+  console.log("🎯 Aplicando filtro por quem:", filtroQuem);
 
   if (filtroQuem) {
     const filtrados = projetos.filter((proj) => {
-      console.log("Analisando projeto:", proj);
+      console.log("🔍 Analisando projeto:", proj.nome);
 
       const diretrizes = proj.diretrizes || [];
       return diretrizes.some((diretriz) => {
-        const tarefas = diretriz.tarefas || [];
-        return tarefas.some((tarefa) => {
-          const planoDeAcao = tarefa.planoDeAcao || {};
-          console.log("IDs encontrados no 'quem':", planoDeAcao.quem); // Loga os IDs no campo "quem"
-          return Array.isArray(planoDeAcao.quem) && planoDeAcao.quem.includes(filtroQuem); // Verifica se o ID está em "quem"
+        const taticas = diretriz.taticas || [];
+        return taticas.some((tatica) => {
+          const operacionais = tatica.operacionais || [];
+          return operacionais.some((operacional) => {
+            const tarefas = operacional.tarefas || [];
+            return tarefas.some((tarefa) => {
+              const planoDeAcao = tarefa.planoDeAcao || {};
+              const responsaveis = planoDeAcao.quem || []; // Sempre garantir que seja array válido
+
+              console.log(`🧐 Projeto: ${proj.nome} | Tarefa: ${tarefa.tituloTarefa || "Sem Descrição"} | Quem:`, responsaveis);
+
+              return Array.isArray(responsaveis) && responsaveis.includes(filtroQuem);
+            });
+          });
         });
       });
     });
 
-    console.log("Projetos filtrados por filtroQuem:", filtrados);
+    console.log("✅ Projetos filtrados por filtroQuem:", filtrados);
     setProjetosExibidos(filtrados);
   } else {
-    console.log("Sem filtroQuem, exibindo todos os projetos.");
+    console.log("🔄 Sem filtroQuem, exibindo todos os projetos.");
     setProjetosExibidos(projetos);
   }
 }, [filtroQuem, projetos]);
+
+
 
 
 

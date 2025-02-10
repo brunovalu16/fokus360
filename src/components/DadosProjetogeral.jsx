@@ -19,6 +19,12 @@ function DadosProjetogeral() {
   const [dadosQuem, setDadosQuem] = useState([]);
 
 
+useEffect(() => {
+  console.log("🛠️ Estado atual do filtroQuem:", filtroQuem);
+}, [filtroQuem]);
+
+
+
 // Função para resetar os filtros
 const handleLimparFiltros = () => {
   setFiltroSolicitante(null);
@@ -36,58 +42,59 @@ const handleLimparFiltros = () => {
    
  
 
-useEffect(() => {
-  const fetchQuemDados = async () => {
-    try {
-      const projetosSnapshot = await getDocs(collection(db, "projetos")); // Acessa a coleção "projetos"
-      const quemMap = new Map();
-
-      // Itera pelos projetos para mapear os responsáveis
-      projetosSnapshot.forEach((projetoDoc) => {
-        const data = projetoDoc.data();
-        const diretrizes = data.diretrizes || [];
-
-        diretrizes.forEach((diretriz) => {
-          const tarefas = diretriz.tarefas || [];
-          tarefas.forEach((tarefa) => {
-            const planoDeAcao = tarefa.planoDeAcao || {};
-            const responsaveis = planoDeAcao.quem || []; // Lista de responsáveis
-
-            responsaveis.forEach((responsavel) => {
-              if (quemMap.has(responsavel)) {
-                quemMap.set(responsavel, quemMap.get(responsavel) + 1);
-              } else {
-                quemMap.set(responsavel, 1);
-              }
+   useEffect(() => {
+    const fetchQuemDados = async () => {
+      try {
+        const projetosSnapshot = await getDocs(collection(db, "projetos"));
+        const quemMap = new Map(); // Armazena os IDs e a contagem de tarefas
+  
+        projetosSnapshot.forEach((projetoDoc) => {
+          const data = projetoDoc.data();
+          const diretrizes = data.diretrizes || [];
+  
+          diretrizes.forEach((diretriz) => {
+            const taticas = diretriz.taticas || [];
+            taticas.forEach((tatica) => {
+              const operacionais = tatica.operacionais || [];
+              operacionais.forEach((operacional) => {
+                const tarefas = operacional.tarefas || [];
+                tarefas.forEach((tarefa) => {
+                  const planoDeAcao = tarefa.planoDeAcao || {};
+                  const responsaveis = planoDeAcao.quem || []; // ✅ Novo caminho correto
+  
+                  responsaveis.forEach((responsavelId) => {
+                    if (quemMap.has(responsavelId)) {
+                      quemMap.set(responsavelId, quemMap.get(responsavelId) + 1);
+                    } else {
+                      quemMap.set(responsavelId, 1);
+                    }
+                  });
+                });
+              });
             });
           });
         });
-      });
-
-      // Busca os nomes dos responsáveis no Firestore
-      const quemComNomes = await Promise.all(
-        Array.from(quemMap.entries()).map(async ([responsavelId, valor]) => {
-          const userSnapshot = await getDoc(doc(db, "user", responsavelId));
-          const username = userSnapshot.exists() ? userSnapshot.data().username : "Desconhecido";
-          return { nome: username, valor };
-        })
-      );
-
-      // Normaliza os dados para exibir no gráfico
-      const maxValor = Math.max(...quemComNomes.map((d) => d.valor));
-      const dadosNormalizados = quemComNomes.map((d) => ({
-        ...d,
-        percentual: (d.valor / maxValor) * 100, // Percentual da barra
-      }));
-
-      setDadosQuem(dadosNormalizados); // Atualiza o estado com os dados normalizados
-    } catch (error) {
-      console.error("Erro ao buscar dados de 'quem':", error);
-    }
-  };
-
-  fetchQuemDados();
-}, []);
+  
+        // 🔍 Busca os nomes desses IDs na coleção "user"
+        const quemComNomes = await Promise.all(
+          Array.from(quemMap.entries()).map(async ([responsavelId, valor]) => {
+            const userSnapshot = await getDoc(doc(db, "user", responsavelId));
+            const username = userSnapshot.exists()
+              ? userSnapshot.data().username
+              : "Desconhecido";
+  
+            return { id: responsavelId, nome: username, valor };
+          })
+        );
+  
+        setDadosQuem(quemComNomes); // ✅ Atualiza o estado com os dados
+      } catch (error) {
+        console.error("Erro ao buscar dados de 'quem':", error);
+      }
+    };
+  
+    fetchQuemDados();
+  }, []);
 
    
 //=======================================================================
@@ -486,62 +493,30 @@ useEffect(() => {
 
   const handleBolinhaClickQuem = async (nomeResponsavel) => {
     try {
-      //console.log("Procurando responsável com o nome:", nomeResponsavel);
+      console.log("🎯 Clicou em:", nomeResponsavel);
   
-      // Buscar o ID do responsável com base no nome
+      // Buscar o ID correto do usuário no Firestore
       const usersSnapshot = await getDocs(collection(db, "user"));
-  
-      const docEncontrado = usersSnapshot.docs.find(
+      const userDoc = usersSnapshot.docs.find(
         (docSnap) => docSnap.data().username === nomeResponsavel
       );
   
-      if (!docEncontrado) {
-        console.warn("Responsável não encontrado no Firestore:", nomeResponsavel);
+      if (!userDoc) {
+        console.warn("❌ Usuário não encontrado no Firestore:", nomeResponsavel);
         setFiltroQuem(null);
         return;
       }
   
-      const idResponsavel = docEncontrado.id; // ID encontrado
-      //console.log("ID do responsável encontrado:", idResponsavel);
+      const idResponsavel = userDoc.id;
+      console.log("✅ ID do responsável encontrado:", idResponsavel);
   
-      // Buscar todos os projetos e verificar se o responsável está em "quem"
-      const projetosSnapshot = await getDocs(collection(db, "projetos"));
-  
-      const projetosComResponsavel = [];
-  
-      projetosSnapshot.forEach((projetoDoc) => {
-        const data = projetoDoc.data();
-        const diretrizes = data.diretrizes || [];
-  
-        diretrizes.forEach((diretriz) => {
-          const tarefas = diretriz.tarefas || [];
-          tarefas.forEach((tarefa) => {
-            const planoDeAcao = tarefa.planoDeAcao || {};
-            const responsaveis = planoDeAcao.quem || []; // Lista de IDs de responsáveis
-  
-            if (responsaveis.includes(idResponsavel)) {
-              projetosComResponsavel.push({
-                projetoId: projetoDoc.id,
-                tarefa: tarefa.descricao || "Descrição não informada",
-              });
-            }
-          });
-        });
-      });
-  
-      if (projetosComResponsavel.length > 0) {
-        //console.log("Projetos encontrados com o responsável:", projetosComResponsavel);
-        setFiltroQuem(idResponsavel); // Atualiza o estado com o ID
-      } else {
-        console.warn("Responsável não encontrado em nenhum projeto:", nomeResponsavel);
-        setFiltroQuem(null);
-      }
-  
-      return projetosComResponsavel; // Retorna os projetos encontrados
+      // Atualizar o estado corretamente
+      setFiltroQuem(idResponsavel);
     } catch (error) {
-      console.error("Erro ao buscar projetos e IDs associados ao responsável:", error);
+      console.error("❌ Erro ao buscar responsável:", error);
     }
   };
+  
   
 
   
@@ -1009,8 +984,8 @@ useEffect(() => {
                         {/* Bolinha no Final */}
                         <Box
                           sx={{
-                            width: "10px",
-                            height: "10px",
+                            width: "15px",
+                            height: "15px",
                             backgroundColor:
                               index % 4 === 0
                                 ? "#4caf50"
@@ -1023,7 +998,7 @@ useEffect(() => {
                             position: "absolute",
                             right: "-7px",
                             transform: "translateY(-50%)",
-                            marginRight: "10px",
+                            marginRight: "5px",
                           }}
                         />
                       </Box>

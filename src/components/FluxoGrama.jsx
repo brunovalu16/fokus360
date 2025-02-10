@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { Box, Typography, Grid, Divider, InputBase, Button } from "@mui/material";
+import { Box, Typography, Grid, Divider, InputBase, Button, TextField } from "@mui/material";
 import { styled } from "@mui/system";
 import { jsPDF } from "jspdf";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
@@ -58,6 +58,9 @@ const CircleProgress = ({ percentage }) => {
 };
 
 const FluxoGrama = ({ project }) => {
+  console.log("🛠 Dados completos do projeto:", project);
+console.log("🛠 Nome do projeto:", project?.nome);
+console.log("🛠 Estruturado project:", JSON.stringify(project, null, 2));
   console.log("Dados do projeto recebidos:", project);
   console.log("Estratégicas:", project?.estrategicas);
   const [expanded, setExpanded] = useState(false); // Estado para controlar a expansão da tela
@@ -74,14 +77,13 @@ const FluxoGrama = ({ project }) => {
     );
   }
 
-  const estrategicas = project?.diretrizes || [];
+  const estrategicas = Array.isArray(project?.diretrizes) ? project.diretrizes : [];
   // ✅ Agora sempre existe, evitando undefined
 
-  const {
-    nome = project?.nome || "Nome do Projeto",
-    diretrizes = [],
-    orcamento = project?.orcamento || "R$ 0,00",
-  } = project;
+  const nome = project && project.nome ? project.nome : "Nome do Projeto";
+  const diretrizes = project?.diretrizes || [];
+  const orcamento = project?.orcamento || "R$ 0,00";
+
 
   const orcamentoNumerico = parseFloat(
     orcamento.replace("R$", "").replace(".", "").replace(",", ".")
@@ -149,6 +151,7 @@ const FluxoGrama = ({ project }) => {
         overflowX: "hidden",
         overflowY: "auto",
         marginBottom: "auto",
+        
       }}
     >
 
@@ -173,94 +176,340 @@ const FluxoGrama = ({ project }) => {
 
 
 
-<Grid container spacing={2} alignItems="center" sx={{ marginBottom: "50px" }}>
-  <Grid item xs={3}>
-    <Typography sx={{ fontSize: "9px", color: "#555", marginTop: "60px", marginBottom: "-28px", marginLeft: "10px" }}>
-      Projeto
-    </Typography>
-    <StyledInput defaultValue={nome} disabled sx={{
-      backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #dcdcdc",
-      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
-    }} />
-  </Grid>
 
-  <Grid item xs={9}>
-    {estrategicas.map((estrategica, indexEstr) =>
-      estrategica.taticas.map((tatica, indexTat) =>
-        tatica.operacionais.map((operacional, indexOp) => {
-          const progressoOperacional =
-            operacional.tarefas.reduce((acc, tarefa) => acc + (tarefa.progresso || 0), 0) /
-            (operacional.tarefas.length || 1);
+
+
+
+<Grid container spacing={6} sx={{ marginTop: "20px", alignItems: "center", marginLeft: "20px", position: "relative" }}>
+  {/* Nome do Projeto */}
+  <Typography sx={{ fontSize: "12px", fontWeight: "bold", color: "#555", marginRight: "10px", marginLeft: "-25px" }}>
+      Nome do Projeto:
+  </Typography>
+
+  <Box
+      sx={{
+        backgroundColor: "#343A40",
+        color: "#fff",
+        padding: "6px 12px",
+        borderRadius: "5px",
+        fontSize: "12px",
+        fontWeight: "bold",
+        textAlign: "center",
+        maxWidth: "100%",
+        width: "auto",
+        wordBreak: "break-word",
+        overflowWrap: "break-word",
+        whiteSpace: "pre-wrap",
+        position: "relative",
+        "@media print": {
+          WebkitPrintColorAdjust: "exact", // Força a impressão das cores no Safari e Chrome
+          printColorAdjust: "exact", // Força em outros navegadores
+        },
+      }}
+    >
+      {nome}
+    </Box>
+  
+  {/* Estrutura Hierárquica */}
+  {estrategicas.map((estrategica, indexEstr) => (
+    <Grid container key={indexEstr} spacing={6}
+    sx={{ marginBottom: "30px",
+          alignItems: "center",
+          position: "relative",
+          "@media print": {
+            WebkitPrintColorAdjust: "exact",
+            printColorAdjust: "exact",
+            backgroundColor: "inherit", // Mantém a cor de fundo
+            color: "inherit", // Mantém a cor do texto
+          }
+          }}>
+
+      {/* Coluna 1: Diretriz Estratégica */}
+      <Grid item xs={3} sx={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative", padding: "10px" }}>
+        <Typography sx={{ fontSize: "12px", fontWeight: "bold", color: "#555", marginBottom: "5px" }}>
+          Diretriz Estratégica
+        </Typography>
+        <Box sx={{
+          backgroundColor: "#007BFF", color: "#fff",
+          borderRadius: "5px", padding: "8px",
+          maxWidth: "100%", width: "100%",
+          textAlign: "center", fontSize: "12px",
+          position: "relative",
+        }}>
+          {estrategica.titulo}
+
+          {/* Linha para conectar com táticas se existirem */}
+          {estrategica.taticas?.length > 0 && (
+              <Box sx={{
+                position: "absolute",
+                top: "50%",
+                left: "100%",
+                width: "45px",
+                borderTop: "1px dashed #555"
+              }} />
+          )}
+          
+          
+        </Box>
+      </Grid>
+
+
+
+
+{/* Coluna 2: Táticas - Agora com a lógica correta para conexão vertical única */}
+<Grid item xs={2} sx={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative", padding: "10px" }}>
+  {estrategica.taticas?.length > 0 && (
+    <Box sx={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      position: "relative",
+      width: "100%",
+      marginY: "35px",
+        "@media print": {
+          WebkitPrintColorAdjust: "exact",
+          printColorAdjust: "exact",
+          backgroundColor: "inherit", // Mantém a cor de fundo
+          color: "inherit", // Mantém a cor do texto
+        }
+
+    }}>
+      {/* Linha vertical única conectando todas as Táticas dentro da Estratégica */}
+      {estrategica.taticas.length > 1 && (
+        <Box sx={{
+          position: "absolute",
+          left: "-15px",
+          top: "0",
+          height: "50%",
+          marginTop: "49px",
+          borderLeft: "1px dashed #555",
+        }} />
+      )}
+
+      {estrategica.taticas?.map((tatica, indexTat) => {
+        const totalOperacionais = tatica.operacionais?.length || 0; // Número de operacionais dentro da tática
+
+        return (
+          <Box key={indexTat} sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
+            width: "100%",
+            marginBottom: "30px",
+            marginTop: "30px",
+            "@media print": {
+              WebkitPrintColorAdjust: "exact",
+              printColorAdjust: "exact",
+              backgroundColor: "inherit", // Mantém a cor de fundo
+              color: "inherit", // Mantém a cor do texto
+            }
+
+          }}>
+            <Box sx={{
+              backgroundColor: "#28A745", color: "#fff",
+              borderRadius: "5px", padding: "8px",
+              maxWidth: "100%", width: "100%",
+              textAlign: "center", fontSize: "12px",
+              position: "relative",
+            }}>
+              {tatica.titulo}
+
+              {/* Linha horizontal conectando Tática → Operacionais (só aparece se houver operacionais) */}
+              {totalOperacionais > 0 && (
+           
+                  <Box sx={{
+                    position: "absolute",
+                    left: "100%",
+                    top: "50%",
+                    width: "40px",
+                    borderTop: "1px dashed #555"
+                  }} />
+          
+              )}
+
+              {/* Linha horizontal conectando cada Tática à linha central */}
+              {estrategica.taticas.length > 1 && (
+                <Box sx={{
+                  position: "absolute",
+                  left: "-15px",
+                  top: "50%",
+                  width: "15px",
+                  borderTop: "1px dashed #555"
+                }} />
+              )}
+            </Box>
+          </Box>
+        );
+      })}
+    </Box>
+  )}
+</Grid>
+
+
+
+  
+{/* Coluna 3: Operacionais - Agora com a lógica condicional correta para conexão com Tarefas */}
+<Grid item xs={3} sx={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative", padding: "10px" }}>
+  {estrategica.taticas?.map((tatica) => {
+    const totalOperacionais = tatica.operacionais?.length || 1; // Número de operacionais dentro da tática
+
+    return (
+      <Box key={tatica.titulo} sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+        width: "100%",
+        marginY: "18px",
+        "@media print": {
+          WebkitPrintColorAdjust: "exact",
+          printColorAdjust: "exact",
+          backgroundColor: "inherit", // Mantém a cor de fundo
+          color: "inherit", // Mantém a cor do texto
+        }
+
+      }}>
+        {/* Linha vertical central conectando Tática → Operacionais */}
+        {totalOperacionais > 1 && (
+          <Box sx={{
+            position: "absolute",
+            left: "-15px",
+            top: "50%",
+            height: `${totalOperacionais * 23}px`,
+            borderLeft: "1px dashed #555",
+            transform: "translateY(-60%)"
+          }} />
+        )}
+
+        {tatica.operacionais?.map((operacional, indexOp) => {
+          const totalTarefas = operacional.tarefas?.length || 0; // Número de tarefas dentro da operacional
 
           return (
-            <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }} key={`${indexEstr}-${indexTat}-${indexOp}`}>
-              
-              <Grid item xs={3}>
-                <Typography sx={{ fontSize: "9px", color: "#555", marginTop: "60px", marginBottom: "-28px", marginLeft: "10px" }}>
-                  Diretriz Estratégica
-                </Typography>
-                <StyledInput defaultValue={estrategica.titulo} disabled sx={{
-                  backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #dcdcdc",
-                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
-                }} />
-              </Grid>
+            <Box key={indexOp} sx={{
+              backgroundColor: "#DC3545", color: "#fff",
+              borderRadius: "5px", padding: "8px",
+              maxWidth: "100%", width: "100%",
+              textAlign: "center", fontSize: "12px",
+              position: "relative",
+              marginBottom: "12px"
+            }}>
+              {operacional.titulo}
 
-              <Grid item xs={3}>
-                <Typography sx={{ fontSize: "9px", color: "#555", marginTop: "60px", marginBottom: "-28px", marginLeft: "10px" }}>
-                  Diretriz Tática
-                </Typography>
-                <StyledInput defaultValue={tatica.titulo} disabled sx={{
-                  backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #dcdcdc",
-                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+              {/* Linha horizontal conectando Operacional → Tarefas (só aparece se houver tarefas) */}
+              {totalTarefas > 0 && (
+                <>
+                <Box sx={{
+                  position: "absolute",
+                  left: "100%",
+                  top: "50%",
+                  width: "40px",
+                  borderTop: "1px dashed #555"
                 }} />
-              </Grid>
+                
+                </>
+              )}
 
-              <Grid item xs={3}>
-                <Typography sx={{ fontSize: "9px", color: "#555", marginTop: "60px", marginBottom: "-28px", marginLeft: "10px" }}>
-                  Diretriz Operacional
-                </Typography>
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <StyledInput defaultValue={operacional.titulo} disabled sx={{
-                    backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #dcdcdc",
-                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)", width: "120%"
+              {/* Linha horizontal conectando cada Operacional à linha central */}
+              {totalOperacionais > 1 && (
+                <Box sx={{
+                  position: "absolute",
+                  left: "-15px",
+                  top: "50%",
+                  width: "15px",
+                  borderTop: "1px dashed #555"
+                }} />
+              )}
+            </Box>
+          );
+        })}
+      </Box>
+    );
+  })}
+</Grid>
+
+
+
+      {/* Coluna 4: Tarefas - Agora Centralizadas */}
+      <Grid item xs={3} sx={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative", padding: "10px" }}>
+        {estrategica.taticas?.map((tatica) =>
+          tatica.operacionais?.map((operacional) => {
+            const totalTarefas = operacional.tarefas?.length || 1;
+
+            return (
+              <Box key={operacional.titulo} sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                position: "relative",
+                width: "100%",
+                marginY: "18px",
+                "@media print": {
+                  WebkitPrintColorAdjust: "exact",
+                  printColorAdjust: "exact",
+                  backgroundColor: "inherit", // Mantém a cor de fundo
+                  color: "inherit", // Mantém a cor do texto
+                }
+
+              }}>
+                {/* Linha vertical central conectando tarefas */}
+                {totalTarefas > 1 && (
+                  <Box sx={{
+                    position: "absolute",
+                    left: "-15px",
+                    top: "50%",
+                    height: `${totalTarefas * 24}px`,
+                    borderLeft: "1px dashed #555",
+                    transform: "translateY(-60%)"
                   }} />
-                  <CircleProgress percentage={Math.round(progressoOperacional)} />
-                </Box>
-              </Grid>
+                )}
 
-              <Grid item xs={3}>
-                <Typography sx={{ fontSize: "9px", color: "#555", marginLeft: "10px", marginTop: "65px" }}>
-                  Tarefas
-                </Typography>
-                {operacional.tarefas.map((task, i) => (
+                {operacional.tarefas?.map((task, i) => (
                   <Box key={i} sx={{
-                    marginTop: "-28px", display: "flex", alignItems: "center",
-                    mb: 1, justifyContent: "space-between"
+                    backgroundColor: "#ffb600", color: "#fff",
+                    borderRadius: "5px", padding: "8px",
+                    maxWidth: "100%", width: "100%",
+                    textAlign: "center", fontSize: "12px",
+                    marginBottom: "12px",
+                    position: "relative",
                   }}>
-                    <StyledInput defaultValue={task.tituloTarefa} disabled sx={{
-                      marginTop: "30px", backgroundColor: "#fff", borderRadius: "8px",
-                      border: "1px solid #dcdcdc", width: "100%",
-                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)", marginRight: "3px"
-                    }} />
-                    <CircleProgress percentage={task.progresso || 0} />
-                    <Typography sx={{
-                      ml: 2, color: "#555", padding: "6px 12px",
-                      textAlign: "center", minWidth: "1px", width: "20px",
-                      marginTop: "30px", marginLeft: "-5px", fontWeight: "bold"
-                    }}>
-                      <Typography sx={{ fontSize: "10px" }}>Valor</Typography>
-                      {task.planoDeAcao?.valor || "R$ 0,00"}
-                    </Typography>
+                    {task.tituloTarefa}
+
+                    {/* Linha horizontal conectando cada tarefa à linha central */}
+                    {totalTarefas > 1 && (
+                      <Box sx={{
+                        position: "absolute",
+                        left: "-15px",
+                        top: "50%",
+                        width: "15px",
+                        borderTop: "1px dashed #555",
+                      }} />
+                    )}
                   </Box>
                 ))}
-              </Grid>
-            </Grid>
-          );
-        })
-      )
-    )}
-  </Grid>
-</Grid>
+              </Box>
+            );
+          })
+        )}
+      </Grid>
+
+    </Grid>
+  ))}
+</Grid>;
+
+
+
+
+
+
+
+
+
+
 
 
 

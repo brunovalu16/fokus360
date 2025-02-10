@@ -12,6 +12,7 @@ if (process.env.FIREBASE_CREDENTIALS) {
   serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIALS);
 } else {
   console.log("💻 Usando credenciais do Firebase a partir do arquivo local.");
+  console.log("✅ Servidor rodando!");
   serviceAccount = JSON.parse(fs.readFileSync("./firebase-service-account.json", "utf8"));
 }
 

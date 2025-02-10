@@ -28,6 +28,7 @@ import Header from "../components/Header";
 import { getFirestore, getDocs, collection, doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../data/firebase-config"; // Atualize o caminho conforme necessário
 import BaseDiretriz2 from "./BaseDiretriz2";
+import DadosProjeto from "../components/DadosProjeto";
 
 // FUNÇÃO DO GRÁFICO
 const ProgressStatus = ({ tarefaCheckState }) => {
@@ -530,7 +531,7 @@ useEffect(() => {
           }
         />
 
-        {/**
+        
          
         <DadosProjeto
           orcamento={calcularOrcamento()}
@@ -540,8 +541,6 @@ useEffect(() => {
           diretrizes={diretrizes} 
         />
 
-         * 
-         */}
 
         
         {/* Bloco cinza contendo os campos */}
