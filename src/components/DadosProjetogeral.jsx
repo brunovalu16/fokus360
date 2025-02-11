@@ -303,7 +303,7 @@ useEffect(() => {
           let operacionaisCount = 0;
           let tarefasCount = 0;
 
-          // Contadores para CONCLUÍDAS
+          // Contadores para concluídos
           let estrategicasConcluidasCount = 0;
           let taticasConcluidasCount = 0;
           let operacionaisConcluidosCount = 0;
@@ -319,69 +319,64 @@ useEffect(() => {
                   const taticas = diretriz.taticas || [];
                   taticasCount += taticas.length;
 
-                  let todasTaticasConcluidas = true; // Flag para diretriz ESTRATÉGICA
+                  let todasTaticasConcluidas = true; // Flag para diretriz estratégica
 
                   for (const tatica of taticas) {
                       const operacionais = tatica.operacionais || [];
                       operacionaisCount += operacionais.length;
 
-                      let todosOperacionaisConcluidos = true; // Flag para TÁTICA
+                      let todosOperacionaisConcluidos = true; // Flag para tática
 
                       for (const operacional of operacionais) {
                           const tarefas = operacional.tarefas || [];
                           tarefasCount += tarefas.length;
 
-                          let todasTarefasConcluidas = true; // Flag para OPERACIONAL
+                          let todasTarefasConcluidas = true; // Flag para operacional
 
                           for (const tarefa of tarefas) {
-                              // Verifica se a tarefa está concluída
                               if (tarefa.checkboxState && tarefa.checkboxState.concluida) {
                                   tarefasConcluidasCount++;
                               } else {
-                                  todasTarefasConcluidas = false; // Basta UMA não concluída
+                                  todasTarefasConcluidas = false; // Se uma não estiver concluída, essa flag fica false
                               }
                           }
 
-                          // Verifica conclusão do OPERACIONAL
+                          // Se todas as tarefas estiverem concluídas, conta o operacional como concluído
                           if (todasTarefasConcluidas && tarefas.length > 0) {
                               operacionaisConcluidosCount++;
                           } else {
-                              todosOperacionaisConcluidos = false; // Operacional não concluído
+                              todosOperacionaisConcluidos = false; // Pelo menos uma não concluída
                           }
                       }
-                       // Verifica conclusão da TÁTICA
-                      if (!todosOperacionaisConcluidos) {  //  <--  CORREÇÃO AQUI:  Se *qualquer* operacional não estiver concluido, já marcamos a tática como não concluída.
-                          todasTaticasConcluidas = false;
-                      }
-                      // Se *todos* os operacionais da tática estão concluídos *E* a tática tem operacionais
+
+                      // Se todas as operacionais estiverem concluídas, conta a tática como concluída
                       if (todosOperacionaisConcluidos && operacionais.length > 0) {
-                          taticasConcluidasCount++; // Incrementa APENAS se todos os operacionais estiverem concluídos
+                          taticasConcluidasCount++;
+                      } else {
+                          todasTaticasConcluidas = false;
                       }
                   }
 
-                  // Verifica conclusão da ESTRATÉGICA:  Mesma lógica, agora para a diretriz estratégica
-                  if (!todasTaticasConcluidas) { // <-- CORREÇÃO AQUI: Se qualquer tática não estiver concluída, já sabemos que a estratégica não está.
-                      // estrategicasConcluidasCount++; *NÃO* incrementa aqui
-                  }
-                   // Se *todas* as táticas da estratégica estão concluídas *E* a estratégica tem táticas
-                  if(todasTaticasConcluidas && taticas.length > 0){
-                       estrategicasConcluidasCount++; // SÓ ENTÃO incrementa.
+                  // Se todas as táticas estiverem concluídas, conta a estratégica como concluída
+                  if (todasTaticasConcluidas && taticas.length > 0) {
+                      estrategicasConcluidasCount++;
                   }
               }
           }
 
+          // Atualiza os estados com os valores calculados
           setTotalEstrategicas(estrategicasCount);
           setTotalTaticas(taticasCount);
           setTotalOperacionais(operacionaisCount);
           setTotalTarefas(tarefasCount);
 
-          // Atualiza os estados de CONCLUÍDAS
           setTotalEstrategicasConcluidas(estrategicasConcluidasCount);
           setTotalTaticasConcluidas(taticasConcluidasCount);
           setTotalOperacionaisConcluidos(operacionaisConcluidosCount);
           setTotalTarefasConcluidas(tarefasConcluidasCount);
 
-
+          console.log("✅ Estratégicas Concluídas:", estrategicasConcluidasCount);
+          console.log("✅ Táticas Concluídas:", taticasConcluidasCount);
       } catch (error) {
           console.error("Erro ao buscar diretrizes e tarefas:", error);
       }
@@ -389,7 +384,7 @@ useEffect(() => {
 
   fetchDiretrizesETarefas();
 }, []);
-  
+
 
 
   // RECEBE A QUANTIDADE DE PROJETOS
@@ -768,7 +763,7 @@ useEffect(() => {
       <Box
         sx={{
           marginLeft: "40px",
-          width: "calc(100% - 80px)",
+          width: "calc(100% - 90px)",
           minHeight: "50vh",
           padding: "15px",
           borderRadius: "20px",
@@ -783,13 +778,13 @@ useEffect(() => {
           display="grid"
           gridTemplateColumns={
             isXlDevices
-              ? "repeat(12, 1fr)"
+              ? "repeat(30, 1fr)"
               : isMdDevices
               ? "repeat(6, 1fr)"
               : "repeat(6, 1fr)"
           }
-          gridAutoRows="140px"
-          gap="20px"
+          gridAutoRows="110px"
+          gap="8px"
         >
           {/* Statistic Items */}
           {[
@@ -797,7 +792,7 @@ useEffect(() => {
               id: "orcamento", // Identificador único
               title: (
                 <>
-                  <Typography variant="h5" sx={{ color: "#fff", fontSize: "20px", textAlign: "left" }}>
+                  <Typography variant="h5" sx={{marginLeft: "-5px", color: "#fff", fontSize: "15px", textAlign: "left" }}>
                     {`R$ ${orcamentoTotal.toLocaleString("pt-BR", {
                       minimumFractionDigits: 2,
                     })}`}
@@ -805,7 +800,7 @@ useEffect(() => {
                 </>
               ),
               subtitle: (
-                <Typography variant="subtitle2" sx={{ color: "#fff", fontSize: "15px", textAlign: "left" }}>
+                <Typography variant="subtitle2" sx={{marginLeft: "-5px", color: "#fff", fontSize: "10px", textAlign: "left", whiteSpace: "nowrap" }}>
                   Orçamento Total
                 </Typography>
               ),
@@ -816,14 +811,14 @@ useEffect(() => {
             },
             {
               title: (
-                <Typography variant="h5" sx={{ color: "#fff", fontSize: "25px", textAlign: "left" }}>
+                <Typography variant="h5" sx={{marginLeft: "-5px", color: "#fff", fontSize: "15px", textAlign: "left", whiteSpace: "nowrap" }}>
                   {`R$ ${custoTotal.toLocaleString("pt-BR", {
                     minimumFractionDigits: 2,
                   })}`}
                 </Typography>
               ),
               subtitle: (
-                <Typography variant="subtitle2" sx={{ color: "#fff", fontSize: "15px", textAlign: "left" }}>
+                <Typography variant="subtitle2" sx={{marginLeft: "-5px", color: "#fff", fontSize: "12px", textAlign: "left", whiteSpace: "nowrap" }}>
                   Total de gastos
                 </Typography>
               ),
@@ -841,7 +836,7 @@ useEffect(() => {
             {
               id: "projetos",
               title: (
-                <Typography variant="h5" sx={{ color: "#fff", fontSize: "20px", textAlign: "left", whiteSpace: "pre-line" }}>
+                <Typography variant="h5" sx={{ marginLeft: "-5px", color: "#fff", fontSize: "15px", textAlign: "left", whiteSpace: "pre-line", whiteSpace: "nowrap" }}>
                   {`Total de projetos: ${quantidadeProjetos.toLocaleString("pt-BR")}`}
                 </Typography>
               ),
@@ -856,20 +851,20 @@ useEffect(() => {
             {
               id: "diretrizes",
               title: (
-                <>
-                  <Typography variant="body1" sx={{ color: "#fff", fontSize: "15px", textAlign: "left" }}>
-                    Total de diretrizes Estratégicas: {totalEstrategicas.toLocaleString("pt-BR")}
+                <Box sx={{ marginLeft: "-5px", display: 'flex', flexDirection: 'column', alignItems: 'flex-start', whiteSpace: "nowrap" }}>
+                  <Typography variant="body1" sx={{ color: "#fff", fontSize: "11px", textAlign: "left" }}>
+                    Diretrizes Estratégicas: {totalEstrategicas.toLocaleString("pt-BR")}
                   </Typography>
-                  <Typography variant="body1" sx={{ color: "#fff", fontSize: "15px", textAlign: "left" }}>
-                    Total de diretrizes Táticas: {totalTaticas.toLocaleString("pt-BR")}
+                  <Typography variant="body1" sx={{ color: "#fff", fontSize: "11px", textAlign: "left" }}>
+                    Diretrizes Táticas: {totalTaticas.toLocaleString("pt-BR")}
                   </Typography>
-                  <Typography variant="body1" sx={{ color: "#fff", fontSize: "15px", textAlign: "left" }}>
-                    Total de diretrizes Operacionais: {totalOperacionais.toLocaleString("pt-BR")}
+                  <Typography variant="body1" sx={{ color: "#fff", fontSize: "11px", textAlign: "left" }}>
+                    Diretrizes Operacionais: {totalOperacionais.toLocaleString("pt-BR")}
                   </Typography>
-                  <Typography variant="body1" sx={{ color: "#fff", fontSize: "15px", textAlign: "left" }}>
-                    Total de Tarefas: {totalTarefas.toLocaleString("pt-BR")}
+                  <Typography variant="body1" sx={{ color: "#fff", fontSize: "11px", textAlign: "left" }}>
+                    Tarefas: {totalTarefas.toLocaleString("pt-BR")}
                   </Typography>
-                </>
+                </Box>
               ),
               //subtitle: "Resumo de diretrizes e tarefas",
               progress: 30,
@@ -880,27 +875,39 @@ useEffect(() => {
             },
             {
               id: "diretrizes-concluidas",
-              title: `Diretrizes Estratégicas Concluídas: ${totalEstrategicasConcluidas.toLocaleString("pt-BR")}\nDiretrizes Táticas Concluídas: ${totalTaticasConcluidas.toLocaleString("pt-BR")}\nDiretrizes Operacionais Concluídas: ${totalOperacionaisConcluidos.toLocaleString("pt-BR")}\nTarefas Concluídas: ${totalTarefasConcluidas.toLocaleString("pt-BR")}`,
-              //subtitle: "Resumo de conclusões", // Opcional
-              progress: 60, // Você pode ajustar o progress, se quiser
-              icon: (
-                <AssignmentTurnedInIcon // Mantenha o mesmo ícone ou escolha outro
-                  sx={{ color: "#fff", fontSize: "40px" }}
-                />
+              title: (
+                <Box sx={{ marginLeft: "-5px", display: 'flex', flexDirection: 'column', alignItems: 'flex-start', whiteSpace: "nowrap" }}> {/* Container para o texto */}
+                  <Typography variant="body1" sx={{ color: "#fff", fontSize: "11px" }}>
+                    Estratégicas Concluídas: {totalEstrategicasConcluidas.toLocaleString("pt-BR")}
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: "#fff", fontSize: "11px" }}>
+                    Táticas Concluídas: {totalTaticasConcluidas.toLocaleString("pt-BR")}
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: "#fff", fontSize: "11px" }}>
+                    Operacionais Concluídas: {totalOperacionaisConcluidos.toLocaleString("pt-BR")}
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: "#fff", fontSize: "11px" }}>
+                    Tarefas Concluídas: {totalTarefasConcluidas.toLocaleString("pt-BR")}
+                  </Typography>
+                </Box>
               ),
-            backgroundColor: "#4caf50", // Cor diferente para destacar (ex: verde)
-          },
+              //subtitle: "Resumo de conclusões", // Opcional
+              progress: 60,
+              icon: (
+                <AssignmentTurnedInIcon sx={{ color: "#fff", fontSize: "40px" }} />
+              ),
+              backgroundColor: "#312783",
+            },
           ].map((item, index) => (
             <Box
               key={index}
               boxShadow={3}
-              borderRadius="20px"
+              borderRadius="10px"
               gridColumn="span 6"
               bgcolor={item.backgroundColor} // Cor dinâmica
               display="flex"
               alignItems="center"
               justifyContent="space-between"
-              padding="20px"
               sx={{ gap: "15px", position: "relative" }}
             >
               {/* Ícone à Esquerda */}
@@ -916,10 +923,13 @@ useEffect(() => {
               {/* Linha Vertical */}
               <Box
                 sx={{
-                  width: "2px",
+                  width: "1px",
                   height: "80%",
                   backgroundColor: "#ffffff4d",
-                  margin: "0 2px",
+                  position: "absolute",
+                  top: "50%",
+                  left: "23%",
+                  transform: "translate(-20%, -50%)",
                 }}
               />
 

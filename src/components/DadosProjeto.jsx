@@ -4,14 +4,7 @@ import PaidIcon from "@mui/icons-material/Paid";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import Lista from "../components/Lista";
 
-const DadosProjeto = ({
-  orcamento,
-  valorGasto,
-  totalDiretrizes,
-  tarefasConcluidas,
-  totalTarefas,
-  diretrizes,
-}) => {
+const DadosProjeto = ({ orcamento, valorGasto, totalDiretrizes, tarefasConcluidas, totalTarefas, diretrizes }) => {
   // 1) Função para calcular progresso de Valor Gasto vs. Orçamento
   const calcularProgressoValorGasto = () => {
     // Garante que o orçamento seja uma string válida antes de substituir caracteres
@@ -44,6 +37,16 @@ const DadosProjeto = ({
     // Retorna o progresso em porcentagem
     return (gastoNum / orcamentoNum) * 100;
   };
+
+  const totalEstr = countAllDiretrizes(diretrizes);
+  const totalTat = countAllTaticas(diretrizes);
+  const totalOp = countAllOperacionais(diretrizes);
+  const totalTar = countAllTarefas(diretrizes);
+
+  const conclEstr = countDiretrizesConcluidas(diretrizes);
+  const conclTat = countTaticasConcluidas(diretrizes);
+  const conclOp = countOperacionaisConcluidos(diretrizes);
+  const conclTar = countTarefasConcluidas(diretrizes);
 
   
   
@@ -127,18 +130,212 @@ const DadosProjeto = ({
       ),
     },
     {
-      title: `Total de diretrizes: ${totalDiretrizes || 0}  \nDiretrizes Concluídas: ${
-        diretrizes.filter(
-          (d) => calcularProgressoGeral(diretrizes.indexOf(d)) === 100
-        ).length || 0
-      }`,
+      title: (
+        <Typography variant="body2" sx={{ color: "#fff", fontSize: "12px", textAlign: "left" }}>
+          {`Total de Diretrizes: ${totalEstr}`} <br/>
+          {`Total de Táticas: ${totalTat}`} <br/>
+          {`Total de Operacionais: ${totalOp}`} <br/>
+          {`Total de Tarefas: ${totalTar}`} <br/>
+          
+        </Typography>
+      ),
       icon: <AssignmentTurnedInIcon sx={{ color: "#fff", fontSize: "50px" }} />,
     },
     {
-      title: `Total de tarefas: ${totalTarefas || 0} \nTarefas Concluídas: ${tarefasConcluidas || 0}`,
+      title: (
+        <Typography variant="body2" sx={{ color: "#fff", fontSize: "12px", textAlign: "left" }}>
+          
+          {`Diretrizes Concluídas: ${conclEstr}`} <br/>
+          {`Táticas Concluídas: ${conclTat}`} <br/>
+          {`Operacionais Concluídos: ${conclOp}`} <br/>
+          {`Tarefas Concluídas: ${conclTar}`}
+        </Typography>
+      ),
       icon: <AssignmentTurnedInIcon sx={{ color: "#fff", fontSize: "50px" }} />,
-    },    
+    },
+       
   ];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // --------------
+// 1) Contagem simples (quantas existem?)
+// --------------
+function countAllDiretrizes(diretrizes = []) {
+  // Cada item do array "diretrizes" é, por definição, uma Diretriz Estratégica
+  return diretrizes.length;
+}
+
+function countAllTaticas(diretrizes = []) {
+  let total = 0;
+  for (const diretriz of diretrizes) {
+    total += diretriz.taticas?.length || 0;
+  }
+  return total;
+}
+
+function countAllOperacionais(diretrizes = []) {
+  let total = 0;
+  for (const diretriz of diretrizes) {
+    for (const tatica of diretriz.taticas || []) {
+      total += tatica.operacionais?.length || 0;
+    }
+  }
+  return total;
+}
+
+function countAllTarefas(diretrizes = []) {
+  let total = 0;
+  for (const diretriz of diretrizes) {
+    for (const tatica of diretriz.taticas || []) {
+      for (const operacional of tatica.operacionais || []) {
+        total += operacional.tarefas?.length || 0;
+      }
+    }
+  }
+  return total;
+}
+
+// --------------
+// 2) Funções auxiliares para checar se
+//    Tática/Operacional está concluída
+// --------------
+function isOperacionalConcluido(operacional) {
+  // Se não tem tarefas => não concluído
+  if (!operacional.tarefas || operacional.tarefas.length === 0) return false;
+  
+  // Se tiver tarefas, todas precisam estar concluídas
+  for (const tarefa of operacional.tarefas) {
+    if (!tarefa?.checkboxState?.concluida) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+function isTaticaConcluida(tatica) {
+  // Uma Tática é concluída somente se TODAS as operacionais estiverem concluídas
+  if (!tatica.operacionais?.length) return false;
+  for (const operacional of tatica.operacionais) {
+    if (!isOperacionalConcluido(operacional)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function isDiretrizConcluida(diretriz) {
+  // Uma Diretriz Estratégica é concluída somente se TODAS as táticas estiverem concluídas
+  if (!diretriz.taticas?.length) return false;
+  for (const tatica of diretriz.taticas) {
+    if (!isTaticaConcluida(tatica)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// --------------
+// 3) Contagem de concluídos
+// --------------
+function countDiretrizesConcluidas(diretrizes = []) {
+  let count = 0;
+  for (const diretriz of diretrizes) {
+    if (isDiretrizConcluida(diretriz)) {
+      count++;
+    }
+  }
+  return count;
+}
+
+function countTaticasConcluidas(diretrizes = []) {
+  let count = 0;
+  for (const diretriz of diretrizes) {
+    for (const tatica of diretriz.taticas || []) {
+      if (isTaticaConcluida(tatica)) {
+        count++;
+      }
+    }
+  }
+  return count;
+}
+
+function countOperacionaisConcluidos(diretrizes = []) {
+  let count = 0;
+  for (const diretriz of diretrizes) {
+    for (const tatica of diretriz.taticas || []) {
+      for (const operacional of tatica.operacionais || []) {
+        if (isOperacionalConcluido(operacional)) {
+          count++;
+        }
+      }
+    }
+  }
+  return count;
+}
+
+function countTarefasConcluidas(diretrizes = []) {
+  let count = 0;
+  for (const diretriz of diretrizes) {
+    for (const tatica of diretriz.taticas || []) {
+      for (const operacional of tatica.operacionais || []) {
+        for (const tarefa of operacional.tarefas || []) {
+          if (tarefa?.checkboxState?.concluida) {
+            count++;
+          }
+        }
+      }
+    }
+  }
+  return count;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   return (
     <Box
@@ -171,10 +368,6 @@ const DadosProjeto = ({
             key={index}
             boxShadow={3}
             borderRadius="20px"
-            // Ajuste da cor de fundo:
-            // Se o item for "Orçamento", usar item.bgColor
-            // Se for "Valor gasto", usar definirCorValorGasto()
-            // Senão usa "#312783"
             bgcolor={
               item.subtitle === "Orçamento"
                 ? item.bgColor

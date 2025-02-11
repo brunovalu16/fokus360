@@ -26,6 +26,36 @@ import { db } from "../data/firebase-config";
 // Seu componente de tarefas (5W2H)
 import DiretrizData from "./DiretrizData";
 
+function calcularProgresso(tarefa) {
+  // Checa se a tarefa tem checkboxState
+  if (!tarefa?.checkboxState) return 0;
+
+  // Exemplo: se "concluida" for true, diz que é 100, senão 0
+  // Ou se preferir a contagem de sub-campos (por ex. "oQue", "porQue"...)
+  return tarefa.checkboxState.concluida ? 100 : 0;
+}
+
+function calcularProgressoEstrategica(estrategica) {
+  let totalTarefas = 0;
+  let totalConcluidas = 0;
+
+  for (const tatica of estrategica.taticas || []) {
+    for (const operacional of tatica.operacionais || []) {
+      for (const tarefa of operacional.tarefas || []) {
+        totalTarefas++;
+        if (tarefa?.checkboxState?.concluida) {
+          totalConcluidas++;
+        }
+      }
+    }
+  }
+
+  if (totalTarefas === 0) return 0; // Se não tiver tarefa nenhuma, 0%
+
+  return Math.round((totalConcluidas / totalTarefas) * 100);
+}
+
+
 
 const BaseDiretriz2 = ({ projectId, onDiretrizesUpdate  }) => {
 
@@ -515,26 +545,29 @@ const calcularProgressoOperacional = (operacional) => {
 };
 
 
-const calcularProgressoTatica = (tatica) => {
-  if (!tatica.operacionais || tatica.operacionais.length === 0) {
-      return 0; // Se não houver operacionais, progresso é 0%
+function calcularProgressoTatica(tatica) {
+  // Em vez de filtrar e pular, considere todos os operacionais
+  const { operacionais = [] } = tatica;
+  if (operacionais.length === 0) return 0; // sem operacionais => 0%
+
+  let somaPorcentagens = 0;
+  for (const op of operacionais) {
+    // Se op tiver 0 tarefas, progresso = 0
+    // Se op tiver X tarefas concluídas, calcule
+    if (!op.tarefas || op.tarefas.length === 0) {
+      somaPorcentagens += 0;
+    } else {
+      // Calcule a % baseada nas tarefas
+      const total = op.tarefas.length;
+      const concluidas = op.tarefas.filter((t) => t.checkboxState?.concluida).length;
+      somaPorcentagens += (concluidas / total) * 100; 
+    }
   }
 
-  // Filtrar apenas operacionais que possuem tarefas cadastradas
-  const operacionaisComProgresso = tatica.operacionais.filter(op => op.tarefas && op.tarefas.length > 0);
+  // progresso médio
+  return Math.round(somaPorcentagens / operacionais.length);
+}
 
-  if (operacionaisComProgresso.length === 0) {
-      return 0; // Se nenhuma operacional tiver progresso válido, progresso da tática é 0%
-  }
-
-  // Calcula a média de progresso das operacionais válidas
-  const progressoTotal = operacionaisComProgresso.reduce(
-      (acc, operacional) => acc + calcularProgressoOperacional(operacional),
-      0
-  );
-
-  return Math.round(progressoTotal / operacionaisComProgresso.length);
-};
 
 
 // Função auxiliar para o Status de Progresso (pode ser um componente separado se você quiser)
@@ -810,7 +843,10 @@ const StatusProgressoEstrategica = ({ taticas }) => {
           key={estrategica.id}
           sx={{ borderLeft: "6px solid #312783" }}
         >
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+          sx={{ marginBottom: "20px" }}
+          >
             <Box sx={{ width: "100%" }}>
               <Typography
                 variant="subtitle1"
