@@ -339,20 +339,19 @@ useEffect(() => {
       headerName: "Gasto atual",
       flex: 0.9,
       renderCell: (params) => {
-        // Define valores padrão caso os campos estejam ausentes
-        const rawValor = params.row.valor || "0"; // Garante que valor exista
-        const rawOrcamento = params.row.orcamento || "0"; // Garante que orçamento exista
+        const rawValor = params.row.valor || "R$ 0,00"; // Pegando do banco
+        const rawOrcamento = params.row.orcamento || "R$ 0,00"; // Pegando orçamento
     
-        // Converte valores para números, removendo caracteres desnecessários
+        // Converte para número removendo caracteres desnecessários
         const valor = parseFloat(
-          String(rawValor).replace("R$", "").replace(/\./g, "").replace(",", ".")
-        );
+          rawValor.replace("R$", "").replace(/\./g, "").replace(",", ".")
+        ) || 0;
     
         const orcamento = parseFloat(
-          String(rawOrcamento).replace("R$", "").replace(/\./g, "").replace(",", ".")
-        );
+          rawOrcamento.replace("R$", "").replace(/\./g, "").replace(",", ".")
+        ) || 0;
     
-        // Define cor de fundo com base no valor e orçamento
+        // Define cor de fundo com base no orçamento
         let backgroundColor = "#4CAF50"; // Verde por padrão
         if (valor === orcamento) {
           backgroundColor = "#0048ff"; // Azul
@@ -387,8 +386,6 @@ useEffect(() => {
         );
       },
     },
-    
-   
     
 
     {
@@ -623,44 +620,50 @@ const [projetosFiltrados, setProjetosFiltrados] = useState([]); // Projetos filt
 const fetchProjetos = async () => {
   try {
     const querySnapshot = await getDocs(collection(db, "projetos"));
-    const projetosCarregados = querySnapshot.docs.map((docSnap) => {
-      const data = docSnap.data();
+    const projetosCarregados = await Promise.all(
+      querySnapshot.docs.map(async (docSnap) => {
+        const data = docSnap.data();
 
-      // 1) SOMAR VALOR DENTRO DE DIRETRIZES
-      let somaValor = 0;
-      const diretrizes = data.diretrizes || [];
-      diretrizes.forEach((dir) => {
-        const tarefas = dir.tarefas || [];
-        tarefas.forEach((t) => {
-          const raw = t.planoDeAcao?.valor || "R$ 0,00";
-          // Converte a string (ex: "R$ 1.555,55") para número
-          const somenteNumero = parseFloat(
-            raw.replace("R$", "").replace(/\./g, "").replace(",", ".")
-          ) || 0;
-          somaValor += somenteNumero;
-        });
-      });
+        // Verifica se diretrizes existem antes de iterar
+        let somaValor = 0;
+        if (Array.isArray(data.diretrizes)) {
+          data.diretrizes.forEach((diretriz) => {
+            if (Array.isArray(diretriz.taticas)) {
+              diretriz.taticas.forEach((tatica) => {
+                if (Array.isArray(tatica.operacionais)) {
+                  tatica.operacionais.forEach((operacional) => {
+                    if (Array.isArray(operacional.tarefas)) {
+                      operacional.tarefas.forEach((tarefa) => {
+                        const rawValor = tarefa.planoDeAcao?.valor || "R$ 0,00";
+                        const somenteNumero = parseFloat(
+                          rawValor.replace("R$", "").replace(/\./g, "").replace(",", ".")
+                        ) || 0;
+                        somaValor += somenteNumero;
+                      });
+                    }
+                  });
+                }
+              });
+            }
+          });
+        }
 
-      // Converte a soma total em formato de moeda "R$ ..."
-      const somaFormatada = new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      }).format(somaValor);
+        // Converte a soma total em formato de moeda "R$ ..."
+        const somaFormatada = new Intl.NumberFormat("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        }).format(somaValor);
 
-      // 2) MANTER ORÇAMENTO NO FORMATO ORIGINAL (STRING)
-      const orcamentoString = data.orcamento || "R$ 0,00";
+        return {
+          id: docSnap.id,
+          valor: somaFormatada,
+          orcamento: data.orcamento || "R$ 0,00",
+          ...data,
+        };
+      })
+    );
 
-      return {
-        id: docSnap.id,
-        // Agora 'valor' será a soma de TODAS as tarefas
-        valor: somaFormatada,
-        // Deixe o orçamento como string
-        orcamento: orcamentoString,
-        ...data,
-      };
-    });
-
-    // 3) LÓGICA DE COLABORADORES
+    // Mapeamento de colaboradores
     const colaboradoresMap = new Map();
     for (const projeto of projetosCarregados) {
       if (Array.isArray(projeto.colaboradores)) {
@@ -673,6 +676,7 @@ const fetchProjetos = async () => {
       }
     }
 
+    // Buscar nomes dos colaboradores do Firestore
     const colaboradoresComNomes = await Promise.all(
       Array.from(colaboradoresMap.entries()).map(async ([colaboradorId, valor]) => {
         const userSnapshot = await getDoc(doc(db, "user", colaboradorId));
@@ -687,25 +691,25 @@ const fetchProjetos = async () => {
       })
     );
 
+    // Normaliza os valores
     const maxValor = Math.max(...colaboradoresComNomes.map((d) => d.valor));
     const dadosNormalizados = colaboradoresComNomes.map((d) => ({
       ...d,
       percentual: maxValor > 0 ? (d.valor / maxValor) * 100 : 0,
     }));
 
-    // Armazena no estado
+    // Atualiza os estados
     setDadosColaboradores(dadosNormalizados);
-
-    // Finalmente, define os projetos (com 'valor' já somado e formatado)
     setProjetos(projetosCarregados);
   } catch (error) {
-    console.error("Erro ao buscar projetos:", error);
+    console.error("❌ Erro ao buscar projetos:", error);
   }
 };
 
 useEffect(() => {
   fetchProjetos();
 }, []);
+
 
 
 

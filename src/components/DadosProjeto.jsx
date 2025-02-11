@@ -8,25 +8,49 @@ const DadosProjeto = ({
   orcamento,
   valorGasto,
   totalDiretrizes,
+  tarefasConcluidas,
   totalTarefas,
   diretrizes,
 }) => {
   // 1) Função para calcular progresso de Valor Gasto vs. Orçamento
   const calcularProgressoValorGasto = () => {
-    const orcamentoNum = parseFloat(
-      orcamento.replace("R$", "").replace(".", "").replace(",", ".") || 0
-    );
-    const gastoNum = parseFloat(
-      valorGasto.replace("R$", "").replace(".", "").replace(",", ".") || 0
-    );
+    // Garante que o orçamento seja uma string válida antes de substituir caracteres
+    const orcamentoNum = orcamento
+      ? parseFloat(orcamento.replace("R$", "").replace(/\./g, "").replace(",", "."))
+      : 0;
+  
+    // Soma todos os valores das tarefas dentro das diretrizes (novo caminho do Firestore)
+    let gastoNum = 0;
+  
+    if (diretrizes && Array.isArray(diretrizes)) {
+      diretrizes.forEach((diretriz) => {
+        diretriz.taticas?.forEach((tatica) => {
+          tatica.operacionais?.forEach((operacional) => {
+            operacional.tarefas?.forEach((tarefa) => {
+              // Garante que valor existe e converte corretamente
+              const valorTarefa = tarefa?.planoDeAcao?.valor
+                ? parseFloat(tarefa.planoDeAcao.valor.replace("R$", "").replace(/\./g, "").replace(",", "."))
+                : 0;
+              gastoNum += valorTarefa;
+            });
+          });
+        });
+      });
+    }
+  
+    // Evita divisão por zero
     if (orcamentoNum === 0) return 0;
+  
+    // Retorna o progresso em porcentagem
     return (gastoNum / orcamentoNum) * 100;
   };
 
+  
+  
   // 2) Define cor dinâmica para “Valor Gasto”
   const definirCorValorGasto = () => {
     const progresso = calcularProgressoValorGasto();
-
+  
     if (progresso > 100) {
       return "#f44336"; // Vermelho se passou do orçamento
     } else if (progresso === 100) {
@@ -37,6 +61,7 @@ const DadosProjeto = ({
       return "#4caf50"; // Verde se < 70% do orçamento
     }
   };
+  
 
   // Função para calcular o total de tarefas concluídas
   const calcularTotalTarefasConcluidas = (diretrizes) => {
@@ -110,9 +135,9 @@ const DadosProjeto = ({
       icon: <AssignmentTurnedInIcon sx={{ color: "#fff", fontSize: "50px" }} />,
     },
     {
-      title: `Total de tarefas: ${totalTarefas || 0} \nTarefas Concluídas: ${totalTarefasConcluidas || 0}`,
+      title: `Total de tarefas: ${totalTarefas || 0} \nTarefas Concluídas: ${tarefasConcluidas || 0}`,
       icon: <AssignmentTurnedInIcon sx={{ color: "#fff", fontSize: "50px" }} />,
-    },
+    },    
   ];
 
   return (

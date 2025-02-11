@@ -18,6 +18,17 @@ function DadosProjetogeral() {
   const [filtroQuem, setFiltroQuem] = useState(null);
   const [dadosQuem, setDadosQuem] = useState([]);
 
+  const [totalEstrategicas, setTotalEstrategicas] = useState(0); // <-- Estado!
+  const [totalTaticas, setTotalTaticas] = useState(0);         // <-- Estado!
+  const [totalOperacionais, setTotalOperacionais] = useState(0); // <-- Estado!
+
+  // Novos estados para as contagens de CONCLUÍDAS
+  const [totalEstrategicasConcluidas, setTotalEstrategicasConcluidas] = useState(0);
+  const [totalTaticasConcluidas, setTotalTaticasConcluidas] = useState(0);
+  const [totalOperacionaisConcluidos, setTotalOperacionaisConcluidos] = useState(0);
+  const [totalTarefasConcluidas, setTotalTarefasConcluidas] = useState(0);
+
+
 
 useEffect(() => {
   console.log("🛠️ Estado atual do filtroQuem:", filtroQuem);
@@ -280,40 +291,104 @@ const handleLimparFiltros = () => {
 
 
 // Função para buscar totais de diretrizes e tarefas
-  const [totalDiretrizes, setTotalDiretrizes] = useState(0);
-  const [totalTarefas, setTotalTarefas] = useState(0);
+const [totalDiretrizes, setTotalDiretrizes] = useState(0);
+const [totalTarefas, setTotalTarefas] = useState(0);
 
-  useEffect(() => {
-    const fetchDiretrizesETarefas = async () => {
+useEffect(() => {
+  const fetchDiretrizesETarefas = async () => {
       try {
-        const projetosSnapshot = await getDocs(collection(db, "projetos")); // Acessa a coleção "projetos"
-        let diretrizesCount = 0;
-        let tarefasCount = 0;
+          const projetosSnapshot = await getDocs(collection(db, "projetos"));
+          let estrategicasCount = 0;
+          let taticasCount = 0;
+          let operacionaisCount = 0;
+          let tarefasCount = 0;
 
-        projetosSnapshot.forEach((projetoDoc) => {
-          const data = projetoDoc.data();
+          // Contadores para CONCLUÍDAS
+          let estrategicasConcluidasCount = 0;
+          let taticasConcluidasCount = 0;
+          let operacionaisConcluidosCount = 0;
+          let tarefasConcluidasCount = 0;
 
-          // Soma as diretrizes no projeto
-          const diretrizes = data.diretrizes || [];
-          diretrizesCount += diretrizes.length;
+          for (const projetoDoc of projetosSnapshot.docs) {
+              const data = projetoDoc.data();
+              const diretrizesEstrategicas = data.diretrizes || [];
 
-          // Soma as tarefas dentro de cada diretriz
-          diretrizes.forEach((diretriz) => {
-            const tarefas = diretriz.tarefas || [];
-            tarefasCount += tarefas.length;
-          });
-        });
+              estrategicasCount += diretrizesEstrategicas.length;
 
-        // Atualiza os estados com os totais
-        setTotalDiretrizes(diretrizesCount);
-        setTotalTarefas(tarefasCount);
+              for (const diretriz of diretrizesEstrategicas) {
+                  const taticas = diretriz.taticas || [];
+                  taticasCount += taticas.length;
+
+                  let todasTaticasConcluidas = true; // Flag para diretriz ESTRATÉGICA
+
+                  for (const tatica of taticas) {
+                      const operacionais = tatica.operacionais || [];
+                      operacionaisCount += operacionais.length;
+
+                      let todosOperacionaisConcluidos = true; // Flag para TÁTICA
+
+                      for (const operacional of operacionais) {
+                          const tarefas = operacional.tarefas || [];
+                          tarefasCount += tarefas.length;
+
+                          let todasTarefasConcluidas = true; // Flag para OPERACIONAL
+
+                          for (const tarefa of tarefas) {
+                              // Verifica se a tarefa está concluída
+                              if (tarefa.checkboxState && tarefa.checkboxState.concluida) {
+                                  tarefasConcluidasCount++;
+                              } else {
+                                  todasTarefasConcluidas = false; // Basta UMA não concluída
+                              }
+                          }
+
+                          // Verifica conclusão do OPERACIONAL
+                          if (todasTarefasConcluidas && tarefas.length > 0) {
+                              operacionaisConcluidosCount++;
+                          } else {
+                              todosOperacionaisConcluidos = false; // Operacional não concluído
+                          }
+                      }
+                       // Verifica conclusão da TÁTICA
+                      if (!todosOperacionaisConcluidos) {  //  <--  CORREÇÃO AQUI:  Se *qualquer* operacional não estiver concluido, já marcamos a tática como não concluída.
+                          todasTaticasConcluidas = false;
+                      }
+                      // Se *todos* os operacionais da tática estão concluídos *E* a tática tem operacionais
+                      if (todosOperacionaisConcluidos && operacionais.length > 0) {
+                          taticasConcluidasCount++; // Incrementa APENAS se todos os operacionais estiverem concluídos
+                      }
+                  }
+
+                  // Verifica conclusão da ESTRATÉGICA:  Mesma lógica, agora para a diretriz estratégica
+                  if (!todasTaticasConcluidas) { // <-- CORREÇÃO AQUI: Se qualquer tática não estiver concluída, já sabemos que a estratégica não está.
+                      // estrategicasConcluidasCount++; *NÃO* incrementa aqui
+                  }
+                   // Se *todas* as táticas da estratégica estão concluídas *E* a estratégica tem táticas
+                  if(todasTaticasConcluidas && taticas.length > 0){
+                       estrategicasConcluidasCount++; // SÓ ENTÃO incrementa.
+                  }
+              }
+          }
+
+          setTotalEstrategicas(estrategicasCount);
+          setTotalTaticas(taticasCount);
+          setTotalOperacionais(operacionaisCount);
+          setTotalTarefas(tarefasCount);
+
+          // Atualiza os estados de CONCLUÍDAS
+          setTotalEstrategicasConcluidas(estrategicasConcluidasCount);
+          setTotalTaticasConcluidas(taticasConcluidasCount);
+          setTotalOperacionaisConcluidos(operacionaisConcluidosCount);
+          setTotalTarefasConcluidas(tarefasConcluidasCount);
+
+
       } catch (error) {
-        console.error("Erro ao buscar diretrizes e tarefas:", error);
+          console.error("Erro ao buscar diretrizes e tarefas:", error);
       }
-    };
+  };
 
-    fetchDiretrizesETarefas();
-  }, []);
+  fetchDiretrizesETarefas();
+}, []);
   
 
 
@@ -338,53 +413,52 @@ const handleLimparFiltros = () => {
  // RECEBE O VALOR SOMADO DE "VALOR"  DO BANCO
   const [custoTotal, setCustoTotal] = useState(0);
 
-  useEffect(() => {
-    const fetchValor = async () => {
-      try {
-        const projetosSnapshot = await getDocs(collection(db, "projetos")); // Coleção de projetos
-        let total = 0;
+  const fetchValor = async () => {
+    try {
+      const projetosSnapshot = await getDocs(collection(db, "projetos"));
+      let total = 0;
   
-        for (const projetoDoc of projetosSnapshot.docs) {
-          //console.log("Projeto ID:", projetoDoc.id, projetoDoc.data());
-          const data = projetoDoc.data();
+      for (const projetoDoc of projetosSnapshot.docs) {
+        const data = projetoDoc.data();
+        console.log("📌 Projeto:", data.nome || "Sem Nome");
   
-          // Acessa o array de diretrizes no documento do projeto
-          const diretrizes = data.diretrizes || [];
-          diretrizes.forEach((diretriz) => {
-            //console.log("Diretriz:", diretriz);
+        const diretrizes = data.diretrizes || [];
+        diretrizes.forEach((diretriz) => {
+          const taticas = diretriz.taticas || [];
+          taticas.forEach((tatica) => {
+            const operacionais = tatica.operacionais || [];
+            operacionais.forEach((operacional) => {
+              const tarefas = operacional.tarefas || [];
+              tarefas.forEach((tarefa) => {
+                const planoDeAcao = tarefa.planoDeAcao || {};
   
-            // Acessa o array de tarefas dentro de cada diretriz
-            const tarefas = diretriz.tarefas || [];
-            tarefas.forEach((tarefa) => {
-              //console.log("Tarefa:", tarefa);
+                console.log("🔍 Tarefa:", tarefa.tituloTarefa || "Sem Título", "-> PlanoDeAcao:", planoDeAcao);
   
-              // Acessa o campo planoDeAcao dentro de cada tarefa
-              const planoDeAcao = tarefa.planoDeAcao;
-              if (planoDeAcao?.valor) {
-                //console.log("Valor encontrado:", planoDeAcao.valor);
+                const rawValor = planoDeAcao.valor || "R$ 0,00"; // Garante que sempre haja um valor
                 const valor = parseFloat(
-                  planoDeAcao.valor
-                    .replace("R$", "")
-                    .replace(/\./g, "") // Remove os pontos dos milhares
-                    .replace(",", ".") // Substitui a vírgula pelo ponto decimal
-                );
-                total += valor; // Soma o valor
-              } else {
-                //console.warn("Campo 'valor' não encontrado:", planoDeAcao);
-              }
+                  rawValor.replace("R$", "").replace(/\./g, "").replace(",", ".")
+                ) || 0;
+  
+                console.log(`💰 Valor encontrado: ${valor}`);
+                total += valor;
+              });
             });
           });
-        }
-  
-        //console.log("Total Calculado:", total);
-        setCustoTotal(total); // Atualiza o estado com o valor total
-      } catch (error) {
-        console.error("Erro ao buscar valores:", error);
+        });
       }
-    };
   
-    fetchValor();
+      console.log("✅ Total Calculado:", total);
+      setCustoTotal(total);
+    } catch (error) {
+      console.error("❌ Erro ao buscar valores:", error);
+    }
+  };
+  useEffect(() => {
+    fetchValor(); // <-- CHAME A FUNÇÃO AQUI
   }, []);
+  
+  
+  
   
   
 
@@ -396,25 +470,35 @@ const handleLimparFiltros = () => {
   useEffect(() => {
     const fetchOrcamentos = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "projetos")); 
+        const querySnapshot = await getDocs(collection(db, "projetos"));
         let total = 0;
-
+  
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          const orcamento = parseFloat(
-            data.orcamento.replace("R$", "").replace(".", "").replace(",", ".")
-          );
-          total += orcamento; // Soma os valores de orçamento
+          
+          if (data.orcamento) { 
+            // Removendo caracteres desnecessários antes de converter
+            const orcamentoString = String(data.orcamento).replace(/[^\d,.-]/g, "").replace(",", ".");
+  
+            const orcamentoNumerico = parseFloat(orcamentoString);
+  
+            if (!isNaN(orcamentoNumerico)) {
+              total += orcamentoNumerico; // Soma corretamente
+            } else {
+              console.warn("⚠️ Orçamento inválido encontrado:", data.orcamento);
+            }
+          }
         });
-
-        setOrcamentoTotal(total); // Atualiza o estado com o valor total
+  
+        setOrcamentoTotal(total);
       } catch (error) {
         console.error("Erro ao buscar orçamentos:", error);
       }
     };
-
+  
     fetchOrcamentos();
   }, []);
+  
 
 
   //=======================================================================
@@ -524,7 +608,7 @@ const handleLimparFiltros = () => {
   
   
   
-
+ // Busca nomes desses IDs na coleção "Quem"
   useEffect(() => {
     const fetchQuemDados = async () => {
       try {
@@ -711,74 +795,113 @@ const handleLimparFiltros = () => {
           {[
             {
               id: "orcamento", // Identificador único
-              title: `R$ ${orcamentoTotal.toLocaleString("pt-BR", {
-                minimumFractionDigits: 2,
-              })}`,
-              subtitle: "Orçamento total",
+              title: (
+                <>
+                  <Typography variant="h5" sx={{ color: "#fff", fontSize: "20px", textAlign: "left" }}>
+                    {`R$ ${orcamentoTotal.toLocaleString("pt-BR", {
+                      minimumFractionDigits: 2,
+                    })}`}
+                  </Typography>
+                </>
+              ),
+              subtitle: (
+                <Typography variant="subtitle2" sx={{ color: "#fff", fontSize: "15px", textAlign: "left" }}>
+                  Orçamento Total
+                </Typography>
+              ),
               progress: 75,
               //increase: "+14%",
               icon: <PaidIcon sx={{ color: "#fff", fontSize: "40px" }} />,
               backgroundColor: "#312783", // Azul padrão
             },
             {
-              title: `R$ ${custoTotal.toLocaleString("pt-BR", {
-                minimumFractionDigits: 2,
-              })}`,
-              subtitle: "Total de gastos",
+              title: (
+                <Typography variant="h5" sx={{ color: "#fff", fontSize: "25px", textAlign: "left" }}>
+                  {`R$ ${custoTotal.toLocaleString("pt-BR", {
+                    minimumFractionDigits: 2,
+                  })}`}
+                </Typography>
+              ),
+              subtitle: (
+                <Typography variant="subtitle2" sx={{ color: "#fff", fontSize: "15px", textAlign: "left" }}>
+                  Total de gastos
+                </Typography>
+              ),
               icon: <PaidIcon sx={{ color: "#fff", fontSize: "40px" }} />,
               backgroundColor:
                 custoTotal > orcamentoTotal
-                  ? "#f44336"   // Vermelho se passou do orçamento
+                  ? "#f44336" // Vermelho se passou do orçamento
                   : custoTotal === orcamentoTotal
-                  ? "#0048ff"   // Azul se é exatamente igual
+                  ? "#0048ff" // Azul se é exatamente igual
                   : custoTotal >= orcamentoTotal * 0.8
-                  ? "#ffb600"   // Laranja/Amarelo se acima de 80%
-                  : "#4caf50",  // Verde abaixo de 80% do orçamento
+                  ? "#ffb600" // Laranja/Amarelo se acima de 80%
+                  : "#4caf50", // Verde abaixo de 80% do orçamento
             },
             
-            
-
             {
               id: "projetos",
-              title: `Total de projetos: ${quantidadeProjetos.toLocaleString(
-                "pt-BR"
-              )}`, // Exibe a quantidade de projetos formatada
-              //subtitle: "Total de projetos",
+              title: (
+                <Typography variant="h5" sx={{ color: "#fff", fontSize: "20px", textAlign: "left", whiteSpace: "pre-line" }}>
+                  {`Total de projetos: ${quantidadeProjetos.toLocaleString("pt-BR")}`}
+                </Typography>
+              ),
+              //subtitle: "Total de projetos",  // Removido, pois não há subtitle aqui
               progress: 30,
               //increase: "+5%",
               icon: (
-                <AssignmentTurnedInIcon
-                  sx={{ color: "#fff", fontSize: "40px" }}
-                />
+                <AssignmentTurnedInIcon sx={{ color: "#fff", fontSize: "40px" }} />
               ),
               backgroundColor: "#312783", // Azul padrão
             },
             {
               id: "diretrizes",
-              title: `Total de diretrizes: ${totalDiretrizes.toLocaleString(
-                "pt-BR"
-              )}\nTotal de tarefas: ${totalTarefas.toLocaleString("pt-BR")}`, // Formatação em duas linhas
+              title: (
+                <>
+                  <Typography variant="body1" sx={{ color: "#fff", fontSize: "15px", textAlign: "left" }}>
+                    Total de diretrizes Estratégicas: {totalEstrategicas.toLocaleString("pt-BR")}
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: "#fff", fontSize: "15px", textAlign: "left" }}>
+                    Total de diretrizes Táticas: {totalTaticas.toLocaleString("pt-BR")}
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: "#fff", fontSize: "15px", textAlign: "left" }}>
+                    Total de diretrizes Operacionais: {totalOperacionais.toLocaleString("pt-BR")}
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: "#fff", fontSize: "15px", textAlign: "left" }}>
+                    Total de Tarefas: {totalTarefas.toLocaleString("pt-BR")}
+                  </Typography>
+                </>
+              ),
               //subtitle: "Resumo de diretrizes e tarefas",
               progress: 30,
               icon: (
-                <AssignmentTurnedInIcon
-                  sx={{ color: "#fff", fontSize: "40px" }}
-                />
+                <AssignmentTurnedInIcon sx={{ color: "#fff", fontSize: "40px" }} />
               ),
               backgroundColor: "#312783", // Azul padrão
             },
+            {
+              id: "diretrizes-concluidas",
+              title: `Diretrizes Estratégicas Concluídas: ${totalEstrategicasConcluidas.toLocaleString("pt-BR")}\nDiretrizes Táticas Concluídas: ${totalTaticasConcluidas.toLocaleString("pt-BR")}\nDiretrizes Operacionais Concluídas: ${totalOperacionaisConcluidos.toLocaleString("pt-BR")}\nTarefas Concluídas: ${totalTarefasConcluidas.toLocaleString("pt-BR")}`,
+              //subtitle: "Resumo de conclusões", // Opcional
+              progress: 60, // Você pode ajustar o progress, se quiser
+              icon: (
+                <AssignmentTurnedInIcon // Mantenha o mesmo ícone ou escolha outro
+                  sx={{ color: "#fff", fontSize: "40px" }}
+                />
+              ),
+            backgroundColor: "#4caf50", // Cor diferente para destacar (ex: verde)
+          },
           ].map((item, index) => (
             <Box
               key={index}
               boxShadow={3}
               borderRadius="20px"
-              gridColumn="span 3"
+              gridColumn="span 6"
               bgcolor={item.backgroundColor} // Cor dinâmica
               display="flex"
               alignItems="center"
               justifyContent="space-between"
               padding="20px"
-              sx={{ gap: "10px", position: "relative" }}
+              sx={{ gap: "15px", position: "relative" }}
             >
               {/* Ícone à Esquerda */}
               <Box

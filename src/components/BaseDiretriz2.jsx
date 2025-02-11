@@ -20,7 +20,7 @@ import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRig
 import ArrowDropDownCircleIcon from '@mui/icons-material/ArrowDropDownCircle';
 import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { doc, updateDoc, getDoc, getDocs, getFirestore, collection } from "firebase/firestore";
+import { doc, updateDoc, getDoc, getDocs, getFirestore, collection, arrayUnion  } from "firebase/firestore";
 import { db } from "../data/firebase-config";
 
 // Seu componente de tarefas (5W2H)
@@ -108,6 +108,7 @@ useEffect(() => {
 
 
 
+
   // -------------------------------------
   // Criar nova Diretriz Estratégica
   // -------------------------------------
@@ -126,16 +127,16 @@ useEffect(() => {
   
     setDiretrizes((prev) => [...prev, novaDiretriz]); // 🔹 Agora mantém os dados existentes e adiciona uma nova diretriz
   
-    // 🔥 Atualiza no Firestore sem apagar os dados existentes
-    if (projectId) {
-      const docRef = doc(db, "projetos", projectId);
-      updateDoc(docRef, {
-        diretrizes: arrayUnion(novaDiretriz) // 🔹 Usa arrayUnion para adicionar sem sobrescrever
-      })
-      .then(() => console.log("✅ Nova diretriz adicionada ao Firestore!"))
-      .catch((err) => console.error("❌ Erro ao atualizar Firestore:", err));
-    }
-  
+   // 🔥 Atualiza no Firestore *sem apagar os dados existentes*
+  if (projectId) {
+    const docRef = doc(db, "projetos", projectId);
+    updateDoc(docRef, {
+      diretrizes: arrayUnion(novaDiretriz) // 🔹 Usa arrayUnion para adicionar, *não* sobrescrever
+    })
+    .then(() => console.log("✅ Nova diretriz adicionada ao Firestore!"))
+    .catch((err) => console.error("❌ Erro ao atualizar Firestore:", err));
+  }
+    
     // Limpa os campos do formulário sem afetar a lista de diretrizes
     setNovaEstrategica("");
     setDescEstrategica("");
@@ -503,6 +504,9 @@ const handleCheckChange = (indexEstrategica, indexTatica, indexOperacional, inde
   });
 };
 
+
+
+
 const calcularProgressoOperacional = (operacional) => {
   if (!operacional.tarefas || operacional.tarefas.length === 0) return 0;
 
@@ -513,23 +517,68 @@ const calcularProgressoOperacional = (operacional) => {
 
 const calcularProgressoTatica = (tatica) => {
   if (!tatica.operacionais || tatica.operacionais.length === 0) {
-    return 0; // Se não houver operacionais, progresso é 0%
+      return 0; // Se não houver operacionais, progresso é 0%
   }
 
   // Filtrar apenas operacionais que possuem tarefas cadastradas
   const operacionaisComProgresso = tatica.operacionais.filter(op => op.tarefas && op.tarefas.length > 0);
 
   if (operacionaisComProgresso.length === 0) {
-    return 0; // Se nenhuma operacional tiver progresso válido, progresso da tática é 0%
+      return 0; // Se nenhuma operacional tiver progresso válido, progresso da tática é 0%
   }
 
   // Calcula a média de progresso das operacionais válidas
   const progressoTotal = operacionaisComProgresso.reduce(
-    (acc, operacional) => acc + calcularProgressoOperacional(operacional), 
-    0
+      (acc, operacional) => acc + calcularProgressoOperacional(operacional),
+      0
   );
 
   return Math.round(progressoTotal / operacionaisComProgresso.length);
+};
+
+
+// Função auxiliar para o Status de Progresso (pode ser um componente separado se você quiser)
+const StatusProgresso = ({ progresso }) => { //  Componente funcional simples
+  let color;
+  if (progresso === 100) {
+      color = "#4CAF50"; // Verde
+  } else if (progresso >= 50) {
+      color = "#FF9800"; // Laranja
+  } else {
+      color = "#F44336"; // Vermelho
+  }
+
+  return (
+      <Box display="flex" alignItems="center" gap={1} sx={{ marginLeft: "10px", marginTop: "5px" }}>
+          <CircularProgress variant="determinate" value={progresso} sx={{ color }} thickness={10} size={40} />
+          <Typography sx={{ fontSize: "12px", fontWeight: "bold", color: "#9d9d9c" }}>
+              {progresso === 100 ? "Concluído" : "Em andamento"}
+          </Typography>
+      </Box>
+  );
+};
+
+const calcularProgressoEstrategica = ({ taticas }) => { // Recebe as táticas como argumento
+  if (!taticas || taticas.length === 0) {
+      return 0; // Se não houver táticas, não exibe nada
+  }
+
+    // Filtrar apenas as táticas que possuem progresso válido
+    const taticasComProgresso = taticas.filter(
+      (tatica) => tatica.operacionais && tatica.operacionais.some(op => op.tarefas && op.tarefas.length > 0)
+    );
+
+    if (taticasComProgresso.length === 0) {
+      return 0; // Se nenhuma tática tiver progresso válido, não exibe o progresso da Estratégica
+  }
+
+  // Soma os progressos das táticas válidas e calcula a média
+  const progressoTotal = taticasComProgresso.reduce(
+      (acc, tatica) => acc + calcularProgressoTatica(tatica),
+      0
+  );
+  const progressoMedio = Math.round(progressoTotal / taticasComProgresso.length);
+  return progressoMedio;
 };
 
 

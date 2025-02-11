@@ -436,11 +436,26 @@ useEffect(() => {
 
   // Funções de cálculo (tarefas concluídas, progresso, orçamento, etc.)
   const calcularTotalTarefasConcluidas = () => {
-    return diretrizes.reduce((acc, diretriz) => {
-      const tarefas = diretriz?.tarefas || [];
-      return acc + tarefas.filter((tarefa) => tarefa.progresso === 100).length;
-    }, 0);
+    let totalConcluidas = 0;
+  
+    if (diretrizes && Array.isArray(diretrizes)) {
+      diretrizes.forEach((diretriz) => {
+        diretriz.taticas?.forEach((tatica) => {
+          tatica.operacionais?.forEach((operacional) => {
+            operacional.tarefas?.forEach((tarefa) => {
+              if (tarefa.checkboxState?.concluida) {
+                totalConcluidas += 1; // Conta apenas tarefas com checkbox marcado
+              }
+            });
+          });
+        });
+      });
+    }
+  
+    return totalConcluidas;
   };
+  
+  
 
   const calcularProgressoGeral = (diretrizIndex) => {
     if (!Array.isArray(diretrizes) || diretrizes.length === 0) return 0; // 🔹 Verifica se `diretrizes` é um array válido
@@ -454,33 +469,50 @@ useEffect(() => {
   
 
   const calcularValorGasto = () => {
-    const valorTotal = diretrizes.reduce((acc, diretriz) => {
-      const tarefas = Array.isArray(diretriz.tarefas) ? diretriz.tarefas : [];
-      const somaTarefas = tarefas.reduce((soma, tarefa) => {
-        const valor = tarefa.planoDeAcao?.valor || "R$ 0,00";
-        const somenteNumeros =
-          parseFloat(valor.replace("R$", "").replace(".", "").replace(",", ".")) || 0;
-        return soma + somenteNumeros;
-      }, 0);
-      return acc + somaTarefas;
-    }, 0);
-
+    let totalGasto = 0;
+  
+    if (diretrizes && Array.isArray(diretrizes)) {
+      diretrizes.forEach((diretriz) => {
+        diretriz.taticas?.forEach((tatica) => {
+          tatica.operacionais?.forEach((operacional) => {
+            operacional.tarefas?.forEach((tarefa) => {
+              const valor = tarefa.planoDeAcao?.valor || "R$ 0,00";
+              const somenteNumeros =
+                parseFloat(valor.replace("R$", "").replace(/\./g, "").replace(",", ".")) || 0;
+              totalGasto += somenteNumeros;
+            });
+          });
+        });
+      });
+    }
+  
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(valorTotal);
+    }).format(totalGasto);
   };
+  
 
   const calcularTotalDiretrizes = () => {
     return diretrizes.length;
   };
 
   const calcularTotalTarefas = () => {
-    return diretrizes.reduce((acc, diretriz) => {
-      const tarefas = Array.isArray(diretriz.tarefas) ? diretriz.tarefas : [];
-      return acc + tarefas.length;
-    }, 0);
+    let totalTarefas = 0;
+  
+    if (diretrizes && Array.isArray(diretrizes)) {
+      diretrizes.forEach((diretriz) => {
+        diretriz.taticas?.forEach((tatica) => {
+          tatica.operacionais?.forEach((operacional) => {
+            totalTarefas += operacional.tarefas?.length || 0;
+          });
+        });
+      });
+    }
+  
+    return totalTarefas;
   };
+  
 
   const handleDiretrizesUpdate = (diretrizesAtualizadas) => {
     // Se houver alguma estrutura "setInformacoesProjeto" 
@@ -533,13 +565,16 @@ useEffect(() => {
 
         
          
-        <DadosProjeto
-          orcamento={calcularOrcamento()}
-          valorGasto={calcularValorGasto()}
-          totalDiretrizes={calcularTotalDiretrizes()}
-          totalTarefas={calcularTotalTarefas()}
-          diretrizes={diretrizes} 
-        />
+      <DadosProjeto
+        orcamento={calcularOrcamento()}
+        valorGasto={calcularValorGasto()}
+        totalDiretrizes={calcularTotalDiretrizes()}
+        totalTarefas={calcularTotalTarefas()}
+        tarefasConcluidas={calcularTotalTarefasConcluidas()} // ✅ Adicionado
+        diretrizes={diretrizes}
+      />
+
+
 
 
         
