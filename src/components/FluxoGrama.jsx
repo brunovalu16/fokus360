@@ -236,19 +236,46 @@ console.log("🧐 Estratégicas:", estrategicas);
   <Grid container spacing={1} alignItems="center" sx={{ mb: 2 }} key={indexEstr}>
     {/* 📌 Estratégica */}
     {/* 📌 Estratégica */}
-<Grid item xs={3} sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+<Grid item xs={3} sx={{ display: "flex", alignItems: "center", gap: 0, marginLeft: "40px" }}>
   <Box>
     <Typography sx={{ fontSize: "9px", color: "#555", marginTop: "60px", marginBottom: "-28px", marginLeft: "10px" }}>
       Diretriz Estratégica
     </Typography>
-    <StyledInput value={estrategica?.titulo ?? "⚠️ Sem título"} disabled sx={{
-      backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #dcdcdc",
-      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
-    }} />
+    <StyledInput
+      value={estrategica?.titulo ?? "⚠️ Sem título"}
+      disabled
+      sx={{ backgroundColor: "#312783", borderRadius: "8px", border: "1px solid #dcdcdc", boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+        
+        // Estilos para impressão
+        '@media print': {
+          backgroundColor: '#312783 !important', // Força a cor de fundo na impressão
+          WebkitPrintColorAdjust: 'exact', // Para Safari e Chrome
+          printColorAdjust: 'exact',         // Padrão mais recente
+          color: 'white !important', 
+         }, // Força a cor do texto na impressão
+
+        // Estilos adicionais para garantir que o texto seja branco em todos os estados
+        '& .MuiInputBase-input': { // Estiliza o input interno
+            color: 'white',
+        },
+        '& .Mui-disabled': { // Estiliza quando desabilitado
+            WebkitTextFillColor: '#00ebf7', // Necessário para navegadores baseados em WebKit (Chrome, Safari)
+            color: 'white', //Para outros navegadores.
+        },
+
+        "& .MuiFormLabel-root": { //Para labels, se existirem
+            color: 'white'
+        },
+          "& .Mui-disabled.MuiFormLabel-root": { //Para label desabilitada, se existirem
+            color: 'white'
+        },
+
+      }}
+    />
   </Box>
 
   {/* 📊 Gráfico de Progresso da Diretriz Estratégica */}
-  <Box sx={{ marginTop: "40px" }}>
+  <Box sx={{ marginTop: "60px" }}>
     <CircleProgress percentage={Math.round(
       estrategica?.taticas?.reduce((acc, tatica) =>
         acc + (tatica?.operacionais?.reduce((accT, operacional) =>
@@ -264,10 +291,10 @@ console.log("🧐 Estratégicas:", estrategicas);
     {/* 📌 Renderizamos as Táticas COM as Operacionais dentro */}
     <Grid item xs={8}>
       {estrategica?.taticas?.map((tatica, indexTat) => (
-        <Grid container spacing={1} alignItems="center" key={indexTat} sx={{ mb: 2 }}>
+        <Grid container spacing={1} alignItems="center" key={indexTat} sx={{ mb: 1 }}>
           
           {/* 📌 Diretriz Tática */}
-          <Grid item xs={3} sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Grid item xs={3} sx={{ display: "flex", alignItems: "center", gap: 0 }}>
             <div>
               <Typography sx={{ fontSize: "9px", color: "#555", marginTop: "40px", marginBottom: "-28px", marginLeft: "10px" }}>
                 Diretriz Tática
@@ -276,8 +303,32 @@ console.log("🧐 Estratégicas:", estrategicas);
                 value={tatica?.titulo || "⚠️ Sem título"} 
                 disabled 
                 sx={{
-                  backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #dcdcdc",
-                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+                  backgroundColor: "#4caf50", borderRadius: "8px", border: "1px solid #dcdcdc",
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                     
+                  // Estilos para impressão
+                  '@media print': {
+                    backgroundColor: '#4caf50 !important', // Força a cor de fundo na impressão
+                    WebkitPrintColorAdjust: 'exact', // Para Safari e Chrome
+                    printColorAdjust: 'exact',         // Padrão mais recente
+                    color: 'white !important', 
+                   }, // Força a cor do texto na impressão
+
+                    // Estilos adicionais para garantir que o texto seja branco em todos os estados
+                    '& .MuiInputBase-input': { // Estiliza o input interno
+                      color: 'white',
+                  },
+                  '& .Mui-disabled': { // Estiliza quando desabilitado
+                      WebkitTextFillColor: '#a1ff00', // Necessário para navegadores baseados em WebKit (Chrome, Safari)
+                      color: 'white', //Para outros navegadores.
+                  },
+
+                  "& .MuiFormLabel-root": { //Para labels, se existirem
+                      color: 'white'
+                  },
+                    "& .Mui-disabled.MuiFormLabel-root": { //Para label desabilitada, se existirem
+                      color: 'white'
+                  },
                 }} 
               />
             </div>
@@ -300,7 +351,7 @@ console.log("🧐 Estratégicas:", estrategicas);
               <Grid container spacing={2} alignItems="center" key={indexOp} sx={{ mb: 1 }}>
                 
                 {/* 📌 Diretriz Operacional */}
-                <Grid item xs={5} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Grid item xs={5} sx={{ display: "flex", alignItems: "center", gap: 0 }}>
                   <Box>
                     <Typography sx={{ fontSize: "9px", color: "#555", marginTop: "40px", marginBottom: "-28px", marginLeft: "10px" }}>
                       Diretriz Operacional
@@ -308,7 +359,33 @@ console.log("🧐 Estratégicas:", estrategicas);
                     <StyledInput 
                       value={operacional?.titulo || "⚠️ Sem título"} 
                       disabled 
-                      sx={{ backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #dcdcdc", boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"}} />
+                      sx={{ backgroundColor: "#d32f2f", borderRadius: "8px", border: "1px solid #dcdcdc", boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                         
+                        // Estilos para impressão
+                      '@media print': {
+                        backgroundColor: '#d32f2f !important', // Força a cor de fundo na impressão
+                        WebkitPrintColorAdjust: 'exact', // Para Safari e Chrome
+                        printColorAdjust: 'exact',         // Padrão mais recente
+                        color: 'white !important', 
+                      }, // Força a cor do texto na impressão
+                        
+                        
+                        // Estilos adicionais para garantir que o texto seja branco em todos os estados
+                         '& .MuiInputBase-input': { // Estiliza o input interno
+                          color: 'white',
+                      },
+                      '& .Mui-disabled': { // Estiliza quando desabilitado
+                          WebkitTextFillColor: '#ff8c8c', // Necessário para navegadores baseados em WebKit (Chrome, Safari)
+                          color: 'white', //Para outros navegadores.
+                      },
+
+                      "& .MuiFormLabel-root": { //Para labels, se existirem
+                          color: 'white'
+                      },
+                        "& .Mui-disabled.MuiFormLabel-root": { //Para label desabilitada, se existirem
+                          color: 'white'
+                      },
+                      }} />
                   </Box>
 
                   {/* 📊 Gráfico de Progresso da Diretriz Operacional */}
@@ -325,14 +402,39 @@ console.log("🧐 Estratégicas:", estrategicas);
                   <Typography sx={{ fontSize: "9px", color: "#555", marginTop: "40px" }}>
                     Tarefas
                   </Typography>
-                  <Box sx={{ display: "flex", marginRight: "20px", flexDirection: "column", gap: 1 }}>
+                  <Box sx={{ display: "flex", marginRight: "20px", flexDirection: "column", gap: 0, marginTop: "-25px" }}>
                     {operacional?.tarefas?.map((tarefa, indexTarefa) => (
                       <Box key={indexTarefa} sx={{
                         display: "flex", alignItems: "center", justifyContent: "space-between", minWidth: "120px"
                       }}>
                         <StyledInput value={tarefa?.tituloTarefa || "⚠️ Sem título"} disabled sx={{
-                          backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #dcdcdc",
-                          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)", width: "100%"
+                          backgroundColor: "#ffb600", borderRadius: "8px", border: "1px solid #dcdcdc",
+                          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)", width: "100%",
+                            
+                          // Estilos para impressão
+                          '@media print': {
+                            backgroundColor: '#ffb600 !important', // Força a cor de fundo na impressão
+                            WebkitPrintColorAdjust: 'exact', // Para Safari e Chrome
+                            printColorAdjust: 'exact',         // Padrão mais recente
+                            color: 'white !important', 
+                          }, // Força a cor do texto na impressão
+                                  
+                                  
+                          // Estilos adicionais para garantir que o texto seja branco em todos os estados
+                            '& .MuiInputBase-input': { // Estiliza o input interno
+                              color: 'white',
+                          },
+                          '& .Mui-disabled': { // Estiliza quando desabilitado
+                              WebkitTextFillColor: '#faff00', // Necessário para navegadores baseados em WebKit (Chrome, Safari)
+                              color: 'white', //Para outros navegadores.
+                          },
+
+                          "& .MuiFormLabel-root": { //Para labels, se existirem
+                              color: 'white'
+                          },
+                            "& .Mui-disabled.MuiFormLabel-root": { //Para label desabilitada, se existirem
+                              color: 'white'
+                          },
                         }} />
 
                         {/* 📊 Gráfico de progresso da Tarefa */}
@@ -382,8 +484,7 @@ console.log("🧐 Estratégicas:", estrategicas);
       {/**<Divider sx={{ my: 4 }} /> */}
       <Box
         sx={{
-          width: "45%",
-          display: "flex",
+          width: "30%",
           justifyContent: "space-between",
           fontSize: 14,
           fontWeight: "bold",
@@ -392,7 +493,7 @@ console.log("🧐 Estratégicas:", estrategicas);
           //backgroundColor: "#f9f9f9",
           padding: "12px",
           borderTop: "1px solid #ccc",
-          borderBottom: "1px solid #ccc",
+
           color: "#9d9d9c",
         }}
       >
@@ -512,9 +613,7 @@ console.log("🧐 Estratégicas:", estrategicas);
 
 <Box
         sx={{
-          width: "45%",
-          display: "flex",
-          justifyContent: "space-between",
+          width: "30%",
           fontSize: 14,
           fontWeight: "bold",
           alignItems: "center", // Garante alinhamento vertical
@@ -522,7 +621,7 @@ console.log("🧐 Estratégicas:", estrategicas);
           //backgroundColor: "#f9f9f9",
           padding: "12px",
           borderTop: "1px solid #ccc",
-          borderBottom: "1px solid #ccc",
+          //borderBottom: "1px solid #ccc",
           color: "#9d9d9c",
         }}
       >
@@ -697,7 +796,7 @@ console.log("🧐 Estratégicas:", estrategicas);
 
       
 
-      <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
+      <Box sx={{ mt: 7, display: "flex", justifyContent: "flex-end", gap: 2 }}>
         <Button
           onClick={handleExpand}
           disableRipple // Remove o efeito de clique

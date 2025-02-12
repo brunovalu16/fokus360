@@ -152,6 +152,32 @@ const handleEditTarefa = (tarefaId, campo, valor) => {
 };
 
 
+const handleRemoveTarefa = (idEstrategica, idTatica, idOperacional, idTarefa) => {
+  setEstrategicas((prevEstrategicas) =>
+    prevEstrategicas.map((estrategica) => {
+      if (estrategica.id !== idEstrategica) return estrategica;
+      return {
+        ...estrategica,
+        taticas: estrategica.taticas.map((tatica) => {
+          if (tatica.id !== idTatica) return tatica;
+          return {
+            ...tatica,
+            operacionais: tatica.operacionais.map((operacional) => {
+              if (operacional.id !== idOperacional) return operacional;
+              return {
+                ...operacional,
+                tarefas: operacional.tarefas.filter((tarefa) => tarefa.id !== idTarefa),
+              };
+            }),
+          };
+        }),
+      };
+    })
+  );
+  onUpdate && onUpdate(estrategicas); // <- CHAMA onUpdate!  ESSENCIAL!
+};
+
+
 
 
 
@@ -515,8 +541,8 @@ const saveEstrategicas = async (projectId, novoArray) => {
             <Button
               disableRipple
               onClick={(e) => {
-                e.stopPropagation();
-                handleRemoveEstrategica(est.id);
+                e.stopPropagation(); // Isso é importante para evitar que o Accordion abra/feche
+                handleRemoveEstrategica(estrategica.id); // Correto: estrategica.id
               }}
               sx={{
                 minWidth: "40px",
@@ -604,8 +630,8 @@ const saveEstrategicas = async (projectId, novoArray) => {
                   <Button
                     disableRipple
                     onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveTatica(est.id, tat.id);
+                        e.stopPropagation();
+                        handleRemoveTatica(estrategica.id, tatica.id); // estrategica.id e tatica.id estão corretos
                     }}
                     sx={{
                       minWidth: "40px",
@@ -615,10 +641,8 @@ const saveEstrategicas = async (projectId, novoArray) => {
                       "&:hover": { backgroundColor: "transparent" },
                     }}
                   >
-                    <DeleteForeverIcon
-                      sx={{ fontSize: 24, color: "#dddddd" }}
-                    />
-                  </Button>
+                    <DeleteForeverIcon sx={{ fontSize: 24, color: "#dddddd" }} />
+                </Button>
                 </AccordionSummary>
 
                 {/* Detalhes: Diretriz Operacional */}
@@ -706,7 +730,7 @@ const saveEstrategicas = async (projectId, novoArray) => {
                           disableRipple
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleRemoveOperacional(est.id, tat.id, op.id);
+                            handleRemoveOperacional(estrategica.id, tatica.id, operacional.id);
                           }}
                           sx={{
                             minWidth: "40px",
@@ -716,9 +740,7 @@ const saveEstrategicas = async (projectId, novoArray) => {
                             "&:hover": { backgroundColor: "transparent" },
                           }}
                         >
-                          <DeleteForeverIcon
-                            sx={{ fontSize: 24, color: "#dddddd" }}
-                          />
+                          <DeleteForeverIcon sx={{ fontSize: 24, color: "#dddddd" }} />
                         </Button>
                       </AccordionSummary>
 
@@ -782,27 +804,25 @@ const saveEstrategicas = async (projectId, novoArray) => {
 
                                     {/* 🔹 Botão de deletar */}
                                     <Button
-                                      onClick={() =>
-                                        setTarefasLocais((prevTarefas) =>
-                                          prevTarefas.filter(
-                                            (task) => task.id !== t.id
-                                          )
-                                        )
-                                      }
-                                      sx={{
-                                        color: "#dc2626",
-                                        minWidth: "40px",
-                                        padding: "5px",
-                                        backgroundColor: "transparent",
-                                        "&:hover": {
-                                          backgroundColor: "transparent",
-                                        },
-                                      }}
-                                    >
-                                      <DeleteForeverIcon
-                                        sx={{ fontSize: 24 }}
-                                      />
-                                    </Button>
+  onClick={(e) => {
+    e.stopPropagation(); // Impede que o Accordion abra/feche
+    handleRemoveTarefa(
+      estrategica.id,
+      tatica.id,
+      operacional.id,
+      tarefa.id
+    );
+  }}
+  sx={{
+    color: "#dc2626",
+    minWidth: "40px",
+    padding: "5px",
+    backgroundColor: "transparent",
+    "&:hover": { backgroundColor: "transparent" },
+  }}
+>
+  <DeleteForeverIcon sx={{ fontSize: 24 }} />
+</Button>
                                   </AccordionSummary>
                                   
 
