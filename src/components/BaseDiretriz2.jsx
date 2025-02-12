@@ -23,8 +23,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { doc, updateDoc, getDoc, getDocs, getFirestore, collection, arrayUnion  } from "firebase/firestore";
 import { db } from "../data/firebase-config";
 
-// Seu componente de tarefas (5W2H)
-import DiretrizData from "./DiretrizData";
+
 
 function calcularProgresso(tarefa) {
   // Checa se a tarefa tem checkboxState

@@ -1,14 +1,14 @@
-import React, { useState, useRef } from "react";
-import { Box, Typography, Grid, Divider, InputBase, Button, TextField, CircularProgress } from "@mui/material";
-import { fontSize, styled } from "@mui/system";
+import React, {  useRef } from "react";
+import { Box, Typography, Grid, Divider, InputBase, Button } from "@mui/material";
+import { styled } from "@mui/system";
 import { jsPDF } from "jspdf";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import PrintIcon from "@mui/icons-material/Print";
-import { doc, updateDoc, arrayUnion } from "firebase/firestore";
-import { db } from "../data/firebase-config"; // ou onde estiver
-
-
+import { useEffect, useState } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../data/firebase-config"; // Certifique-se de importar corretamente
+import DadosProjeto from "./DadosProjeto";
 
 
 const StyledInput = styled(InputBase)(({ theme }) => ({
@@ -61,21 +61,43 @@ const CircleProgress = ({ percentage }) => {
   );
 };
 
-const FluxoGrama = ({ project }) => {
-  console.log("🛠 Dados completos do projeto:", project);
-console.log("🛠 Nome do projeto:", project?.nome);
-console.log("🛠 Estruturado project:", JSON.stringify(project, null, 2));
-  console.log("Dados do projeto recebidos:", project);
-  console.log("Estratégicas:", project?.estrategicas);
+const FluxoGrama = ({ projectId  }) => {
+  const [project, setProject] = useState(null);
   const [expanded, setExpanded] = useState(false); // Estado para controlar a expansão da tela
   const containerRef = useRef(); // Referência ao container para PDF e impressão
 
 
-const [novaEstrategica, setNovaEstrategica] = useState("");
-const [descEstrategica, setDescEstrategica] = useState("");
 
-const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
 
+  useEffect(() => {
+    const fetchData = async () => {
+        if (!projectId) {
+            console.log("⚠️ projectId está vazio, não foi possível buscar dados.");
+            return;
+        }
+
+        console.log("🔄 Buscando projeto do Firestore com ID:", projectId);
+        const docRef = doc(db, "projetos", projectId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            console.log("✅ Projeto encontrado no Firestore:", docSnap.data());
+            setProject(docSnap.data());
+        } else {
+            console.log("❌ Nenhum projeto encontrado no Firestore para este ID.");
+        }
+    };
+
+    fetchData();
+}, [projectId]);
+
+
+
+
+
+  if (!project) {
+    return <Typography sx={{ textAlign: "center", marginTop: 4 }}>Nenhum projeto encontrado.</Typography>;
+  }
 
 
 
@@ -89,41 +111,60 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
     );
   }
 
-
-  const estrategicas = Array.isArray(project?.diretrizes) ? project.diretrizes : [];
+  const estrategicas = project?.diretrizes || [];
+console.log("🧐 Estratégicas:", estrategicas);
   // ✅ Agora sempre existe, evitando undefined
 
-  const nome = project && project.nome ? project.nome : "Nome do Projeto";
-  const diretrizes = project?.diretrizes || [];
-  const orcamento = project?.orcamento || "R$ 0,00";
+  estrategicas.forEach((estrategica, index) => {
+    console.log(`🔹 Estratégica ${index + 1}:`, estrategica?.titulo || "❌ Não encontrado");
+    (estrategica.taticas || []).forEach((tatica, i) => {
+      console.log(`   🔸 Tática ${i + 1}:`, tatica?.titulo || "❌ Não encontrado");
+      (tatica.operacionais || []).forEach((operacional, j) => {
+        console.log(`      ⚡ Operacional ${j + 1}:`, operacional?.titulo || "❌ Não encontrado");
+        (operacional.tarefas || []).map((tarefa, k) => {
+          console.log(`         ✅ Tarefa ${k + 1}:`, tarefa?.tituloTarefa || "❌ Não encontrado");
+        });
+      });
+    });
+  });
+  
 
+  const {
+    nome = project?.nome || "Nome do Projeto",
+    diretrizes = [],
+    orcamento = project?.orcamento || "R$ 0,00",
+  } = project;
 
   const orcamentoNumerico = parseFloat(
-    orcamento.replace("R$", "").replace(".", "").replace(",", ".")
+    (orcamento || "R$ 0,00").replace("R$", "").replace(".", "").replace(",", ".")
   ) || 0;
-
+  
   const orcamentoFormatado = new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
   }).format(orcamentoNumerico);
-
-  const valorGasto = diretrizes.reduce((total, diretriz) => {
-    const valorDiretriz = diretriz.tarefas?.reduce((acc, tarefa) => {
-      const valor = parseFloat(
-        (tarefa.planoDeAcao?.valor || "R$ 0,00")
-          .replace("R$", "")
-          .replace(".", "")
-          .replace(",", ".")
-      );
-      return acc + (isNaN(valor) ? 0 : valor);
+  
+  
+  
+  const valorGasto = (project.diretrizes || []).reduce((total, diretriz) => {
+    return total + (diretriz.taticas || []).reduce((tatTotal, tatica) => {
+      return tatTotal + (tatica.operacionais || []).reduce((opTotal, operacional) => {
+        return opTotal + (operacional.tarefas || []).reduce((acc, tarefa) => {
+          const valor = parseFloat(
+            (tarefa.planoDeAcao?.valor || "R$ 0,00").replace("R$", "").replace(".", "").replace(",", ".")
+          );
+          return acc + (isNaN(valor) ? 0 : valor);
+        }, 0);
+      }, 0);
     }, 0);
-    return total + valorDiretriz;
   }, 0);
-
+  
+  
   const valorGastoFormatado = new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
   }).format(valorGasto);
+  
 
   const handleExpand = () => setExpanded(!expanded);
 
@@ -145,441 +186,6 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
 
 
 
-  const StatusProgressoEstrategica = ({ taticas }) => {
-    if (!taticas || taticas.length === 0) {
-      return null; // Se não houver táticas, não exibe nada
-    }
-  
-    // Filtrar apenas as táticas que possuem progresso válido
-    const taticasComProgresso = taticas.filter(
-      (tatica) => tatica.operacionais && tatica.operacionais.some(op => op.tarefas && op.tarefas.length > 0)
-    );
-  
-    if (taticasComProgresso.length === 0) {
-      return null; // Se nenhuma tática tiver progresso válido, não exibe o progresso da Estratégica
-    }
-  
-    // Soma os progressos das táticas válidas e calcula a média
-    const progressoTotal = taticasComProgresso.reduce(
-      (acc, tatica) => acc + calcularProgressoTatica(tatica), 
-      0
-    );
-    const progressoMedio = Math.round(progressoTotal / taticasComProgresso.length); // Calcula a média apenas das táticas com progresso válido
-  
-    let color;
-    let statusText;
-  
-    if (progressoMedio === 100) {
-      color = "#4CAF50"; // Verde (Concluído)
-      statusText = "Concluído";
-    } else if (progressoMedio >= 50) {
-      color = "#FF9800"; // Laranja (Meio caminho)
-      statusText = `${progressoMedio}% concluído`;
-    } else if (progressoMedio > 0) {
-      color = "#F44336"; // Vermelho (Pouco progresso)
-      statusText = `${progressoMedio}% concluído`;
-    } else {
-      color = "#F44336"; // Vermelho (Não iniciada)
-      statusText = "Não iniciada";
-    }
-  
-    return (
-      <Box display="flex" alignItems="center" gap={1} sx={{ marginLeft: "10px", marginTop: "20px" }}>
-        <CircularProgress
-          variant="determinate"
-          value={progressoMedio}
-          sx={{ color }}
-          thickness={10}
-          size={40}
-        />
-        <Typography sx={{ fontSize: "12px", fontWeight: "bold", color: "#9d9d9c" }}>
-          {statusText}
-        </Typography>
-      </Box>
-    );
-  };
-
-
-  function calcularProgressoTatica(tatica) {
-    const { operacionais = [] } = tatica;
-    if (operacionais.length === 0) return 0;
-  
-    let somaPorcentagens = 0;
-  
-    for (const op of operacionais) {
-      if (!op.tarefas || op.tarefas.length === 0) {
-        // sem tarefas => 0%
-        somaPorcentagens += 0;
-      } else {
-        // Para cada tarefa, some 'tarefa.progresso', depois tire a média
-        const total = op.tarefas.length;
-        const somaProgresso = op.tarefas.reduce((acc, t) => acc + (t.progresso ?? 0), 0);
-        // 100% por tarefa = 100 * total
-        // Proporção do op = (somaProgresso / (100 * total)) * 100
-        const porcentagemOperacional = (somaProgresso / (100 * total)) * 100;
-        somaPorcentagens += porcentagemOperacional;
-      }
-    }
-  
-    // Média dos operacionais
-    return Math.round(somaPorcentagens / operacionais.length);
-  }
-  
-
-
-  const StatusProgressoTatica = ({ operacionais }) => {
-    if (!operacionais || operacionais.length === 0) {
-      return null; // Se não houver operacionais, não exibe nada
-    }
-  
-    // Filtrar apenas as operacionais que têm progresso calculado
-    const operacionaisComProgresso = operacionais.filter(op => op.tarefas && op.tarefas.length > 0);
-  
-    if (operacionaisComProgresso.length === 0) {
-      return null; // Se nenhuma operacional tiver tarefas, não exibe o progresso da Tática
-    }
-  
-    // Soma os progressos das operacionais válidas e calcula a média
-    const progressoTotal = operacionaisComProgresso.reduce(
-      (acc, operacional) => acc + calcularProgressoOperacional(operacional), 
-      0
-    );
-    const progressoMedio = Math.round(progressoTotal / operacionaisComProgresso.length); // Calcula a média apenas das operacionais com progresso válido
-  
-    let color;
-    let statusText;
-  
-    if (progressoMedio === 100) {
-      color = "#4CAF50"; // Verde (Concluído)
-      statusText = "Concluído";
-    } else if (progressoMedio >= 50) {
-      color = "#FF9800"; // Laranja (Meio caminho)
-      statusText = `${progressoMedio}% concluído`;
-    } else if (progressoMedio > 0) {
-      color = "#F44336"; // Vermelho (Pouco progresso)
-      statusText = `${progressoMedio}% concluído`;
-    } else {
-      color = "#F44336"; // Vermelho (Não iniciada)
-      statusText = "Não iniciada";
-    }
-  
-    return (
-      <Box display="flex" alignItems="center" gap={1} sx={{ marginLeft: "10px", marginTop: "20px" }}>
-        <CircularProgress
-          variant="determinate"
-          value={progressoMedio}
-          sx={{ color }}
-          thickness={10}
-          size={40}
-        />
-        <Typography sx={{ fontSize: "12px", fontWeight: "bold", color: "#9d9d9c" }}>
-          {statusText}
-        </Typography>
-      </Box>
-    );
-  };
-
-  
-
-  const calcularProgressoEstrategica = ({ taticas }) => { // Recebe as táticas como argumento
-    if (!taticas || taticas.length === 0) {
-        return 0; // Se não houver táticas, não exibe nada
-    }
-  
-      // Filtrar apenas as táticas que possuem progresso válido
-      const taticasComProgresso = taticas.filter(
-        (tatica) => tatica.operacionais && tatica.operacionais.some(op => op.tarefas && op.tarefas.length > 0)
-      );
-  
-      if (taticasComProgresso.length === 0) {
-        return 0; // Se nenhuma tática tiver progresso válido, não exibe o progresso da Estratégica
-    }
-  
-    // Soma os progressos das táticas válidas e calcula a média
-    const progressoTotal = taticasComProgresso.reduce(
-        (acc, tatica) => acc + calcularProgressoTatica(tatica),
-        0
-    );
-    const progressoMedio = Math.round(progressoTotal / taticasComProgresso.length);
-    return progressoMedio;
-  };
-
-
-// -------------------------------------
-  // Criar nova Diretriz Estratégica
-  // -------------------------------------
-  const handleAddEstrategica = () => {
-    if (!novaEstrategica.trim() || !descEstrategica.trim()) {
-      alert("Preencha o nome e a descrição da Diretriz Estratégica!");
-      return;
-    }
-  
-    const novaDiretriz = {
-      id: `estrategica-${Date.now()}`,
-      titulo: novaEstrategica,
-      descricao: descEstrategica,
-      taticas: [],
-    };
-  
-    setDiretrizes((prev) => [...prev, novaDiretriz]); // 🔹 Agora mantém os dados existentes e adiciona uma nova diretriz
-  
-   // 🔥 Atualiza no Firestore *sem apagar os dados existentes*
-  if (projectId) {
-    const docRef = doc(db, "projetos", projectId);
-    updateDoc(docRef, {
-      diretrizes: arrayUnion(novaDiretriz) // 🔹 Usa arrayUnion para adicionar, *não* sobrescrever
-    })
-    .then(() => console.log("✅ Nova diretriz adicionada ao Firestore!"))
-    .catch((err) => console.error("❌ Erro ao atualizar Firestore:", err));
-  }
-    
-    // Limpa os campos do formulário sem afetar a lista de diretrizes
-    setNovaEstrategica("");
-    setDescEstrategica("");
-  };
-
-  const handleEditTatica = (indexEstrategica, indexTatica, field, value) => {
-    setDiretrizes((prevDiretrizes) => {
-      const updated = [...prevDiretrizes];
-      updated[indexEstrategica].taticas[indexTatica] = {
-        ...updated[indexEstrategica].taticas[indexTatica],
-        [field]: value,
-      };
-      return updated;
-    });
-  };
-  
-  const handleEditOperacional = (indexEstrategica, indexTatica, indexOperacional, field, value) => {
-    setDiretrizes((prevDiretrizes) => {
-      const updated = [...prevDiretrizes];
-      updated[indexEstrategica].taticas[indexTatica].operacionais[indexOperacional] = {
-        ...updated[indexEstrategica].taticas[indexTatica].operacionais[indexOperacional],
-        [field]: value,
-      };
-      return updated;
-    });
-  };
-  
-  const handleEditTarefa = (indexEstrategica, indexTatica, indexOperacional, indexTarefa, field, value) => {
-    setDiretrizes((prevDiretrizes) => {
-      const updated = JSON.parse(JSON.stringify(prevDiretrizes)); // 🔹 Cópia profunda
-  
-      // 🔹 Verifica se a estrutura existe antes de acessar
-      if (!updated[indexEstrategica]?.taticas?.[indexTatica]?.operacionais?.[indexOperacional]?.tarefas?.[indexTarefa]) {
-        console.error("❌ Erro: Índices inválidos para acessar a estrutura de tarefas.");
-        return prevDiretrizes; // Retorna sem alterar caso algo esteja `undefined`
-      }
-  
-      // 🔹 Atualiza corretamente o título da tarefa ou os campos do planoDeAcao
-      if (field === "tituloTarefa") {
-        updated[indexEstrategica].taticas[indexTatica].operacionais[indexOperacional].tarefas[indexTarefa].tituloTarefa = value;
-      } else {
-        updated[indexEstrategica].taticas[indexTatica].operacionais[indexOperacional].tarefas[indexTarefa].planoDeAcao[field] = value;
-      }
-  
-      return updated;
-    });
-  };
-
-  const handleAddTatica = (indexEstrategica) => {
-    const novaTatica = {
-      id: `tatica-${Date.now()}`,
-      titulo: "Nova Diretriz Tática",
-      descricao: "Descrição da diretriz",
-      operacionais: [],
-    };
-    setDiretrizes((prev) => {
-      const updated = [...prev];
-      updated[indexEstrategica].taticas.push(novaTatica);
-      return updated;
-    });
-  };
-
-  const calcularProgressoOperacional = (operacional) => {
-    if (!operacional.tarefas || operacional.tarefas.length === 0) return 0;
-  
-    const totalProgresso = operacional.tarefas.reduce((acc, tarefa) => acc + (tarefa.progresso || 0), 0);
-    return Math.round(totalProgresso / operacional.tarefas.length);
-  };
-  
-
-  function StatusProgressoTotal({ tarefas }) {
-    if (!Array.isArray(tarefas) || tarefas.length === 0) {
-      return null; // Retorna nada se "tarefas" for undefined ou vazio
-    }
-  
-    const progressoTotal = tarefas.reduce((acc, tarefa) => {
-      if (!tarefa || typeof tarefa !== "object") return acc; // Evita erro se alguma tarefa for undefined
-      return acc + calcularProgresso(tarefa);
-    }, 0);
-    const progressoMedio = Math.round(progressoTotal / tarefas.length); // Calcula a média
-  
-    let color;
-    let statusText;
-  
-    if (progressoMedio === 100) {
-      color = "#4CAF50"; // Verde (Concluído)
-      statusText = "Concluído";
-    } else if (progressoMedio >= 50) {
-      color = "#FF9800"; // Laranja (Meio caminho)
-      statusText = `${progressoMedio}% concluído`;
-    } else if (progressoMedio > 0) {
-      color = "#F44336"; // Vermelho (Pouco progresso)
-      statusText = `${progressoMedio}% concluído`;
-    } else {
-      color = "#F44336"; // Vermelho (Não iniciada)
-      statusText = "Não iniciada";
-    }
-  
-    return (
-      <Box display="flex" alignItems="center" gap={1} sx={{ marginLeft: "10px", marginTop: "20px" }}>
-        <CircularProgress
-          variant="determinate"
-          value={progressoMedio}
-          sx={{ color }}
-          thickness={10}
-          size={40}
-        />
-        <Typography sx={{ fontSize: "12px", fontWeight: "bold", color: "#9d9d9c" }}>
-          {statusText}
-        </Typography>
-      </Box>
-    );
-  };
-
-  function calcularProgresso(tarefa) {
-    if (!tarefa || typeof tarefa !== "object") return 0; // Evita erro se tarefa for undefined
-    return tarefa.progresso ?? 0;
-  }
-  
-  
-
-
-  function countDiretrizes(diretrizes = []) {
-    // Cada objeto do array "diretrizes" já é uma Diretriz Estratégica
-    return diretrizes.length;
-  }
-  
-  function countDiretrizesConcluidas(diretrizes = []) {
-    let concluidas = 0;
-  
-    for (const diretriz of diretrizes) {
-      // Uma Diretriz é concluída se TODAS as suas Táticas estiverem concluídas
-      if (isDiretrizConcluida(diretriz)) {
-        concluidas++;
-      }
-    }
-  
-    return concluidas;
-  }
-
-
-  function countTaticas(diretrizes = []) {
-    // Soma total de táticas de cada diretriz
-    let total = 0;
-    for (const diretriz of diretrizes) {
-      total += (diretriz.taticas?.length || 0);
-    }
-    return total;
-  }
-  
-  function countTaticasConcluidas(diretrizes = []) {
-    let concluidas = 0;
-  
-    for (const diretriz of diretrizes) {
-      for (const tatica of diretriz.taticas || []) {
-        if (isTaticaConcluida(tatica)) {
-          concluidas++;
-        }
-      }
-    }
-  
-    return concluidas;
-  }
-
-
-  function countOperacionais(diretrizes = []) {
-    let total = 0;
-    for (const diretriz of diretrizes) {
-      for (const tatica of diretriz.taticas || []) {
-        total += (tatica.operacionais?.length || 0);
-      }
-    }
-    return total;
-  }
-  
-  function countOperacionaisConcluidos(diretrizes = []) {
-    let concluidos = 0;
-    for (const diretriz of diretrizes) {
-      for (const tatica of diretriz.taticas || []) {
-        for (const operacional of tatica.operacionais || []) {
-          if (isOperacionalConcluido(operacional)) {
-            concluidos++;
-          }
-        }
-      }
-    }
-    return concluidos;
-  }
-
-
-  function countTarefas(diretrizes = []) {
-    let total = 0;
-    for (const diretriz of diretrizes) {
-      for (const tatica of diretriz.taticas || []) {
-        for (const operacional of tatica.operacionais || []) {
-          total += (operacional.tarefas?.length || 0);
-        }
-      }
-    }
-    return total;
-  }
-  
-  function countTarefasConcluidas(diretrizes = []) {
-    let concluidas = 0;
-    for (const diretriz of diretrizes) {
-      for (const tatica of diretriz.taticas || []) {
-        for (const operacional of tatica.operacionais || []) {
-          for (const tarefa of operacional.tarefas || []) {
-            if (tarefa?.checkboxState?.concluida) {
-              concluidas++;
-            }
-          }
-        }
-      }
-    }
-    return concluidas;
-  }
-
-
-  function isOperacionalConcluido(operacional) {
-    const tarefas = operacional.tarefas || [];
-    if (tarefas.length === 0) return false;
-    // Se TODAS as tarefas tiverem progresso 100, então concluído
-    return tarefas.every((tarefa) => (tarefa.progresso ?? 0) === 100);
-  }
-  
-  
-  function isTaticaConcluida(tatica) {
-    const operacionais = tatica.operacionais || [];
-    if (operacionais.length === 0) return false;
-  
-    // TODAS as operacionais precisam estar concluídas
-    return operacionais.every(isOperacionalConcluido);
-  }
-  
-  function isDiretrizConcluida(diretriz) {
-    const taticas = diretriz.taticas || [];
-    if (taticas.length === 0) return false;
-  
-    // TODAS as táticas precisam estar concluídas
-    return taticas.every(isTaticaConcluida);
-  }
-  
-  
-  
-  
-  
 
 
 
@@ -597,8 +203,9 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
     <Box
       ref={containerRef}
       sx={{
-        width: expanded ? "100vw" : "100%",
-        transform: expanded ? "none" : "scale(0.98)",
+        width: expanded ? "100vw" : "100%", // Maior na visualização normal e quase toda tela ao expandir
+        maxWidth: expanded ? "none" : "1900px", // Mantém um limite máximo na visualização normal
+        transform: expanded ? "none" : "scale(1)", // Mantém o tamanho real na visualização normal
         transformOrigin: "top left",
         padding: 4,
         backgroundColor: "#f9f9fb", // Fundo mais moderno
@@ -607,636 +214,148 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
         boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.1)", // Sombras suaves
         position: expanded ? "fixed" : "relative",
         top: expanded ? 0 : "auto",
-        left: expanded ? 0 : "auto",
+        left: expanded ? "50%" : "auto", // Centraliza no modo expandido
+        transform: expanded ? "translateX(-50%)" : "none", // Mantém centralizado ao expandir
         right: expanded ? 0 : "auto",
         bottom: expanded ? 0 : "auto",
         zIndex: expanded ? 9999 : "auto",
-        height: expanded ? "100vh" : "auto",
-        overflowX: "hidden",
+        height: expanded ? "100vh" : "auto", // Reduz um pouco a altura ao expandir para evitar muito espaço vertical
+        overflowX: expanded ? "auto" : "hidden", // Permite rolagem horizontal somente ao expandir
         overflowY: "auto",
         marginBottom: "auto",
-        
+        display: "flex", // Mantém a flexibilidade do layout
+        flexDirection: "row", // Mantém os elementos lado a lado
+        flexWrap: "wrap", // Permite quebra de linha quando necessário
+        justifyContent: "center", // Centraliza os elementos horizontalmente
+        alignItems: "flex-start", // Mantém alinhamento superior correto
       }}
     >
 
-      
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<Grid
-  container
-  spacing={6}
-  sx={{
-    marginTop: "20px",
-    alignItems: "center",
-    marginLeft: "20px",
-    position: "relative",
-  }}
->
-  {/* Nome do Projeto */}
-  <Typography
-    sx={{
-      fontSize: "12px",
-      fontWeight: "bold",
-      color: "#555",
-      marginRight: "10px",
-      marginLeft: "-25px",
-    }}
-  >
-    Nome do Projeto:
-  </Typography>
-
-  <Box
-    sx={{
-      backgroundColor: "#343A40",
-      color: "#fff",
-      padding: "6px 12px",
-      borderRadius: "5px",
-      fontSize: "12px",
-      fontWeight: "bold",
-      textAlign: "center",
-      maxWidth: "100%",
-      width: "auto",
-      wordBreak: "break-word",
-      overflowWrap: "break-word",
-      whiteSpace: "pre-wrap",
-      position: "relative",
-      "@media print": {
-        WebkitPrintColorAdjust: "exact", // Força a impressão das cores no Safari e Chrome
-        printColorAdjust: "exact", // Força em outros navegadores
-      },
-    }}
-  >
-    {nome}
+{estrategicas?.map((estrategica, indexEstr) => (
+  <Grid container spacing={1} alignItems="center" sx={{ mb: 2 }} key={indexEstr}>
+    {/* 📌 Estratégica */}
+    {/* 📌 Estratégica */}
+<Grid item xs={3} sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+  <Box>
+    <Typography sx={{ fontSize: "9px", color: "#555", marginTop: "60px", marginBottom: "-28px", marginLeft: "10px" }}>
+      Diretriz Estratégica
+    </Typography>
+    <StyledInput value={estrategica?.titulo ?? "⚠️ Sem título"} disabled sx={{
+      backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #dcdcdc",
+      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+    }} />
   </Box>
 
-  {/* Estrutura Hierárquica */}
-  {estrategicas.map((estrategica, indexEstr) => (
-    <Grid
-      container
-      key={indexEstr}
-      spacing={6}
-      sx={{
-        marginBottom: "30px",
-        alignItems: "center",
-        position: "relative",
-        "@media print": {
-          WebkitPrintColorAdjust: "exact",
-          printColorAdjust: "exact",
-          backgroundColor: "inherit", // Mantém a cor de fundo
-          color: "inherit", // Mantém a cor do texto
-        },
-      }}
-    >
-      {/* Coluna 1: Diretriz Estratégica */}
-      <Grid
-        item
-        xs={2}
-        sx={{
-          flexDirection: "column",
-          alignItems: "center",
-          position: "relative",
-          padding: "10px",
-        }}
-      >
-        
-        <Box>
-          <Box
-            sx={{
-              backgroundColor: "#007BFF",
-              color: "#fff",
-              borderRadius: "5px",
-              padding: "8px",
-              maxWidth: "100%",
-              width: "100%",
-              textAlign: "center",
-              fontSize: "12px",
-              position: "relative",
-              marginBottom: "120px",
-            }}
-          >
-            {estrategica.titulo}
-            {/* Linha para conectar com táticas se existirem */}
-            {estrategica.taticas?.length > 0 && (
-              <>
-              <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            marginTop: "5px",
-            position: "relative", // 🔹 Mantém alinhamento com o bloco azul
-          }}
-        >
-          <StatusProgressoEstrategica taticas={estrategica.taticas} />
-        </Box>
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: "50%",
-                  left: "100%",
-                  width: "45px",
-                  borderTop: "1px dashed #555",
-                }}
-              />
-              </>
-            )}
-          </Box>
-        </Box>
-      </Grid>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
-
-      {/* Coluna 2: Táticas */}
-      <Grid
-        item
-        xs={3}
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          position: "relative",
-          padding: "10px",
-        }}
-      >
-        {estrategica.taticas?.length > 0 && (
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              position: "relative",
-              width: "100%",
-              marginY: "35px",
-              "@media print": {
-                WebkitPrintColorAdjust: "exact",
-                printColorAdjust: "exact",
-                backgroundColor: "inherit",
-                color: "inherit",
-              },
-            }}
-          >
-            {/* Linha vertical única conectando todas as Táticas dentro da Estratégica */}
-            {estrategica.taticas.length > 1 && (
-              <Box
-                sx={{
-                  position: "absolute",
-                  left: "-15px",
-                  top: "0",
-                  height: "50%",
-                  marginTop: "49px",
-                  borderLeft: "1px dashed #555",
-                }}
-              />
-            )}
-
-            {estrategica.taticas?.map((tatica, indexTat) => {
-              const totalOperacionais = tatica.operacionais?.length || 0;
-
-              return (
-                <Box
-                  key={indexTat}
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    position: "relative",
-                    width: "100%",
-                    marginBottom: "30px",
-                    marginTop: "30px",
-                    "@media print": {
-                      WebkitPrintColorAdjust: "exact",
-                      printColorAdjust: "exact",
-                      backgroundColor: "inherit",
-                      color: "inherit",
-                    },
-                  }}
-                >
-                  <Box
-                    sx={{
-                      backgroundColor: "#28A745",
-                      color: "#fff",
-                      borderRadius: "5px",
-                      padding: "8px",
-                      maxWidth: "100%",
-                      width: "100%",
-                      textAlign: "center",
-                      fontSize: "12px",
-                      position: "relative",
-                      display: "flex",
-                      marginBottom: "100px",
-                    }}
-                  >
-                    {tatica.titulo}
-
-                    {/* Linha horizontal conectando Tática → Operacionais */}
-                    {totalOperacionais > 0 && (
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          left: "100%",
-                          top: "50%",
-                          width: "40px",
-                          borderTop: "1px dashed #555",
-                        }}
-                      />
-                    )}
-
-                    {/* Linha horizontal conectando cada Tática à linha central */}
-                    {estrategica.taticas.length > 1 && (
-                      <>
-                        {/* Progresso da Tática */}
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            marginTop: "5px", // 🔹 Ajuste fino para alinhar melhor
-                            position: "relative",
-                          }}
-                        >
-                          <StatusProgressoTatica operacionais={tatica.operacionais} />
-                        </Box>
-
-                        <Box
-                          sx={{
-                            position: "absolute",
-                            left: "-15px",
-                            top: "50%",
-                            width: "15px",
-                            borderTop: "1px dashed #555",
-                          }}
-                        />
-                      </>
-                    )}
-                  </Box>
-                </Box>
-              );
-            })}
-          </Box>
-        )}
-      </Grid>
-
-
-
-
-
-
-
-
-
-
-
-
-
-      {/* Coluna 3: Operacionais */}
-      <Grid
-        item
-        xs={3}
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          position: "relative",
-          padding: "10px",
-        }}
-      >
-        {estrategica.taticas?.map((tatica) => {
-          const totalOperacionais = tatica.operacionais?.length || 1;
-
-          return (
-            <Box
-              key={tatica.titulo}
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                position: "relative",
-                width: "100%",
-                marginY: "18px",
-                "@media print": {
-                  WebkitPrintColorAdjust: "exact",
-                  printColorAdjust: "exact",
-                  backgroundColor: "inherit",
-                  color: "inherit",
-                },
-              }}
-            >
-              {/* Linha vertical central conectando Tática → Operacionais */}
-              {totalOperacionais > 1 && (
-                <Box
-                  sx={{
-                    position: "absolute",
-                    left: "-15px",
-                    top: "50%",
-                    height: `${totalOperacionais * 40}px`,
-                    borderLeft: "1px dashed #555",
-                    transform: "translateY(-80%)",
-                  }}
-                />
-              )}
-
-              {tatica.operacionais?.map((operacional, indexOp) => {
-                const totalTarefas = operacional.tarefas?.length || 0;
-
-                return (
-                  <React.Fragment key={indexOp}>
-                    <Box
-                      sx={{
-                        backgroundColor: "#DC3545",
-                        color: "#fff",
-                        borderRadius: "5px",
-                        padding: "8px",
-                        maxWidth: "100%",
-                        width: "100%",
-                        textAlign: "center",
-                        fontSize: "12px",
-                        position: "relative",
-                        marginBottom: "40px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        marginBottom: "50px",
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          fontSize: "10px",
-                          color: "#fff",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {operacional.titulo}
-                      </Typography>
-
-                      {/* Linha horizontal conectando Operacional → Tarefas */}
-                      {totalTarefas > 0 && (
-                        <Box
-                          sx={{
-                            position: "absolute",
-                            left: "100%",
-                            top: "50%",
-                            width: "40px",
-                            borderTop: "1px dashed #555",
-                            transform: "translateY(-50%)",
-                          }}
-                        />
-                      )}
-
-                      {/* Linha horizontal conectando cada Operacional à linha central */}
-                      {totalOperacionais > 1 && (
-                        <>
-                        {/* Progresso do Operacional */}
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        marginTop: "5px",
-                        position: "relative",
-                      }}
-                    >
-                      <StatusProgressoTotal tarefas={operacional.tarefas || []} />
-
-                    </Box>
-                          <Box
-                            sx={{
-                              position: "absolute",
-                              left: "-15px",
-                              top: "50%",
-                              width: "15px",
-                              borderTop: "1px dashed #555",
-                              transform: "translateY(-50%)",
-                            }}
-                          />
-                        </>
-                      )}
-                    </Box>
-
-                  </React.Fragment>
-                );
-              })}
-            </Box>
-          );
-        })}
-      </Grid>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
-
-      {/* Coluna 4: Tarefas */}
-      <Grid
-        item
-        xs={3}
-        sx={{
-          flexDirection: "column",
-          alignItems: "center",
-          position: "relative",
-          padding: "10px",
-        }}
-      >
-        {estrategica.taticas?.map((tatica) =>
-          tatica.operacionais?.map((operacional) => {
-            const totalTarefas = operacional.tarefas?.length || 1;
-
-            return (
-              <React.Fragment key={operacional.titulo}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    position: "relative",
-                    width: "100%",
-                    marginY: "5px",
-                    "@media print": {
-                      WebkitPrintColorAdjust: "exact",
-                      printColorAdjust: "exact",
-                      backgroundColor: "inherit",
-                      color: "inherit",
-                    },
-                  }}
-                >
-                  {/* Linha vertical central conectando tarefas */}
-                  {totalTarefas > 1 && (
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        left: "-15px",
-                        top: "50%",
-                        height: `${totalTarefas * 47}px`,
-                        borderLeft: "1px dashed #555",
-                        transform: "translateY(-85%)",
-                      }}
-                    />
-                  )}
-                  
-
-                  {operacional.tarefas?.map((task, i) => (
-                    <React.Fragment key={i}>
-                      <Box
-                        sx={{
-                          backgroundColor: "#ffb600",
-                          color: "#fff",
-                          borderRadius: "5px",
-                          padding: "8px",
-                          maxWidth: "100%",
-                          width: "100%",
-                          textAlign: "center",
-                          fontSize: "12px",
-                          marginBottom: "30px",
-                          position: "relative",
-                          display: "flex",
-                          alignItems: "center",
-                          marginBottom: "65px",
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            fontSize: "10px",
-                            color: "#555",
-                          }}
-                        >
-                          {task.tituloTarefa}
-                        </Typography>
-                        
-
-                        {/* Linha horizontal conectando cada tarefa à linha central */}
-                        {totalTarefas > 1 && (
-                          <>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              justifyContent: "center",
-                              alignItems: "center",
-                              marginTop: "-15px",
-                              position: "relative",
-                              marginRight: "-95px",
-                            }}
-                          >
-                            <StatusProgressoTotal tarefas={operacional.tarefas} />
-                          </Box>
-
-                            <Box
-                              sx={{
-                                position: "absolute",
-                                left: "-15px",
-                                top: "50%",
-                                width: "15px",
-                                borderTop: "1px dashed #555",
-                                transform: "translateY(-50%)",
-                              }}
-                            />
-                          </>
-                        )}
-                    
-                      </Box>
-                    </React.Fragment>
-                  ))}
-
-                  {/* Progresso das Tarefas */}
-                 
-                </Box>
-              </React.Fragment>
-            );
-          })
-        )}
-      </Grid>
-    </Grid>
-  ))}
+  {/* 📊 Gráfico de Progresso da Diretriz Estratégica */}
+  <Box sx={{ marginTop: "40px" }}>
+    <CircleProgress percentage={Math.round(
+      estrategica?.taticas?.reduce((acc, tatica) =>
+        acc + (tatica?.operacionais?.reduce((accT, operacional) =>
+          accT + (operacional?.tarefas?.length > 0
+            ? operacional?.tarefas?.reduce((accO, tarefa) => accO + (tarefa?.progresso || 0), 0) / operacional?.tarefas?.length
+            : 0), 0) / (tatica?.operacionais?.length || 1)
+        ), 0) / (estrategica?.taticas?.length || 1)
+    )} />
+  </Box>
 </Grid>
 
 
+    {/* 📌 Renderizamos as Táticas COM as Operacionais dentro */}
+    <Grid item xs={8}>
+      {estrategica?.taticas?.map((tatica, indexTat) => (
+        <Grid container spacing={1} alignItems="center" key={indexTat} sx={{ mb: 2 }}>
+          
+          {/* 📌 Diretriz Tática */}
+          <Grid item xs={3} sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <div>
+              <Typography sx={{ fontSize: "9px", color: "#555", marginTop: "40px", marginBottom: "-28px", marginLeft: "10px" }}>
+                Diretriz Tática
+              </Typography>
+              <StyledInput 
+                value={tatica?.titulo || "⚠️ Sem título"} 
+                disabled 
+                sx={{
+                  backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #dcdcdc",
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+                }} 
+              />
+            </div>
 
+            {/* 📊 Gráfico de Progresso da Diretriz Tática */}
+            <Box sx={{ marginTop: "40px" }}>
+              <CircleProgress percentage={Math.round(
+                tatica?.operacionais?.reduce((acc, operacional) => 
+                  acc + (operacional?.tarefas?.length > 0 
+                    ? operacional?.tarefas?.reduce((accT, tarefa) => accT + (tarefa?.progresso || 0), 0) / operacional?.tarefas?.length
+                    : 0), 0) 
+                / (tatica?.operacionais?.length || 1)
+              )} />
+            </Box>
+          </Grid>
 
+          {/* 📌 Diretrizes Operacionais associadas corretamente às Táticas */}
+          <Grid item xs={9}>
+            {tatica?.operacionais?.map((operacional, indexOp) => (
+              <Grid container spacing={2} alignItems="center" key={indexOp} sx={{ mb: 1 }}>
+                
+                {/* 📌 Diretriz Operacional */}
+                <Grid item xs={5} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Box>
+                    <Typography sx={{ fontSize: "9px", color: "#555", marginTop: "40px", marginBottom: "-28px", marginLeft: "10px" }}>
+                      Diretriz Operacional
+                    </Typography>
+                    <StyledInput 
+                      value={operacional?.titulo || "⚠️ Sem título"} 
+                      disabled 
+                      sx={{ backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #dcdcdc", boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"}} />
+                  </Box>
 
+                  {/* 📊 Gráfico de Progresso da Diretriz Operacional */}
+                  <Box sx={{ marginTop: "40px" }}>
+                    <CircleProgress percentage={Math.round(
+                      operacional?.tarefas?.reduce((accT, tarefa) => accT + (tarefa.progresso || 0), 0) 
+                      / (operacional?.tarefas?.length || 1)
+                    )} />
+                  </Box>
+                </Grid>
 
+                {/* 📌 Lista de Tarefas dentro da Operacional */}
+                <Grid item xs={6}>
+                  <Typography sx={{ fontSize: "9px", color: "#555", marginTop: "40px" }}>
+                    Tarefas
+                  </Typography>
+                  <Box sx={{ display: "flex", marginRight: "20px", flexDirection: "column", gap: 1 }}>
+                    {operacional?.tarefas?.map((tarefa, indexTarefa) => (
+                      <Box key={indexTarefa} sx={{
+                        display: "flex", alignItems: "center", justifyContent: "space-between", minWidth: "120px"
+                      }}>
+                        <StyledInput value={tarefa?.tituloTarefa || "⚠️ Sem título"} disabled sx={{
+                          backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #dcdcdc",
+                          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)", width: "100%"
+                        }} />
 
-
-
-
-
-
-
-
-
-
+                        {/* 📊 Gráfico de progresso da Tarefa */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', marginRight: "-60px"}}>
+                          <Box sx={{ marginTop: "15px" }}>
+                            <CircleProgress percentage={tarefa.progresso || 0} />
+                          </Box>
+                          <Typography sx={{ fontSize: "10px", color: "#555", marginTop: "30px", marginLeft: '10px' }}>
+                            Valor: {tarefa?.planoDeAcao?.valor || "R$ 0,00"}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                </Grid>
+              </Grid>
+            ))}
+          </Grid>
+        </Grid>
+      ))}
+    </Grid>
+  </Grid>
+))}
 
 
 
@@ -1263,6 +382,7 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
       {/**<Divider sx={{ my: 4 }} /> */}
       <Box
         sx={{
+          width: "45%",
           display: "flex",
           justifyContent: "space-between",
           fontSize: 14,
@@ -1316,56 +436,257 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
           </svg>
         </Box>
 
-        {/* Total de Diretrizes */}
-        <Typography sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          Diretrizes:{" "}
-          <Box
-            sx={{
-              marginTop: "3px",
-              color: "#2c2c88",
-              fontWeight: "bold",
-              marginLeft: "-3px",
-            }}
-          >
-            {diretrizes?.length || 0}
-          </Box>
-        </Typography>
 
-        {/* Diretrizes Concluídas */}
-        <Typography>
-          Diretrizes concluídas:{" "}
-          <span style={{ color: "#312783", fontWeight: "bold" }}>
-            {diretrizes?.filter((diretriz) =>
-              Array.isArray(diretriz.tarefas) && diretriz.tarefas.every((tarefa) => tarefa.progresso === 100)
-            ).length || 0}
-          </span>
-        </Typography>
 
-        {/* Total de Tarefas */}
-        <Typography>
-          Tarefas:{" "}
-          <span style={{ color: "#312783", fontWeight: "bold" }}>
-            {diretrizes?.reduce(
-              (acc, diretriz) => acc + (diretriz.tarefas?.length || 0),
+
+{/* Diretrizes Estratégicas */}
+<Typography sx={{ display: "flex", alignItems: "center" }}>
+  Diretrizes Estratégicas:{" "}
+  <Box
+    sx={{
+      marginTop: "3px",
+      color: "#2c2c88",
+      fontWeight: "bold",
+      marginLeft: "-3px",
+    }}
+  >
+    {Array.isArray(project?.diretrizes) ? project.diretrizes.length : 0}
+  </Box>
+</Typography>
+
+{/* Diretrizes Táticas */}
+<Typography sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+  Diretrizes Táticas:{" "}
+  <Box
+    sx={{
+      marginTop: "3px",
+      color: "#2c2c88",
+      fontWeight: "bold",
+      marginLeft: "-3px",
+    }}
+  >
+    {Array.isArray(project?.diretrizes)
+      ? project.diretrizes.reduce(
+          (acc, diretriz) => acc + (Array.isArray(diretriz.taticas) ? diretriz.taticas.length : 0),
+          0
+        )
+      : 0}
+  </Box>
+</Typography>
+
+{/* Diretrizes Operacionais */}
+<Typography sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+  Diretrizes Operacionais:{" "}
+  <Box
+    sx={{
+      marginTop: "3px",
+      color: "#2c2c88",
+      fontWeight: "bold",
+      marginLeft: "-3px",
+    }}
+  >
+    {Array.isArray(project?.diretrizes)
+      ? project.diretrizes.reduce(
+          (acc, diretriz) =>
+            acc +
+            (Array.isArray(diretriz.taticas)
+              ? diretriz.taticas.reduce(
+                  (accT, tatica) => accT + (Array.isArray(tatica.operacionais) ? tatica.operacionais.length : 0),
+                  0
+                )
+              : 0),
+          0
+        )
+      : 0}
+  </Box>
+</Typography>
+
+
+{/* Diretrizes Concluídas */}
+
+
+</Box>
+
+
+
+
+<Box
+        sx={{
+          width: "45%",
+          display: "flex",
+          justifyContent: "space-between",
+          fontSize: 14,
+          fontWeight: "bold",
+          alignItems: "center", // Garante alinhamento vertical
+          gap: 1,
+          //backgroundColor: "#f9f9f9",
+          padding: "12px",
+          borderTop: "1px solid #ccc",
+          borderBottom: "1px solid #ccc",
+          color: "#9d9d9c",
+        }}
+      >
+{/* Diretrizes Estratégicas Concluídas */}
+<Typography sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+  Diretrizes Estratégicas Concluídas:{" "}
+  <Box
+    sx={{
+      marginTop: "3px",
+      color: "#4caf50",
+      fontWeight: "bold",
+      marginLeft: "-3px",
+    }}
+  >
+    {Array.isArray(project?.diretrizes)
+      ? project.diretrizes.filter((diretriz) =>
+          diretriz.taticas?.every((tatica) =>
+            tatica.operacionais?.length > 0 && // Garantir que tem operacionais
+            tatica.operacionais?.every((operacional) =>
+              operacional.tarefas?.length > 0 &&
+              operacional.tarefas?.every((tarefa) => tarefa.progresso === 100)
+            )
+          )
+        ).length
+      : 0}
+  </Box>
+</Typography>
+
+{/* Diretrizes Táticas Concluídas (🚨 CORRIGIDO) */}
+<Typography sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+  Diretrizes Táticas Concluídas:{" "}
+  <Box
+    sx={{
+      marginTop: "3px",
+      color: "#4caf50",
+      fontWeight: "bold",
+      marginLeft: "-3px",
+    }}
+  >
+    {Array.isArray(project?.diretrizes)
+      ? project.diretrizes.reduce(
+          (acc, diretriz) =>
+            acc +
+            (Array.isArray(diretriz.taticas)
+              ? diretriz.taticas.filter((tatica) =>
+                  tatica.operacionais?.length > 0 && // Garantir que há operacionais
+                  tatica.operacionais.every((operacional) =>
+                    operacional.tarefas?.length > 0 && // Garantir que há tarefas
+                    operacional.tarefas.every((tarefa) => tarefa.progresso === 100)
+                  )
+                ).length
+              : 0),
+          0
+        )
+      : 0}
+  </Box>
+</Typography>
+
+
+{/* Diretrizes Operacionais Concluídas */}
+<Typography sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+  Diretrizes Operacionais Concluídas:{" "}
+  <Box
+    sx={{
+      marginTop: "3px",
+      color: "#4caf50",
+      fontWeight: "bold",
+      marginLeft: "-3px",
+    }}
+  >
+    {Array.isArray(project?.diretrizes)
+      ? project.diretrizes.reduce(
+          (acc, diretriz) =>
+            acc +
+            (diretriz.taticas?.reduce(
+              (accT, tatica) =>
+                accT +
+                (tatica.operacionais?.filter((operacional) =>
+                  Array.isArray(operacional.tarefas) &&  // Verifica se existem tarefas
+                  operacional.tarefas.length > 0 &&  // Garante que há tarefas na operacional
+                  operacional.tarefas.every((tarefa) => tarefa.progresso === 100) // Todas concluídas
+                ).length || 0),
               0
-            ) || 0}
-          </span>
-        </Typography>
+            ) || 0),
+          0
+        )
+      : 0}
+  </Box>
+</Typography>
 
-        {/* Tarefas Concluídas */}
-        <Typography>
-          Tarefas Concluídas:{" "}
-          <span style={{ color: "#312783", fontWeight: "bold" }}>
-            {diretrizes?.reduce(
-              (acc, diretriz) =>
-                acc +
-                (diretriz.tarefas?.filter((tarefa) => tarefa.progresso === 100)
-                  .length || 0),
+
+{/* Total de Tarefas */}
+<Typography sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+  Total de Tarefas:{" "}
+  <Box
+    sx={{
+      marginTop: "3px",
+      color: "#2c2c88",
+      fontWeight: "bold",
+      marginLeft: "-3px",
+    }}
+  >
+    {Array.isArray(project?.diretrizes)
+      ? project.diretrizes.reduce(
+          (acc, diretriz) =>
+            acc +
+            (diretriz.taticas?.reduce(
+              (accT, tatica) =>
+                accT +
+                (tatica.operacionais?.reduce(
+                  (accO, operacional) =>
+                    accO + (Array.isArray(operacional.tarefas) ? operacional.tarefas.length : 0),
+                  0
+                ) || 0),
               0
-            ) || 0}
-          </span>
-        </Typography>
-      </Box>
+            ) || 0),
+          0
+        )
+      : 0}
+  </Box>
+</Typography>
+
+
+
+
+{/* Tarefas Concluídas */}
+<Typography sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+  Tarefas Concluídas:{" "}
+  <Box
+    sx={{
+      marginTop: "3px",
+      color: "#4caf50",
+      fontWeight: "bold",
+      marginLeft: "-3px",
+    }}
+  >
+    {Array.isArray(project?.diretrizes)
+      ? project.diretrizes.reduce(
+          (acc, diretriz) =>
+            acc +
+            (diretriz.taticas?.reduce(
+              (accT, tatica) =>
+                accT +
+                (tatica.operacionais?.reduce(
+                  (accO, operacional) =>
+                    accO +
+                    (Array.isArray(operacional.tarefas)
+                      ? operacional.tarefas.filter((tarefa) => tarefa.progresso === 100).length
+                      : 0),
+                  0
+                ) || 0),
+              0
+            ) || 0),
+          0
+        )
+      : 0}
+  </Box>
+</Typography>
+</Box>
+
+
+
+
+      
 
 
 
@@ -1377,25 +698,25 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
       
 
       <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
-      <Button
-        onClick={handleExpand}
-        disableRipple // Remove o efeito de clique
-        sx={{
-          minWidth: "auto", // Remove o espaço extra do botão
-          padding: 0, // Remove o preenchimento interno
-          "&:hover": {
-            backgroundColor: "transparent", // Garante que não haja efeito ao passar o mouse
-          },
-          "& .MuiButton-startIcon": {
-            margin: 0, // Remove o espaço entre o ícone e o botão
-          },
-        }}
-      >
-        {expanded ? (
-          <FullscreenExitIcon sx={{ fontSize: 32, color: "#312783" }} /> // Aumenta o tamanho do ícone
-        ) : (
-          <FullscreenIcon sx={{ fontSize: 32, color: "#312783" }} /> // Aumenta o tamanho do ícone
-        )}
+        <Button
+          onClick={handleExpand}
+          disableRipple // Remove o efeito de clique
+          sx={{
+            minWidth: "auto", // Remove o espaço extra do botão
+            padding: 0, // Remove o preenchimento interno
+            "&:hover": {
+              backgroundColor: "transparent", // Garante que não haja efeito ao passar o mouse
+            },
+            "& .MuiButton-startIcon": {
+              margin: 0, // Remove o espaço entre o ícone e o botão
+            },
+          }}
+        >
+          {expanded ? (
+            <FullscreenExitIcon sx={{ fontSize: 32, color: "#312783" }} /> // Aumenta o tamanho do ícone
+          ) : (
+            <FullscreenIcon sx={{ fontSize: 32, color: "#312783" }} /> // Aumenta o tamanho do ícone
+          )}
       </Button>
 
 

@@ -116,7 +116,13 @@ const Listafluxograma = () => {
         }}
       >
         {filteredProject ? (
-          <FluxoGrama project={filteredProject} />
+          <Box>
+          {filteredProject?.id ? (
+            <FluxoGrama projectId={filteredProject.id} />
+          ) : (
+            <Typography>Selecione um projeto para visualizar.</Typography>
+          )}
+        </Box>
         ) : (
           <Typography sx={{ color: "#949393" }}>Digite o nome de um projeto para filtrar.</Typography>
         )}
