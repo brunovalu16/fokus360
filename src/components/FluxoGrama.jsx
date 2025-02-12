@@ -201,27 +201,30 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
 
 
   function calcularProgressoTatica(tatica) {
-    // Em vez de filtrar e pular, considere todos os operacionais
     const { operacionais = [] } = tatica;
-    if (operacionais.length === 0) return 0; // sem operacionais => 0%
+    if (operacionais.length === 0) return 0;
   
     let somaPorcentagens = 0;
+  
     for (const op of operacionais) {
-      // Se op tiver 0 tarefas, progresso = 0
-      // Se op tiver X tarefas concluídas, calcule
       if (!op.tarefas || op.tarefas.length === 0) {
+        // sem tarefas => 0%
         somaPorcentagens += 0;
       } else {
-        // Calcule a % baseada nas tarefas
+        // Para cada tarefa, some 'tarefa.progresso', depois tire a média
         const total = op.tarefas.length;
-        const concluidas = op.tarefas.filter((t) => t.checkboxState?.concluida).length;
-        somaPorcentagens += (concluidas / total) * 100; 
+        const somaProgresso = op.tarefas.reduce((acc, t) => acc + (t.progresso ?? 0), 0);
+        // 100% por tarefa = 100 * total
+        // Proporção do op = (somaProgresso / (100 * total)) * 100
+        const porcentagemOperacional = (somaProgresso / (100 * total)) * 100;
+        somaPorcentagens += porcentagemOperacional;
       }
     }
   
-    // progresso médio
+    // Média dos operacionais
     return Math.round(somaPorcentagens / operacionais.length);
   }
+  
 
 
   const StatusProgressoTatica = ({ operacionais }) => {
@@ -400,13 +403,15 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
   };
   
 
-  const StatusProgressoTotal = ({ tarefas }) => {
-    if (!tarefas || tarefas.length === 0) {
-      return null; // Se não houver tarefas, não exibe nada
+  function StatusProgressoTotal({ tarefas }) {
+    if (!Array.isArray(tarefas) || tarefas.length === 0) {
+      return null; // Retorna nada se "tarefas" for undefined ou vazio
     }
   
-    // Soma os progressos e calcula a média
-    const progressoTotal = tarefas.reduce((acc, tarefa) => acc + calcularProgresso(tarefa), 0);
+    const progressoTotal = tarefas.reduce((acc, tarefa) => {
+      if (!tarefa || typeof tarefa !== "object") return acc; // Evita erro se alguma tarefa for undefined
+      return acc + calcularProgresso(tarefa);
+    }, 0);
     const progressoMedio = Math.round(progressoTotal / tarefas.length); // Calcula a média
   
     let color;
@@ -443,13 +448,11 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
   };
 
   function calcularProgresso(tarefa) {
-    // Checa se a tarefa tem checkboxState
-    if (!tarefa?.checkboxState) return 0;
-  
-    // Exemplo: se "concluida" for true, diz que é 100, senão 0
-    // Ou se preferir a contagem de sub-campos (por ex. "oQue", "porQue"...)
-    return tarefa.checkboxState.concluida ? 100 : 0;
+    if (!tarefa || typeof tarefa !== "object") return 0; // Evita erro se tarefa for undefined
+    return tarefa.progresso ?? 0;
   }
+  
+  
 
 
   function countDiretrizes(diretrizes = []) {
@@ -551,11 +554,11 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
 
   function isOperacionalConcluido(operacional) {
     const tarefas = operacional.tarefas || [];
-    if (tarefas.length === 0) return false; // Se não tem tarefas, considera não concluído (ajuste se quiser ao contrário)
-  
-    // TODAS as tarefas precisam ter checkboxState.concluida = true
-    return tarefas.every((tarefa) => tarefa?.checkboxState?.concluida);
+    if (tarefas.length === 0) return false;
+    // Se TODAS as tarefas tiverem progresso 100, então concluído
+    return tarefas.every((tarefa) => (tarefa.progresso ?? 0) === 100);
   }
+  
   
   function isTaticaConcluida(tatica) {
     const operacionais = tatica.operacionais || [];
@@ -762,6 +765,18 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
             {estrategica.titulo}
             {/* Linha para conectar com táticas se existirem */}
             {estrategica.taticas?.length > 0 && (
+              <>
+              <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            marginTop: "5px",
+            position: "relative", // 🔹 Mantém alinhamento com o bloco azul
+          }}
+        >
+          <StatusProgressoEstrategica taticas={estrategica.taticas} />
+        </Box>
               <Box
                 sx={{
                   position: "absolute",
@@ -771,18 +786,8 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
                   borderTop: "1px dashed #555",
                 }}
               />
+              </>
             )}
-          </Box>
-
-          {/* Ajuste de posição do círculo da Estratégia */}
-          <Box
-            sx={{
-              width: "100px",
-                      marginTop: "-145px",
-                      position: "absolute",
-            }}
-          >
-            <StatusProgressoEstrategica taticas={estrategica.taticas} />
           </Box>
         </Box>
       </Grid>
@@ -902,7 +907,18 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
                     {/* Linha horizontal conectando cada Tática à linha central */}
                     {estrategica.taticas.length > 1 && (
                       <>
-                        
+                        {/* Progresso da Tática */}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            marginTop: "5px", // 🔹 Ajuste fino para alinhar melhor
+                            position: "relative",
+                          }}
+                        >
+                          <StatusProgressoTatica operacionais={tatica.operacionais} />
+                        </Box>
 
                         <Box
                           sx={{
@@ -915,19 +931,6 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
                         />
                       </>
                     )}
-                  </Box>
-
-                  {/* Progresso da Tática */}
-                  <Box
-                    sx={{
-                      width: "100px",
-                      marginTop: "-25px",
-                      marginBottom: "30px",
-                      marginLeft: "-120px",
-                      position: "absolute",
-                    }}
-                  >
-                    <StatusProgressoTatica operacionais={tatica.operacionais} />
                   </Box>
                 </Box>
               );
@@ -1046,6 +1049,19 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
                       {/* Linha horizontal conectando cada Operacional à linha central */}
                       {totalOperacionais > 1 && (
                         <>
+                        {/* Progresso do Operacional */}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        marginTop: "5px",
+                        position: "relative",
+                      }}
+                    >
+                      <StatusProgressoTotal tarefas={operacional.tarefas || []} />
+
+                    </Box>
                           <Box
                             sx={{
                               position: "absolute",
@@ -1060,19 +1076,6 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
                       )}
                     </Box>
 
-                    {/* Progresso do Operacional */}
-                    <Box
-                      sx={{
-                        width: "100px",
-                        marginTop: "-25px",
-                        marginBottom: "65px",
-                        marginLeft: "-120px",
-                        position: "absolute",
-                        
-                      }}
-                    >
-                      <StatusProgressoTotal tarefas={operacional.tarefas} />
-                    </Box>
                   </React.Fragment>
                 );
               })}
@@ -1121,7 +1124,7 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
                     justifyContent: "center",
                     position: "relative",
                     width: "100%",
-                    marginY: "26px",
+                    marginY: "5px",
                     "@media print": {
                       WebkitPrintColorAdjust: "exact",
                       printColorAdjust: "exact",
@@ -1143,6 +1146,7 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
                       }}
                     />
                   )}
+                  
 
                   {operacional.tarefas?.map((task, i) => (
                     <React.Fragment key={i}>
@@ -1171,11 +1175,23 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
                         >
                           {task.tituloTarefa}
                         </Typography>
+                        
 
                         {/* Linha horizontal conectando cada tarefa à linha central */}
                         {totalTarefas > 1 && (
                           <>
-                            
+                          <Box
+                            sx={{
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                              marginTop: "-15px",
+                              position: "relative",
+                              marginRight: "-95px",
+                            }}
+                          >
+                            <StatusProgressoTotal tarefas={operacional.tarefas} />
+                          </Box>
 
                             <Box
                               sx={{
@@ -1189,22 +1205,13 @@ const [projectId, setProjectId] = useState(""); // se você pega de outro lugar
                             />
                           </>
                         )}
+                    
                       </Box>
                     </React.Fragment>
                   ))}
 
                   {/* Progresso das Tarefas */}
-                  <Box
-                    sx={{
-                      width: "100px",
-                      marginTop: "-25px",
-                      marginBottom: "95px",
-                      marginLeft: "-120px",
-                      position: "absolute",
-                    }}
-                  >
-                    <StatusProgressoTotal tarefas={operacional.tarefas} />
-                  </Box>
+                 
                 </Box>
               </React.Fragment>
             );
