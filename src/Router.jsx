@@ -23,6 +23,7 @@ import FluxoGrama from "./components/FluxoGrama";
 import Listafluxograma from "./scenes/Listafluxograma";
 import { Team, Invoices, Contacts, Form, Bar, Line, Pie, FAQ, Geography, Calendar, Stream } from "./scenes";
 import PrivateRoute from "./components/PrivateRoute"; // Importando o componente PrivateRoute
+import Roteirizador from "./scenes/roteirizador";
 
 const AppRouter = () => {
   return (
@@ -74,6 +75,14 @@ const AppRouter = () => {
             element={
               <PrivateRoute>
                 <PainelIndustrias />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/roteirizador"
+            element={
+              <PrivateRoute>
+                <Roteirizador />
               </PrivateRoute>
             }
           />

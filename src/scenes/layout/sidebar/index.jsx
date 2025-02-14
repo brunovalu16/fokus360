@@ -19,7 +19,9 @@ import { auth, db } from "../../../data/firebase-config";
 import { ToggledContext } from "../../../App";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import icon_logo from "../../../assets/images/icon_logo.png"
+import icon_logo from "../../../assets/images/icon_logo.png";
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+
 
 const SideBar = () => {
   const [userRole, setUserRole] = useState("");
@@ -186,7 +188,10 @@ const SideBar = () => {
           </MenuItem>
 
           <MenuItem component={<Link to="/projetos" />} icon={<PieChartIcon />}>
-            Fokus360
+            Projetos
+          </MenuItem>
+          <MenuItem component={<Link to="/roteirizador" />} icon={<LocationOnIcon />}>
+            Roteirizador
           </MenuItem>
         </Menu>
       </Box>
