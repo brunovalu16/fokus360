@@ -17,7 +17,7 @@ if (process.env.FIREBASE_CREDENTIALS) {
 }
 
 // Verifica se a variável de ambiente FIREBASE_DATABASE_URL existe (Vercel)
-const databaseURL = process.env.FIREBASE_DATABASE_URL || "https://flow360-multimarcas-6375b-default-rtdb.firebaseio.com";
+const databaseURL = process.env.FIREBASE_DATABASE_URL || "https://bancopowerbi-default-rtdb.firebaseio.com";
 
 // Inicializa o Firebase Admin SDK
 admin.initializeApp({
