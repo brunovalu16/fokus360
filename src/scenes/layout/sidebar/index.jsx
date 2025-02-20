@@ -149,6 +149,7 @@ const SideBar = () => {
         sx={{
           display: "flex",
           flexDirection: "column",
+          flexGrow: 1, // Adicionado para expandir o menu corretamente
           gap: "0px",
           marginLeft: "3px",
         }}
@@ -202,10 +203,11 @@ const SideBar = () => {
       {/* Rodapé */}
       <Box
         sx={{
-          position: "absolute",
+          position: "relative", // Alterado de "absolute" para "relative"
           bottom: 0,
           width: "100%",
           padding: "10px",
+          marginTop: "auto", // Isso empurra o botão de logout para o final
         }}
       >
         {/* Botão de Logout */}

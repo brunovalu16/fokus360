@@ -238,9 +238,12 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   // -------------------------------------
   // Criar nova Diretriz Estratégica
   // -------------------------------------
+  //|| !descEstrategica.trim()
+
   const handleAddEstrategica = () => {
-    if (!novaEstrategica.trim() || !descEstrategica.trim()) {
-      alert("Preencha o nome e a descrição da Diretriz Estratégica!");
+    if (!novaEstrategica.trim()) {
+      alert("Preencha o nome da Diretriz Estratégica!");
+      //alert("Preencha o nome e a descrição da Diretriz Estratégica!");
       return;
     }
     const item = {
@@ -273,9 +276,12 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   // -------------------------------------
   // Criar nova Diretriz Tática
   // -------------------------------------
+  //|| !descricao.trim()
+
   const handleAddTatica = (idEstrategica, titulo, descricao) => {
-    if (!titulo.trim() || !descricao.trim()) {
-      alert("Preencha o nome e a descrição da Diretriz Tática!");
+    if (!titulo.trim()) {
+      alert("Preencha o nome da Diretriz Tática!");
+      //alert("Preencha o nome e a descrição da Diretriz Tática!");
       return;
     }
     const novo = {
@@ -318,9 +324,12 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   // -------------------------------------
   // Criar nova Diretriz Operacional
   // -------------------------------------
+  //|| !descricao.trim()) 
+
   const handleAddOperacional = (idEstrategica, idTatica, titulo, descricao) => {
-    if (!titulo.trim() || !descricao.trim()) {
-      alert("Preencha o nome e a descrição da Diretriz Operacional!");
+    if (!titulo.trim()) {
+      alert("Preencha o nome da Diretriz Operacional!");
+      //alert("Preencha o nome e a descrição da Diretriz Operacional!");
       return;
     }
     const novo = {
@@ -464,6 +473,7 @@ const saveEstrategicas = async (projectId, novoArray) => {
           onChange={(e) => setNovaEstrategica(e.target.value)}
           fullWidth
         />
+        {/** 
         <TextField
           label="Descrição da Diretriz Estratégica..."
           value={descEstrategica}
@@ -472,6 +482,7 @@ const saveEstrategicas = async (projectId, novoArray) => {
           multiline
           rows={2}
         />
+        */}
         <Button
           onClick={handleAddEstrategica}
           disableRipple
@@ -1051,6 +1062,7 @@ function NovaTaticaForm({ onAdd }) {
         onChange={(e) => setTitulo(e.target.value)}
         fullWidth
       />
+      {/** 
       <TextField
         label="Descrição da Diretriz Tática..."
         value={desc}
@@ -1059,6 +1071,7 @@ function NovaTaticaForm({ onAdd }) {
         multiline
         rows={2}
       />
+      */}
       <Button
         onClick={() => {
           onAdd(titulo, desc);
@@ -1118,6 +1131,7 @@ function NovaOperacionalForm({ onAdd }) {
         onChange={(e) => setTitulo(e.target.value)}
         fullWidth
       />
+      {/** 
       <TextField
         label="Descrição da Diretriz Operacional..."
         value={desc}
@@ -1126,6 +1140,7 @@ function NovaOperacionalForm({ onAdd }) {
         multiline
         rows={2}
       />
+      */}
       <Button
         onClick={() => {
           onAdd(titulo, desc);
