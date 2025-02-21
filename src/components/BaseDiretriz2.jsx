@@ -25,14 +25,7 @@ import { db } from "../data/firebase-config";
 
 
 
-function calcularProgresso(tarefa) {
-  // Checa se a tarefa tem checkboxState
-  if (!tarefa?.checkboxState) return 0;
 
-  // Exemplo: se "concluida" for true, diz que é 100, senão 0
-  // Ou se preferir a contagem de sub-campos (por ex. "oQue", "porQue"...)
-  return tarefa.checkboxState.concluida ? 100 : 0;
-}
 
 function calcularProgressoEstrategica(estrategica) {
   let totalTarefas = 0;
@@ -141,9 +134,11 @@ useEffect(() => {
   // -------------------------------------
   // Criar nova Diretriz Estratégica
   // -------------------------------------
+  //
+
   const handleAddEstrategica = () => {
-    if (!novaEstrategica.trim() || !descEstrategica.trim()) {
-      alert("Preencha o nome e a descrição da Diretriz Estratégica!");
+    if (!novaEstrategica.trim()) {
+      alert("Preencha o nome da Diretriz Estratégica!");
       return;
     }
   
@@ -474,45 +469,95 @@ const handleDeleteTarefa = (indexEstrategica, indexTatica, indexOperacional, ind
 
 
 
-// Função para calcular progresso com base nos checkboxes marcados
-const calcularProgresso = (tarefa) => {
-  const totalCampos = Object.keys(tarefa.checkboxState || {}).length;
-  const camposPreenchidos = Object.values(tarefa.checkboxState || {}).filter(Boolean).length;
-  return totalCampos > 0 ? (camposPreenchidos / totalCampos) * 100 : 0;
-};
+
 
 
 
 
 // Componente para calcular e exibir o progresso visualmente
 const ProgressStatus = ({ progresso }) => {
+  let statusText = "";
+  if (progresso === 0) {
+    statusText = "Não iniciada";
+  } else if (progresso === 100) {
+    statusText = "Concluído";
+  } else {
+    statusText = "Em andamento";
+  }
+
+  // Definir cor também, se quiser
   let color;
   if (progresso === 100) {
-    color = "#4CAF50"; // Verde (Concluído)
+    color = "#4CAF50"; // Verde
   } else if (progresso >= 50) {
-    color = "#FF9800"; // Laranja (Meio caminho)
+    color = "#FF9800"; // Laranja
   } else {
-    color = "#F44336"; // Vermelho (Pouco progresso)
+    color = "#F44336"; // Vermelho
   }
 
   return (
-    <Box display="flex" alignItems="center" gap={1}
-    sx={{ marginLeft: "10px", marginTop: "20px" }} 
-    >
+    <Box display="flex" alignItems="center" gap={1} marginLeft="5px" sx={{ marginTop: "20px" }}>
       <CircularProgress
         variant="determinate"
         value={progresso}
         sx={{ color }}
         thickness={10}
         size={40}
-        
       />
       <Typography sx={{ fontSize: "12px", fontWeight: "bold", color: "#9d9d9c" }}>
-        {progresso === 100 ? "Concluído" : "Em andamento"}
+        {statusText}
       </Typography>
     </Box>
   );
 };
+
+const handleToggleCampoCheckbox = (
+  indexEstrategica,
+  indexTatica,
+  indexOperacional,
+  indexTarefa,
+  nomeCampo
+) => {
+  setDiretrizes((prevDiretrizes) => {
+    const updated = JSON.parse(JSON.stringify(prevDiretrizes)); // ou faça um clone imutável
+    const tarefaAlvo =
+      updated[indexEstrategica]
+        .taticas[indexTatica]
+        .operacionais[indexOperacional]
+        .tarefas[indexTarefa];
+
+    // Se não existir, inicializa
+    tarefaAlvo.checkboxState = tarefaAlvo.checkboxState || {};
+
+    // Toggle no campo específico: true -> false ou false -> true
+    tarefaAlvo.checkboxState[nomeCampo] = !tarefaAlvo.checkboxState[nomeCampo];
+
+    // Recalcula progresso (opcional, se você quiser gravar no objeto)
+    tarefaAlvo.progresso = calcularProgresso(tarefaAlvo);
+
+    return updated;
+  });
+};
+
+function calcularProgresso(tarefa) {
+  // Se não existir checkboxState, retorna 0%
+  if (!tarefa.checkboxState) return 0;
+
+  // Lista de campos do 5W2H que queremos rastrear
+  const campos = ["oQue", "porQue", "quem", "quando", "onde", "como", "valor"];
+
+  // Quantos estão marcados como true?
+  const total = campos.length;
+  const marcados = campos.filter((campo) => tarefa.checkboxState[campo]).length;
+
+  // Retorna a porcentagem
+  return Math.round((marcados / total) * 100);
+}
+
+
+
+
+
 
 
 // 🔥 Função para alternar os checkboxes
@@ -815,6 +860,7 @@ const StatusProgressoEstrategica = ({ taticas }) => {
           onChange={(e) => setNovaEstrategica(e.target.value)}
           fullWidth
         />
+        {/** 
         <TextField
           label="Descrição da Diretriz Estratégica..."
           value={descEstrategica}
@@ -823,6 +869,7 @@ const StatusProgressoEstrategica = ({ taticas }) => {
           multiline
           rows={2}
         />
+        */}
         <Button
           onClick={handleAddEstrategica}
           sx={{
@@ -900,6 +947,7 @@ const StatusProgressoEstrategica = ({ taticas }) => {
           </AccordionSummary>
 
           <AccordionDetails>
+            {/**
             <TextField
               fullWidth
               multiline
@@ -914,6 +962,7 @@ const StatusProgressoEstrategica = ({ taticas }) => {
                 )
               }
             />
+             */}
 
             <Button
               onClick={() => handleAddTatica(indexEstrategica)}
@@ -999,6 +1048,7 @@ const StatusProgressoEstrategica = ({ taticas }) => {
                 </AccordionSummary>
 
                 <AccordionDetails>
+                  {/**
                   <TextField
                     fullWidth
                     multiline
@@ -1014,6 +1064,7 @@ const StatusProgressoEstrategica = ({ taticas }) => {
                       )
                     }
                   />
+                   */}
 
                   <Button
                     onClick={() =>
@@ -1106,6 +1157,7 @@ const StatusProgressoEstrategica = ({ taticas }) => {
   </AccordionSummary>
 
   <AccordionDetails>
+      {/**    
     <TextField
       fullWidth
       multiline
@@ -1122,6 +1174,7 @@ const StatusProgressoEstrategica = ({ taticas }) => {
         )
       }
     />
+    */} 
 
 <Button
       onClick={() =>
@@ -1207,6 +1260,7 @@ const StatusProgressoEstrategica = ({ taticas }) => {
                         
                           <AccordionDetails>
                             {/* 🔥 Checkbox para marcar como concluída */}
+                            {/** 
                             <Box display="flex" alignItems="center" gap={1} mb={2}>
                               <Checkbox
                                 checked={tarefa.checkboxState?.concluida || false}
@@ -1218,23 +1272,41 @@ const StatusProgressoEstrategica = ({ taticas }) => {
                                 Concluída
                               </Typography>
                             </Box>
+                            */}
                         
-                            <TextField
-                              fullWidth
-                              label="O que?"
-                              value={tarefa.planoDeAcao.oQue || ""}
-                              sx={{ marginBottom: "20px" }}
-                              onChange={(e) =>
-                                handleEditTarefa(
-                                  indexEstrategica,
-                                  indexTatica,
-                                  indexOperacional,
-                                  indexTarefa,
-                                  "oQue",
-                                  e.target.value
-                                )
-                              }
-                            />
+                            {/* O QUE */}
+                              <Box display="flex" alignItems="center" mb={1} sx={{ marginTop: "20px" }}>
+                                <TextField
+                                  fullWidth
+                                  label="O que?"
+                                  value={tarefa.planoDeAcao.oQue || ""}
+                                  onChange={(e) =>
+                                    handleEditTarefa(
+                                      indexEstrategica,
+                                      indexTatica,
+                                      indexOperacional,
+                                      indexTarefa,
+                                      "oQue",
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                                <Checkbox
+                                  checked={tarefa.checkboxState?.oQue || false}
+                                  onChange={() =>
+                                    handleToggleCampoCheckbox(
+                                      indexEstrategica,
+                                      indexTatica,
+                                      indexOperacional,
+                                      indexTarefa,
+                                      "oQue"
+                                    )
+                                  }
+                                />
+                              </Box>
+
+                              {/* POR QUE */}
+                            <Box display="flex" alignItems="center" mb={1}>
                             <TextField
                               fullWidth
                               label="Por que?"
@@ -1251,8 +1323,23 @@ const StatusProgressoEstrategica = ({ taticas }) => {
                                 )
                               }
                             />
+                            <Checkbox
+                              checked={tarefa.checkboxState?.porQue || false}
+                              onChange={() =>
+                                handleToggleCampoCheckbox(
+                                  indexEstrategica,
+                                  indexTatica,
+                                  indexOperacional,
+                                  indexTarefa,
+                                  "porQue"
+                                )
+                              }
+                            />
+                            </Box>
                         
                             {/* 🔹 Campo "Quem" com múltipla seleção */}
+                            {/* QUEM (com Select múltiplo) */}
+                            <Box display="flex" alignItems="center" mb={1}>
                             <Select
                               multiple
                               value={tarefa.planoDeAcao.quem ?? []}
@@ -1288,7 +1375,23 @@ const StatusProgressoEstrategica = ({ taticas }) => {
                                 </MenuItem>
                               ))}
                             </Select>
-                        
+                            <Checkbox
+                              checked={tarefa.checkboxState?.quem || false}
+                              onChange={() =>
+                                handleToggleCampoCheckbox(
+                                  indexEstrategica,
+                                  indexTatica,
+                                  indexOperacional,
+                                  indexTarefa,
+                                  "quem"
+                                )
+                              }
+                            />
+                            </Box>
+
+
+                              {/* QUANDO */}
+                            <Box display="flex" alignItems="center" mb={1}>
                             <TextField
                               fullWidth
                               label="Quando?"
@@ -1305,6 +1408,22 @@ const StatusProgressoEstrategica = ({ taticas }) => {
                                 )
                               }
                             />
+                            <Checkbox
+                            checked={tarefa.checkboxState?.quando || false}
+                            onChange={() =>
+                              handleToggleCampoCheckbox(
+                                indexEstrategica,
+                                indexTatica,
+                                indexOperacional,
+                                indexTarefa,
+                                "quando"
+                              )
+                            }
+                          />
+                            </Box>
+
+                            {/* ONDE */}
+                            <Box display="flex" alignItems="center" mb={1}>
                             <TextField
                               fullWidth
                               label="Onde?"
@@ -1321,6 +1440,22 @@ const StatusProgressoEstrategica = ({ taticas }) => {
                                 )
                               }
                             />
+                            <Checkbox
+                              checked={tarefa.checkboxState?.onde || false}
+                              onChange={() =>
+                                handleToggleCampoCheckbox(
+                                  indexEstrategica,
+                                  indexTatica,
+                                  indexOperacional,
+                                  indexTarefa,
+                                  "onde"
+                                )
+                              }
+                            />
+                            </Box>
+
+                            {/* COMO */}
+                            <Box display="flex" alignItems="center" mb={1}>
                             <TextField
                               fullWidth
                               label="Como?"
@@ -1337,6 +1472,22 @@ const StatusProgressoEstrategica = ({ taticas }) => {
                                 )
                               }
                             />
+                            <Checkbox
+                              checked={tarefa.checkboxState?.como || false}
+                              onChange={() =>
+                                handleToggleCampoCheckbox(
+                                  indexEstrategica,
+                                  indexTatica,
+                                  indexOperacional,
+                                  indexTarefa,
+                                  "como"
+                                )
+                              }
+                            />
+                            </Box>
+
+                          {/* VALOR */}
+                          <Box display="flex" alignItems="center" mb={1}>
                             <TextField
                               fullWidth
                               label="Valor"
@@ -1356,6 +1507,19 @@ const StatusProgressoEstrategica = ({ taticas }) => {
                                 );
                               }}
                             />
+                            <Checkbox
+                              checked={tarefa.checkboxState?.valor || false}
+                              onChange={() =>
+                                handleToggleCampoCheckbox(
+                                  indexEstrategica,
+                                  indexTatica,
+                                  indexOperacional,
+                                  indexTarefa,
+                                  "valor"
+                                )
+                              }
+                            />
+                            </Box>
                           </AccordionDetails>
                         </Accordion>
                         
