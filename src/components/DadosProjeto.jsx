@@ -5,14 +5,25 @@ import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import Lista from "../components/Lista";
 
 const DadosProjeto = ({ orcamento, valorGasto, totalDiretrizes, tarefasConcluidas, totalTarefas, diretrizes }) => {
+const totalEstr = countAllDiretrizes(diretrizes || []);
+const totalTat = countAllTaticas(diretrizes || []);
+const totalOp = countAllOperacionais(diretrizes || []);
+const totalTar = countAllTarefas(diretrizes || []);
+
+const conclEstr = countDiretrizesConcluidas(diretrizes || []);
+const conclTat = countTaticasConcluidas(diretrizes || []);
+const conclOp = countOperacionaisConcluidos(diretrizes || []);
+const conclTar = countTarefasConcluidas(diretrizes || []);
+
+  
+  
+  
   // 1) Função para calcular progresso de Valor Gasto vs. Orçamento
   const calcularProgressoValorGasto = () => {
-    // Garante que o orçamento seja uma string válida antes de substituir caracteres
     const orcamentoNum = orcamento
-      ? parseFloat(orcamento.replace("R$", "").replace(/\./g, "").replace(",", "."))
+      ? parseFloat(orcamento.replace("R$", "").replace(/\./g, "").replace(",", ".")) || 0
       : 0;
   
-    // Soma todos os valores das tarefas dentro das diretrizes (novo caminho do Firestore)
     let gastoNum = 0;
   
     if (diretrizes && Array.isArray(diretrizes)) {
@@ -20,9 +31,8 @@ const DadosProjeto = ({ orcamento, valorGasto, totalDiretrizes, tarefasConcluida
         diretriz.taticas?.forEach((tatica) => {
           tatica.operacionais?.forEach((operacional) => {
             operacional.tarefas?.forEach((tarefa) => {
-              // Garante que valor existe e converte corretamente
               const valorTarefa = tarefa?.planoDeAcao?.valor
-                ? parseFloat(tarefa.planoDeAcao.valor.replace("R$", "").replace(/\./g, "").replace(",", "."))
+                ? parseFloat(tarefa.planoDeAcao.valor.replace("R$", "").replace(/\./g, "").replace(",", ".")) || 0
                 : 0;
               gastoNum += valorTarefa;
             });
@@ -31,40 +41,52 @@ const DadosProjeto = ({ orcamento, valorGasto, totalDiretrizes, tarefasConcluida
       });
     }
   
-    // Evita divisão por zero
-    if (orcamentoNum === 0) return 0;
+    // Se orçamento for 0 e houver gastos, progresso deve ser 100%
+    if (orcamentoNum === 0 && gastoNum > 0) return { progresso: 100, gastoNum };
   
-    // Retorna o progresso em porcentagem
-    return (gastoNum / orcamentoNum) * 100;
+    // Se orçamento for 0 e não houver gastos, progresso deve ser 0%
+    if (orcamentoNum === 0) return { progresso: 0, gastoNum };
+  
+    return { progresso: (gastoNum / orcamentoNum) * 100, gastoNum };
   };
-
-  const totalEstr = countAllDiretrizes(diretrizes);
-  const totalTat = countAllTaticas(diretrizes);
-  const totalOp = countAllOperacionais(diretrizes);
-  const totalTar = countAllTarefas(diretrizes);
-
-  const conclEstr = countDiretrizesConcluidas(diretrizes);
-  const conclTat = countTaticasConcluidas(diretrizes);
-  const conclOp = countOperacionaisConcluidos(diretrizes);
-  const conclTar = countTarefasConcluidas(diretrizes);
-
   
   
-  // 2) Define cor dinâmica para “Valor Gasto”
+
+
+  //lógica das cores
   const definirCorValorGasto = () => {
-    const progresso = calcularProgressoValorGasto();
+    const { progresso, gastoNum } = calcularProgressoValorGasto();
   
+    // Converter orçamento para número corretamente
+    const orcamentoNum = orcamento
+      ? parseFloat(orcamento.replace("R$", "").replace(/\./g, "").replace(",", ".")) || 0
+      : 0;
+  
+    // 🔴 Se orçamento for zero e houver qualquer valor gasto, deve ser vermelho
+    if (orcamentoNum === 0 && gastoNum > 0) {
+      return "#f44336"; // Vermelho se não há orçamento, mas há gastos
+    }
+  
+    // 🔵 Se orçamento e valor gasto forem zero, deve ser azul (projeto não iniciado)
+    if (orcamentoNum === 0 && gastoNum === 0) {
+      return "#0048ff"; // Azul se nada foi gasto e orçamento é zero
+    }
+  
+    // ✅ Se o orçamento foi definido corretamente, seguir a lógica de progressão
     if (progresso > 100) {
-      return "#f44336"; // Vermelho se passou do orçamento
+      return "#f44336"; // 🔴 Vermelho se passou do orçamento
     } else if (progresso === 100) {
-      return "#0048ff"; // Azul se bateu exatamente o orçamento
+      return "#0048ff"; // 🔵 Azul se bateu exatamente o orçamento
     } else if (progresso >= 70) {
-      return "#ffb600"; // Amarelo se ≥ 70% do orçamento
+      return "#ffb600"; // 🟡 Amarelo se ≥ 70% do orçamento
     } else {
-      return "#4caf50"; // Verde se < 70% do orçamento
+      return "#4caf50"; // 🟢 Verde se < 70% do orçamento
     }
   };
   
+  
+  
+    
 
   // Função para calcular o total de tarefas concluídas
   const calcularTotalTarefasConcluidas = (diretrizes) => {
