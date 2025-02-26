@@ -25,8 +25,8 @@ const Relatorios = () => {
   const links = {
     "01": ["Vendas", "Financeiro", "Logística", "Central de monitoramento", "Trade", "Indústrias"],
     "02": ["Vendas", "Financeiro", "Logística", "Central de monitoramento", "Trade", "Indústrias"],
-    "03": ["Vendas", "Financeiro", "Logística", "Indústrias"],
-    "04": ["Vendas", "Indústrias"],
+    "03": ["Vendas", "Financeiro", "Logística", "Central de monitoramento", "Trade", "Indústrias"],
+    "04": ["Vendas", "Financeiro", "Logística", "Central de monitoramento", "Trade", "Indústrias"],
     "05": ["Trade", "Indústrias"],
     "06": ["Indústrias"],
     "07": ["Projetos"],
