@@ -193,7 +193,7 @@ const SideBar = () => {
             Projetos
           </MenuItem>
           <MenuItem component={<Link to="/roteirizador" />} icon={<LocationOnIcon sx={{ fontSize: 28 }} />}>
-            Roteirizador
+            Monitoramento
           </MenuItem>
 
 

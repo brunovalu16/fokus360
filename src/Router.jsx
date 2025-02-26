@@ -15,6 +15,7 @@ import Kanban from "./scenes/kanban";
 import Home from "./scenes/home";
 import Arquivos from "./scenes/arquivos";
 import VendasDevolucao from "./scenes/vendasdevolucao";
+import RelatorioTrade from "./scenes/relatoriotrade";
 import Projetos from "./scenes/projetos";
 import CadastroProjetos from "./scenes/cadastroprojetos";
 import ListaProjetos from "./scenes/listaprojetos";
@@ -57,6 +58,7 @@ const router = createBrowserRouter(
         { path: "/roteirizador", element: <PrivateRoute><Roteirizador /></PrivateRoute> },
         { path: "/dashboardprojeto", element: <PrivateRoute><DashboardProjeto /></PrivateRoute> },
         { path: "/vendasdevolucao", element: <PrivateRoute><VendasDevolucao /></PrivateRoute> },
+        { path: "/relatoriotrade", element: <PrivateRoute><RelatorioTrade /></PrivateRoute> },
         { path: "/cadastroprojetos", element: <PrivateRoute><CadastroProjetos /></PrivateRoute> },
         { path: "/dataprojeto", element: <PrivateRoute><DataProjeto /></PrivateRoute> },
         { path: "/diretriz", element: <PrivateRoute><Diretriz /></PrivateRoute> },

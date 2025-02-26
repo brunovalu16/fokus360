@@ -124,10 +124,12 @@ const Cadastro = () => {
                 <MenuItem value="02">Gerente</MenuItem>
                 <MenuItem value="03">Supervisor</MenuItem>
                 <MenuItem value="04">Vendedor</MenuItem>
-                <MenuItem value="05">Trade</MenuItem>
                 <MenuItem value="06">Industria</MenuItem>
                 <MenuItem value="07">Projetos</MenuItem>
                 <MenuItem value="08">Admin</MenuItem>
+                <MenuItem value="09">Coordenador Trade</MenuItem>
+                <MenuItem value="10">Gerência Trade</MenuItem>
+                <MenuItem value="11">Analista Trade</MenuItem>
               </Select>
             </FormControl>
 

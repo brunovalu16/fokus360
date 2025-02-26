@@ -139,23 +139,22 @@ const Navbar = () => {
             color: "#7f7f7f",
             display: "flex",
             alignItems: "flex-end",
-            marginBottom: "10px",
+            
             transform: "scale(0.7)",
           }}
         >
           Desenvolvido por:
           <img
-            src={colibri}
-            alt="Logo Colibri"
+            //src={colibri}
+            //alt="Logo Colibri"
             style={{
               width: "100px",
               height: "auto",
-              marginLeft: "5px",
-              marginLeft: "15px",
+              marginLeft: "-110px",
               marginRight: "20px",
             }}
           />
-          Colibri | Sistemas inteligentes
+          Flow | Sistemas inteligentes
         </Typography>
       </Toolbar>
 

@@ -31,6 +31,9 @@ const Relatorios = () => {
     "06": ["Indústrias"],
     "07": ["Projetos"],
     "08": ["Vendas", "Financeiro", "Logística", "Central de monitoramento", "Trade", "Indústrias"],
+    "09": ["Trade", "Indústrias"],
+    "10": ["Trade", "Indústrias"],
+    "11": ["Trade", "Indústrias"],
   };
 
   // Obter o perfil do usuário logado
@@ -344,15 +347,21 @@ const Relatorios = () => {
             )}
             {activeContent === "Trade" && visibleLinks.includes("Trade") && (
               <>
+              {/** 
                 <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 11 trade
+                  Relatório Trade
                 </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 12 trade
+                */}
+                <Button
+                  component={Link} // Define que o botão será um Link do React Router
+                  to="/relatoriotrade"
+                  fullWidth
+                  variant="contained"
+                  sx={mainButtonStyle}
+                >
+                  RELATÓRIO TRADE
                 </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 13 trade
-                </Button>
+                
               </>
             )}
           </Box>
