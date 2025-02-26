@@ -24,8 +24,8 @@ const Relatorios = () => {
   // Regras para os links baseados no perfil
   const links = {
     "01": ["Vendas", "Financeiro", "Logística", "Central de monitoramento", "Trade", "Indústrias"],
-    "02": ["Vendas", "Financeiro", "Logística", "Central de monitoramento", "Indústrias"],
-    "03": ["Vendas", "Financeiro", "Logística", "Vendas"],
+    "02": ["Vendas", "Financeiro", "Logística", "Central de monitoramento", "Trade", "Indústrias"],
+    "03": ["Vendas", "Financeiro", "Logística", "Indústrias"],
     "04": ["Vendas", "Indústrias"],
     "05": ["Trade", "Indústrias"],
     "06": ["Indústrias"],
