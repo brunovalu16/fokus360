@@ -244,7 +244,10 @@ const Navbar = () => {
             userRole !== "04" &&
             userRole !== "05" &&
             userRole !== "06" &&
-            userRole !== "07" && (
+            userRole !== "07" &&
+            userRole !== "09" &&
+            userRole !== "10" &&
+            userRole !== "11" && (
               <IconButton
                 component={Link}
                 to="/contacts"
