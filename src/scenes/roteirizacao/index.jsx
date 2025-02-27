@@ -31,14 +31,14 @@ const Roteirizacao = () => {
   // 🔽 Função para buscar vendedores e suas localizações
   const fetchVendedoresComLocalizacao = useCallback(async () => {
     try {
-      const vendedoresSnapshot = await getDocs(collection(db, "vendedores"));
+      const vendedoresSnapshot = await getDocs(collection(dbGpsTracker, "vendedores"));
       const vendedoresArray = [];
 
       for (const docSnap of vendedoresSnapshot.docs) {
         const vendedor = { id: docSnap.id, ...docSnap.data() };
 
         // 🔹 Busca a localização na coleção "locations"
-        const locationRef = doc(db, "locations", vendedor.id);
+        const locationRef = doc(dbGpsTracker, "locations", vendedor.id);
         const locationSnapshot = await getDoc(locationRef);
 
         if (locationSnapshot.exists()) {
@@ -86,7 +86,7 @@ const Roteirizacao = () => {
 
     try {
       const q = query(
-        collection(db, "locations", selectedVendedor, "history"),
+        collection(dbGpsTracker, "locations", selectedVendedor, "history"),
         orderBy("timestamp", "asc") // 🔹 Ordena os pontos do trajeto do mais antigo para o mais recente
       );
 
