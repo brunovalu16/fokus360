@@ -7,7 +7,9 @@ import { tokens } from "../../theme";
 import { useNavigate } from "react-router-dom";
 import DeleteForeverSharpIcon from "@mui/icons-material/DeleteForeverSharp";
 import Modal from "../../components/Modal";
-import { db, storage } from "../../data/firebase-config"; // Firestore e Storage
+import { dbFokus360, storageFokus360 } from "../../data/firebase-config";
+
+import { authFokus360 } from "../../data/firebase-config";
 import { collection, getDocs, doc, deleteDoc } from "firebase/firestore"; 
 import { ref, deleteObject } from "firebase/storage"; 
 import TopicIcon from '@mui/icons-material/Topic';
@@ -46,7 +48,7 @@ const Arquivos = () => {
 
   const fetchFiles = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, "arquivos"));
+      const querySnapshot = await getDocs(collection(dbFokus360, "arquivos"));
       const files = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -69,10 +71,10 @@ const Arquivos = () => {
         return;
       }
 
-      const fileRef = ref(storage, `arquivos/${fileToDelete.fileName}`);
+      const fileRef = ref(storageFokus360, `arquivos/${fileToDelete.fileName}`);
       await deleteObject(fileRef); // Exclui do Storage
 
-      await deleteDoc(doc(db, "arquivos", id)); // Exclui do Firestore
+      await deleteDoc(doc(dbFokus360, "arquivos", id)); // Exclui do Firestore
 
       setFilesData((prev) => prev.filter((file) => file.id !== id));
       alert("Arquivo deletado com sucesso!");

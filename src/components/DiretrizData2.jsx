@@ -20,7 +20,7 @@ import { useParams } from "react-router-dom";
 
 // 🔹 Firebase
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "../data/firebase-config";
+import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para Fokus360
 
 // ---------- Componente para Tarefas (5W2H) ----------
 function TarefasList({

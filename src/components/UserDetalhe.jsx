@@ -22,7 +22,9 @@ import {
   getDownloadURL,
 } from "firebase/storage";
 import { useLocation } from "react-router-dom";
-import { auth, db } from "../data/firebase-config";
+import { dbFokus360, storageFokus360 } from "../data/firebase-config";
+
+import { authFokus360 } from "../data/firebase-config";
 import { updateEmail, updatePassword } from "firebase/auth";
 import { EmailAuthProvider } from "firebase/auth";
 
@@ -48,18 +50,19 @@ const UserDetalhe = () => {
   useEffect(() => {
     if (userId) {
       const fetchUserDetails = async () => {
-        const userDoc = await getDoc(doc(db, "user", userId));
+        const userDoc = await getDoc(doc(dbFokus360, "user", userId));
         if (userDoc.exists()) {
-          setOriginalEmail(userDoc.data().email);
-          setFormValues({
-            username: userDoc.data().username || "",
-            email: userDoc.data().email || "",
-            role: userDoc.data().role || "",
-            unidade: userDoc.data().unidade || "",
-            photoURL: userDoc.data().photoURL || "",
-          });
+            console.log("Dados do usuário:", userDoc.data()); // Verifica se o role está vindo
+            setFormValues({
+                username: userDoc.data().username || "",
+                email: userDoc.data().email || "",
+                role: userDoc.data().role || "", // Certifique-se de que role está sendo atribuído
+                unidade: userDoc.data().unidade || "",
+                photoURL: userDoc.data().photoURL || "",
+            });
         }
-      };
+    };
+    
       fetchUserDetails();
     }
   }, [userId]);
@@ -70,7 +73,8 @@ const UserDetalhe = () => {
   
     try {
       // Referência ao Firestore
-      const userRef = doc(db, "user", userId);
+      const userRef = doc(dbFokus360, "user", userId); // ✅ Agora usa dbFokus360 corretamente
+
   
       // Verifica se o e-mail foi alterado
       const emailChanged = formValues.email !== originalEmail;
@@ -86,7 +90,7 @@ const UserDetalhe = () => {
   
       if (emailChanged) {
         // Gera o link de verificação para o novo e-mail
-        const response = await fetch(`${import.meta.env.VITE_DATABASEURL}/api/update-email`, {
+        const response = await fetch(`${import.meta.env.VITE_FOKUS360_DATABASEURL}/api/update-email`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -140,13 +144,14 @@ const UserDetalhe = () => {
       console.error("Nenhum arquivo foi selecionado.");
       return;
     }
-
+  
     setUploading(true);
-    const storage = getStorage();
-    const storageRef = ref(storage, `users/${userId}/${file.name}`);
-
+  
+    // 🔹 Usa diretamente a instância correta do Storage
+    const storageRef = ref(storageFokus360, `users/${userId}/${file.name}`);
+  
     const uploadTask = uploadBytesResumable(storageRef, file);
-
+  
     uploadTask.on(
       "state_changed",
       (snapshot) => {
@@ -161,10 +166,12 @@ const UserDetalhe = () => {
       async () => {
         try {
           const photoURL = await getDownloadURL(uploadTask.snapshot.ref);
-          const userRef = doc(db, "user", userId);
+          const userRef = doc(dbFokus360, "user", userId);
+  
           await updateDoc(userRef, { photoURL });
           setFormValues((prev) => ({ ...prev, photoURL }));
-          console.log("Foto carregada e URL atualizada:", photoURL);
+  
+          console.log("✅ Foto carregada e URL atualizada:", photoURL);
         } catch (error) {
           console.error("Erro ao atualizar o Firestore:", error);
         } finally {
@@ -173,6 +180,7 @@ const UserDetalhe = () => {
       }
     );
   };
+  
 
   return (
     <Box
@@ -218,7 +226,9 @@ const UserDetalhe = () => {
         <Typography variant="h4" fontWeight="bold" color="#312783">
           {formValues.username || "Nome do Usuário"}
         </Typography>
-        <Typography sx={{ marginTop: 2 }}>Unidade: {formValues.unidade}</Typography>
+        <Typography sx={{ marginTop: 2 }}>
+          Unidade: {formValues.unidade}
+        </Typography>
         <Button
           variant="text"
           component="label"
@@ -239,7 +249,12 @@ const UserDetalhe = () => {
           }}
         >
           {uploading ? "Carregando..." : "Carregar Foto"}
-          <input type="file" hidden accept="image/*" onChange={handleUploadPhoto} />
+          <input
+            type="file"
+            hidden
+            accept="image/*"
+            onChange={handleUploadPhoto}
+          />
         </Button>
       </Box>
 
@@ -352,10 +367,12 @@ const UserDetalhe = () => {
               <MenuItem value="02">Gerente</MenuItem>
               <MenuItem value="03">Supervisor</MenuItem>
               <MenuItem value="04">Vendedor</MenuItem>
-              <MenuItem value="05">Trade</MenuItem>
-              <MenuItem value="06">Indústria</MenuItem>
+              <MenuItem value="06">Industria</MenuItem>
               <MenuItem value="07">Projetos</MenuItem>
               <MenuItem value="08">Admin</MenuItem>
+              <MenuItem value="09">Coordenador Trade</MenuItem>
+              <MenuItem value="10">Gerência Trade</MenuItem>
+              <MenuItem value="11">Analista Trade</MenuItem>
             </Select>
           </FormControl>
           <Button

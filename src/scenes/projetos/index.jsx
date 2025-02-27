@@ -4,8 +4,12 @@ import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import { Link } from "react-router-dom";
 import capaSistema from "../../assets/images/capasistema360.webp"; // Importação dinâmica
 import { getDocs, getDoc, doc, collection } from "firebase/firestore";
-import { db } from "../../data/firebase-config";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { dbFokus360 } from "../../data/firebase-config"; // Para Fokus360
+
+import { authFokus360 } from "../../data/firebase-config"; // ✅ Removido appFokus360
+
+import { onAuthStateChanged } from "firebase/auth"; // Firebase Auth padrão
+
 import IconButton from '@mui/material/IconButton';
 import Collapse from '@mui/material/Collapse';
 import CloseIcon from '@mui/icons-material/Close';
@@ -18,7 +22,7 @@ const Projetos = () => {
   const [isSolicitanteAssociated, setIsSolicitanteAssociated] = useState(false); // Verificação específica para solicitante
   const [userRole, setUserRole] = useState(null); // Armazena o perfil do usuário
   
-  const auth = getAuth();
+  //const authFokus360 = getAuth(appFokus360 );
 
 // Verifica se o usuário está associado a algum projeto
 const checkUserAssociation = async () => {
@@ -29,7 +33,8 @@ const checkUserAssociation = async () => {
   }
 
   try {
-    const projetosSnapshot = await getDocs(collection(db, "projetos"));
+    const projetosSnapshot = await getDocs(collection(dbFokus360, "projetos")); // Para Fokus360
+
     let associated = false;
 
     for (let docSnap of projetosSnapshot.docs) {
@@ -68,7 +73,7 @@ const checkUserAssociation = async () => {
  // Verifica se o usuário logado é solicitante
  const checkSolicitanteAssociation = async () => {
   try {
-    const user = auth.currentUser;
+    const user = authFokus360.currentUser;
 
     if (!user) {
       //console.log("Nenhum usuário logado.");
@@ -120,7 +125,7 @@ const checkUserAssociation = async () => {
 
   // Verifica a associação do usuário após logar
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(authFokus360, (currentUser) => {
       if (currentUser) {
         //console.log(`Usuário logado: ${currentUser.uid}`);
         setUserId(currentUser.uid);

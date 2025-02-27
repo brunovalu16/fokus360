@@ -2,8 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Button, Typography, Modal } from "@mui/material";
 import { Header } from "../../components"; // Certifique-se de que o caminho está correto
-import { auth, db } from "../../data/firebase-config";
+import { dbFokus360, storageFokus360 } from "../../data/firebase-config";
+
+import { authFokus360 } from "../../data/firebase-config";
 import { onAuthStateChanged } from "firebase/auth";
+
 import { doc, getDoc } from "firebase/firestore";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
@@ -38,10 +41,10 @@ const Relatorios = () => {
 
   // Obter o perfil do usuário logado
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(authFokus360 , async (currentUser) => {
       if (currentUser) {
         try {
-          const docRef = doc(db, "user", currentUser.uid);
+          const docRef = doc(dbFokus360, "user", currentUser.uid);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             const role = docSnap.data().role;

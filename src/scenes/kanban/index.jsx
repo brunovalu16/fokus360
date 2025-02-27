@@ -4,7 +4,9 @@ import DeleteForeverSharpIcon from '@mui/icons-material/DeleteForeverSharp';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
 import { Header } from "../../components";
-import { db } from "../../data/firebase-config";
+import { dbFokus360, storageFokus360 } from "../../data/firebase-config";
+
+import { authFokus360 } from "../../data/firebase-config";
 import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
 
 const Kanban = () => {
@@ -27,7 +29,7 @@ const Kanban = () => {
     prioridade: "medium",
   });
 
-  const kanbanCollection = collection(db, "kanbanCards");
+  const kanbanCollection = collection(dbFokus360, "kanbanCards");
 
   useEffect(() => {
     const fetchCards = async () => {
@@ -76,7 +78,7 @@ const Kanban = () => {
 
   const handleDeleteCard = async (cardId, columnId) => {
     try {
-      await deleteDoc(doc(db, "kanbanCards", cardId));
+      await deleteDoc(doc(dbFokus360, "kanbanCards", cardId));
       const updatedColumns = columns.map((column) =>
         column.id === columnId
           ? { ...column, cards: column.cards.filter((card) => card.id !== cardId) }
@@ -98,7 +100,7 @@ const Kanban = () => {
     const { card, columnId: sourceColumnId } = draggingCard;
 
     try {
-      const cardDocRef = doc(db, "kanbanCards", card.id);
+      const cardDocRef = doc(dbFokus360, "kanbanCards", card.id);
       await updateDoc(cardDocRef, { columnId: targetColumnId });
 
       const updatedColumns = columns.map((column) => {

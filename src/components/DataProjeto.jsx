@@ -26,7 +26,8 @@ import Header from "../components/Header";
 
 // Firestore
 import { getFirestore, getDocs, collection, doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "../data/firebase-config"; // Atualize o caminho conforme necessário
+import { dbFokus360  } from "../data/firebase-config";
+
 import BaseDiretriz2 from "./BaseDiretriz2";
 import DadosProjeto from "../components/DadosProjeto";
 
@@ -119,7 +120,7 @@ function DataProjeto() {
 // 🔹 Função para buscar o ID do projeto
 const fetchProjectId = async () => {
   try {
-    const docRef = doc(db, "projetos", "seuDocumentoID"); // Altere "seuDocumentoID" para um ID válido
+    const docRef = doc(dbFokus360, "projetos", "seuDocumentoID"); // Altere "seuDocumentoID" para um ID válido
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       setProjectId(docSnap.id);
@@ -151,7 +152,7 @@ useEffect(() => {
 
     const fetchProjectData = async () => {
       try {
-        const docRef = doc(db, "projetos", projectId);
+        const docRef = doc(dbFokus360, "projetos", projectId);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
@@ -402,7 +403,7 @@ useEffect(() => {
         }));
   
         // Agora atualiza o Firestore com os dados mais recentes
-        const docRef = doc(db, "projetos", projectId);
+        const docRef = doc(dbFokus360, "projetos", projectId);
         updateDoc(docRef, {
           nome: nomeProjeto || "",
           dataInicio: dataInicio || "",

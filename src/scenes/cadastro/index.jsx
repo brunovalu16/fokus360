@@ -5,7 +5,11 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
-import { auth, db, storage } from "../../data/firebase-config";
+
+import { dbFokus360, storageFokus360 } from "../../data/firebase-config";
+
+import { authFokus360 } from "../../data/firebase-config";
+
 import { doc, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
@@ -49,7 +53,7 @@ const Cadastro = () => {
   const handleCadastro = async (e) => {
     e.preventDefault();
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(authFokus360, email, password);
       await sendEmailVerification(userCredential.user);
 
       let photoURL = "";

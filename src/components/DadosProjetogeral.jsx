@@ -4,7 +4,8 @@ import { Accordion, AccordionSummary, AccordionDetails, Button, Box, useMediaQue
 import { tokens } from "../theme";
 import PaidIcon from "@mui/icons-material/Paid";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
-import { db } from "../data/firebase-config"; // Atualize o caminho conforme necessário
+import { dbFokus360 as db } from "../data/firebase-config";
+
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 import Lista from "../components/Lista";

@@ -4,8 +4,10 @@ import { MenuOutlined, NotificationsOutlined, PersonOutlined, SearchOutlined, Se
 import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import { ToggledContext } from "../../../App";
-import { auth, db } from "../../../data/firebase-config";
+import { authFokus360, dbFokus360 as db } from "../../../data/firebase-config";
+
 import { onAuthStateChanged, signOut } from "firebase/auth";
+
 import { doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import colibri from "../../../assets/images/colibri.png";
@@ -32,7 +34,8 @@ const Navbar = () => {
 
    // esconde o botão do usuário logado
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(authFokus360, async (currentUser) => {
+
       if (currentUser) {
         try {
           const docRef = doc(db, 'user', currentUser.uid);
@@ -57,7 +60,7 @@ const Navbar = () => {
 
 // pega os dados do usuário logado
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(authFokus360, async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
 
@@ -83,7 +86,7 @@ const Navbar = () => {
 
 //FUNÇÃO PARA BUSCAR A FOTO DO USUÁRIO NO BANCO
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(authFokus360, async (currentUser) => {
       if (currentUser) {
         try {
           const docRef = doc(db, "user", currentUser.uid);

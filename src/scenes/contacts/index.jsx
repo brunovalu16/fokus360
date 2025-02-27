@@ -7,8 +7,11 @@ import { GridToolbarContainer, GridToolbarExport, GridToolbarFilterButton, GridT
 import { useNavigate } from "react-router-dom";
 import DeleteForeverSharpIcon from "@mui/icons-material/DeleteForeverSharp";
 import PermContactCalendarIcon from '@mui/icons-material/PermContactCalendar';
-import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
-import { db } from "../../data/firebase-config"; // Certifique-se de importar o Firestore configurado
+import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
+
+import { dbFokus360 } from "../../data/firebase-config"; // ✅ Certifique-se de que o caminho está correto
+
+
 import EditIcon from "@mui/icons-material/Edit";
 import Avatar from "@mui/material/Avatar";
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
@@ -94,28 +97,44 @@ const Contacts = () => {
   
 
   // Função para buscar os usuários no Firestore
-const fetchUsers = async () => {
-  try {
-    const querySnapshot = await getDocs(collection(db, "user")); // Nome da coleção no Firestore
-    const userList = querySnapshot.docs.map((doc) => ({
-      id: doc.id, // O DataGrid exige que o campo ID seja 'id'
-      ...doc.data(),
-    }));
-    setUsers(userList);
-  } catch (error) {
-    //console.error("Erro ao buscar usuários:", error);
-  }
-};
-
-useEffect(() => {
-  fetchUsers();
-}, []);
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        if (!dbFokus360) {
+          console.error("⚠️ Erro: dbFokus360 não foi inicializado corretamente.");
+          return;
+        }
+  
+        const querySnapshot = await getDocs(collection(dbFokus360, "user")); // Certifique-se do nome correto
+        const userList = querySnapshot.docs.map((doc) => ({
+          id: doc.id, // O DataGrid exige que o campo ID seja 'id'
+          ...doc.data(),
+        }));
+  
+        if (userList.length === 0) {
+          console.warn("⚠️ Nenhum usuário encontrado na coleção 'users'.");
+        }
+  
+        setUsers(userList);
+      } catch (error) {
+        console.error("❌ Erro ao buscar usuários do Firestore:", error.message);
+      }
+    };
+  
+    fetchUsers();
+  }, []);
+  
 
 //lógica de exclusão do documento no Firestore.
 const handleConfirmDelete = async () => {
-  //console.log("UID do usuário para exclusão:", selectedUserId);
+  if (!selectedUserId) {
+    alert("Erro: Nenhum usuário selecionado para exclusão.");
+    return;
+  }
 
   try {
+    console.log(`🛠️ Tentando excluir usuário com UID: ${selectedUserId}`);
+
     const response = await fetch(`${import.meta.env.VITE_DATABASEURL}/delete-user`, {
       method: "POST",
       headers: {
@@ -124,23 +143,37 @@ const handleConfirmDelete = async () => {
       body: JSON.stringify({ uid: selectedUserId }),
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-      throw new Error(data.message || "Erro ao excluir usuário.");
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Erro ao excluir usuário via API.");
     }
 
-    // Atualizar a lista local de usuários
+    // Atualizar a lista local de usuários após a exclusão bem-sucedida
     setUsers((prevUsers) => prevUsers.filter((user) => user.id !== selectedUserId));
 
-    alert(data.message);
-  } catch (error) {
-    console.error("Erro ao excluir usuário:", error.message);
-    alert(`Erro ao excluir usuário: ${error.message}`);
+    alert("Usuário excluído com sucesso!");
+  } catch (apiError) {
+    console.error("❌ Erro ao excluir usuário via API:", apiError.message);
+    alert(`Erro ao excluir usuário: ${apiError.message}`);
+
+    // 🛠️ Tentativa alternativa: excluir diretamente do Firestore caso a API falhe
+    try {
+      console.log("🔄 Tentando excluir usuário diretamente do Firestore...");
+      await deleteDoc(doc(db, "users", selectedUserId));
+
+      // Atualizar a lista local de usuários
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== selectedUserId));
+
+      alert("Usuário excluído diretamente do banco de dados.");
+    } catch (firestoreError) {
+      console.error("❌ Falha ao excluir usuário do Firestore:", firestoreError.message);
+      alert("Erro ao excluir usuário do Firestore. Tente novamente mais tarde.");
+    }
   }
 
   handleCloseModal();
 };
+
 
 
 

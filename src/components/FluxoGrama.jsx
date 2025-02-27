@@ -7,7 +7,7 @@ import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import PrintIcon from "@mui/icons-material/Print";
 import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "../data/firebase-config"; // Certifique-se de importar corretamente
+import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para Fokus360
 import DadosProjeto from "./DadosProjeto";
 
 

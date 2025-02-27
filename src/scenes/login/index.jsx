@@ -14,8 +14,11 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
 } from "firebase/auth";
+
 import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "../../data/firebase-config";
+import { authFokus360, dbFokus360 as db } from "../../data/firebase-config"; // ✅ Removido appFokus360
+
+
 import CloseIcon from "@mui/icons-material/Close";
 import WarningIcon from "@mui/icons-material/Warning";
 import background from "../../assets/images/backlogin2.webp";
@@ -54,7 +57,7 @@ const Login = () => {
   
     try {
       const userCredential = await signInWithEmailAndPassword(
-        auth,
+        authFokus360,
         email,
         password
       );
@@ -63,7 +66,7 @@ const Login = () => {
       // Verificar se o e-mail foi confirmado
       if (!user.emailVerified) {
         window.alert("Por favor, verifique seu e-mail antes de fazer login.");
-        await auth.signOut(); // Desconecta o usuário
+        await authFokus360.signOut(); // Desconecta o usuário
         return;
       }
   
@@ -93,6 +96,7 @@ const Login = () => {
       } else if (error.code === "auth/invalid-email") {
         errorMessage = "Email inválido. Por favor, insira um email válido.";
       }
+      
   
       setAlert({
         open: true,
@@ -116,7 +120,7 @@ const Login = () => {
   
     try {
       console.log("Enviando e-mail para:", resetEmail);
-      await sendPasswordResetEmail(auth, resetEmail);
+      await sendPasswordResetEmail(authFokus360, resetEmail);
       console.log("E-mail enviado com sucesso!");
       setAlertReset({
         open: true,

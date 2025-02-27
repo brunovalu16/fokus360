@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, IconButton, Checkbox, FormControlLabel } from "@mui/material";
 import { DataGrid, GridToolbarContainer, GridToolbarExport, GridToolbarFilterButton, GridToolbarColumnsButton } from "@mui/x-data-grid";
-import { db } from "../data/firebase-config"; // Atualize o caminho conforme necessário
 import Alert from '@mui/material/Alert';
 import DeleteForeverSharpIcon from "@mui/icons-material/DeleteForeverSharp";
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
@@ -12,6 +11,8 @@ import { Link } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import { getDocs, getDoc, collection, deleteDoc, doc } from "firebase/firestore";
 import { Margin } from "@mui/icons-material";
+import { dbFokus360 as db } from "../data/firebase-config";
+
 
 
 // Tradução dos textos da Toolbar e rodapé

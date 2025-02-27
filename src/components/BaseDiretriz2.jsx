@@ -21,7 +21,8 @@ import ArrowDropDownCircleIcon from '@mui/icons-material/ArrowDropDownCircle';
 import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { doc, updateDoc, getDoc, getDocs, getFirestore, collection, arrayUnion  } from "firebase/firestore";
-import { db } from "../data/firebase-config";
+import { dbFokus360 } from "../data/firebase-config"; // Para Fokus360
+
 
 
 
@@ -97,7 +98,8 @@ useEffect(() => {
 
   const fetchDiretrizes = async () => {
     try {
-      const docRef = doc(db, "projetos", projectId);
+      const docRef = doc(dbFokus360, "projetos", projectId);
+
       const docSnap = await getDoc(docRef);
   
       if (docSnap.exists()) {

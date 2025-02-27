@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, Typography, TextField, IconButton, MenuItem } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { db, storage, auth } from "../data/firebase-config";
+import { storageFokus360 } from "../data/firebase-config"; // ✅ Usa a instância correta
+
+
+import { dbFokus360,  authFokus360 } from "../data/firebase-config";
+
+
+
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { addDoc, collection, Timestamp, getDoc, query, where } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
@@ -28,17 +34,15 @@ const Modal = ({ open, onClose, onFileUploaded }) => {
 
   // Obter o nome do usuário autenticado ao montar o componente
   useEffect(() => {
-    // verfifica o estado do user logado e passa para o fechuser
-    const unsubscribe = onAuthStateChanged(auth, async(user) => {
-        if (user) {
-          
-          setUserName(user.displayName || user.email || "Usuário Anônimo");
-        }
-
+    const unsubscribe = onAuthStateChanged(authFokus360, (user) => { // ✅ Agora usa authFokus360 corretamente
+      if (user) {
+        setUserName(user.displayName || user.email || "Usuário Anônimo");
+      }
+    });
+  
     return () => unsubscribe();
-  });
-
   }, []);
+  
   
   
 
@@ -52,7 +56,8 @@ const Modal = ({ open, onClose, onFileUploaded }) => {
     setIsLoading(true);
     try {
       // Upload do arquivo no Firebase Storage
-      const storageRef = ref(storage, `arquivos/${file.name}`);
+      const storageRef = ref(storageFokus360, `arquivos/${file.name}`); // ✅ Agora usa storageFokus360 corretamente
+
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
 
@@ -67,7 +72,8 @@ const Modal = ({ open, onClose, onFileUploaded }) => {
       };
 
       // Adicionar o arquivo ao Firestore
-      await addDoc(collection(db, "arquivos"), newFile);
+      await addDoc(collection(dbFokus360, "arquivos"), newFile); // ✅ Agora usa dbFokus360 corretamente
+
 
       // Notificar o componente pai
       if (onFileUploaded) {

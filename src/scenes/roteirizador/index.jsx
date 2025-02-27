@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import capaSistema from "../../assets/images/capasistema360.webp"; // Importação dinâmica
 import capagpstracker from "../../assets/images/capagpstracker.webp"; 
 import { getDocs, getDoc, doc, collection } from "firebase/firestore";
-import { db } from "../../data/firebase-config";
+import { dbFokus360  } from "../../data/firebase-config";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import IconButton from '@mui/material/IconButton';
 import Collapse from '@mui/material/Collapse';
@@ -30,7 +30,7 @@ const checkUserAssociation = async () => {
   }
 
   try {
-    const projetosSnapshot = await getDocs(collection(db, "projetos"));
+    const projetosSnapshot = await getDocs(collection(dbFokus360 , "projetos"));
     let associated = false;
 
     for (let docSnap of projetosSnapshot.docs) {
@@ -79,7 +79,7 @@ const checkUserAssociation = async () => {
     const userEmail = user.email;
     //console.log("E-mail do usuário logado:", userEmail);
 
-    const projetosSnapshot = await getDocs(collection(db, "projetos"));
+    const projetosSnapshot = await getDocs(collection(dbFokus360 , "projetos"));
 
     for (let docSnap of projetosSnapshot.docs) {
       const data = docSnap.data();
@@ -102,7 +102,7 @@ const checkUserAssociation = async () => {
     if (!userId) return;
   
     try {
-      const userDoc = await getDoc(doc(db, "user", userId));
+      const userDoc = await getDoc(doc(dbFokus360 , "user", userId));
   
       if (userDoc.exists()) {
         const userData = userDoc.data();

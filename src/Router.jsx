@@ -25,6 +25,7 @@ import DataProjeto from "./components/DataProjeto";
 import UserDetalhe from "./components/UserDetalhe";
 import FluxoGrama from "./components/FluxoGrama";
 import Listafluxograma from "./scenes/Listafluxograma";
+import Roteirizacao from "./scenes/roteirizacao";
 import {
   Team,
   Invoices,
@@ -65,6 +66,7 @@ const router = createBrowserRouter(
         { path: "/listaprojetos", element: <PrivateRoute><ListaProjetos /></PrivateRoute> },
         { path: "/projetos", element: <PrivateRoute><Projetos /></PrivateRoute> },
         { path: "/relatorios", element: <PrivateRoute><Relatorios /></PrivateRoute> },
+        { path: "/roteirizacao", element: <PrivateRoute><Roteirizacao /></PrivateRoute> },
         { path: "/arquivos", element: <PrivateRoute><Arquivos /></PrivateRoute> },
         { path: "/kanban", element: <PrivateRoute><Kanban /></PrivateRoute> },
         { path: "/team", element: <PrivateRoute><Team /></PrivateRoute> },

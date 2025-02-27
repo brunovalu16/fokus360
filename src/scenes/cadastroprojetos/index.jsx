@@ -20,7 +20,9 @@ import BaseDiretriz from "../../components/BaseDiretriz";
 import InformacoesProjeto from "../../components/InformacoesProjeto";
 
 // IMPORTS DO FIREBASE
-import { getFirestore, collection, doc, setDoc } from "firebase/firestore";
+import { dbFokus360 } from "../../data/firebase-config"; // ✅ Usa a instância correta
+import { collection, doc, setDoc } from "firebase/firestore";
+
 
 const CadastroProjetos = () => {
   const [mensagem, setMensagem] = useState(false);
@@ -109,68 +111,73 @@ const CadastroProjetos = () => {
 
 
 
-const handleAdicionarProjeto = async () => {
-  try {
-    //console.log("📌 Estado final de informacoesProjeto antes de salvar:", JSON.stringify(informacoesProjeto, null, 2));
 
-    const db = getFirestore();
-
-    const projetoData = {
-      nome: informacoesProjeto.nome,
-      descricao: informacoesProjeto.descricao,
-      dataInicio: informacoesProjeto.dataInicio,
-      prazoPrevisto: informacoesProjeto.prazoPrevisto,
-      unidade: informacoesProjeto.unidade,
-      solicitante: informacoesProjeto.solicitante,
-      solicitanteEmail: informacoesProjeto.solicitanteEmail,
-      categoria: informacoesProjeto.categoria,
-      colaboradores: informacoesProjeto.colaboradores,
-      orcamento: informacoesProjeto.orcamento,
-      createdAt: new Date(),
-
-      diretrizes: (informacoesProjeto.estrategicas || []).map((estrategica) => ({
-        id: estrategica.id || Date.now(),
-        titulo: estrategica.titulo,
-        descricao: estrategica.descricao,
-        taticas: (estrategica.taticas || []).map((tatica) => ({
-          id: tatica.id || Date.now(),
-          titulo: tatica.titulo,
-          descricao: tatica.descricao,
-          operacionais: (tatica.operacionais || []).map((operacional) => ({
-            id: operacional.id || Date.now(),
-            titulo: operacional.titulo,
-            descricao: operacional.descricao,
-            tarefas: (operacional.tarefas || []).map((tarefa) => ({
-              id: tarefa.id || Date.now(),
-              tituloTarefa: tarefa.tituloTarefa,
-              planoDeAcao: {
-                oQue: tarefa.planoDeAcao.oQue || "",
-                porQue: tarefa.planoDeAcao.porQue || "",
-                quem: tarefa.planoDeAcao.quem || [],
-                quando: tarefa.planoDeAcao.quando || "",
-                onde: tarefa.planoDeAcao.onde || "",
-                como: tarefa.planoDeAcao.como || "",
-                valor: tarefa.planoDeAcao.valor || "",
-              }
-            }))
-          }))
-        }))
-      })),
-    };
-
-    const projetoRef = doc(collection(db, "projetos"));
-    await setDoc(projetoRef, projetoData);
-
-    setShowAlert(true);
-
-    setMensagem(true);
-    console.log(mensagem);
-
-  } catch (error) {
-    console.error("Erro ao adicionar projeto:", error.message);
-  }
-};
-
+  
+  const handleAdicionarProjeto = async () => {
+    try {
+      // Verifica se os dados essenciais estão preenchidos
+      if (!informacoesProjeto.nome.trim()) {
+        alert("O nome do projeto é obrigatório!");
+        return;
+      }
+  
+      const projetoData = {
+        nome: informacoesProjeto.nome,
+        descricao: informacoesProjeto.descricao,
+        dataInicio: informacoesProjeto.dataInicio,
+        prazoPrevisto: informacoesProjeto.prazoPrevisto,
+        unidade: informacoesProjeto.unidade,
+        solicitante: informacoesProjeto.solicitante,
+        solicitanteEmail: informacoesProjeto.solicitanteEmail,
+        categoria: informacoesProjeto.categoria,
+        colaboradores: informacoesProjeto.colaboradores,
+        orcamento: informacoesProjeto.orcamento,
+        createdAt: new Date(),
+  
+        diretrizes: (informacoesProjeto.estrategicas || []).map((estrategica) => ({
+          id: estrategica.id?.toString() || Date.now().toString(),
+          titulo: estrategica.titulo || "",
+          descricao: estrategica.descricao || "",
+          taticas: (estrategica.taticas || []).map((tatica) => ({
+            id: tatica.id?.toString() || Date.now().toString(),
+            titulo: tatica.titulo || "",
+            descricao: tatica.descricao || "",
+            operacionais: (tatica.operacionais || []).map((operacional) => ({
+              id: operacional.id?.toString() || Date.now().toString(),
+              titulo: operacional.titulo || "",
+              descricao: operacional.descricao || "",
+              tarefas: (operacional.tarefas || []).map((tarefa) => ({
+                id: tarefa.id?.toString() || Date.now().toString(),
+                tituloTarefa: tarefa.tituloTarefa || "",
+                planoDeAcao: {
+                  oQue: tarefa.planoDeAcao?.oQue || "",
+                  porQue: tarefa.planoDeAcao?.porQue || "",
+                  quem: tarefa.planoDeAcao?.quem || [],
+                  quando: tarefa.planoDeAcao?.quando || "",
+                  onde: tarefa.planoDeAcao?.onde || "",
+                  como: tarefa.planoDeAcao?.como || "",
+                  valor: tarefa.planoDeAcao?.valor || "",
+                },
+              })),
+            })),
+          })),
+        })),
+      };
+  
+      // Cria uma referência para um novo documento na coleção "projetos"
+      const projetoRef = doc(collection(dbFokus360, "projetos"));
+      await setDoc(projetoRef, projetoData);
+  
+      setShowAlert(true); // Mostra alerta de sucesso
+      setMensagem(true);
+      console.log("✅ Projeto adicionado com sucesso!");
+  
+    } catch (error) {
+      console.error("❌ Erro ao adicionar projeto:", error.message);
+      alert("Erro ao adicionar projeto. Tente novamente.");
+    }
+  };
+  
 
 
   return (

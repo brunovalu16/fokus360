@@ -20,7 +20,7 @@ import ArrowDropDownCircleIcon from '@mui/icons-material/ArrowDropDownCircle';
 import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { doc, updateDoc, getFirestore, collection, getDocs } from "firebase/firestore";
-import { db } from "../data/firebase-config";
+import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para Fokus360
 
 // Seu componente de tarefas (5W2H)
 import DiretrizData from "./DiretrizData";
@@ -78,23 +78,23 @@ const BaseDiretriz = ({ projectId, estrategicas: propEstrategicas, onUpdate, Lim
   
   
      // 🔹 Carregar usuários do Firebase
-useEffect(() => {
-  const fetchUsers = async () => {
-    try {
-      const db = getFirestore();  // 🔥 Agora está definido corretamente
-      const querySnapshot = await getDocs(collection(db, "user"));
-      const usersList = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        username: doc.data().username,
-      }));
-      setUsers(usersList);
-    } catch (error) {
-      console.error("Erro ao buscar usuários:", error);
-    }
-  };
-
-  fetchUsers();
-}, []);
+     useEffect(() => {
+      const fetchUsers = async () => {
+        try {
+          const querySnapshot = await getDocs(collection(db, "user")); // ✅ Usa `db` diretamente
+          const usersList = querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            username: doc.data().username,
+          }));
+          setUsers(usersList);
+        } catch (error) {
+          console.error("Erro ao buscar usuários:", error);
+        }
+      };
+    
+      fetchUsers();
+    }, []);
+    
 
 
 useEffect(() => {
@@ -102,7 +102,7 @@ useEffect(() => {
 
   const fetchData = async () => {
     try {
-      const docRef = doc(db, "projetos", projectId);
+      const docRef = doc(dbFokus360, "projetos", projectId);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data() || {};
@@ -432,7 +432,7 @@ const saveEstrategicas = async (projectId, novoArray) => {
   }
 
   try {
-    const docRef = doc(db, "projetos", projectId);
+    const docRef = doc(dbFokus360, "projetos", projectId);
     await updateDoc(docRef, { estrategicas: novoArray });
     console.log("✅ Estratégicas atualizadas no Firestore!");
   } catch (err) {

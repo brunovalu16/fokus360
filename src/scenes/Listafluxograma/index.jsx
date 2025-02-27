@@ -3,7 +3,8 @@ import { Box, Typography, TextField } from "@mui/material";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import FluxoGrama from "../../components/FluxoGrama";
 import { getDocs, collection } from "firebase/firestore";
-import { db } from "../../data/firebase-config";
+import { dbFokus360 } from "../../data/firebase-config";
+
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import { InputAdornment } from "@mui/material";
 
@@ -17,7 +18,8 @@ const Listafluxograma = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "projetos"));
+        const querySnapshot = await getDocs(collection(dbFokus360, "projetos")); // Em vez de db
+
         const projectsData = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),

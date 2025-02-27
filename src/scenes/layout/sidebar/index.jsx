@@ -11,13 +11,15 @@ import {
   AssignmentTurnedIn as AssignmentTurnedInIcon,
   PowerSettingsNew as LogoutIcon,
 } from "@mui/icons-material";
-import { signOut } from "firebase/auth";
+
 import { useNavigate, Link } from "react-router-dom";
 import logo from "../../../assets/images/icone_logo.png";
 import { tokens } from "../../../theme";
-import { auth, db } from "../../../data/firebase-config";
+import { authFokus360, dbFokus360 as db } from "../../../data/firebase-config";
+
 import { ToggledContext } from "../../../App";
-import { onAuthStateChanged } from "firebase/auth";
+import { signOut, onAuthStateChanged } from "firebase/auth";
+
 import { doc, getDoc } from "firebase/firestore";
 import icon_logo from "../../../assets/images/icon_logo.png";
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -37,7 +39,7 @@ const SideBar = () => {
 
    // Obter o perfil do usuário logado
    useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(authFokus360, async (currentUser) => {
       if (currentUser) {
         try {
           const docRef = doc(db, "user", currentUser.uid);
@@ -67,7 +69,7 @@ const SideBar = () => {
   const handleLogout = async () => {
     try {
       // Realiza o logout no Firebase
-      await signOut(auth);
+      await signOut(authFokus360);
   
       // Remove o estado de autenticação armazenado
       localStorage.removeItem("token");
@@ -192,7 +194,7 @@ const SideBar = () => {
           <MenuItem component={<Link to="/projetos" />} icon={<PieChartIcon />}>
             Projetos
           </MenuItem>
-          <MenuItem component={<Link to="/roteirizador" />} icon={<LocationOnIcon sx={{ fontSize: 28 }} />}>
+          <MenuItem component={<Link to="/roteirizacao" />} icon={<LocationOnIcon sx={{ fontSize: 28 }} />}>
             Monitoramento
           </MenuItem>
 

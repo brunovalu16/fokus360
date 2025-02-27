@@ -10,7 +10,12 @@ import {
   AccordionDetails,
   Button,
 } from "@mui/material";
-import { getFirestore, getDocs, collection, addDoc } from "firebase/firestore";
+import { dbFokus360 } from "../data/firebase-config"; // ✅ Usa a instância correta
+import { getDocs, collection, addDoc } from "firebase/firestore";
+import { getApps } from "firebase/app";
+console.log("Apps Inicializados:", getApps()); // ✅ Deve exibir os apps carregados
+
+
 
 /**
  *  InformacoesProjeto
@@ -43,8 +48,9 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const db = getFirestore();
-        const querySnapshot = await getDocs(collection(db, "user"));
+        
+        const querySnapshot = await getDocs(collection(dbFokus360, "user")); // ✅ Agora está correto
+
         const usersList = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           username: doc.data().username,
@@ -138,8 +144,8 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
       };
 
       // Salva no Firestore
-      const db = getFirestore();
-      await addDoc(collection(db, "projetos"), projetoFormatado);
+      await addDoc(collection(dbFokus360, "projetos"), projetoFormatado); // ✅ Usa a instância correta
+
 
       alert("Projeto salvo com sucesso!");
       setFormValues({
