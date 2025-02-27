@@ -21,7 +21,8 @@ import ArrowDropDownCircleIcon from '@mui/icons-material/ArrowDropDownCircle';
 import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { doc, updateDoc, getDoc, getDocs, getFirestore, collection, arrayUnion  } from "firebase/firestore";
-import { dbFokus360 } from "../data/firebase-config"; // Para Fokus360
+import { dbFokus360 } from "../data/firebase-config"; 
+
 
 
 
@@ -70,23 +71,30 @@ const BaseDiretriz2 = ({ projectId, onDiretrizesUpdate  }) => {
   
   
      // 🔹 Carregar usuários do Firebase
-useEffect(() => {
-  const fetchUsers = async () => {
-    try {
-      const db = getFirestore();  // 🔥 Agora está definido corretamente
-      const querySnapshot = await getDocs(collection(db, "user"));
-      const usersList = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        username: doc.data().username,
-      }));
-      setUsers(usersList);
-    } catch (error) {
-      console.error("Erro ao buscar usuários:", error);
-    }
-  };
-
-  fetchUsers();
-}, []);
+     useEffect(() => {
+      const fetchUsers = async () => {
+        try {
+          console.log("🔍 Buscando usuários...");
+          const querySnapshot = await getDocs(collection(db, "user")); // 🔹 Tente mudar "user" para "users"
+          if (querySnapshot.empty) {
+            console.warn("⚠️ Nenhum usuário encontrado no Firestore!");
+          }
+    
+          const usersList = querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            username: doc.data().username,
+          }));
+    
+          console.log("✅ Usuários carregados:", usersList);
+          setUsers(usersList);
+        } catch (error) {
+          console.error("❌ Erro ao buscar usuários:", error);
+        }
+      };
+    
+      fetchUsers();
+    }, []);
+    
 
 
 //Busca os dados do Firestore ao carregar
@@ -592,27 +600,24 @@ const calcularProgressoOperacional = (operacional) => {
 
 
 function calcularProgressoTatica(tatica) {
-  // Em vez de filtrar e pular, considere todos os operacionais
   const { operacionais = [] } = tatica;
-  if (operacionais.length === 0) return 0; // sem operacionais => 0%
+  if (operacionais.length === 0) return 0; // Se não há operacionais, progresso é 0%
 
-  let somaPorcentagens = 0;
-  for (const op of operacionais) {
-    // Se op tiver 0 tarefas, progresso = 0
-    // Se op tiver X tarefas concluídas, calcule
-    if (!op.tarefas || op.tarefas.length === 0) {
-      somaPorcentagens += 0;
-    } else {
-      // Calcule a % baseada nas tarefas
-      const total = op.tarefas.length;
-      const concluidas = op.tarefas.filter((t) => t.checkboxState?.concluida).length;
-      somaPorcentagens += (concluidas / total) * 100; 
+  let somaProgresso = 0;
+  let totalOperacionais = 0;
+
+  for (const operacional of operacionais) {
+    if (operacional.tarefas && operacional.tarefas.length > 0) {
+      somaProgresso += calcularProgressoOperacional(operacional);
+      totalOperacionais++;
     }
   }
 
-  // progresso médio
-  return Math.round(somaPorcentagens / operacionais.length);
+  if (totalOperacionais === 0) return 0; // Se nenhuma operacional tiver tarefas, progresso é 0%
+
+  return Math.round(somaProgresso / totalOperacionais);
 }
+
 
 
 
@@ -637,27 +642,23 @@ const StatusProgresso = ({ progresso }) => { //  Componente funcional simples
   );
 };
 
-const calcularProgressoEstrategica = ({ taticas }) => { // Recebe as táticas como argumento
-  if (!taticas || taticas.length === 0) {
-      return 0; // Se não houver táticas, não exibe nada
+const calcularProgressoEstrategica = ({ taticas = [] }) => {
+  if (!taticas.length) return 0; // Se não houver táticas, progresso é 0%
+
+  let totalProgresso = 0;
+  let totalTaticas = 0;
+
+  for (const tatica of taticas) {
+    // Se a tática tem operacionais e pelo menos uma delas tem tarefas, calcula o progresso
+    if (tatica.operacionais && tatica.operacionais.some(op => op.tarefas && op.tarefas.length > 0)) {
+      totalProgresso += calcularProgressoTatica(tatica);
+      totalTaticas++;
+    }
   }
 
-    // Filtrar apenas as táticas que possuem progresso válido
-    const taticasComProgresso = taticas.filter(
-      (tatica) => tatica.operacionais && tatica.operacionais.some(op => op.tarefas && op.tarefas.length > 0)
-    );
-
-    if (taticasComProgresso.length === 0) {
-      return 0; // Se nenhuma tática tiver progresso válido, não exibe o progresso da Estratégica
-  }
-
-  // Soma os progressos das táticas válidas e calcula a média
-  const progressoTotal = taticasComProgresso.reduce(
-      (acc, tatica) => acc + calcularProgressoTatica(tatica),
-      0
-  );
-  const progressoMedio = Math.round(progressoTotal / taticasComProgresso.length);
-  return progressoMedio;
+  if (totalTaticas === 0) return 0; // Se nenhuma tática válida, progresso é 0%
+  
+  return Math.round(totalProgresso / totalTaticas);
 };
 
 
@@ -763,21 +764,14 @@ const StatusProgressoEstrategica = ({ taticas }) => {
     return null; // Se não houver táticas, não exibe nada
   }
 
-  // Filtrar apenas as táticas que possuem progresso válido
-  const taticasComProgresso = taticas.filter(
-    (tatica) => tatica.operacionais && tatica.operacionais.some(op => op.tarefas && op.tarefas.length > 0)
-  );
+  // ✅ Chamar a função corretamente
+  const progressoMedio = calcularProgressoEstrategica({ taticas });
 
-  if (taticasComProgresso.length === 0) {
-    return null; // Se nenhuma tática tiver progresso válido, não exibe o progresso da Estratégica
-  }
+  console.log("📊 Progresso Estratégico:", calcularProgressoEstrategica({ taticas }));
 
-  // Soma os progressos das táticas válidas e calcula a média
-  const progressoTotal = taticasComProgresso.reduce(
-    (acc, tatica) => acc + calcularProgressoTatica(tatica), 
-    0
-  );
-  const progressoMedio = Math.round(progressoTotal / taticasComProgresso.length); // Calcula a média apenas das táticas com progresso válido
+  console.log("🔎 Táticas da Estratégica:", taticas);
+
+
 
   let color;
   let statusText;
@@ -811,6 +805,7 @@ const StatusProgressoEstrategica = ({ taticas }) => {
     </Box>
   );
 };
+
 
 
 
@@ -935,7 +930,8 @@ const StatusProgressoEstrategica = ({ taticas }) => {
             </Box>
 
              {/* 🔥 Adicionando o progresso da Diretriz Estratégica apenas se houver táticas com progresso */}
-             <StatusProgressoEstrategica taticas={estrategica.taticas} />
+             <StatusProgressoEstrategica taticas={estrategica.taticas || []} />
+
 
 
 

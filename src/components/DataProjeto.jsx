@@ -311,7 +311,8 @@ useEffect(() => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const db = getFirestore();
+        const db = dbFokus360; // Usa a instância correta do Firestore
+
         const querySnapshot = await getDocs(collection(db, "user"));
         const usersList = querySnapshot.docs.map((doc) => ({
           id: doc.id,
