@@ -135,7 +135,7 @@ const handleConfirmDelete = async () => {
   try {
     console.log(`🛠️ Tentando excluir usuário com UID: ${selectedUserId}`);
 
-    const response = await fetch(`${import.meta.env.VITE_DATABASEURL}/delete-user`, {
+    const response = await fetch(`${import.meta.env.VITE_FOKUS360_DATABASEURL}/delete-user`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -143,15 +143,21 @@ const handleConfirmDelete = async () => {
       body: JSON.stringify({ uid: selectedUserId }),
     });
 
-    if (!response.ok) {
+    if (response.ok) {
+      try {
+        await response.json(); // Tenta parsear o JSON se houver
+      } catch {
+        console.warn("⚠️ API retornou uma resposta sem JSON, mas foi bem-sucedida.");
+      }
+
+      // Atualizar a lista local de usuários após a exclusão bem-sucedida
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== selectedUserId));
+
+      alert("Usuário excluído com sucesso!");
+    } else {
       const errorData = await response.json();
       throw new Error(errorData.message || "Erro ao excluir usuário via API.");
     }
-
-    // Atualizar a lista local de usuários após a exclusão bem-sucedida
-    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== selectedUserId));
-
-    alert("Usuário excluído com sucesso!");
   } catch (apiError) {
     console.error("❌ Erro ao excluir usuário via API:", apiError.message);
     alert(`Erro ao excluir usuário: ${apiError.message}`);
@@ -159,7 +165,7 @@ const handleConfirmDelete = async () => {
     // 🛠️ Tentativa alternativa: excluir diretamente do Firestore caso a API falhe
     try {
       console.log("🔄 Tentando excluir usuário diretamente do Firestore...");
-      await deleteDoc(doc(db, "users", selectedUserId));
+      await deleteDoc(doc(dbFokus360, "user", selectedUserId)); // 🔹 Usando dbFokus360 corretamente
 
       // Atualizar a lista local de usuários
       setUsers((prevUsers) => prevUsers.filter((user) => user.id !== selectedUserId));
@@ -173,6 +179,7 @@ const handleConfirmDelete = async () => {
 
   handleCloseModal();
 };
+
 
 
 
