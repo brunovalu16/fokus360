@@ -8,8 +8,10 @@ import { useNavigate } from "react-router-dom";
 import DeleteForeverSharpIcon from "@mui/icons-material/DeleteForeverSharp";
 import PermContactCalendarIcon from '@mui/icons-material/PermContactCalendar';
 import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
+import { getAuth, deleteUser } from "firebase/auth";
+import { dbFokus360, authFokus360 } from "../../data/firebase-config";
 
-import { dbFokus360 } from "../../data/firebase-config"; // ✅ Certifique-se de que o caminho está correto
+
 
 
 import EditIcon from "@mui/icons-material/Edit";
@@ -135,50 +137,61 @@ const handleConfirmDelete = async () => {
   try {
     console.log(`🛠️ Tentando excluir usuário com UID: ${selectedUserId}`);
 
-    const response = await fetch(`${import.meta.env.VITE_FOKUS360_DATABASEURL}/delete-user`, {
+    // 1️⃣ Excluir usuário no Firebase Authentication via API (BACKEND)
+    const response = await fetch(`${import.meta.env.VITE_FOKUS360_DATABASEURL}/delete-user.json`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ uid: selectedUserId }),
     });
 
     if (response.ok) {
       try {
-        await response.json(); // Tenta parsear o JSON se houver
+        if (response.headers.get("content-type")?.includes("application/json")) {
+          await response.json();
+        }
       } catch {
-        console.warn("⚠️ API retornou uma resposta sem JSON, mas foi bem-sucedida.");
+        console.warn("⚠️ API retornou resposta sem JSON, mas foi bem-sucedida.");
       }
 
-      // Atualizar a lista local de usuários após a exclusão bem-sucedida
-      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== selectedUserId));
-
-      alert("Usuário excluído com sucesso!");
+      console.log("✅ Usuário removido do Authentication.");
     } else {
       const errorData = await response.json();
       throw new Error(errorData.message || "Erro ao excluir usuário via API.");
     }
+
+    // 2️⃣ Excluir usuário do Firestore APÓS remover do Authentication
+    console.log("🔄 Tentando excluir usuário do Firestore...");
+    await deleteDoc(doc(dbFokus360, "users", selectedUserId)); // Verifique o nome correto da coleção
+
+    // Atualizar a lista local de usuários
+    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== selectedUserId));
+
+    alert("Usuário excluído com sucesso!");
+
   } catch (apiError) {
     console.error("❌ Erro ao excluir usuário via API:", apiError.message);
     alert(`Erro ao excluir usuário: ${apiError.message}`);
 
-    // 🛠️ Tentativa alternativa: excluir diretamente do Firestore caso a API falhe
+    // 3️⃣ Tentativa de exclusão via Firebase Auth (⚠️ Apenas se for o usuário autenticado)
     try {
-      console.log("🔄 Tentando excluir usuário diretamente do Firestore...");
-      await deleteDoc(doc(dbFokus360, "user", selectedUserId)); // 🔹 Usando dbFokus360 corretamente
+      console.log("🔄 Tentando excluir usuário manualmente no Authentication...");
+      const auth = getAuth(); // Correção: Remova o argumento
+      const user = auth.currentUser;
 
-      // Atualizar a lista local de usuários
-      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== selectedUserId));
-
-      alert("Usuário excluído diretamente do banco de dados.");
-    } catch (firestoreError) {
-      console.error("❌ Falha ao excluir usuário do Firestore:", firestoreError.message);
-      alert("Erro ao excluir usuário do Firestore. Tente novamente mais tarde.");
+      if (user && user.uid === selectedUserId) {
+        await deleteUser(user);
+        console.log("✅ Usuário removido manualmente do Authentication.");
+      } else {
+        console.warn("⚠️ O usuário atual não pode ser excluído desta forma.");
+      }
+    } catch (manualAuthError) {
+      console.error("❌ Erro ao excluir usuário manualmente no Firebase Auth:", manualAuthError.message);
     }
   }
 
   handleCloseModal();
 };
+
 
 
 

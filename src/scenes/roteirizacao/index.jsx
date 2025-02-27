@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { GoogleMap, LoadScript, Marker, Polyline } from "@react-google-maps/api";
 import { dbGpsTracker } from "../../data/firebase-config";
 import { authGpsTracker, storageGpsTracker } from "../../data/firebase-config";
-console.log("Banco de dados do GPS-Tracker:", dbGpsTracker);
+//console.log("Banco de dados do GPS-Tracker:", dbGpsTracker);
 import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { Box, Typography, Select, MenuItem, FormControlLabel, Checkbox } from "@mui/material";
 import { GOOGLE_MAPS_API_KEY } from "../../services/config"; 
