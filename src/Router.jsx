@@ -26,6 +26,7 @@ import UserDetalhe from "./components/UserDetalhe";
 import FluxoGrama from "./components/FluxoGrama";
 import Listafluxograma from "./scenes/Listafluxograma";
 import Roteirizacao from "./scenes/roteirizacao";
+import Monitoramento from "./scenes/monitoramento";
 import {
   Team,
   Invoices,
@@ -40,7 +41,6 @@ import {
   Stream,
 } from "./scenes";
 import PrivateRoute from "./components/PrivateRoute";
-import Roteirizador from "./scenes/roteirizador";
 
 const router = createBrowserRouter(
   [
@@ -56,7 +56,6 @@ const router = createBrowserRouter(
         { path: "/dashboard", element: <PrivateRoute><Dashboard /></PrivateRoute> },
         { path: "/user", element: <PrivateRoute><User /></PrivateRoute> },
         { path: "/painelindustrias", element: <PrivateRoute><PainelIndustrias /></PrivateRoute> },
-        { path: "/roteirizador", element: <PrivateRoute><Roteirizador /></PrivateRoute> },
         { path: "/dashboardprojeto", element: <PrivateRoute><DashboardProjeto /></PrivateRoute> },
         { path: "/vendasdevolucao", element: <PrivateRoute><VendasDevolucao /></PrivateRoute> },
         { path: "/relatoriotrade", element: <PrivateRoute><RelatorioTrade /></PrivateRoute> },
@@ -65,6 +64,7 @@ const router = createBrowserRouter(
         { path: "/diretriz", element: <PrivateRoute><Diretriz /></PrivateRoute> },
         { path: "/listaprojetos", element: <PrivateRoute><ListaProjetos /></PrivateRoute> },
         { path: "/projetos", element: <PrivateRoute><Projetos /></PrivateRoute> },
+        { path: "/monitoramento", element: <PrivateRoute><Monitoramento /></PrivateRoute> },
         { path: "/relatorios", element: <PrivateRoute><Relatorios /></PrivateRoute> },
         { path: "/roteirizacao", element: <PrivateRoute><Roteirizacao /></PrivateRoute> },
         { path: "/arquivos", element: <PrivateRoute><Arquivos /></PrivateRoute> },

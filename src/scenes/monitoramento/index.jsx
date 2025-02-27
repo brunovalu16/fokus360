@@ -2,24 +2,27 @@ import React, { useEffect, useState } from "react";
 import { Box, Typography, Modal, Alert } from "@mui/material";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import { Link } from "react-router-dom";
-import capaSistema from "../../assets/images/capasistema360.webp"; // Importação dinâmica
-import capagpstracker from "../../assets/images/capagpstracker.webp"; 
+import capagpstracker from "../../assets/images/capagpstracker.webp"; // Importação dinâmica
 import { getDocs, getDoc, doc, collection } from "firebase/firestore";
-import { dbFokus360  } from "../../data/firebase-config";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { dbFokus360 } from "../../data/firebase-config"; // Para Fokus360
+
+import { authFokus360 } from "../../data/firebase-config"; // ✅ Removido appFokus360
+
+import { onAuthStateChanged } from "firebase/auth"; // Firebase Auth padrão
+
 import IconButton from '@mui/material/IconButton';
 import Collapse from '@mui/material/Collapse';
 import CloseIcon from '@mui/icons-material/Close';
 import WarningIcon from '@mui/icons-material/Warning';
 
-const Roteirizador = () => {
+const Monitoramento = () => {
   const [isUserAssociated, setIsUserAssociated] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userId, setUserId] = useState(null);
   const [isSolicitanteAssociated, setIsSolicitanteAssociated] = useState(false); // Verificação específica para solicitante
   const [userRole, setUserRole] = useState(null); // Armazena o perfil do usuário
   
-  const auth = getAuth();
+  //const authFokus360 = getAuth(appFokus360 );
 
 // Verifica se o usuário está associado a algum projeto
 const checkUserAssociation = async () => {
@@ -30,7 +33,8 @@ const checkUserAssociation = async () => {
   }
 
   try {
-    const projetosSnapshot = await getDocs(collection(dbFokus360 , "projetos"));
+    const projetosSnapshot = await getDocs(collection(dbFokus360, "projetos")); // Para Fokus360
+
     let associated = false;
 
     for (let docSnap of projetosSnapshot.docs) {
@@ -69,7 +73,7 @@ const checkUserAssociation = async () => {
  // Verifica se o usuário logado é solicitante
  const checkSolicitanteAssociation = async () => {
   try {
-    const user = auth.currentUser;
+    const user = authFokus360.currentUser;
 
     if (!user) {
       //console.log("Nenhum usuário logado.");
@@ -79,7 +83,7 @@ const checkUserAssociation = async () => {
     const userEmail = user.email;
     //console.log("E-mail do usuário logado:", userEmail);
 
-    const projetosSnapshot = await getDocs(collection(dbFokus360 , "projetos"));
+    const projetosSnapshot = await getDocs(collection(db, "projetos"));
 
     for (let docSnap of projetosSnapshot.docs) {
       const data = docSnap.data();
@@ -102,7 +106,7 @@ const checkUserAssociation = async () => {
     if (!userId) return;
   
     try {
-      const userDoc = await getDoc(doc(dbFokus360 , "user", userId));
+      const userDoc = await getDoc(doc(db, "user", userId));
   
       if (userDoc.exists()) {
         const userData = userDoc.data();
@@ -121,7 +125,7 @@ const checkUserAssociation = async () => {
 
   // Verifica a associação do usuário após logar
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(authFokus360, (currentUser) => {
       if (currentUser) {
         //console.log(`Usuário logado: ${currentUser.uid}`);
         setUserId(currentUser.uid);
@@ -231,8 +235,8 @@ const checkUserAssociation = async () => {
         }}
       >
         <Box display="flex" alignItems="center" gap={1}>
-          <PlayCircleFilledIcon sx={{ color: "#e50335", fontSize: 25 }} />
-          <Typography color="#858585">FOKUS 360 | ROTEIRIZADOR</Typography>
+          <PlayCircleFilledIcon sx={{ color: "#e40335", fontSize: 25 }} />
+          <Typography color="#858585">FOKUS 360 | MONITORAMENTO</Typography>
         </Box>
 
         <Box
@@ -263,13 +267,13 @@ const checkUserAssociation = async () => {
           <Box
             sx={{
               position: "absolute",
-              top: "75%", // Posição para "Novo Projeto"
+              top: "75%", // Posição para "Verificar rota"
               left: "10%",
               height: "150px",
             }}
           >
             <Link
-              to="/cadastroprojetos"
+              to="/roteirizacao"
               style={{
                 backgroundColor: "transparent",
                 color: "transparent",
@@ -376,4 +380,4 @@ const checkUserAssociation = async () => {
   );
 };
 
-export default Roteirizador;
+export default Monitoramento;

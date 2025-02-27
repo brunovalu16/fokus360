@@ -194,7 +194,7 @@ const SideBar = () => {
           <MenuItem component={<Link to="/projetos" />} icon={<PieChartIcon />}>
             Projetos
           </MenuItem>
-          <MenuItem component={<Link to="/roteirizacao" />} icon={<LocationOnIcon sx={{ fontSize: 28 }} />}>
+          <MenuItem component={<Link to="/monitoramento" />} icon={<LocationOnIcon sx={{ fontSize: 28 }} />}>
             Monitoramento
           </MenuItem>
 
