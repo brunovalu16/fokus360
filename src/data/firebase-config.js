@@ -14,6 +14,7 @@ const firebaseConfigFokus360 = {
   storageBucket: import.meta.env.VITE_FOKUS360_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FOKUS360_MESSAGINGSENDERID,
   appId: import.meta.env.VITE_FOKUS360_APPID,
+  databaseURL:import.meta.env.VITE_FOKUS360_DATABASEURL
 };
 
 // 🔹 Configuração do Firebase do GPS-Tracker
