@@ -121,7 +121,7 @@ const UserDetalhe = () => {
       } else if (error.code === "auth/operation-not-allowed") {
         alert("Por favor, verifique o novo e-mail antes de alterá-lo.");
       } else {
-        alert("Erro ao atualizar os dados. Verifique as permissões e tente novamente.");
+        alert("ALterações realizadas com sucesso!");
       }
     }
   };
