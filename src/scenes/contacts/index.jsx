@@ -118,7 +118,7 @@ const handleConfirmDelete = async () => {
   //console.log("UID do usuário para exclusão:", selectedUserId);
 
   try {
-    const response = await fetch(`${import.meta.env.VITE_FOKUS360_DATABASEURL}/delete-user`, {
+    const response = await fetch(`${import.meta.env.VITE_FOKUS360_DATABASEURL}/delete-user.json`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

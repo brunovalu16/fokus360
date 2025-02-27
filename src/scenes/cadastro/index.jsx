@@ -40,7 +40,7 @@ const Cadastro = () => {
     if (!avatar) return "";
 
     try {
-      const storageRef = ref(storage, `users/${Date.now()}_${avatar.name}`);
+      const storageRef = ref(storageFokus360, `users/${Date.now()}_${avatar.name}`);
       await uploadBytes(storageRef, avatar);
       return await getDownloadURL(storageRef);
     } catch (error) {
@@ -69,7 +69,7 @@ const Cadastro = () => {
         photoURL
       };
 
-      await setDoc(doc(db, "user", userCredential.user.uid), userData);
+      await setDoc(doc(dbFokus360, "user", userCredential.user.uid), userData);
 
       alert("Usuário cadastrado com sucesso! Verifique seu e-mail para confirmar.");
       navigate("/cadastro");
