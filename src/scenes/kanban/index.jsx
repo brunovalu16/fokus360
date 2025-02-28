@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Button, TextField, Modal, Select, MenuItem, IconButton, Divider } from "@mui/material";
+import { Box, Typography, ListItemText, Checkbox, Button, TextField, Modal, Select, MenuItem, IconButton, Divider } from "@mui/material";
 import DeleteForeverSharpIcon from '@mui/icons-material/DeleteForeverSharp';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
 import { Header } from "../../components";
 import { dbFokus360, storageFokus360 } from "../../data/firebase-config";
+import { Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+
 
 import { authFokus360 } from "../../data/firebase-config";
 import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
@@ -17,6 +20,8 @@ const Kanban = () => {
     { id: 5, title: "Concluído", cards: [] },
   ]);
 
+
+  const [users, setUsers] = useState([]); // ✅ Agora a variável users está definida
   const [draggingCard, setDraggingCard] = useState(null);
   const [isModalOpen, setModalOpen] = useState(false);
   const [newCard, setNewCard] = useState({
@@ -25,9 +30,17 @@ const Kanban = () => {
     assunto: "",
     dataCriacao: "",
     dataFinalizacao: "",
+    colaboradores: [],
     responsavel: "",
     prioridade: "medium",
   });
+
+  const [formValues, setFormValues] = useState({
+    
+  
+      colaboradores: [],
+     
+    });
 
   const kanbanCollection = collection(dbFokus360, "kanbanCards");
 
@@ -67,6 +80,7 @@ const Kanban = () => {
         assunto: "",
         dataCriacao: "",
         dataFinalizacao: "",
+        colaboradores: [],
         responsavel: "",
         prioridade: "medium",
       });
@@ -149,6 +163,48 @@ const Kanban = () => {
     }
   };
 
+
+
+
+
+
+
+
+// Carregar usuários do Firebase
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        
+        const querySnapshot = await getDocs(collection(dbFokus360, "user")); // ✅ Agora está correto
+
+        const usersList = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          username: doc.data().username,
+        }));
+        setUsers(usersList);
+      } catch (error) {
+        console.error("Erro ao buscar usuários:", error);
+      }
+    };
+    fetchUsers();
+  }, []);
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
   return (
     <>
       {/* Header */}
@@ -210,7 +266,11 @@ const Kanban = () => {
           />
         </Box>
 
-        <Modal open={isModalOpen} onClose={() => setModalOpen(false)} width="100%">
+        <Modal
+          open={isModalOpen}
+          onClose={() => setModalOpen(false)}
+          width="100%"
+        >
           <Box sx={modalStyle}>
             <Typography
               variant="h5"
@@ -224,23 +284,27 @@ const Kanban = () => {
             </Typography>
             <TextField
               fullWidth
-              label="Nome"
+              label="Título da tarefa:"
               value={newCard.nome}
               onChange={(e) => setNewCard({ ...newCard, nome: e.target.value })}
               sx={{ mb: 2 }}
             />
             <TextField
               fullWidth
-              label="Departamento"
+              label="Solicitante:"
               value={newCard.departamento}
-              onChange={(e) => setNewCard({ ...newCard, departamento: e.target.value })}
+              onChange={(e) =>
+                setNewCard({ ...newCard, departamento: e.target.value })
+              }
               sx={{ mb: 2 }}
             />
             <TextField
               fullWidth
-              label="Assunto"
+              label="Descrição da tarefa:"
               value={newCard.assunto}
-              onChange={(e) => setNewCard({ ...newCard, assunto: e.target.value })}
+              onChange={(e) =>
+                setNewCard({ ...newCard, assunto: e.target.value })
+              }
               sx={{ mb: 2 }}
             />
             <TextField
@@ -248,7 +312,9 @@ const Kanban = () => {
               label="Data de Criação"
               type="date"
               value={newCard.dataCriacao}
-              onChange={(e) => setNewCard({ ...newCard, dataCriacao: e.target.value })}
+              onChange={(e) =>
+                setNewCard({ ...newCard, dataCriacao: e.target.value })
+              }
               InputLabelProps={{ shrink: true }}
               sx={{ mb: 2 }}
             />
@@ -263,17 +329,46 @@ const Kanban = () => {
               InputLabelProps={{ shrink: true }}
               sx={{ mb: 2 }}
             />
-            <TextField
-              fullWidth
-              label="Responsável"
-              value={newCard.responsavel}
-              onChange={(e) => setNewCard({ ...newCard, responsavel: e.target.value })}
-              sx={{ mb: 2 }}
-            />
+
+            {/* Colaboradores (múltipla seleção) */}
+           
+            <Select
+  multiple
+  fullWidth
+  name="colaboradores"
+  value={newCard.colaboradores}
+  onChange={(e) => {
+    // Atualizando corretamente os nomes dos usuários no estado
+    const selectedUsers = e.target.value.map((id) => {
+      const user = users.find((user) => user.id === id);
+      return user ? user.username : id; // Se não encontrar, mantém o ID
+    });
+
+    setNewCard({ ...newCard, colaboradores: selectedUsers });
+  }}
+  displayEmpty
+  sx={{ width: "100%", mb: 2 }} // ✅ Adicionada margin-bottom
+  renderValue={(selected) =>
+    selected.length === 0 ? "Selecione responsáveis pela tarefa" : selected.join(", ")
+  }
+>
+  {users.map((user) => (
+    <MenuItem key={user.id} value={user.id}>
+      <Checkbox checked={newCard.colaboradores.includes(user.username)} />
+      <ListItemText primary={user.username} />
+    </MenuItem>
+  ))}
+</Select>
+
+
+           
+            
             <Select
               fullWidth
               value={newCard.prioridade}
-              onChange={(e) => setNewCard({ ...newCard, prioridade: e.target.value })}
+              onChange={(e) =>
+                setNewCard({ ...newCard, prioridade: e.target.value })
+              }
               sx={{ mb: 2 }}
             >
               <MenuItem value="low">Baixa Prioridade</MenuItem>
@@ -314,7 +409,6 @@ const Kanban = () => {
               <Typography variant="h6" sx={{ mb: 3 }}>
                 {column.title}
               </Typography>
-
               {column.id === 1 && (
                 <Button
                   variant="contained"
@@ -333,66 +427,93 @@ const Kanban = () => {
                   Adicionar cartão
                 </Button>
               )}
-
               <Box sx={cardContainerStyle}>
-                {column.cards.map((card) => (
-                  <Box
-                    key={card.id}
-                    sx={cardStyle}
-                    draggable
-                    onDragStart={() => handleDragStart(card, column.id)}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <Box sx={badgeStyle(card.prioridade)}>
-                      {card.prioridade === "high"
-                        ? "Alta Prioridade"
-                        : card.prioridade === "medium"
-                        ? "Média Prioridade"
-                        : "Baixa Prioridade"}
-                    </Box>
-                    <Typography variant="body2">
-                      <strong>Nome:</strong> {card.nome}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Departamento:</strong> {card.departamento}
-                    </Typography>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        mb: 1,
-                        whiteSpace: "pre-wrap",
-                        wordBreak: "break-word",
-                      }}
-                      color="#565454"
-                      backgroundColor="#ccc9c9"
-                      padding="10px"
-                      borderRadius="7px"
-                    >
-                      {card.assunto}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Responsável:</strong> {card.responsavel}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Data de Criação:</strong> {card.dataCriacao}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Data de Finalização:</strong> {card.dataFinalizacao}
-                    </Typography>
-                    <IconButton
-                      onClick={() => handleDeleteCard(card.id, column.id)}
-                      sx={{
-                        color: "#d32f2f",
-                        marginLeft: "160px",
-                        marginTop: "10px",
-                        padding: "0px",
-                      }}
-                    >
-                      <DeleteForeverSharpIcon sx={{ fontSize: "30px" }} />
-                    </IconButton>
-                  </Box>
-                ))}
-              </Box>
+  {column.cards.map((card) => (
+    <Accordion
+      key={card.id}
+      sx={cardStyle}
+      draggable
+      onDragStart={(e) => {
+        handleDragStart(card, column.id);
+        e.stopPropagation(); // Evita conflitos no drag
+      }}
+      onDragEnd={handleDragEnd}
+    >
+      {/* Cabeçalho do Accordion (Agora arrastável) */}
+      <AccordionSummary
+        expandIcon={<ExpandMoreIcon />}
+        draggable
+        onDragStart={(e) => {
+          handleDragStart(card, column.id);
+          e.stopPropagation();
+        }}
+        onDragEnd={handleDragEnd}
+      >
+        <Typography variant="body2">
+          <strong>Tarefa:</strong> {card.nome}
+        </Typography>
+      </AccordionSummary>
+
+      {/* Detalhes do Accordion (mantendo todos os elementos) */}
+      <AccordionDetails>
+        <Box>
+          <Box sx={badgeStyle(card.prioridade)}>
+            {card.prioridade === "high"
+              ? "Alta Prioridade"
+              : card.prioridade === "medium"
+              ? "Média Prioridade"
+              : "Baixa Prioridade"}
+          </Box>
+          <Typography variant="body2">
+            <strong>Departamento:</strong> {card.departamento}
+          </Typography>
+          <Typography
+            variant="h6"
+            sx={{
+              mb: 1,
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+            }}
+            color="#565454"
+            backgroundColor="#ccc9c9"
+            padding="10px"
+            borderRadius="7px"
+          >
+            {card.assunto}
+          </Typography>
+          <Typography variant="body2">
+            <strong>Responsáveis:</strong> {card.colaboradores.join(", ")}
+          </Typography>
+          <Typography variant="body2">
+            <strong>Data de Criação:</strong> {card.dataCriacao}
+          </Typography>
+          <Typography variant="body2">
+            <strong>Data de Finalização:</strong> {card.dataFinalizacao}
+          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              marginTop: "10px",
+            }}
+          >
+            <IconButton
+              onClick={() => handleDeleteCard(card.id, column.id)}
+              sx={{
+                color: "#d32f2f",
+                padding: "0px",
+              }}
+            >
+              <DeleteForeverSharpIcon sx={{ fontSize: "30px" }} />
+            </IconButton>
+          </Box>
+        </Box>
+      </AccordionDetails>
+    </Accordion>
+  ))}
+</Box>
+
+              ;
             </Box>
           ))}
         </Box>
