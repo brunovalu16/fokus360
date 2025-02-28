@@ -75,7 +75,7 @@ const BaseDiretriz2 = ({ projectId, onDiretrizesUpdate  }) => {
       const fetchUsers = async () => {
         try {
           console.log("🔍 Buscando usuários...");
-          const querySnapshot = await getDocs(collection(db, "user")); // 🔹 Tente mudar "user" para "users"
+          const querySnapshot = await getDocs(collection(dbFokus360, "user")); // 🔹 Tente mudar "user" para "users"
           if (querySnapshot.empty) {
             console.warn("⚠️ Nenhum usuário encontrado no Firestore!");
           }
