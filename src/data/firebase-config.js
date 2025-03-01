@@ -1,6 +1,8 @@
 //console.log("API Key Fokus360:", import.meta.env.VITE_FOKUS360_FIREBASE_API_KEY);
 //console.log("API Key GPS-Tracker:", import.meta.env.VITE_GPSTRACKER_FIREBASE_API_KEY);
 
+
+
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
@@ -39,6 +41,11 @@ const storageFokus360 = getStorage(appFokus360);
 const authGpsTracker = getAuth(appGpsTracker);
 const dbGpsTracker = getFirestore(appGpsTracker);
 const storageGpsTracker = getStorage(appGpsTracker);
+
+
+console.log("🌍 API Key do Fokus360:", import.meta.env.VITE_FOKUS360_FIREBASE_API_KEY);
+console.log("🌍 API Key do GPS-Tracker:", import.meta.env.VITE_GPSTRACKER_FIREBASE_API_KEY);
+console.log("🌍 Conectando ao Firestore do GPS-Tracker:", dbGpsTracker);
 
 // 🔹 Exportando apenas as instâncias necessárias
 export { 

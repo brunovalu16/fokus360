@@ -24,8 +24,8 @@ const center = { lat: -15.7801, lng: -47.9292 }; // Brasília como localização
 const Roteirizacao = () => {
   const [vendedores, setVendedores] = useState([]);
   const [selectedVendedor, setSelectedVendedor] = useState("");
-  const [trajetoPlanejado, setTrajetoPlanejado] = useState(true);
-  const [trajetoExecutado, setTrajetoExecutado] = useState(true);
+  const [trajetoPlanejado, setTrajetoPlanejado] = useState(false);
+  const [trajetoExecutado, setTrajetoExecutado] = useState(false);
   const [historicoRota, setHistoricoRota] = useState([]);
 
   // 🔽 Função para buscar vendedores e suas localizações
@@ -104,9 +104,62 @@ const Roteirizacao = () => {
     }
   }, [selectedVendedor]);
 
-  useEffect(() => {
-    fetchHistoricoRota();
-  }, [fetchHistoricoRota]);
+
+
+//Busca o historico de roda quando clica em um dos checkbox
+useEffect(() => {
+  // Sempre que trocar de vendedor, resetar checkboxes e histórico de rota
+  setTrajetoPlanejado(false);
+  setTrajetoExecutado(false);
+  setHistoricoRota([]);
+}, [selectedVendedor]);
+
+
+
+
+//handlers para cada checkbox
+const handleTrajetoPlanejadoChange = async (e) => {
+  const checked = e.target.checked;
+  setTrajetoPlanejado(checked);
+
+  if (checked) {
+    // Se acabou de marcar e ainda não temos rota, buscamos
+    if (historicoRota.length === 0) {
+      await fetchHistoricoRota();
+    }
+  } else {
+    // Desmarcou: se o outro também estiver falso, limpamos rota
+    if (!trajetoExecutado) {
+      setHistoricoRota([]);
+    }
+  }
+};
+
+const handleTrajetoExecutadoChange = async (e) => {
+  const checked = e.target.checked;
+  setTrajetoExecutado(checked);
+
+  if (checked) {
+    if (historicoRota.length === 0) {
+      await fetchHistoricoRota();
+    }
+  } else {
+    if (!trajetoPlanejado) {
+      setHistoricoRota([]);
+    }
+  }
+};
+
+
+
+
+
+
+
+
+
+
+  
 
 
 
@@ -127,7 +180,7 @@ const Roteirizacao = () => {
           title={
             <Box display="flex" alignItems="center" gap={1}>
               <AssessmentIcon sx={{ color: "#5f53e5", fontSize: 40 }} />
-              <Typography>GERENCIADOR DE RELATÓRIOS</Typography>
+              <Typography>MONITORAMENTO DE ROTAS</Typography>
             </Box>
           }
         />
@@ -150,16 +203,11 @@ const Roteirizacao = () => {
       >
         <Box display="flex" alignItems="center" gap={1}>
           <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
-          <Typography color="#858585">RELATÓRIOS</Typography>
+          <Typography color="#858585">RELATÓRIOS DE ROTAS</Typography>
         </Box>
 
         <Box sx={{ marginLeft: "30px", minWidth: "200%" }}>
-          <Typography
-            variant="h5"
-            sx={{ fontWeight: "bold", marginBottom: "10px" }}
-          >
-            Roteirização de Vendedores
-          </Typography>
+
 
           {/* Dropdown para selecionar vendedor */}
           <Select
@@ -167,7 +215,7 @@ const Roteirizacao = () => {
             onChange={(e) => setSelectedVendedor(e.target.value)}
             displayEmpty
             fullWidth
-            sx={{ width: "300px", marginBottom: "15px" }}
+            sx={{ width: "300px", marginBottom: "15px", marginTop: "30px" }}
           >
             <MenuItem value="">Selecione um vendedor</MenuItem>
             {vendedores.map((vendedor) => (
@@ -189,7 +237,7 @@ const Roteirizacao = () => {
               control={
                 <Checkbox
                   checked={trajetoPlanejado}
-                  onChange={(e) => setTrajetoPlanejado(e.target.checked)}
+                  onChange={handleTrajetoPlanejadoChange}
                 />
               }
               label="Trajeto Planejado"
@@ -198,14 +246,25 @@ const Roteirizacao = () => {
               control={
                 <Checkbox
                   checked={trajetoExecutado}
-                  onChange={(e) => setTrajetoExecutado(e.target.checked)}
+                  onChange={handleTrajetoExecutadoChange}
                 />
               }
               label="Trajeto Executado"
             />
           </Box>
 
+
+
+
+
+
+
+
           {/* Mapa do Google */}
+          <Box sx={{
+            maxWidth:"48%"
+            
+            }}>
           <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY}>
             <GoogleMap
               mapContainerStyle={mapContainerStyle}
@@ -240,29 +299,36 @@ const Roteirizacao = () => {
                   ))}
 
               {/* Exibir trajeto planejado e executado */}
-              {trajetoPlanejado && historicoRota.length > 0 && (
-                <Polyline
-                  path={historicoRota}
-                  options={{
-                    strokeColor: "#0000FF",
-                    strokeOpacity: 1,
-                    strokeWeight: 3,
-                  }}
-                />
-              )}
+              {/* Exibir trajeto planejado se o checkbox estiver marcado */}
+   {/* Exibir trajeto planejado se houver rota e checkbox estiver marcado */}
+{trajetoPlanejado && historicoRota.length > 0 && (
+  <Polyline
+    path={historicoRota}
+    options={{
+      strokeColor: "#0000FF",
+      strokeOpacity: 1,
+      strokeWeight: 3,
+    }}
+  />
+)}
 
-              {trajetoExecutado && historicoRota.length > 0 && (
-                <Polyline
-                  path={historicoRota}
-                  options={{
-                    strokeColor: "#FF0000",
-                    strokeOpacity: 1,
-                    strokeWeight: 3,
-                  }}
-                />
-              )}
+{trajetoExecutado && historicoRota.length > 0 && (
+  <Polyline
+    path={historicoRota}
+    options={{
+      strokeColor: "#FF0000",
+      strokeOpacity: 1,
+      strokeWeight: 3,
+    }}
+  />
+)}
+
+
+
+
             </GoogleMap>
           </LoadScript>
+          </Box>
         </Box>
       </Box>
     </>
