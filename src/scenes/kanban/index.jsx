@@ -557,7 +557,7 @@ const Kanban = () => {
             <IconButton
               onClick={() => handleDeleteCard(card.id, column.id)}
               sx={{
-                color: "#d32f2f",
+                color: "#fff",
                 padding: "0px",
               }}
             >
