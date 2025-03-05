@@ -20,7 +20,7 @@ const Kanban = () => {
     { id: 5, title: "Concluído", cards: [] },
   ]);
 
-
+  const [isOpen, setIsOpen] = useState(false); // ✅ Controla se o Select está aberto ou fechado
   const [users, setUsers] = useState([]); // ✅ Agora a variável users está definida
   const [draggingCard, setDraggingCard] = useState(null);
   const [isModalOpen, setModalOpen] = useState(false);
@@ -363,18 +363,63 @@ const Kanban = () => {
 
            
             
-            <Select
-              fullWidth
-              value={newCard.prioridade}
-              onChange={(e) =>
-                setNewCard({ ...newCard, prioridade: e.target.value })
-              }
-              sx={{ mb: 2 }}
-            >
-              <MenuItem value="low">Baixa Prioridade</MenuItem>
-              <MenuItem value="medium">Média Prioridade</MenuItem>
-              <MenuItem value="high">Alta Prioridade</MenuItem>
-            </Select>
+
+
+<Select
+  fullWidth
+  value={newCard.prioridade || ""} // Mantém a prioridade selecionada ou vazia
+  onChange={(e) => setNewCard({ ...newCard, prioridade: e.target.value })}
+  displayEmpty
+  onOpen={() => setIsOpen(true)} // 🔥 Quando o Select abre, muda para true
+  onClose={() => setIsOpen(false)} // 🔥 Quando o Select fecha, muda para false
+  sx={{ mb: 2 }}
+  renderValue={(selected) =>
+    !isOpen && !selected ? ( // 🔥 Se estiver fechado e sem valor, mostra "Prioridade da tarefa"
+      <Typography sx={{ color: "#aaa" }}>Prioridade da tarefa</Typography>
+    ) : selected ? ( // 🔥 Se estiver aberto ou com valor, mostra o selecionado
+      <Box sx={{ display: "flex", alignItems: "center" }}>
+        <Box
+          sx={{
+            width: 12,
+            height: 12,
+            borderRadius: "50%",
+            backgroundColor: {
+              low: "#6b84f3",
+              medium: "#fc7f32",
+              high: "#ce2d9b",
+            }[selected],
+            mr: 1,
+          }}
+        />
+        {{
+          low: "Baixa Prioridade",
+          medium: "Média Prioridade",
+          high: "Alta Prioridade",
+        }[selected]}
+      </Box>
+    ) : null
+  }
+>
+  <MenuItem value="low">
+    <Box sx={{ width: 12, height: 12, borderRadius: "50%", backgroundColor: "#6b84f3", mr: 1 }} />
+    Baixa Prioridade
+  </MenuItem>
+  <MenuItem value="medium">
+    <Box sx={{ width: 12, height: 12, borderRadius: "50%", backgroundColor: "#fc7f32", mr: 1 }} />
+    Média Prioridade
+  </MenuItem>
+  <MenuItem value="high">
+    <Box sx={{ width: 12, height: 12, borderRadius: "50%", backgroundColor: "#ce2d9b", mr: 1 }} />
+    Alta Prioridade
+  </MenuItem>
+</Select>
+
+
+
+
+
+
+
             <Button
               variant="contained"
               onClick={handleAddCard}
@@ -430,15 +475,24 @@ const Kanban = () => {
               <Box sx={cardContainerStyle}>
   {column.cards.map((card) => (
     <Accordion
-      key={card.id}
-      sx={cardStyle}
-      draggable
-      onDragStart={(e) => {
-        handleDragStart(card, column.id);
-        e.stopPropagation(); // Evita conflitos no drag
-      }}
-      onDragEnd={handleDragEnd}
-    >
+    key={card.id}
+    sx={{
+      ...cardStyle,
+      backgroundColor:
+        card.prioridade === "high"
+          ? "#ce2d9b" // 🔴 Vermelho claro (Alta Prioridade)
+          : card.prioridade === "medium"
+          ? "#fc7f32" // 🟡 Amarelo claro (Média Prioridade)
+          : "#6b84f3", // 🟢 Verde claro (Baixa Prioridade)
+    }}
+    draggable
+    onDragStart={(e) => {
+      handleDragStart(card, column.id);
+      e.stopPropagation(); // Evita conflitos no drag
+    }}
+    onDragEnd={handleDragEnd}
+  >
+  
       {/* Cabeçalho do Accordion (Agora arrastável) */}
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
@@ -449,8 +503,11 @@ const Kanban = () => {
         }}
         onDragEnd={handleDragEnd}
       >
-        <Typography variant="body2">
-          <strong>Tarefa:</strong> {card.nome}
+        <Typography variant="body2" sx={{ color: "#fff" }}>
+          <strong>Tarefa:</strong> 
+        </Typography>
+        <Typography variant="body2" sx={{ color: "#fff", marginLeft: "10px" }}>
+          {card.nome}
         </Typography>
       </AccordionSummary>
 
@@ -561,9 +618,9 @@ const cardContainerStyle = {
   width: "100%",
 };
 const cardStyle = {
-  p: 2,
+  p: 1,
   bgcolor: "#fff",
-  borderRadius: "10px",
+  
   boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
 };
 

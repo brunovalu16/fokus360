@@ -97,7 +97,7 @@ const Arquivos = () => {
         <Typography style={{ fontWeight: "bold" }}>{row.uploadedBy}</Typography>
       ),
     },
-    { field: "fileName", headerName: "Nome do Arquivo", flex: 1 },
+    //{ field: "fileName", headerName: "Nome do Arquivo", flex: 1 },
     { field: "fileType", headerName: "Tipo de Arquivo", flex: 1 },
     { field: "state", headerName: "Unidade", flex: 1 },
     {
