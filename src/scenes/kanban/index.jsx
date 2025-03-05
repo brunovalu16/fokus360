@@ -513,7 +513,7 @@ const Kanban = () => {
   ))}
 </Box>
 
-              ;
+              
             </Box>
           ))}
         </Box>
