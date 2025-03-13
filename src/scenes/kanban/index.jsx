@@ -9,6 +9,7 @@ import { Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 
+
 import { authFokus360 } from "../../data/firebase-config";
 import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
 
@@ -108,31 +109,43 @@ const Kanban = () => {
   const handleDragEnd = () => setDraggingCard(null);
   const handleDragOver = (e) => e.preventDefault();
 
-  const handleDrop = async (targetColumnId) => {
+  const handleDrop = async (targetColumnId, targetIndex) => {
     if (!draggingCard) return;
-
+  
     const { card, columnId: sourceColumnId } = draggingCard;
-
+  
     try {
-      const cardDocRef = doc(dbFokus360, "kanbanCards", card.id);
-      await updateDoc(cardDocRef, { columnId: targetColumnId });
-
       const updatedColumns = columns.map((column) => {
         if (column.id === sourceColumnId) {
-          return { ...column, cards: column.cards.filter((c) => c.id !== card.id) };
-        }
-        if (column.id === targetColumnId) {
-          return { ...column, cards: [...column.cards, { ...card, columnId: targetColumnId }] };
+          // Remover o card da posição original
+          const filteredCards = column.cards.filter((c) => c.id !== card.id);
+          return { ...column, cards: filteredCards };
         }
         return column;
       });
-
-      setColumns(updatedColumns);
+  
+      const newColumns = updatedColumns.map((column) => {
+        if (column.id === targetColumnId) {
+          // Inserir o card na nova posição dentro da mesma coluna
+          const newCards = [...column.cards];
+          newCards.splice(targetIndex, 0, card);
+          return { ...column, cards: newCards };
+        }
+        return column;
+      });
+  
+      setColumns(newColumns);
       setDraggingCard(null);
+  
+      // Atualizar a posição no Firestore (opcional)
+      const cardDocRef = doc(dbFokus360, "kanbanCards", card.id);
+      await updateDoc(cardDocRef, { columnId: targetColumnId, position: targetIndex });
+  
     } catch (error) {
-      console.error("Erro ao mover o cartão:", error);
+      console.error("Erro ao reordenar o cartão:", error);
     }
   };
+  
 
   const badgeStyle = (priority) => ({
     backgroundColor:
@@ -189,6 +202,8 @@ const Kanban = () => {
     fetchUsers();
   }, []);
 
+
+  
 
 
   
@@ -440,6 +455,12 @@ const Kanban = () => {
           </Box>
         </Modal>
 
+
+
+
+
+
+
         <Box sx={kanbanStyle}>
           {columns.map((column) => (
             <Box
@@ -448,8 +469,13 @@ const Kanban = () => {
                 ...columnStyle,
                 borderTop: `5px solid ${getColumnBorderColor(column.id)}`,
               }}
-              onDragOver={handleDragOver}
-              onDrop={() => handleDrop(column.id)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const targetIndex = column.cards.length; // Garante que o card seja inserido na posição correta
+                handleDrop(column.id, targetIndex);
+              }}
+              
             >
               <Typography variant="h6" sx={{ mb: 3 }}>
                 {column.title}
@@ -472,7 +498,10 @@ const Kanban = () => {
                   Adicionar cartão
                 </Button>
               )}
-              <Box sx={cardContainerStyle}>
+
+
+              
+<Box sx={cardContainerStyle}>
   {column.cards.map((card) => (
     <Accordion
     key={card.id}
@@ -608,6 +637,7 @@ const columnStyle = {
   borderRadius: "10px",
   minWidth: "100px", // Largura mínima
   maxWidth: "100%", // Garante que a largura máxima não ultrapasse o contêiner
+  height: "100vh"
 };
 
 
