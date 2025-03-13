@@ -1,8 +1,9 @@
 import React, { createContext, useState, useEffect } from "react";
 import { Box, CssBaseline, ThemeProvider } from "@mui/material";
 import { ColorModeContext, useMode } from "./theme";
-import { Navbar, SideBar } from "./scenes";
+import { Navbar, SideBar, NavbarKanban } from "./scenes";
 import { Outlet } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 export const ToggledContext = createContext(null);
 
@@ -12,6 +13,8 @@ function App() {
   const [theme, colorMode] = useMode();
   const [toggled, setToggled] = useState(false);
   const values = { toggled, setToggled };
+
+  const location = useLocation(); // Pegando a rota atual
   
   return (
     <ColorModeContext.Provider value={colorMode}>
@@ -29,7 +32,9 @@ function App() {
                   maxWidth: "100%",
                 }}
               >
-              <Navbar />
+               {/* Verifica se a rota é "/pagina-especifica" e exibe o NavbarKanban */}
+               {location.pathname === "/kanban" ? <NavbarKanban /> : <Navbar />}
+
               <Box sx={{ overflowY: "auto", flex: 1, maxWidth: "100%" }}>
                 <Outlet />
               </Box>

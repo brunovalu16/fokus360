@@ -11,6 +11,7 @@ import Pie from "./pie";
 import Stream from "./stream";
 import FAQ from "./faq";
 import Geography from "./geography";
+import NavbarKanban from "./layout/navbarKanban";
 
 
 
@@ -19,9 +20,9 @@ export {
   SideBar,
   Dashboard,
   Team,
+  NavbarKanban,
   Invoices,
   Contacts,
-  Form,
   Calendar,
   Bar,
   Line,

@@ -3,15 +3,17 @@ import { Box, Typography, ListItemText, Checkbox, Button, TextField, Modal, Sele
 import DeleteForeverSharpIcon from '@mui/icons-material/DeleteForeverSharp';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
-import { Header } from "../../components";
 import { dbFokus360, storageFokus360 } from "../../data/firebase-config";
 import { Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import FilterListIcon from '@mui/icons-material/FilterList'; // Ícone para o Select
+import ClearAllIcon from '@mui/icons-material/ClearAll'; // Ícone para limpar filtro
+import { onAuthStateChanged } from "firebase/auth";
 
 
 
 import { authFokus360 } from "../../data/firebase-config";
-import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc, getDoc  } from "firebase/firestore";
 
 const Kanban = () => {
   const [columns, setColumns] = useState([
@@ -21,6 +23,11 @@ const Kanban = () => {
     { id: 5, title: "Concluído", cards: [] },
   ]);
 
+
+  const [allCards, setAllCards] = useState([]); // 🔥 Armazena todos os cards para aplicar os filtros depois
+  const [user, setUser] = useState(null); // Estado para armazenar o usuário logado
+  //gerenciar o filtro da barra de pesquisa
+  const [selectedFilter, setSelectedFilter] = useState(null);
   const [isOpen, setIsOpen] = useState(false); // ✅ Controla se o Select está aberto ou fechado
   const [users, setUsers] = useState([]); // ✅ Agora a variável users está definida
   const [draggingCard, setDraggingCard] = useState(null);
@@ -43,53 +50,86 @@ const Kanban = () => {
      
     });
 
-  const kanbanCollection = collection(dbFokus360, "kanbanCards");
+  const kanbanCards = collection(dbFokus360, "kanbanCards");
 
-  useEffect(() => {
-    const fetchCards = async () => {
-      const querySnapshot = await getDocs(kanbanCollection);
-      const cardsFromFirestore = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      const updatedColumns = columns.map((column) => ({
+  //Exibir Apenas os Cards do Usuário Logado
+  const fetchCards = async () => {
+    try {
+      const querySnapshot = await getDocs(kanbanCards);
+      const cardsFromFirestore = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          role: data.role || "default" // 🔥 Se `role` for null, define "default"
+        };
+      });
+  
+      console.log("📋 Todos os cards carregados:", cardsFromFirestore); // 🔥 Verifique os dados no console
+  
+      setAllCards(cardsFromFirestore); // 🔥 Salva todos os cards para filtragem
+      setColumns(columns.map((column) => ({
         ...column,
         cards: cardsFromFirestore.filter((card) => card.columnId === column.id),
-      }));
-
-      setColumns(updatedColumns);
-    };
-
-    fetchCards();
-  }, []);
-
-  const handleAddCard = async () => {
-    const newCardWithColumn = { ...newCard, columnId: 1 };
-    try {
-      const docRef = await addDoc(kanbanCollection, newCardWithColumn);
-      const updatedColumns = columns.map((col) =>
-        col.id === 1
-          ? { ...col, cards: [...col.cards, { ...newCardWithColumn, id: docRef.id }] }
-          : col
-      );
-
-      setColumns(updatedColumns);
-      setNewCard({
-        nome: "",
-        departamento: "",
-        assunto: "",
-        dataCriacao: "",
-        dataFinalizacao: "",
-        colaboradores: [],
-        responsavel: "",
-        prioridade: "medium",
-      });
-      setModalOpen(false);
+      })));
     } catch (error) {
-      console.error("Erro ao adicionar o cartão:", error);
+      console.error("❌ Erro ao buscar os cards:", error);
     }
   };
+  
+  
+  
+  
+  
+
+
+//Criar card: criar um novo card, associamos o uid do usuário autenticado
+const handleAddCard = async () => {
+  if (!user) {
+    alert("Usuário não autenticado. Faça login para criar um card.");
+    return;
+  }
+
+  try {
+    // 🔥 Buscar o role do usuário logado no Firestore
+    const userDoc = await getDoc(doc(dbFokus360, "user", user.uid));
+    const userData = userDoc.exists() ? userDoc.data() : null;
+    const userRole = userData?.role || "default"; // 🔥 Usa "default" se não encontrar
+
+    const newCardWithUser = {
+      ...newCard,
+      columnId: 1,
+      createdBy: user.uid, // ✅ Salva o ID do usuário logado
+      role: userRole || "default" // 🔥 Define "default" caso role seja null
+    };
+
+    const docRef = await addDoc(kanbanCards, newCardWithUser);
+
+    setAllCards([...allCards, { ...newCardWithUser, id: docRef.id }]); // ✅ Atualiza a lista global de cards
+    setColumns(prevColumns => prevColumns.map(col => ({
+      ...col,
+      cards: col.id === 1 ? [...col.cards, { ...newCardWithUser, id: docRef.id }] : col.cards
+    })));
+
+    setNewCard({
+      nome: "",
+      departamento: "",
+      assunto: "",
+      dataCriacao: "",
+      dataFinalizacao: "",
+      colaboradores: [],
+      responsavel: "",
+      prioridade: "medium",
+    });
+
+    setModalOpen(false);
+  } catch (error) {
+    console.error("Erro ao adicionar o cartão:", error);
+  }
+};
+
+
+  
 
   const handleDeleteCard = async (cardId, columnId) => {
     try {
@@ -203,6 +243,76 @@ const Kanban = () => {
   }, []);
 
 
+  //Capturar o usuário logado
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(authFokus360, (currentUser) => {
+      setUser(currentUser);
+    });
+  
+    return () => unsubscribe();
+  }, []);
+  
+  useEffect(() => {
+    if (user) {
+      console.log("⏳ Buscando cards...");
+      fetchCards();
+    }
+  }, [user]); // 🔥 Executa novamente se o usuário mudar
+
+
+//aplica o filtro ao clicar no botão
+const applyFilter = (selectedValue) => {
+  if (!selectedValue) {
+    setColumns(columns.map(column => ({
+      ...column,
+      cards: allCards.filter(card => card.columnId === column.id),
+    })));
+    return;
+  }
+
+  console.log("🔍 Aplicando filtro para:", selectedValue); // 🔥 Verifique o filtro selecionado
+
+  const filteredCards = allCards.filter(card => String(card.role) === String(selectedValue));
+
+
+  setColumns(columns.map(column => ({
+    ...column,
+    cards: filteredCards.filter(card => card.columnId === column.id),
+  })));
+};
+
+
+// Atualizar o firestore sem precisar fazer manualmente
+const corrigirRolesNoFirestore = async () => {
+  const querySnapshot = await getDocs(collection(dbFokus360, "kanbanCards"));
+  
+  querySnapshot.forEach(async (docSnap) => {
+    const data = docSnap.data();
+    
+    if (data.role === "default" || !data.role) {
+      // 🔥 Buscar o role correto do usuário criador do card
+      const userDoc = await getDoc(doc(dbFokus360, "user", data.createdBy));
+      const userData = userDoc.exists() ? userDoc.data() : null;
+      const userRole = userData?.role || "desconhecido"; // 🔥 Se não encontrar, usa "desconhecido"
+      
+      await updateDoc(doc(dbFokus360, "kanbanCards", docSnap.id), {
+        role: userRole
+      });
+
+      console.log(`✅ Atualizado ${docSnap.id} para role: ${userRole}`);
+    }
+  });
+};
+
+// Chamar essa função manualmente uma vez para corrigir os registros antigos
+corrigirRolesNoFirestore();
+
+
+  
+  
+  
+
+
   
 
 
@@ -222,27 +332,16 @@ const Kanban = () => {
 
   return (
     <>
-      {/* Header */}
-      <Box
-        sx={{
-          marginLeft: "40px",
-          paddingTop: "50px",
-        }}
-      >
-        <Header
-          title={
-            <Box display="flex" alignItems="center" gap={1}>
-              <AssignmentTurnedInIcon sx={{ color: "#5f53e5", fontSize: 40 }} />
-              <Typography>GERENCIADOR DE TAREFAS</Typography>
-            </Box>
-          }
-        />
-      </Box>
+
+
+
+
+      
 
       <Box
         sx={{
           marginLeft: "40px",
-          marginTop: "-15px",
+          marginTop: "15px",
           width: "calc(100% - 80px)",
           minHeight: "50vh",
           padding: "15px",
@@ -253,6 +352,90 @@ const Kanban = () => {
           overflowX: "hidden",
         }}
       >
+
+        {/**Filtros - Adicione esta parte antes do <Box> principal */}
+<Box
+  sx={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-start", // 🔹 Alinhado à esquerda
+    gap: 2,
+    mb: 2, // 🔹 Espaço abaixo do filtro
+    width: "100%", // 🔹 Ocupa toda a largura disponível
+  }}
+>
+
+
+
+
+  {/* Caixa de seleção de filtro */}
+  <Box
+    sx={{
+      width: "50%", // 🔹 50% da largura
+      backgroundColor: "white",
+      borderRadius: "10px",
+      padding: "10px",
+      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "flex-start", // 🔹 Alinhado à esquerda
+      marginBottom: "15px"
+    }}
+  >
+    <FilterListIcon sx={{ color: "#757575", mr: 1 }} /> {/* Ícone de Filtro */}
+
+    <Select
+  fullWidth
+  displayEmpty
+  value={selectedFilter || ""}
+  onChange={(e) => {
+    const selectedValue = e.target.value;
+    setSelectedFilter(selectedValue);
+    applyFilter(selectedValue); // ✅ Aplica o filtro ao selecionar
+  }}
+  sx={{ backgroundColor: "#f5f5f5", borderRadius: "5px", height: "40px" }}
+>
+  <MenuItem value="" disabled>Busque tarefas por níveis</MenuItem>
+  {[
+    { value: "01", label: "Diretoria" },
+    { value: "02", label: "Gerente" },
+    { value: "03", label: "Supervisor" },
+    { value: "04", label: "Vendedor" },
+    { value: "06", label: "Industria" },
+    { value: "07", label: "Projetos" },
+    { value: "08", label: "Admin" },
+    { value: "09", label: "Coordenador Trade" },
+    { value: "10", label: "Gerência Trade" },
+    { value: "11", label: "Analista Trade" },
+  ].map((filter) => (
+    <MenuItem key={filter.value} value={filter.value}>
+      {filter.label}
+    </MenuItem>
+  ))}
+</Select>
+
+
+  </Box>
+
+  {/* Botão de limpar filtro - Alinhado à esquerda */}
+  <Button
+  variant="contained"
+  onClick={() => {
+    setSelectedFilter(null);
+    applyFilter(null); // ✅ Garante que todos os cards reapareçam
+  }}
+  sx={{ backgroundColor: "#f44336", color: "white", height: "40px" }}
+>
+  <ClearAllIcon sx={{ fontSize: "20px" }} />
+  Limpar Filtro
+</Button>
+
+
+</Box>
+
+
+
+
         <Box display="flex" alignItems="center" gap={1}>
           <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
           <Typography color="#858585">
@@ -502,7 +685,10 @@ const Kanban = () => {
 
               
 <Box sx={cardContainerStyle}>
-  {column.cards.map((card) => (
+{column.cards
+  .filter((card) => !selectedFilter || card.role === selectedFilter)
+  .map((card) => (
+
     <Accordion
     key={card.id}
     sx={{
