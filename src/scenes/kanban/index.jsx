@@ -569,10 +569,10 @@ const handleDrop = async (targetColumnId, targetIndex) => {
 <Box
   sx={{
     width: "100%",
-    backgroundColor: "white",
+    //backgroundColor: "white",
     borderRadius: "10px",
     padding: "10px", // 🔥 Reduzindo o padding geral
-    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+    //boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
     display: "flex",
     flexWrap: "nowrap", // 🔥 Mantém os elementos na mesma linha
     alignItems: "center",
