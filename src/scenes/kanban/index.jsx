@@ -12,6 +12,7 @@ import {
   IconButton,
   Divider,
 } from "@mui/material";
+import { FormControl, InputLabel } from "@mui/material";
 import DeleteForeverSharpIcon from "@mui/icons-material/DeleteForeverSharp";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
@@ -58,7 +59,7 @@ const Kanban = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [newCard, setNewCard] = useState({
     nome: "",
-    departamento: [],
+    departamento: "",
     assunto: "",
     dataCriacao: "",
     dataFinalizacao: "",
@@ -69,7 +70,7 @@ const Kanban = () => {
 
   const [formValues, setFormValues] = useState({
     colaboradores: [],
-    departamento: [],
+    departamento: "",
   });
 
   const kanbanCards = collection(dbFokus360, "kanbanCards");
@@ -164,7 +165,7 @@ corrigirRolesNoFirestore();
 
       setNewCard({
         nome: "",
-        departamento: [],
+        departamento: "",
         assunto: "",
         dataCriacao: "",
         dataFinalizacao: "",
@@ -322,11 +323,12 @@ const handleDrop = async (targetColumnId, targetIndex) => {
     let filteredCards = allCards;
   
     // 🔥 Filtrar por departamento (se algum estiver selecionado)
-    if (selectedDepartment.length > 0) {
-      filteredCards = filteredCards.filter((card) =>
-        selectedDepartment.includes(card.departamento)
-      );
-    }
+     // 🔥 Filtrar por departamento (verifica se o valor do departamento está na lista selecionada)
+  if (selectedDepartment.length > 0) {
+    filteredCards = filteredCards.filter((card) =>
+      selectedDepartment.includes(card.departamento) // Aqui verificamos corretamente
+    );
+  }
   
     // 🔥 Filtrar por data de criação (se definida)
     if (selectedDateCreated) {
@@ -580,24 +582,26 @@ const handleDrop = async (targetColumnId, targetIndex) => {
   }}
 >
   {/* Departamento */}
+  <FormControl fullWidth sx={{ width: "18%" }}>
+  
   <Select
-    multiple
-    fullWidth
+    labelId="departamento-label"
     displayEmpty
-    value={selectedDepartment}
-    onChange={(e) => setSelectedDepartment(e.target.value)}
-    sx={{ width: "18%" }}
-    renderValue={(selected) =>
-      selected.length === 0 ? "Filtrar por Departamento" : selected.join(", ")
-    }
+    value={selectedDepartment || ""} // Garante que sempre tenha um valor inicial
+    onChange={(e) => setSelectedDepartment(e.target.value)} // Atualiza apenas um valor
   >
+    <MenuItem disabled value="">
+      <ListItemText primary="Tarefas por solicitantes" />
+    </MenuItem>
     {users.map((user) => (
       <MenuItem key={user.id} value={user.username}>
-        <Checkbox checked={selectedDepartment.includes(user.username)} />
         <ListItemText primary={user.username} />
       </MenuItem>
     ))}
   </Select>
+</FormControl>
+
+
 
   {/* Data de Criação */}
   <TextField
@@ -610,6 +614,8 @@ const handleDrop = async (targetColumnId, targetIndex) => {
   />
 
   {/* Data de Finalização */}
+
+  {/** 
   <TextField
     type="date"
     label="Data de Finalização"
@@ -618,6 +624,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
     sx={{ width: "18%" }}
     InputLabelProps={{ shrink: true }}
   />
+  */}
 
   {/* Colaboradores */}
   <Select
@@ -628,7 +635,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
     onChange={(e) => setSelectedCollaborators(e.target.value)}
     sx={{ width: "18%" }}
     renderValue={(selected) =>
-      selected.length === 0 ? "Filtrar por Colaboradores" : selected.join(", ")
+      selected.length === 0 ? " Tarefas por responsáveis" : selected.join(", ")
     }
   >
     {users.map((user) => (
@@ -670,7 +677,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
             : "Alta Prioridade"}
         </Box>
       ) : (
-        "Filtrar por Prioridade"
+        "Tarefas por Prioridades"
       )
     }
   >
@@ -779,8 +786,6 @@ const handleDrop = async (targetColumnId, targetIndex) => {
     Limpar Filtros
   </Button>
 </Box>
-
-
 </Box>
 
 
@@ -898,38 +903,46 @@ const handleDrop = async (targetColumnId, targetIndex) => {
               sx={{ mb: 2 }}
             />
 
-            <Select
-              multiple
-              fullWidth
-              name="Solicitante"
-              value={newCard.departamento} // 🚀 Agora sempre será um array de Nomes
-              onChange={(e) => {
-                // 🔥 Converte IDs para Nomes
-                const selectedUsers = e.target.value.map((id) => {
-                  const user = users.find((user) => user.id === id);
-                  return user ? user.username : id; // Se não encontrar, mantém o ID
-                });
+<Select
+  fullWidth
+  name="Solicitante"
+  value={newCard.departamento || ""} // Garante que sempre tenha um valor
+  onChange={(e) => {
+    const selectedUser = users.find((user) => user.id === e.target.value);
+    setNewCard({ ...newCard, departamento: selectedUser ? selectedUser.username : "" });
+  }}
+  displayEmpty
+  sx={{ width: "100%", mb: 2 }}
+  MenuProps={{
+    PaperProps: {
+      style: {
+        maxHeight: 200, // Limita a altura do dropdown
+      },
+    },
+  }}
+  renderValue={(selected) => {
+    if (!selected) {
+      return <Typography sx={{ color: "#a0a0a0" }}>Tarefas por solicitante</Typography>;
+    }
+    return selected;
+  }}
+>
+  <MenuItem disabled value="">
+    <Typography sx={{ color: "#a0a0a0" }}>Selecione solicitante da tarefa</Typography>
+  </MenuItem>
+  {users.map((user) => (
+    <MenuItem key={user.id} value={user.id}>
+      <ListItemText primary={user.username} />
+    </MenuItem>
+  ))}
+</Select>
+   
 
-                setNewCard({ ...newCard, departamento: selectedUsers }); // 🚀 Atualiza com os nomes
-              }}
-              displayEmpty
-              sx={{ width: "100%", mb: 2 }} // ✅ Adicionada margin-bottom
-              renderValue={
-                (selected) =>
-                  selected.length === 0
-                    ? "Selecione solicitante da tarefa"
-                    : selected.join(", ") // Exibe os nomes separados por vírgula
-              }
-            >
-              {users.map((user) => (
-                <MenuItem key={user.id} value={user.id}>
-                  <Checkbox
-                    checked={newCard.departamento.includes(user.username)}
-                  />
-                  <ListItemText primary={user.username} />
-                </MenuItem>
-              ))}
-            </Select>
+
+
+
+
+
 
             <TextField
               fullWidth
