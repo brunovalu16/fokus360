@@ -109,30 +109,25 @@ corrigirRolesNoFirestore();
         return {
           id: doc.id,
           ...data,
-          role: data.role || "default",
-          position: data.position ?? 0, // 🔥 Evita valores undefined
+          role: data.role || "default", // 🔥 Se `role` for null, define "default"
         };
       });
-  
-      console.log("📋 Todos os cards carregados:", cardsFromFirestore);
-  
-      // 🔥 Atualiza corretamente o estado `columns`
-      setAllCards(cardsFromFirestore);
-      setColumns((prevColumns) =>
-        prevColumns.map((column) => ({
+
+      console.log("📋 Todos os cards carregados:", cardsFromFirestore); // 🔥 Verifique os dados no console
+
+      setAllCards(cardsFromFirestore); // 🔥 Salva todos os cards para filtragem
+      setColumns(
+        columns.map((column) => ({
           ...column,
-          cards: cardsFromFirestore
-            .filter((card) => card.columnId === column.id)
-            .sort((a, b) => a.position - b.position), // 🔥 Ordena os cards pela posição
+          cards: cardsFromFirestore.filter(
+            (card) => card.columnId === column.id
+          ),
         }))
       );
     } catch (error) {
       console.error("❌ Erro ao buscar os cards:", error);
     }
   };
-  
-  
-  
 
   //Criar card: criar um novo card, associamos o uid do usuário autenticado
   const handleAddCard = async () => {
@@ -221,44 +216,41 @@ const handleDrop = async (targetColumnId, targetIndex) => {
   const { card, columnId: sourceColumnId } = draggingCard;
 
   try {
-    // 🔥 Atualiza Firestore com a nova posição e coluna
+    const updatedColumns = columns.map((column) => {
+      if (column.id === sourceColumnId) {
+        return {
+          ...column,
+          cards: column.cards.filter((c) => c.id !== card.id), // Remove da coluna antiga
+        };
+      }
+      return column;
+    });
+
+    const newColumns = updatedColumns.map((column) => {
+      if (column.id === targetColumnId) {
+        const newCards = [...column.cards];
+        newCards.splice(targetIndex, 0, { ...card, columnId: targetColumnId });
+
+        return { ...column, cards: newCards };
+      }
+      return column;
+    });
+
+    setColumns(newColumns);
+    setDraggingCard(null);
+
+    // 🔥 Atualizar no Firestore
     const cardDocRef = doc(dbFokus360, "kanbanCards", card.id);
     await updateDoc(cardDocRef, {
       columnId: targetColumnId,
       position: targetIndex,
     });
 
-    // 🔥 Atualiza localmente as colunas sem perder os cards
-    setColumns((prevColumns) => {
-      const updatedColumns = prevColumns.map((column) => {
-        if (column.id === sourceColumnId) {
-          return {
-            ...column,
-            cards: column.cards.filter((c) => c.id !== card.id), // Remove da coluna anterior
-          };
-        }
-        return column;
-      });
-
-      return updatedColumns.map((column) => {
-        if (column.id === targetColumnId) {
-          const updatedCards = [...column.cards];
-          updatedCards.splice(targetIndex, 0, { ...card, columnId: targetColumnId });
-
-          return { ...column, cards: updatedCards };
-        }
-        return column;
-      });
-    });
-
-    setDraggingCard(null);
-    console.log(`✅ Card ${card.id} movido para a coluna ${targetColumnId}, posição ${targetIndex}`);
+    console.log(`✅ Card ${card.id} movido para a coluna ${targetColumnId} na posição ${targetIndex}`);
   } catch (error) {
     console.error("❌ Erro ao reordenar o cartão:", error);
   }
 };
-
-
 
   
 
@@ -323,9 +315,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
       console.log("⏳ Buscando cards...");
       fetchCards();
     }
-  }, [user]); // 🔥 Agora só recarrega os cards quando o usuário mudar
-  
-  
+  }, [user]); // 🔥 Executa novamente se o usuário mudar
 
   //aplica o filtro ao clicar no botão
   const applyFilter = () => {
@@ -729,6 +719,14 @@ const handleDrop = async (targetColumnId, targetIndex) => {
   </Select>
 
   {/* Botão de Limpar Filtros */}
+  <Box
+  sx={{
+    display: "flex",
+    justifyContent: "flex-start", // 🔥 Alinha os botões à esquerda
+    gap: 2, // 🔥 Adiciona um espaço entre os botões
+    mt: 2, // 🔥 Margem superior para separação
+  }}
+>
   <Button
     variant="contained"
     onClick={() => {
@@ -737,7 +735,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
       setSelectedDateFinished("");
       setSelectedCollaborators([]);
       setSelectedPriority("");
-      applyFilter(); // Reseta os filtros
+      applyFilter(); // Aplica os filtros
     }}
     sx={{
       height: "40px",
@@ -752,8 +750,37 @@ const handleDrop = async (targetColumnId, targetIndex) => {
     }}
   >
     <ClearAllIcon sx={{ fontSize: "20px", mr: 1 }} />
+    Filtrar
+  </Button>
+
+  <Button
+    variant="contained"
+    onClick={() => {
+      setSelectedDepartment([]);
+      setSelectedDateCreated("");
+      setSelectedDateFinished("");
+      setSelectedCollaborators([]);
+      setSelectedPriority("");
+      applyFilter(); // Reseta os filtros
+    }}
+    sx={{
+      height: "40px",
+      backgroundColor: "#afafaf",
+      color: "white",
+      whiteSpace: "nowrap",
+      "&:hover": {
+        backgroundColor: "#5a5a5a",
+        boxShadow: "none",
+      },
+      "&:focus": { outline: "none" },
+    }}
+  >
+    <ClearAllIcon sx={{ fontSize: "20px", mr: 1 }} />
     Limpar Filtros
   </Button>
+</Box>
+
+
 </Box>
 
 
