@@ -67,9 +67,7 @@ const Home = () => {
           <Box
             sx={{
               position: "absolute",
-              top: "55%", // Posição para "Novo Projeto"
-              left: "10%",
-              height: "100px",
+              top: "45%", // Posição para "Novo Projeto" 
             }}
           >
             <Link
@@ -79,9 +77,9 @@ const Home = () => {
                 color: "transparent",
                 textDecoration: "none",
                 fontWeight: "bold",
-                marginLeft: "8px",
+                marginLeft: "60px",
                 alignContent: "center",
-                paddingRight: "300px",
+                paddingRight: "500px",
                 paddingBottom: "150px",
               }}
             >
