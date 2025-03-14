@@ -571,14 +571,15 @@ const handleDrop = async (targetColumnId, targetIndex) => {
     width: "100%",
     backgroundColor: "white",
     borderRadius: "10px",
-    padding: "15px",
+    padding: "10px", // 🔥 Reduzindo o padding geral
     boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
     display: "flex",
-    flexWrap: "wrap",
+    flexWrap: "nowrap", // 🔥 Mantém os elementos na mesma linha
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 2,
-    marginBottom: "15px",
+    gap: 1, // 🔥 Reduzindo o espaçamento entre os elementos
+    marginBottom: "10px", // 🔥 Menor espaço abaixo do Box
+    overflowX: "auto", // 🔥 Permite rolagem horizontal se necessário
   }}
 >
   {/* Departamento */}
@@ -745,6 +746,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
       applyFilter(); // Aplica os filtros
     }}
     sx={{
+      marginBottom: "15px",
       height: "40px",
       backgroundColor: "#f44336",
       color: "white",
@@ -771,6 +773,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
       applyFilter(); // Reseta os filtros
     }}
     sx={{
+      marginBottom: "15px",
       height: "40px",
       backgroundColor: "#afafaf",
       color: "white",
