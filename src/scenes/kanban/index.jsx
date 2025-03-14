@@ -42,6 +42,12 @@ const Kanban = () => {
     { id: 5, title: "Concluído", cards: [] },
   ]);
 
+
+  const [selectedPriority, setSelectedPriority] = useState(""); // ✅ Estado para filtrar por prioridade
+  const [selectedCollaborators, setSelectedCollaborators] = useState([]); // ✅ Estado para filtrar por colaboradores
+  const [selectedDateFinished, setSelectedDateFinished] = useState(""); // ✅ Estado para filtrar por data de finalização
+  const [selectedDateCreated, setSelectedDateCreated] = useState(""); // ✅ Adicionando o estado
+  const [selectedDepartment, setSelectedDepartment] = useState([]); // ✅ Adicionando o estado
   const [allCards, setAllCards] = useState([]); // 🔥 Armazena todos os cards para aplicar os filtros depois
   const [user, setUser] = useState(null); // Estado para armazenar o usuário logado
   //gerenciar o filtro da barra de pesquisa
@@ -52,7 +58,7 @@ const Kanban = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [newCard, setNewCard] = useState({
     nome: "",
-    departamento: "",
+    departamento: [],
     assunto: "",
     dataCriacao: "",
     dataFinalizacao: "",
@@ -63,9 +69,36 @@ const Kanban = () => {
 
   const [formValues, setFormValues] = useState({
     colaboradores: [],
+    departamento: [],
   });
 
   const kanbanCards = collection(dbFokus360, "kanbanCards");
+
+  // Atualizar o Firestore sem precisar fazer manualmente
+const corrigirRolesNoFirestore = async () => {
+  const querySnapshot = await getDocs(collection(dbFokus360, "kanbanCards"));
+
+  querySnapshot.forEach(async (docSnap) => {
+    const data = docSnap.data();
+
+    if (data.role === "default" || !data.role) {
+      // 🔥 Buscar o role correto do usuário criador do card
+      const userDoc = await getDoc(doc(dbFokus360, "user", data.createdBy));
+      const userData = userDoc.exists() ? userDoc.data() : null;
+      const userRole = userData?.role || "desconhecido"; // 🔥 Se não encontrar, usa "desconhecido"
+
+      await updateDoc(doc(dbFokus360, "kanbanCards", docSnap.id), {
+        role: userRole,
+      });
+
+      console.log(`✅ Atualizado ${docSnap.id} para role: ${userRole}`);
+    }
+  });
+};
+
+// ✅ Agora chamamos a função corretamente
+corrigirRolesNoFirestore();
+
 
   //Exibir Apenas os Cards do Usuário Logado
   const fetchCards = async () => {
@@ -76,25 +109,30 @@ const Kanban = () => {
         return {
           id: doc.id,
           ...data,
-          role: data.role || "default", // 🔥 Se `role` for null, define "default"
+          role: data.role || "default",
+          position: data.position ?? 0, // 🔥 Evita valores undefined
         };
       });
-
-      console.log("📋 Todos os cards carregados:", cardsFromFirestore); // 🔥 Verifique os dados no console
-
-      setAllCards(cardsFromFirestore); // 🔥 Salva todos os cards para filtragem
-      setColumns(
-        columns.map((column) => ({
+  
+      console.log("📋 Todos os cards carregados:", cardsFromFirestore);
+  
+      // 🔥 Atualiza corretamente o estado `columns`
+      setAllCards(cardsFromFirestore);
+      setColumns((prevColumns) =>
+        prevColumns.map((column) => ({
           ...column,
-          cards: cardsFromFirestore.filter(
-            (card) => card.columnId === column.id
-          ),
+          cards: cardsFromFirestore
+            .filter((card) => card.columnId === column.id)
+            .sort((a, b) => a.position - b.position), // 🔥 Ordena os cards pela posição
         }))
       );
     } catch (error) {
       console.error("❌ Erro ao buscar os cards:", error);
     }
   };
+  
+  
+  
 
   //Criar card: criar um novo card, associamos o uid do usuário autenticado
   const handleAddCard = async () => {
@@ -131,7 +169,7 @@ const Kanban = () => {
 
       setNewCard({
         nome: "",
-        departamento: "",
+        departamento: [],
         assunto: "",
         dataCriacao: "",
         dataFinalizacao: "",
@@ -146,18 +184,22 @@ const Kanban = () => {
     }
   };
 
-
-//Deletar cards
+  //Deletar cards
   const handleDeleteCard = async (cardId, columnId) => {
     try {
       await deleteDoc(doc(dbFokus360, "kanbanCards", cardId));
-  
+
       // Atualiza os cards globais e as colunas
-      setAllCards((prevCards) => prevCards.filter((card) => card.id !== cardId));
+      setAllCards((prevCards) =>
+        prevCards.filter((card) => card.id !== cardId)
+      );
       setColumns((prevColumns) =>
         prevColumns.map((column) =>
           column.id === columnId
-            ? { ...column, cards: column.cards.filter((card) => card.id !== cardId) }
+            ? {
+                ...column,
+                cards: column.cards.filter((card) => card.id !== cardId),
+              }
             : column
         )
       );
@@ -165,51 +207,60 @@ const Kanban = () => {
       console.error("Erro ao excluir cartão:", error);
     }
   };
-  
 
   const handleDragStart = (card, columnId) =>
     setDraggingCard({ card, columnId });
   const handleDragEnd = () => setDraggingCard(null);
   const handleDragOver = (e) => e.preventDefault();
 
-  const handleDrop = async (targetColumnId, targetIndex) => {
-    if (!draggingCard) return;
 
-    const { card, columnId: sourceColumnId } = draggingCard;
+//MOver os cards na mesma coluna
+const handleDrop = async (targetColumnId, targetIndex) => {
+  if (!draggingCard) return;
 
-    try {
-      const updatedColumns = columns.map((column) => {
+  const { card, columnId: sourceColumnId } = draggingCard;
+
+  try {
+    // 🔥 Atualiza Firestore com a nova posição e coluna
+    const cardDocRef = doc(dbFokus360, "kanbanCards", card.id);
+    await updateDoc(cardDocRef, {
+      columnId: targetColumnId,
+      position: targetIndex,
+    });
+
+    // 🔥 Atualiza localmente as colunas sem perder os cards
+    setColumns((prevColumns) => {
+      const updatedColumns = prevColumns.map((column) => {
         if (column.id === sourceColumnId) {
-          // Remover o card da posição original
-          const filteredCards = column.cards.filter((c) => c.id !== card.id);
-          return { ...column, cards: filteredCards };
+          return {
+            ...column,
+            cards: column.cards.filter((c) => c.id !== card.id), // Remove da coluna anterior
+          };
         }
         return column;
       });
 
-      const newColumns = updatedColumns.map((column) => {
+      return updatedColumns.map((column) => {
         if (column.id === targetColumnId) {
-          // Inserir o card na nova posição dentro da mesma coluna
-          const newCards = [...column.cards];
-          newCards.splice(targetIndex, 0, card);
-          return { ...column, cards: newCards };
+          const updatedCards = [...column.cards];
+          updatedCards.splice(targetIndex, 0, { ...card, columnId: targetColumnId });
+
+          return { ...column, cards: updatedCards };
         }
         return column;
       });
+    });
 
-      setColumns(newColumns);
-      setDraggingCard(null);
+    setDraggingCard(null);
+    console.log(`✅ Card ${card.id} movido para a coluna ${targetColumnId}, posição ${targetIndex}`);
+  } catch (error) {
+    console.error("❌ Erro ao reordenar o cartão:", error);
+  }
+};
 
-      // Atualizar a posição no Firestore (opcional)
-      const cardDocRef = doc(dbFokus360, "kanbanCards", card.id);
-      await updateDoc(cardDocRef, {
-        columnId: targetColumnId,
-        position: targetIndex,
-      });
-    } catch (error) {
-      console.error("Erro ao reordenar o cartão:", error);
-    }
-  };
+
+
+  
 
   const badgeStyle = (priority) => ({
     backgroundColor:
@@ -272,26 +323,52 @@ const Kanban = () => {
       console.log("⏳ Buscando cards...");
       fetchCards();
     }
-  }, [user]); // 🔥 Executa novamente se o usuário mudar
+  }, [user]); // 🔥 Agora só recarrega os cards quando o usuário mudar
+  
+  
 
   //aplica o filtro ao clicar no botão
-  const applyFilter = (selectedValue) => {
-    if (!selectedValue) {
-      setColumns(
-        columns.map((column) => ({
-          ...column,
-          cards: allCards.filter((card) => card.columnId === column.id),
-        }))
+  const applyFilter = () => {
+    let filteredCards = allCards;
+  
+    // 🔥 Filtrar por departamento (se algum estiver selecionado)
+    if (selectedDepartment.length > 0) {
+      filteredCards = filteredCards.filter((card) =>
+        selectedDepartment.includes(card.departamento)
       );
-      return;
     }
-
-    console.log("🔍 Aplicando filtro para:", selectedValue); // 🔥 Verifique o filtro selecionado
-
-    const filteredCards = allCards.filter(
-      (card) => String(card.role) === String(selectedValue)
-    );
-
+  
+    // 🔥 Filtrar por data de criação (se definida)
+    if (selectedDateCreated) {
+      filteredCards = filteredCards.filter(
+        (card) => card.dataCriacao === selectedDateCreated
+      );
+    }
+  
+    // 🔥 Filtrar por data de finalização (se definida)
+    if (selectedDateFinished) {
+      filteredCards = filteredCards.filter(
+        (card) => card.dataFinalizacao === selectedDateFinished
+      );
+    }
+  
+    // 🔥 Filtrar por colaboradores (se algum estiver selecionado)
+    if (selectedCollaborators.length > 0) {
+      filteredCards = filteredCards.filter((card) =>
+        card.colaboradores.some((colab) =>
+          selectedCollaborators.includes(colab)
+        )
+      );
+    }
+  
+    // 🔥 Filtrar por prioridade (se definida)
+    if (selectedPriority) {
+      filteredCards = filteredCards.filter(
+        (card) => card.prioridade === selectedPriority
+      );
+    }
+  
+    // 🔥 Atualiza as colunas apenas com os cards filtrados
     setColumns(
       columns.map((column) => ({
         ...column,
@@ -299,31 +376,15 @@ const Kanban = () => {
       }))
     );
   };
-
-  // Atualizar o firestore sem precisar fazer manualmente
-  const corrigirRolesNoFirestore = async () => {
-    const querySnapshot = await getDocs(collection(dbFokus360, "kanbanCards"));
-
-    querySnapshot.forEach(async (docSnap) => {
-      const data = docSnap.data();
-
-      if (data.role === "default" || !data.role) {
-        // 🔥 Buscar o role correto do usuário criador do card
-        const userDoc = await getDoc(doc(dbFokus360, "user", data.createdBy));
-        const userData = userDoc.exists() ? userDoc.data() : null;
-        const userRole = userData?.role || "desconhecido"; // 🔥 Se não encontrar, usa "desconhecido"
-
-        await updateDoc(doc(dbFokus360, "kanbanCards", docSnap.id), {
-          role: userRole,
-        });
-
-        console.log(`✅ Atualizado ${docSnap.id} para role: ${userRole}`);
-      }
-    });
-  };
-
+  
+  
   // Chamar essa função manualmente uma vez para corrigir os registros antigos
   corrigirRolesNoFirestore();
+
+
+
+
+  
 
   return (
     <>
@@ -341,97 +402,348 @@ const Kanban = () => {
           overflowX: "hidden",
         }}
       >
+        {/* Container principal para alinhar Filtro, Botão e Contador */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between", // 🔥 Mantém os itens alinhados lado a lado
+            flexWrap: "wrap", // 🔥 Ajuste automático em telas menores
+            marginBottom: "15px",
+            width: "100%", // 🔹 Garante que ocupe toda a largura
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-start", // 🔹 Mantém alinhado à esquerda
+              gap: "10px", // 🔥 Espaçamento entre os elementos
+              minHeight: "50px", // 🔹 Garante um tamanho mínimo
+            }}
+          >
+            {/* Caixa de seleção de filtro */}
+            <Box
+              sx={{
+                flex: 1,
+                minWidth: "70%", // 🔥 Garante que a caixa não fique muito pequena
+                maxWidth: "100%", // 🔹 Ocupa até 30% da tela
+                backgroundColor: "white",
+                borderRadius: "10px",
+                padding: "10px",
+                boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <FilterListIcon sx={{ color: "#757575", mr: 1 }} />
+              <Select
+                fullWidth
+                displayEmpty
+                value={selectedFilter || ""}
+                onChange={(e) => {
+                  const selectedValue = e.target.value;
+                  setSelectedFilter(selectedValue);
+                  applyFilter(selectedValue);
+                }}
+                sx={{
+                  backgroundColor: "#f5f5f5",
+                  borderRadius: "5px",
+                  height: "40px",
+                  "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    border: "none",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    border: "none",
+                  },
+                  "&:focus": { outline: "none" },
+                  "&.Mui-focused": { boxShadow: "none" },
+                }}
+              >
+                <MenuItem value="" disabled>
+                  Busque tarefas por níveis
+                </MenuItem>
+                {[
+                  { value: "01", label: "Diretoria" },
+                  { value: "02", label: "Gerente" },
+                  { value: "03", label: "Supervisor" },
+                  { value: "04", label: "Vendedor" },
+                  { value: "06", label: "Industria" },
+                  { value: "07", label: "Projetos" },
+                  { value: "08", label: "Admin" },
+                  { value: "09", label: "Coordenador Trade" },
+                  { value: "10", label: "Gerência Trade" },
+                  { value: "11", label: "Analista Trade" },
+                ].map((filter) => (
+                  <MenuItem key={filter.value} value={filter.value}>
+                    {filter.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Box>
 
-{/* Container principal para alinhar Filtro, Botão e Contador */}
+            {/* Botão de limpar filtro */}
+            <Button
+              variant="contained"
+              onClick={() => {
+                setSelectedFilter(null);
+                applyFilter(null);
+              }}
+              sx={{
+                height: "40px",
+                minWidth: "140px", // 🔥 Define um tamanho mínimo para não sobrepor a caixa de seleção
+                backgroundColor: "#f44336",
+                color: "white",
+                whiteSpace: "nowrap", // 🔥 Impede quebra de linha no botão
+                flexShrink: 0, // 🔥 Impede que o botão diminua ao reduzir a tela
+                "&:hover": {
+                  backgroundColor: "#d32f2f",
+                  boxShadow: "none",
+                },
+                "&:focus": { outline: "none" },
+              }}
+            >
+              <ClearAllIcon sx={{ fontSize: "20px", mr: 1 }} />
+              Limpar Filtro
+            </Button>
+          </Box>
+
+          {/* Contador de Tarefas - AGORA AO LADO do botão de limpar filtro */}
+          <Box
+            sx={{
+              width: "55%", // 🔥 Ocupa 40% da largura
+              backgroundColor: "white",
+              borderRadius: "10px",
+              padding: "15px",
+              boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+              display: "flex",
+              alignItems: "center", // 🔥 Alinha na horizontal
+              justifyContent: "space-between", // 🔥 Mantém espaçamento uniforme
+              gap: 2,
+            }}
+          >
+            {/* Total de Tarefas */}
+            <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+              Total: <strong>{allCards.length}</strong>
+            </Typography>
+
+            {/* Quantidade de cards por status */}
+            {columns.map((column) => (
+              <Box
+                key={column.id}
+                sx={{ display: "flex", alignItems: "center", gap: 1 }}
+              >
+                {/* 🔥 Bolinha colorida correspondente à coluna */}
+                <Box
+                  sx={{
+                    width: "12px",
+                    height: "12px",
+                    borderRadius: "50%",
+                    backgroundColor: getColumnBorderColor(column.id),
+                  }}
+                />
+                <Typography variant="body2">
+                  {column.title}: <strong>{column.cards.length}</strong>
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{/* Box de Filtros */}
 <Box
   sx={{
+    width: "100%",
+    backgroundColor: "white",
+    borderRadius: "10px",
+    padding: "15px",
+    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
     display: "flex",
+    flexWrap: "wrap",
     alignItems: "center",
-    justifyContent: "space-between", // 🔥 Mantém os itens alinhados lado a lado
-    flexWrap: "wrap", // 🔥 Ajuste automático em telas menores
+    justifyContent: "space-between",
+    gap: 2,
     marginBottom: "15px",
-    width: "100%", // 🔹 Garante que ocupe toda a largura
   }}
 >
-
-<Box
-  sx={{
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "flex-start", // 🔹 Mantém alinhado à esquerda
-    gap: "10px", // 🔥 Espaçamento entre os elementos
-    minHeight: "50px", // 🔹 Garante um tamanho mínimo
-  }}
->
-  {/* Caixa de seleção de filtro */}
-  <Box
-    sx={{
-      flex: 1,
-      minWidth: "70%", // 🔥 Garante que a caixa não fique muito pequena
-      maxWidth: "100%", // 🔹 Ocupa até 30% da tela
-      backgroundColor: "white",
-      borderRadius: "10px",
-      padding: "10px",
-      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-      display: "flex",
-      alignItems: "center",
-    }}
+  {/* Departamento */}
+  <Select
+    multiple
+    fullWidth
+    displayEmpty
+    value={selectedDepartment}
+    onChange={(e) => setSelectedDepartment(e.target.value)}
+    sx={{ width: "18%" }}
+    renderValue={(selected) =>
+      selected.length === 0 ? "Filtrar por Departamento" : selected.join(", ")
+    }
   >
-    <FilterListIcon sx={{ color: "#757575", mr: 1 }} />
-    <Select
-      fullWidth
-      displayEmpty
-      value={selectedFilter || ""}
-      onChange={(e) => {
-        const selectedValue = e.target.value;
-        setSelectedFilter(selectedValue);
-        applyFilter(selectedValue);
-      }}
-      sx={{
-        backgroundColor: "#f5f5f5",
-        borderRadius: "5px",
-        height: "40px",
-        "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-        "&:hover .MuiOutlinedInput-notchedOutline": { border: "none" },
-        "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: "none" },
-        "&:focus": { outline: "none" },
-        "&.Mui-focused": { boxShadow: "none" },
-      }}
-    >
-      <MenuItem value="" disabled>Busque tarefas por níveis</MenuItem>
-      {[
-        { value: "01", label: "Diretoria" },
-        { value: "02", label: "Gerente" },
-        { value: "03", label: "Supervisor" },
-        { value: "04", label: "Vendedor" },
-        { value: "06", label: "Industria" },
-        { value: "07", label: "Projetos" },
-        { value: "08", label: "Admin" },
-        { value: "09", label: "Coordenador Trade" },
-        { value: "10", label: "Gerência Trade" },
-        { value: "11", label: "Analista Trade" },
-      ].map((filter) => (
-        <MenuItem key={filter.value} value={filter.value}>
-          {filter.label}
-        </MenuItem>
-      ))}
-    </Select>
-  </Box>
+    {users.map((user) => (
+      <MenuItem key={user.id} value={user.username}>
+        <Checkbox checked={selectedDepartment.includes(user.username)} />
+        <ListItemText primary={user.username} />
+      </MenuItem>
+    ))}
+  </Select>
 
-  {/* Botão de limpar filtro */}
+  {/* Data de Criação */}
+  <TextField
+    type="date"
+    label="Data de Criação"
+    value={selectedDateCreated}
+    onChange={(e) => setSelectedDateCreated(e.target.value)}
+    sx={{ width: "18%" }}
+    InputLabelProps={{ shrink: true }}
+  />
+
+  {/* Data de Finalização */}
+  <TextField
+    type="date"
+    label="Data de Finalização"
+    value={selectedDateFinished}
+    onChange={(e) => setSelectedDateFinished(e.target.value)}
+    sx={{ width: "18%" }}
+    InputLabelProps={{ shrink: true }}
+  />
+
+  {/* Colaboradores */}
+  <Select
+    multiple
+    fullWidth
+    displayEmpty
+    value={selectedCollaborators}
+    onChange={(e) => setSelectedCollaborators(e.target.value)}
+    sx={{ width: "18%" }}
+    renderValue={(selected) =>
+      selected.length === 0 ? "Filtrar por Colaboradores" : selected.join(", ")
+    }
+  >
+    {users.map((user) => (
+      <MenuItem key={user.id} value={user.username}>
+        <Checkbox checked={selectedCollaborators.includes(user.username)} />
+        <ListItemText primary={user.username} />
+      </MenuItem>
+    ))}
+  </Select>
+
+  {/* Prioridade */}
+  <Select
+    fullWidth
+    displayEmpty
+    value={selectedPriority || ""}
+    onChange={(e) => setSelectedPriority(e.target.value)}
+    sx={{ width: "18%" }}
+    renderValue={(selected) =>
+      selected ? (
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <Box
+            sx={{
+              width: 12,
+              height: 12,
+              borderRadius: "50%",
+              backgroundColor:
+                selected === "low"
+                  ? "#6b84f3"
+                  : selected === "medium"
+                  ? "#fc7f32"
+                  : "#ce2d9b",
+              mr: 1,
+            }}
+          />
+          {selected === "low"
+            ? "Baixa Prioridade"
+            : selected === "medium"
+            ? "Média Prioridade"
+            : "Alta Prioridade"}
+        </Box>
+      ) : (
+        "Filtrar por Prioridade"
+      )
+    }
+  >
+    <MenuItem value="low">
+      <Box sx={{ display: "flex", alignItems: "center" }}>
+        <Box
+          sx={{
+            width: 12,
+            height: 12,
+            borderRadius: "50%",
+            backgroundColor: "#6b84f3",
+            mr: 1,
+          }}
+        />
+        Baixa Prioridade
+      </Box>
+    </MenuItem>
+    <MenuItem value="medium">
+      <Box sx={{ display: "flex", alignItems: "center" }}>
+        <Box
+          sx={{
+            width: 12,
+            height: 12,
+            borderRadius: "50%",
+            backgroundColor: "#fc7f32",
+            mr: 1,
+          }}
+        />
+        Média Prioridade
+      </Box>
+    </MenuItem>
+    <MenuItem value="high">
+      <Box sx={{ display: "flex", alignItems: "center" }}>
+        <Box
+          sx={{
+            width: 12,
+            height: 12,
+            borderRadius: "50%",
+            backgroundColor: "#ce2d9b",
+            mr: 1,
+          }}
+        />
+        Alta Prioridade
+      </Box>
+    </MenuItem>
+  </Select>
+
+  {/* Botão de Limpar Filtros */}
   <Button
     variant="contained"
     onClick={() => {
-      setSelectedFilter(null);
-      applyFilter(null);
+      setSelectedDepartment([]);
+      setSelectedDateCreated("");
+      setSelectedDateFinished("");
+      setSelectedCollaborators([]);
+      setSelectedPriority("");
+      applyFilter(); // Reseta os filtros
     }}
     sx={{
       height: "40px",
-      minWidth: "140px", // 🔥 Define um tamanho mínimo para não sobrepor a caixa de seleção
       backgroundColor: "#f44336",
       color: "white",
-      whiteSpace: "nowrap", // 🔥 Impede quebra de linha no botão
-      flexShrink: 0, // 🔥 Impede que o botão diminua ao reduzir a tela
+      whiteSpace: "nowrap",
       "&:hover": {
         backgroundColor: "#d32f2f",
         boxShadow: "none",
@@ -440,79 +752,9 @@ const Kanban = () => {
     }}
   >
     <ClearAllIcon sx={{ fontSize: "20px", mr: 1 }} />
-    Limpar Filtro
+    Limpar Filtros
   </Button>
 </Box>
-
-
-  {/* Contador de Tarefas - AGORA AO LADO do botão de limpar filtro */}
-  <Box
-    sx={{
-      width: "55%", // 🔥 Ocupa 40% da largura
-      backgroundColor: "white",
-      borderRadius: "10px",
-      padding: "15px",
-      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-      display: "flex",
-      alignItems: "center", // 🔥 Alinha na horizontal
-      justifyContent: "space-between", // 🔥 Mantém espaçamento uniforme
-      gap: 2,
-    }}
-  >
-    {/* Total de Tarefas */}
-    <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-      Total: <strong>{allCards.length}</strong>
-    </Typography>
-
-    {/* Quantidade de cards por status */}
-    {columns.map((column) => (
-      <Box key={column.id} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        {/* 🔥 Bolinha colorida correspondente à coluna */}
-        <Box
-          sx={{
-            width: "12px",
-            height: "12px",
-            borderRadius: "50%",
-            backgroundColor: getColumnBorderColor(column.id),
-          }}
-        />
-        <Typography variant="body2">
-          {column.title}: <strong>{column.cards.length}</strong>
-        </Typography>
-      </Box>
-    ))}
-  </Box>
-
-</Box>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -628,15 +870,40 @@ const Kanban = () => {
               onChange={(e) => setNewCard({ ...newCard, nome: e.target.value })}
               sx={{ mb: 2 }}
             />
-            <TextField
+
+            <Select
+              multiple
               fullWidth
-              label="Solicitante:"
-              value={newCard.departamento}
-              onChange={(e) =>
-                setNewCard({ ...newCard, departamento: e.target.value })
+              name="Solicitante"
+              value={newCard.departamento} // 🚀 Agora sempre será um array de Nomes
+              onChange={(e) => {
+                // 🔥 Converte IDs para Nomes
+                const selectedUsers = e.target.value.map((id) => {
+                  const user = users.find((user) => user.id === id);
+                  return user ? user.username : id; // Se não encontrar, mantém o ID
+                });
+
+                setNewCard({ ...newCard, departamento: selectedUsers }); // 🚀 Atualiza com os nomes
+              }}
+              displayEmpty
+              sx={{ width: "100%", mb: 2 }} // ✅ Adicionada margin-bottom
+              renderValue={
+                (selected) =>
+                  selected.length === 0
+                    ? "Selecione solicitante da tarefa"
+                    : selected.join(", ") // Exibe os nomes separados por vírgula
               }
-              sx={{ mb: 2 }}
-            />
+            >
+              {users.map((user) => (
+                <MenuItem key={user.id} value={user.id}>
+                  <Checkbox
+                    checked={newCard.departamento.includes(user.username)}
+                  />
+                  <ListItemText primary={user.username} />
+                </MenuItem>
+              ))}
+            </Select>
+
             <TextField
               fullWidth
               label="Descrição da tarefa:"
@@ -659,7 +926,7 @@ const Kanban = () => {
             />
             <TextField
               fullWidth
-              label="Data de Finalização"
+              label="Prazo previsto"
               type="date"
               value={newCard.dataFinalizacao}
               onChange={(e) =>
@@ -895,7 +1162,7 @@ const Kanban = () => {
                               : "Baixa Prioridade"}
                           </Box>
                           <Typography variant="body2">
-                            <strong>Departamento:</strong> {card.departamento}
+                            <strong>Solicitante:</strong> {card.departamento}
                           </Typography>
                           <Typography
                             variant="h6"
@@ -919,7 +1186,7 @@ const Kanban = () => {
                             <strong>Data de Criação:</strong> {card.dataCriacao}
                           </Typography>
                           <Typography variant="body2">
-                            <strong>Data de Finalização:</strong>{" "}
+                            <strong>Prazo previsto:</strong>{" "}
                             {card.dataFinalizacao}
                           </Typography>
                           <Box
