@@ -44,6 +44,7 @@ const Kanban = () => {
   ]);
 
 
+  const [loggedUserName, setLoggedUserName] = useState("")
   const [selectedPriority, setSelectedPriority] = useState(""); // ✅ Estado para filtrar por prioridade
   const [selectedCollaborators, setSelectedCollaborators] = useState([]); // ✅ Estado para filtrar por colaboradores
   const [selectedDateFinished, setSelectedDateFinished] = useState(""); // ✅ Estado para filtrar por data de finalização
@@ -183,26 +184,45 @@ corrigirRolesNoFirestore();
   //Deletar cards
   const handleDeleteCard = async (cardId, columnId) => {
     try {
-      await deleteDoc(doc(dbFokus360, "kanbanCards", cardId));
-
-      // Atualiza os cards globais e as colunas
-      setAllCards((prevCards) =>
-        prevCards.filter((card) => card.id !== cardId)
-      );
-      setColumns((prevColumns) =>
-        prevColumns.map((column) =>
-          column.id === columnId
-            ? {
-                ...column,
-                cards: column.cards.filter((card) => card.id !== cardId),
-              }
-            : column
-        )
-      );
+      // Busca o card no Firestore para verificar quem criou
+      const cardDoc = await getDoc(doc(dbFokus360, "kanbanCards", cardId));
+  
+      if (cardDoc.exists()) {
+        const cardData = cardDoc.data();
+  
+        // Verifica se o usuário logado é quem criou o card
+        if (cardData.createdBy !== user.uid) {
+          alert("❌ Você não tem permissão para deletar este card.");
+          return;
+        }
+  
+        // Se for o criador, deleta o card normalmente
+        await deleteDoc(doc(dbFokus360, "kanbanCards", cardId));
+  
+        // Atualiza localmente os cards
+        setAllCards((prevCards) =>
+          prevCards.filter((card) => card.id !== cardId)
+        );
+  
+        // Atualiza as colunas
+        setColumns((prevColumns) =>
+          prevColumns.map((column) =>
+            column.id === columnId
+              ? {
+                  ...column,
+                  cards: column.cards.filter((card) => card.id !== cardId),
+                }
+              : column
+          )
+        );
+      } else {
+        alert("Card não encontrado.");
+      }
     } catch (error) {
       console.error("Erro ao excluir cartão:", error);
     }
   };
+  
 
   const handleDragStart = (card, columnId) =>
     setDraggingCard({ card, columnId });
@@ -304,12 +324,30 @@ const handleDrop = async (targetColumnId, targetIndex) => {
 
   //Capturar o usuário logado
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(authFokus360, (currentUser) => {
-      setUser(currentUser);
+    const unsubscribe = onAuthStateChanged(authFokus360, async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+  
+        // 🔥 Buscar username do Firestore
+        const userDoc = await getDoc(doc(dbFokus360, "user", currentUser.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+  
+          // ✅ Atualiza o estado do card com o nome do usuário já preenchido
+          setNewCard((prev) => ({
+            ...prev,
+            departamento: userData.username, // Aqui define automaticamente
+          }));
+  
+          // Opcional: se quiser também salvar em um estado separado
+          setLoggedUserName(userData.username);
+        }
+      }
     });
-
+  
     return () => unsubscribe();
   }, []);
+  
 
   useEffect(() => {
     if (user) {
@@ -317,6 +355,12 @@ const handleDrop = async (targetColumnId, targetIndex) => {
       fetchCards();
     }
   }, [user]); // 🔥 Executa novamente se o usuário mudar
+
+
+
+
+
+
 
   //aplica o filtro ao clicar no botão
   const applyFilter = () => {
@@ -925,36 +969,50 @@ const handleDrop = async (targetColumnId, targetIndex) => {
 <Select
   fullWidth
   name="Solicitante"
-  value={newCard.departamento || ""} // Garante que sempre tenha um valor
+  value={newCard.departamento || ""} // Vai pegar o usuário já definido no estado
   onChange={(e) => {
     const selectedUser = users.find((user) => user.id === e.target.value);
-    setNewCard({ ...newCard, departamento: selectedUser ? selectedUser.username : "" });
+    setNewCard({
+      ...newCard,
+      departamento: selectedUser ? selectedUser.username : "",
+    });
   }}
   displayEmpty
   sx={{ width: "100%", mb: 2 }}
   MenuProps={{
     PaperProps: {
       style: {
-        maxHeight: 200, // Limita a altura do dropdown
+        maxHeight: 200,
       },
     },
   }}
   renderValue={(selected) => {
     if (!selected) {
-      return <Typography sx={{ color: "#a0a0a0" }}>Tarefas por solicitante</Typography>;
+      return (
+        <Typography sx={{ color: "#a0a0a0" }}>
+          Tarefas por solicitante
+        </Typography>
+      );
     }
     return selected;
   }}
 >
   <MenuItem disabled value="">
-    <Typography sx={{ color: "#a0a0a0" }}>Selecione solicitante da tarefa</Typography>
+    <Typography sx={{ color: "#a0a0a0" }}>
+      Selecione solicitante da tarefa
+    </Typography>
   </MenuItem>
-  {users.map((user) => (
-    <MenuItem key={user.id} value={user.id}>
-      <ListItemText primary={user.username} />
-    </MenuItem>
-  ))}
+
+  {/* ✅ Filtra apenas o usuário logado */}
+  {users
+    .filter((user) => user.username === newCard.departamento) // Só exibe quem está logado
+    .map((user) => (
+      <MenuItem key={user.id} value={user.id}>
+        <ListItemText primary={user.username} />
+      </MenuItem>
+    ))}
 </Select>
+
    
 
 
@@ -1255,19 +1313,18 @@ const handleDrop = async (targetColumnId, targetIndex) => {
                               marginTop: "10px",
                             }}
                           >
-                            <IconButton
-                              onClick={() =>
-                                handleDeleteCard(card.id, column.id)
-                              }
-                              sx={{
-                                color: "#fff",
-                                padding: "0px",
-                              }}
-                            >
-                              <DeleteForeverSharpIcon
-                                sx={{ fontSize: "30px" }}
-                              />
-                            </IconButton>
+                            {card.createdBy === user?.uid && ( // Só exibe se foi o criador
+                              <IconButton
+                                onClick={() => handleDeleteCard(card.id, column.id)}
+                                sx={{
+                                  color: "#fff",
+                                  padding: "0px",
+                                }}
+                              >
+                                <DeleteForeverSharpIcon sx={{ fontSize: "30px" }} />
+                              </IconButton>
+                            )}
+
                           </Box>
                         </Box>
                       </AccordionDetails>
