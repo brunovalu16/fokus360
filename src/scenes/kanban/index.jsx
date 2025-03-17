@@ -1237,8 +1237,8 @@ const handleDrop = async (targetColumnId, targetIndex) => {
                           card.prioridade === "high"
                             ? "#ef8da9" // 🔴 Vermelho claro (Alta Prioridade)
                             : card.prioridade === "medium"
-                            ? "#fcd9a4" // 🟡 Amarelo claro (Média Prioridade)
-                            : "#a6dae7", // 🟢 Verde claro (Baixa Prioridade)
+                            ? "#fcd599" // 🟡 Amarelo claro (Média Prioridade)
+                            : "#b8c4f9", // 🟢 Verde claro (Baixa Prioridade)
                       }}
                       draggable
                       onDragStart={(e) => {
