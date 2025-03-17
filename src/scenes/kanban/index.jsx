@@ -718,7 +718,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
             sx={{
               width: 12,
               height: 12,
-              borderRadius: "50%",
+              borderRadius: "15%",
               backgroundColor:
                 selected === "low"
                   ? "#6b84f3"
@@ -745,7 +745,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
           sx={{
             width: 12,
             height: 12,
-            borderRadius: "50%",
+            borderRadius: "15%",
             backgroundColor: "#6b84f3",
             mr: 1,
           }}
@@ -759,7 +759,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
           sx={{
             width: 12,
             height: 12,
-            borderRadius: "50%",
+            borderRadius: "15%",
             backgroundColor: "#fc7f32",
             mr: 1,
           }}
@@ -773,7 +773,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
           sx={{
             width: 12,
             height: 12,
-            borderRadius: "50%",
+            borderRadius: "15%",
             backgroundColor: "#ce2d9b",
             mr: 1,
           }}
@@ -1108,7 +1108,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
                       sx={{
                         width: 12,
                         height: 12,
-                        borderRadius: "50%",
+                        borderRadius: "15%",
                         backgroundColor: {
                           low: "#6b84f3",
                           medium: "#fc7f32",
@@ -1133,7 +1133,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
                   sx={{
                     width: 12,
                     height: 12,
-                    borderRadius: "50%",
+                    borderRadius: "15%",
                     backgroundColor: "#6b84f3",
                     mr: 1,
                   }}
@@ -1145,7 +1145,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
                   sx={{
                     width: 12,
                     height: 12,
-                    borderRadius: "50%",
+                    borderRadius: "15%",
                     backgroundColor: "#fc7f32",
                     mr: 1,
                   }}
@@ -1157,7 +1157,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
                   sx={{
                     width: 12,
                     height: 12,
-                    borderRadius: "50%",
+                    borderRadius: "15%",
                     backgroundColor: "#ce2d9b",
                     mr: 1,
                   }}
@@ -1233,12 +1233,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
                       key={card.id}
                       sx={{
                         ...cardStyle,
-                        backgroundColor:
-                          card.prioridade === "high"
-                            ? "#ef8da9" // 🔴 Vermelho claro (Alta Prioridade)
-                            : card.prioridade === "medium"
-                            ? "#fcbc6f" // 🟡 Amarelo claro (Média Prioridade)
-                            : "#91a4f7", // 🟢 Verde claro (Baixa Prioridade)
+                        backgroundColor: "#fff", // Sempre branco
                       }}
                       draggable
                       onDragStart={(e) => {
@@ -1256,17 +1251,34 @@ const handleDrop = async (targetColumnId, targetIndex) => {
                           e.stopPropagation();
                         }}
                         onDragEnd={handleDragEnd}
+                        sx={{ display: "flex", alignItems: "center" }}
                       >
-                        <Typography variant="body2" sx={{ color: "#fff" }}>
+                        {/* Bolinha de prioridade */}
+                        <Box
+                          sx={{
+                            width: "14px",
+                            height: "14px",
+                            borderRadius: "15%",
+                            backgroundColor:
+                              card.prioridade === "high"
+                                ? "#ce2d9b" // Alta Prioridade
+                                : card.prioridade === "medium"
+                                ? "#fc7f32" // Média Prioridade
+                                : "#6b84f3", // Baixa Prioridade
+                            marginRight: "10px",
+                          }}
+                        />
+                        <Typography variant="body2" sx={{ color: "#333" }}>
                           <strong>Tarefa:</strong>
                         </Typography>
                         <Typography
                           variant="body2"
-                          sx={{ color: "#fff", marginLeft: "10px" }}
+                          sx={{ color: "#333", marginLeft: "10px" }}
                         >
                           {card.nome}
                         </Typography>
                       </AccordionSummary>
+
 
                       {/* Detalhes do Accordion (mantendo todos os elementos) */}
                       <AccordionDetails>
@@ -1317,7 +1329,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
                               <IconButton
                                 onClick={() => handleDeleteCard(card.id, column.id)}
                                 sx={{
-                                  color: "#fff",
+                                  color: "#f44336",
                                   padding: "0px",
                                 }}
                               >
