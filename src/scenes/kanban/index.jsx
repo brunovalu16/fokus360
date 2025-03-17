@@ -1211,10 +1211,10 @@ const handleDrop = async (targetColumnId, targetIndex) => {
                   sx={{
                     boxShadow: "none",
                     marginBottom: "15px",
-                    backgroundColor: "#5f53e5",
+                    backgroundColor: "#332984",
                     color: "#ffffff",
                     "&:hover": {
-                      backgroundColor: "#3f2cb2",
+                      backgroundColor: "#332984",
                       boxShadow: "none",
                     },
                   }}
@@ -1235,10 +1235,10 @@ const handleDrop = async (targetColumnId, targetIndex) => {
                         ...cardStyle,
                         backgroundColor:
                           card.prioridade === "high"
-                            ? "#ce2d9b" // 🔴 Vermelho claro (Alta Prioridade)
+                            ? "#ef8da9" // 🔴 Vermelho claro (Alta Prioridade)
                             : card.prioridade === "medium"
-                            ? "#fc7f32" // 🟡 Amarelo claro (Média Prioridade)
-                            : "#6b84f3", // 🟢 Verde claro (Baixa Prioridade)
+                            ? "#fcd9a4" // 🟡 Amarelo claro (Média Prioridade)
+                            : "#a6dae7", // 🟢 Verde claro (Baixa Prioridade)
                       }}
                       draggable
                       onDragStart={(e) => {
