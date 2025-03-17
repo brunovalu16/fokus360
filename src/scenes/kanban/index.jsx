@@ -323,12 +323,11 @@ const handleDrop = async (targetColumnId, targetIndex) => {
     let filteredCards = allCards;
   
     // 🔥 Filtrar por departamento (se algum estiver selecionado)
-     // 🔥 Filtrar por departamento (verifica se o valor do departamento está na lista selecionada)
-  if (selectedDepartment.length > 0) {
-    filteredCards = filteredCards.filter((card) =>
-      selectedDepartment.includes(card.departamento) // Aqui verificamos corretamente
-    );
-  }
+    if (selectedDepartment.length > 0) {
+      filteredCards = filteredCards.filter((card) =>
+        selectedDepartment.includes(card.departamento)
+      );
+    }
   
     // 🔥 Filtrar por data de criação (se definida)
     if (selectedDateCreated) {
@@ -360,6 +359,14 @@ const handleDrop = async (targetColumnId, targetIndex) => {
       );
     }
   
+    // ✅ Filtrar por role (número como string)
+    if (selectedFilter) {
+      filteredCards = filteredCards.filter(
+        (card) => String(card.role).padStart(2, '0') === selectedFilter
+      );
+    }
+    
+  
     // 🔥 Atualiza as colunas apenas com os cards filtrados
     setColumns(
       columns.map((column) => ({
@@ -368,10 +375,16 @@ const handleDrop = async (targetColumnId, targetIndex) => {
       }))
     );
   };
+
+  useEffect(() => {
+    applyFilter();
+  }, [selectedDepartment, selectedDateCreated, selectedDateFinished, selectedCollaborators, selectedPriority, selectedFilter, allCards]);
+  
+  
   
   
   // Chamar essa função manualmente uma vez para corrigir os registros antigos
-  corrigirRolesNoFirestore();
+ // corrigirRolesNoFirestore();
 
 
 
@@ -436,7 +449,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
                 onChange={(e) => {
                   const selectedValue = e.target.value;
                   setSelectedFilter(selectedValue);
-                  applyFilter(selectedValue);
+                  //applyFilter(selectedValue);
                 }}
                 sx={{
                   backgroundColor: "#f5f5f5",
@@ -735,6 +748,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
     mt: 2, // 🔥 Margem superior para separação
   }}
 >
+  {/** 
   <Button
     variant="contained"
     onClick={() => {
@@ -743,6 +757,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
       setSelectedDateFinished("");
       setSelectedCollaborators([]);
       setSelectedPriority("");
+      setSelectedFilter(null); // 🔥 Adicionado para limpar também o filtro por role
       applyFilter(); // Aplica os filtros
     }}
     sx={{
@@ -761,6 +776,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
     <ClearAllIcon sx={{ fontSize: "20px", mr: 1 }} />
     Filtrar
   </Button>
+  */}
 
   <Button
     variant="contained"
@@ -775,11 +791,11 @@ const handleDrop = async (targetColumnId, targetIndex) => {
     sx={{
       marginBottom: "15px",
       height: "40px",
-      backgroundColor: "#afafaf",
+      backgroundColor: "#d32f2f",
       color: "white",
       whiteSpace: "nowrap",
       "&:hover": {
-        backgroundColor: "#5a5a5a",
+        backgroundColor: "#d32f2f",
         boxShadow: "none",
       },
       "&:focus": { outline: "none" },
