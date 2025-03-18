@@ -5,6 +5,7 @@ import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import { ToggledContext } from "../../../App";
 import { authFokus360, dbFokus360 as db } from "../../../data/firebase-config";
+import { Badge, Popover, List, ListItem, ListItemText } from "@mui/material";
 
 import { onAuthStateChanged, signOut } from "firebase/auth";
 
@@ -17,6 +18,8 @@ import { Avatar } from "@mui/material";
 
 const Navbar = () => {
   const theme = useTheme();
+  const [notifications, setNotifications] = useState([]);
+  const [anchorEl, setAnchorEl] = useState(null);
   const isXsDevices = useMediaQuery("(max-width:466px)");
   const [user, setUser] = useState(null);
   const [username, setUsername] = useState("");
@@ -56,6 +59,20 @@ const Navbar = () => {
 
     return () => unsubscribe();
   }, []);
+
+
+
+  // Ao clicar no ícone
+const handleNotificationsClick = (event) => {
+  setAnchorEl(event.currentTarget);
+};
+
+// Fechar popup
+const handleNotificationsClose = () => {
+  setAnchorEl(null);
+};
+
+const open = Boolean(anchorEl);
 
 
 // pega os dados do usuário logado
@@ -113,6 +130,31 @@ const Navbar = () => {
 
   return (
     <>
+
+      <Popover
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleNotificationsClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+      >
+        <List sx={{ width: "250px" }}>
+          {notifications.length === 0 ? (
+            <ListItem>
+              <ListItemText primary="Nenhuma notificação" />
+            </ListItem>
+          ) : (
+            notifications.map((noti, index) => (
+              <ListItem key={index}>
+                <ListItemText primary={noti} />
+              </ListItem>
+            ))
+          )}
+        </List>
+      </Popover>
+
       <Toolbar
         sx={{
           backgroundColor: "#f2f0f0",
@@ -237,9 +279,12 @@ const Navbar = () => {
             }}
           />
 
-          <IconButton>
-            <NotificationsOutlined />
+          <IconButton onClick={handleNotificationsClick}>
+            <Badge badgeContent={notifications.length} color="error">
+              <NotificationsOutlined />
+            </Badge>
           </IconButton>
+
 
           {userRole !== "01" &&
             userRole !== "02" &&

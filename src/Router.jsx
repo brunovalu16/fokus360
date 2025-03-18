@@ -2,6 +2,7 @@ import React from "react";
 import {
   createBrowserRouter,
   RouterProvider,
+  Navigate,
 } from "react-router-dom";
 import App from "./App";
 import AuthLayout from "../src/components/AuthLayout";
@@ -82,6 +83,11 @@ const router = createBrowserRouter(
         { path: "/geography", element: <PrivateRoute><Geography /></PrivateRoute> },
         { path: "/usuario/editar", element: <PrivateRoute><UserDetalhe /></PrivateRoute> },
       ],
+    },
+    // Redirecionamento da rota raiz ("/") para "/login"
+    {
+      path: "/",
+      element: <Navigate to="/login" /> // Redireciona para a página de login
     },
   ],
   {

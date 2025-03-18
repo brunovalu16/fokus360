@@ -32,9 +32,15 @@ function App() {
                   maxWidth: "100%",
                 }}
               >
-               {/* Verifica se a rota é "/pagina-especifica" e exibe o NavbarKanban */}
+
+
+               {/* Verifica se a rota é "/pagina-especifica" e exibe o NavbarKanban 
+               
+               */}
                {location.pathname === "/kanban" ? <NavbarKanban /> : <Navbar />}
 
+
+              
               <Box sx={{ overflowY: "auto", flex: 1, maxWidth: "100%" }}>
                 <Outlet />
               </Box>

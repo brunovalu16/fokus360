@@ -22,6 +22,10 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import FilterListIcon from "@mui/icons-material/FilterList"; // Ícone para o Select
 import ClearAllIcon from "@mui/icons-material/ClearAll"; // Ícone para limpar filtro
 import { onAuthStateChanged } from "firebase/auth";
+import axios from "axios"; 
+import { adicionarNotificacao } from "../../services/notificacoesService";
+
+
 
 import { authFokus360 } from "../../data/firebase-config";
 import {
@@ -131,29 +135,32 @@ corrigirRolesNoFirestore();
     }
   };
 
+
+  
+
   //Criar card: criar um novo card, associamos o uid do usuário autenticado
   const handleAddCard = async () => {
     if (!user) {
       alert("Usuário não autenticado. Faça login para criar um card.");
       return;
     }
-
+  
     try {
-      // 🔥 Buscar o role do usuário logado no Firestore
+      // Buscar role do usuário logado
       const userDoc = await getDoc(doc(dbFokus360, "user", user.uid));
       const userData = userDoc.exists() ? userDoc.data() : null;
-      const userRole = userData?.role || "default"; // 🔥 Usa "default" se não encontrar
-
+      const userRole = userData?.role || "default";
+  
       const newCardWithUser = {
         ...newCard,
         columnId: 1,
-        createdBy: user.uid, // ✅ Salva o ID do usuário logado
-        role: userRole || "default", // 🔥 Define "default" caso role seja null
+        createdBy: user.uid,
+        role: userRole || "default",
       };
-
+  
       const docRef = await addDoc(kanbanCards, newCardWithUser);
-
-      setAllCards([...allCards, { ...newCardWithUser, id: docRef.id }]); // ✅ Atualiza a lista global de cards
+  
+      setAllCards([...allCards, { ...newCardWithUser, id: docRef.id }]);
       setColumns((prevColumns) =>
         prevColumns.map((col) => ({
           ...col,
@@ -163,23 +170,50 @@ corrigirRolesNoFirestore();
               : col.cards,
         }))
       );
-
+  
+      /** 🟢🟢 AQUI COLOCA O PROMISE.ALL 🔥🔥 */
+      await Promise.all(newCard.colaboradores.map(async (responsavel) => {
+        const userEncontrado = users.find((u) => u.username === responsavel);
+  
+        if (userEncontrado) {
+          // 🔔 Adicionar notificação Firestore
+          await adicionarNotificacao(
+            userEncontrado.id,
+            `Você foi designado para a tarefa: ${newCard.nome}`
+          );
+  
+          // 📩 Enviar e-mail
+          await axios.post("https://fokus360-backend.vercel.app/send-email", {
+            to: userEncontrado.email,
+            subject: `Nova Tarefa: ${newCard.nome}`,
+            text: `Você foi designado para a tarefa "${newCard.nome}". Descrição: ${newCard.assunto}. Prazo: ${newCard.dataFinalizacao}.`,
+          });
+        }
+      }));
+  
+      console.log("✅ Notificações e e-mails enviados para responsáveis.");
+  
+      // Limpar inputs
+      const hoje = new Date().toISOString().slice(0, 10);
       setNewCard({
         nome: "",
         departamento: "",
         assunto: "",
-        dataCriacao: "",
+        dataCriacao: hoje,
         dataFinalizacao: "",
         colaboradores: [],
         responsavel: "",
         prioridade: "medium",
       });
-
+  
       setModalOpen(false);
     } catch (error) {
       console.error("Erro ao adicionar o cartão:", error);
     }
   };
+  
+
+
 
   //Deletar cards
   const handleDeleteCard = async (cardId, columnId) => {
@@ -313,6 +347,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
         const usersList = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           username: doc.data().username,
+          email: doc.data().email, // 🔥 importante adicionar o e-mail aqui!
         }));
         setUsers(usersList);
       } catch (error) {
@@ -430,6 +465,10 @@ const handleDrop = async (targetColumnId, targetIndex) => {
   // Chamar essa função manualmente uma vez para corrigir os registros antigos
  // corrigirRolesNoFirestore();
 
+
+
+
+ 
 
 
 
@@ -1056,7 +1095,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
             {/* Colaboradores (múltipla seleção) */}
 
             <Select
-              multiple
+              multiple  
               fullWidth
               name="colaboradores"
               value={newCard.colaboradores}
