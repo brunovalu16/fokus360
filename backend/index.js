@@ -4,8 +4,6 @@ import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
 import fs from "fs";
-import nodemailer from "nodemailer";
-
 
 // Verifica se a variável de ambiente FIREBASE_CREDENTIALS existe (Vercel)
 let serviceAccount;
@@ -31,16 +29,9 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-
-//Configurar Nodemailer
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER, // Coloque seu e-mail aqui ou no .env
-    pass: process.env.EMAIL_PASS, // Senha de app
-  },
+app.get("/", (req, res) => {
+  res.json({ status: "API funcionando corretamente 🚀" });
 });
-
 
 
 // Rota para atualizar a senha
@@ -68,41 +59,6 @@ app.post("/update-email", async (req, res) => {
     });
   }
 });
-
-
-
-// Rota para enviar e-mail ao colaborador da tarefa
-app.post("/send-task-email", async (req, res) => {
-  const { email } = req.body;
-
-  try {
-    if (!email) throw new Error("E-mail não fornecido.");
-
-    // Enviar e-mail usando Nodemailer
-    await transporter.sendMail({
-      from: `"Fokus360" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Nova Tarefa no Fokus360",
-      text: "Você foi marcado como responsável por uma tarefa.",
-    });
-
-    console.log(`📧 E-mail enviado para: ${email}`);
-
-    res.status(200).json({
-      success: true,
-      message: "E-mail enviado com sucesso para o colaborador!",
-    });
-  } catch (error) {
-    console.error("Erro ao enviar e-mail:", error.message);
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-});
-
-
-
 
 // Rota para excluir o usuário do Firebase Authentication e Firestore
 app.post("/delete-user", async (req, res) => {
