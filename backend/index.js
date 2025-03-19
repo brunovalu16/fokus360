@@ -39,6 +39,12 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
+
+app.get("/test", (req, res) => {
+  res.send("API funcionando! 🚀");
+});
+
+
 // Rota para atualizar a senha
 app.post("/update-email", async (req, res) => {
   const { uid, newEmail } = req.body;
@@ -102,4 +108,4 @@ app.post("/send-email", async (req, res) => {
 });
 
 // ✅ Exportando o app para a Vercel reconhecer como Serverless Function
-module.exports = app;
+export default app;
