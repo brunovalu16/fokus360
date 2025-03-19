@@ -158,19 +158,18 @@ corrigirRolesNoFirestore();
         return userEncontrado ? userEncontrado.username : "Desconhecido";
       });
   
-      // Cria o objeto para salvar no Firestore
       const newCardWithUser = {
         ...newCard,
-        colaboradores: collaboratorNames, // << nomes em vez de IDs
+        colaboradores: collaboratorNames, // nomes no Firestore
         columnId: 1,
         createdBy: user.uid,
         role: userRole || "default",
       };
   
-      // Salva no Firestore
+      // Salvar no Firestore
       const docRef = await addDoc(kanbanCards, newCardWithUser);
   
-      // Atualiza estado
+      // Atualiza estado local
       setAllCards([...allCards, { ...newCardWithUser, id: docRef.id }]);
       setColumns((prevColumns) =>
         prevColumns.map((col) => ({
@@ -183,6 +182,26 @@ corrigirRolesNoFirestore();
       );
   
       console.log("✅ Card criado com nomes dos colaboradores.");
+  
+      // 🔥🔥🔥 Enviar e-mail para cada colaborador selecionado
+      const selectedCollaboratorEmails = newCard.colaboradores.map((id) => {
+        const colaborador = users.find((u) => u.id === id);
+        return colaborador?.email;
+      });
+  
+      await Promise.all(
+        selectedCollaboratorEmails.map((email) => {
+          if (email) { // Verifica se o e-mail existe
+            return axios.post("https://fokus360-api.vercel.app/send-email", {
+              to: email,
+              subject: "Nova tarefa atribuída no Fokus360",
+              text: `Olá! Você foi designado para uma nova tarefa: ${newCard.nome}. Acesse o painel para mais detalhes.`,
+            });
+          }
+          return Promise.resolve(); // Evita erro se não achar e-mail
+        })
+      );
+      console.log("📧 E-mails enviados para colaboradores!");
   
       // Limpar inputs
       const hoje = new Date().toISOString().slice(0, 10);
@@ -202,6 +221,8 @@ corrigirRolesNoFirestore();
       console.error("Erro ao adicionar o cartão:", error);
     }
   };
+  
+  
   
   
 

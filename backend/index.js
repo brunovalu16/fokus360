@@ -77,14 +77,7 @@ app.post("/delete-user", async (req, res) => {
   }
 });
 
-// Configurar Nodemailer
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+
 
 // Rota para envio de e-mail de notificação
 app.post("/send-email", async (req, res) => {
