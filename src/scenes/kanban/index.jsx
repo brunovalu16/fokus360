@@ -152,15 +152,25 @@ corrigirRolesNoFirestore();
       const userData = userDoc.exists() ? userDoc.data() : null;
       const userRole = userData?.role || "default";
   
+      // 🔥 Converte IDs para nomes antes de salvar
+      const collaboratorNames = newCard.colaboradores.map((id) => {
+        const userEncontrado = users.find((u) => u.id === id);
+        return userEncontrado ? userEncontrado.username : "Desconhecido";
+      });
+  
+      // Cria o objeto para salvar no Firestore
       const newCardWithUser = {
         ...newCard,
+        colaboradores: collaboratorNames, // << nomes em vez de IDs
         columnId: 1,
         createdBy: user.uid,
         role: userRole || "default",
       };
   
+      // Salva no Firestore
       const docRef = await addDoc(kanbanCards, newCardWithUser);
   
+      // Atualiza estado
       setAllCards([...allCards, { ...newCardWithUser, id: docRef.id }]);
       setColumns((prevColumns) =>
         prevColumns.map((col) => ({
@@ -172,28 +182,7 @@ corrigirRolesNoFirestore();
         }))
       );
   
-      // 🔔 Enviar notificação e e-mail para cada colaborador
-      await Promise.all(newCard.colaboradores.map(async (responsavelId) => {
-        const userEncontrado = users.find((u) => u.id === responsavelId);
-      
-        if (userEncontrado) {
-          // Firestore - notificação
-          await adicionarNotificacao(
-            userEncontrado.id,
-            `Você foi designado para a tarefa: ${newCard.nome}`
-          );
-      
-          // Enviar e-mail
-          await axios.post("https://fokus360-backend.vercel.app/send-email", {
-            to: userEncontrado.email,
-            subject: `Nova Tarefa: ${newCard.nome}`,
-            text: `Você foi designado para a tarefa "${newCard.nome}". Descrição: ${newCard.assunto}. Prazo: ${newCard.dataFinalizacao}.`,
-          });
-        }
-      }));
-      
-  
-      console.log("✅ Notificações e e-mails enviados para responsáveis.");
+      console.log("✅ Card criado com nomes dos colaboradores.");
   
       // Limpar inputs
       const hoje = new Date().toISOString().slice(0, 10);
@@ -213,6 +202,7 @@ corrigirRolesNoFirestore();
       console.error("Erro ao adicionar o cartão:", error);
     }
   };
+  
   
 
 
