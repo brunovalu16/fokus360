@@ -102,4 +102,4 @@ app.post("/send-email", async (req, res) => {
 });
 
 // ✅ Exportando o app para a Vercel reconhecer como Serverless Function
-export default app;
+module.exports = app;
