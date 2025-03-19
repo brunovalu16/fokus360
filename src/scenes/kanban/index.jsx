@@ -173,16 +173,16 @@ corrigirRolesNoFirestore();
       );
   
       // 🔔 Enviar notificação e e-mail para cada colaborador
-      await Promise.all(newCard.colaboradores.map(async (responsavel) => {
-        const userEncontrado = users.find((u) => u.username === responsavel);
-  
+      await Promise.all(newCard.colaboradores.map(async (responsavelId) => {
+        const userEncontrado = users.find((u) => u.id === responsavelId);
+      
         if (userEncontrado) {
           // Firestore - notificação
           await adicionarNotificacao(
             userEncontrado.id,
             `Você foi designado para a tarefa: ${newCard.nome}`
           );
-  
+      
           // Enviar e-mail
           await axios.post("https://fokus360-backend.vercel.app/send-email", {
             to: userEncontrado.email,
@@ -191,6 +191,7 @@ corrigirRolesNoFirestore();
           });
         }
       }));
+      
   
       console.log("✅ Notificações e e-mails enviados para responsáveis.");
   
@@ -1099,33 +1100,32 @@ const handleDrop = async (targetColumnId, targetIndex) => {
               multiple  
               fullWidth
               name="colaboradores"
-              value={newCard.colaboradores}
+              value={newCard.colaboradores} // Agora armazena os IDs no estado
               onChange={(e) => {
-                // Atualizando corretamente os nomes dos usuários no estado
-                const selectedUsers = e.target.value.map((id) => {
-                  const user = users.find((user) => user.id === id);
-                  return user ? user.username : id; // Se não encontrar, mantém o ID
-                });
-
-                setNewCard({ ...newCard, colaboradores: selectedUsers });
+                const selectedUserIds = e.target.value; // Mantém os IDs
+                setNewCard({ ...newCard, colaboradores: selectedUserIds });
               }}
               displayEmpty
-              sx={{ width: "100%", mb: 2 }} // ✅ Adicionada margin-bottom
+              sx={{ width: "100%", mb: 2 }}
               renderValue={(selected) =>
                 selected.length === 0
                   ? "Selecione responsáveis pela tarefa"
-                  : selected.join(", ")
+                  : selected
+                      .map((id) => {
+                        const user = users.find((u) => u.id === id);
+                        return user ? user.username : "";
+                      })
+                      .join(", ")
               }
             >
               {users.map((user) => (
                 <MenuItem key={user.id} value={user.id}>
-                  <Checkbox
-                    checked={newCard.colaboradores.includes(user.username)}
-                  />
+                  <Checkbox checked={newCard.colaboradores.includes(user.id)} /> {/* Comparação correta pelo ID */}
                   <ListItemText primary={user.username} />
                 </MenuItem>
               ))}
             </Select>
+
 
             <Select
               fullWidth
