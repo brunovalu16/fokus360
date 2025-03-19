@@ -27,6 +27,7 @@ import { adicionarNotificacao } from "../../services/notificacoesService";
 
 
 
+
 import { authFokus360 } from "../../data/firebase-config";
 import {
   collection,
@@ -171,19 +172,19 @@ corrigirRolesNoFirestore();
         }))
       );
   
-      /** 🟢🟢 AQUI COLOCA O PROMISE.ALL 🔥🔥 */
+      // 🔔 Enviar notificação e e-mail para cada colaborador
       await Promise.all(newCard.colaboradores.map(async (responsavel) => {
         const userEncontrado = users.find((u) => u.username === responsavel);
   
         if (userEncontrado) {
-          // 🔔 Adicionar notificação Firestore
+          // Firestore - notificação
           await adicionarNotificacao(
             userEncontrado.id,
             `Você foi designado para a tarefa: ${newCard.nome}`
           );
   
-          // 📩 Enviar e-mail
-          await axios.post("https://fokus360-backend.vercel.app/send-email", {
+          // Enviar e-mail
+          await axios.post("https://seu-projeto.vercel.app/send-email", {
             to: userEncontrado.email,
             subject: `Nova Tarefa: ${newCard.nome}`,
             text: `Você foi designado para a tarefa "${newCard.nome}". Descrição: ${newCard.assunto}. Prazo: ${newCard.dataFinalizacao}.`,

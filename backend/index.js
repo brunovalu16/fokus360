@@ -4,6 +4,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
 import fs from "fs";
+import nodemailer from "nodemailer"; // Coloque no topo
 
 // Verifica se a variável de ambiente FIREBASE_CREDENTIALS existe (Vercel)
 let serviceAccount;
@@ -86,6 +87,41 @@ app.post("/delete-user", async (req, res) => {
   } catch (error) {
     console.error("Erro ao excluir usuário:", error.message);
     res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+
+
+// Configurar Nodemailer
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER, // coloque no Vercel as variáveis
+    pass: process.env.EMAIL_PASS, // senha de app
+  },
+});
+
+// ROTA para envio de e-mail de notificação
+app.post("/send-email", async (req, res) => {
+  const { to, subject, text } = req.body;
+
+  if (!to || !subject || !text) {
+    return res.status(400).send("❌ Dados incompletos.");
+  }
+
+  try {
+    await transporter.sendMail({
+      from: `"Fokus360" <${process.env.EMAIL_USER}>`,
+      to,
+      subject,
+      text,
+    });
+
+    console.log(`✅ Email enviado para: ${to}`);
+    res.status(200).send("✅ E-mail enviado com sucesso!");
+  } catch (error) {
+    console.error("❌ Erro ao enviar e-mail:", error.message);
+    res.status(500).send(`Erro ao enviar e-mail: ${error.message}`);
   }
 });
 

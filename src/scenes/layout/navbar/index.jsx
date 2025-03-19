@@ -6,6 +6,7 @@ import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArro
 import { ToggledContext } from "../../../App";
 import { authFokus360, dbFokus360 as db } from "../../../data/firebase-config";
 import { Badge, Popover, List, ListItem, ListItemText } from "@mui/material";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 import { onAuthStateChanged, signOut } from "firebase/auth";
 
@@ -59,6 +60,24 @@ const Navbar = () => {
 
     return () => unsubscribe();
   }, []);
+
+
+
+//buscar notificações não lidas para o user.uid
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      const q = query(
+        collection(dbFokus360, "notificacoes"),
+        where("userId", "==", user.uid),
+        where("lido", "==", false)
+      );
+      const querySnapshot = await getDocs(q);
+      setNotifications(querySnapshot.docs.map(doc => doc.data()));
+    };
+  
+    if (user) fetchNotifications();
+  }, [user]);
+
 
 
 
@@ -283,6 +302,7 @@ const open = Boolean(anchorEl);
             <Badge badgeContent={notifications.length} color="error">
               <NotificationsOutlined />
             </Badge>
+
           </IconButton>
 
 

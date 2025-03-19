@@ -34,10 +34,7 @@ function App() {
               >
 
 
-               {/* Verifica se a rota é "/pagina-especifica" e exibe o NavbarKanban 
-               
-               */}
-               {location.pathname === "/kanban" ? <NavbarKanban /> : <Navbar />}
+          <Navbar />
 
 
               
@@ -53,3 +50,9 @@ function App() {
 }
 
 export default App;
+
+
+//Criar um navbar específico para uma pagina específica
+
+// {/* Verifica se a rota é "/pagina-especifica" e exibe o NavbarKanban */}
+ // {location.pathname === "/kanban" ? <NavbarKanban /> : <Navbar />}
