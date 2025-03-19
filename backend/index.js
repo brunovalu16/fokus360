@@ -27,12 +27,14 @@ admin.initializeApp({
 });
 
 const app = express();
-app.use(bodyParser.json());
-app.use(cors());
 
-app.get("/", (req, res) => {
-  res.json({ status: "API funcionando corretamente 🚀" });
-});
+app.use(cors({
+  origin: ["https://fokus360.grupofokus.com.br", "http://localhost:3000"], // Libera seu domínio + local
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true,
+}));
+
+app.use(bodyParser.json());
 
 
 // Rota para atualizar a senha

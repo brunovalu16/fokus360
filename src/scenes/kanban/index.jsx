@@ -16,7 +16,7 @@ import { FormControl, InputLabel } from "@mui/material";
 import DeleteForeverSharpIcon from "@mui/icons-material/DeleteForeverSharp";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
-import { dbFokus360, storageFokus360 } from "../../data/firebase-config";
+import { dbFokus360 } from "../../data/firebase-config";
 import { Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import FilterListIcon from "@mui/icons-material/FilterList"; // Ícone para o Select
@@ -184,7 +184,7 @@ corrigirRolesNoFirestore();
           );
   
           // Enviar e-mail
-          await axios.post("https://seu-projeto.vercel.app/send-email", {
+          await axios.post("https://fokus360-api.vercel.app/send-email", {
             to: userEncontrado.email,
             subject: `Nova Tarefa: ${newCard.nome}`,
             text: `Você foi designado para a tarefa "${newCard.nome}". Descrição: ${newCard.assunto}. Prazo: ${newCard.dataFinalizacao}.`,
