@@ -27,6 +27,7 @@ app.use(bodyParser.json());
 app.use(cors({
   origin: ["https://fokus360.grupofokus.com.br", "http://localhost:3000"],
   methods: ["GET", "POST", "DELETE", "PUT"],
+  allowedHeaders: ["Content-Type", "Authorization", "api-key"],
   credentials: true,
 }));
 
