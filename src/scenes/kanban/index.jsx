@@ -153,7 +153,7 @@ corrigirRolesNoFirestore();
       const userData = userDoc.exists() ? userDoc.data() : null;
       const userRole = userData?.role || "default";
   
-      // 🔥 Converte IDs para nomes antes de salvar
+      // 🔥 Converte IDs para nomes antes de salvar no Firestore
       const collaboratorNames = newCard.colaboradores.map((id) => {
         const userEncontrado = users.find((u) => u.id === id);
         return userEncontrado ? userEncontrado.username : "Desconhecido";
@@ -166,7 +166,6 @@ corrigirRolesNoFirestore();
         createdBy: user.uid,
         role: userRole || "default",
       };
-      
   
       // Salvar no Firestore
       const docRef = await addDoc(kanbanCards, newCardWithUser);
@@ -185,30 +184,13 @@ corrigirRolesNoFirestore();
   
       console.log("✅ Card criado com nomes dos colaboradores.");
   
-      // 🔥🔥🔥 Enviar e-mail para cada colaborador selecionado
-// 🔥 Se o e-mail estiver preenchido, envia e-mail para ele
-if (newCard.email) {
-  await axios.post("https://fokus360-api.vercel.app/send-task-email", {
-    to: newCard.email,
-    taskName: newCard.nome,
-  });
-  console.log(`📧 E-mail enviado para: ${newCard.email}`);
-}
-
-
-await Promise.all(
-  selectedCollaboratorEmails.map((email) => {
-    if (email) {
-      return axios.post("https://fokus360-api.vercel.app/send-task-email", {
-        to: email,
-        taskName: newCard.nome,
-      });
-    }
-    return Promise.resolve();
-  })
-);
-console.log("📧 E-mails enviados para colaboradores!");
-
+      // ✅ Enviar e-mail apenas SE o campo e-mail estiver preenchido
+      if (newCard.email) {
+        await axios.post("https://fokus360-api.vercel.app/send-task-email", {
+          email: newCard.email, // Chave 'email' combinando com o backend
+        });
+        console.log(`📧 E-mail enviado para: ${newCard.email}`);
+      }
   
       // Limpar inputs
       const hoje = new Date().toISOString().slice(0, 10);
@@ -221,6 +203,7 @@ console.log("📧 E-mails enviados para colaboradores!");
         colaboradores: [],
         responsavel: "",
         prioridade: "medium",
+        email: "", // Limpa também o campo e-mail
       });
   
       setModalOpen(false);
@@ -228,6 +211,7 @@ console.log("📧 E-mails enviados para colaboradores!");
       console.error("Erro ao adicionar o cartão:", error);
     }
   };
+  
   
   
   
