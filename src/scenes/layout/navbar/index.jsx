@@ -64,19 +64,22 @@ const Navbar = () => {
 
 
 //buscar notificações não lidas para o user.uid
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      const q = query(
-        collection(dbFokus360, "notificacoes"),
-        where("userId", "==", user.uid),
-        where("lido", "==", false)
-      );
-      const querySnapshot = await getDocs(q);
-      setNotifications(querySnapshot.docs.map(doc => doc.data()));
-    };
-  
-    if (user) fetchNotifications();
-  }, [user]);
+useEffect(() => {
+  const fetchNotifications = async () => {
+    if (!user) return;
+
+    const q = query(
+      collection(dbFokus360, "notificacoes"),
+      where("userId", "==", user.uid),
+      where("lido", "==", false)
+    );
+    const querySnapshot = await getDocs(q);
+    setNotifications(querySnapshot.docs.map((doc) => doc.data().mensagem));
+  };
+
+  fetchNotifications();
+}, [user]);
+
 
 
 
@@ -160,17 +163,18 @@ const open = Boolean(anchorEl);
         }}
       >
         <List sx={{ width: "250px" }}>
-          {notifications.length === 0 ? (
-            <ListItem>
-              <ListItemText primary="Nenhuma notificação" />
+        {notifications.length === 0 ? (
+          <ListItem>
+            <ListItemText primary="Nenhuma notificação" />
+          </ListItem>
+        ) : (
+          notifications.map((noti, index) => (
+            <ListItem key={index}>
+              <ListItemText primary={noti} />  {/* Aqui mostra a mensagem */}
             </ListItem>
-          ) : (
-            notifications.map((noti, index) => (
-              <ListItem key={index}>
-                <ListItemText primary={noti} />
-              </ListItem>
-            ))
-          )}
+          ))
+        )}
+
         </List>
       </Popover>
 
