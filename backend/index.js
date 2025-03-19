@@ -30,7 +30,7 @@ const app = express();
 
 // Configuração detalhada do CORS
 const corsOptions = {
-  origin: ["https://fokus360.grupofokus.com.br", "http://localhost:3000"],
+  origin: ["https://fokus360-backend.vercel.app", "https://fokus360.grupofokus.com.br", "http://localhost:3000"],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,

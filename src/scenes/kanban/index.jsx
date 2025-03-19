@@ -184,7 +184,7 @@ corrigirRolesNoFirestore();
           );
   
           // Enviar e-mail
-          await axios.post("https://fokus360-api.vercel.app/send-email", {
+          await axios.post("https://fokus360-backend.vercel.app/send-email", {
             to: userEncontrado.email,
             subject: `Nova Tarefa: ${newCard.nome}`,
             text: `Você foi designado para a tarefa "${newCard.nome}". Descrição: ${newCard.assunto}. Prazo: ${newCard.dataFinalizacao}.`,
