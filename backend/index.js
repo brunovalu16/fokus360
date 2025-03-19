@@ -22,13 +22,11 @@ admin.initializeApp({
 
 const app = express();
 app.use(bodyParser.json());
-app.use(
-  cors({
-    origin: ["https://fokus360.grupofokus.com.br", "http://localhost:3000"], // ✅ Frontend domínio e localhost para testes
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type"],
-  })
-);
+app.use(cors({
+  origin: ['https://fokus360.grupofokus.com.br', 'http://localhost:3000'],
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true
+}));
 
 
 // Health Check
