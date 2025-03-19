@@ -72,6 +72,7 @@ const Kanban = () => {
     colaboradores: [],
     responsavel: "",
     prioridade: "medium",
+    email: "",
   });
 
   const [formValues, setFormValues] = useState({
@@ -160,11 +161,12 @@ corrigirRolesNoFirestore();
   
       const newCardWithUser = {
         ...newCard,
-        colaboradores: collaboratorNames, // nomes no Firestore
+        colaboradores: collaboratorNames,
         columnId: 1,
         createdBy: user.uid,
         role: userRole || "default",
       };
+      
   
       // Salvar no Firestore
       const docRef = await addDoc(kanbanCards, newCardWithUser);
@@ -184,24 +186,29 @@ corrigirRolesNoFirestore();
       console.log("✅ Card criado com nomes dos colaboradores.");
   
       // 🔥🔥🔥 Enviar e-mail para cada colaborador selecionado
-      const selectedCollaboratorEmails = newCard.colaboradores.map((id) => {
-        const colaborador = users.find((u) => u.id === id);
-        return colaborador?.email;
+// 🔥 Se o e-mail estiver preenchido, envia e-mail para ele
+if (newCard.email) {
+  await axios.post("https://fokus360-api.vercel.app/send-task-email", {
+    to: newCard.email,
+    taskName: newCard.nome,
+  });
+  console.log(`📧 E-mail enviado para: ${newCard.email}`);
+}
+
+
+await Promise.all(
+  selectedCollaboratorEmails.map((email) => {
+    if (email) {
+      return axios.post("https://fokus360-api.vercel.app/send-task-email", {
+        to: email,
+        taskName: newCard.nome,
       });
-  
-      await Promise.all(
-        selectedCollaboratorEmails.map((email) => {
-          if (email) { // Verifica se o e-mail existe
-            return axios.post("https://fokus360-api.vercel.app/send-email", {
-              to: email,
-              subject: "Nova tarefa atribuída no Fokus360",
-              text: `Olá! Você foi designado para uma nova tarefa: ${newCard.nome}. Acesse o painel para mais detalhes.`,
-            });
-          }
-          return Promise.resolve(); // Evita erro se não achar e-mail
-        })
-      );
-      console.log("📧 E-mails enviados para colaboradores!");
+    }
+    return Promise.resolve();
+  })
+);
+console.log("📧 E-mails enviados para colaboradores!");
+
   
       // Limpar inputs
       const hoje = new Date().toISOString().slice(0, 10);
@@ -1136,6 +1143,16 @@ const handleDrop = async (targetColumnId, targetIndex) => {
                 </MenuItem>
               ))}
             </Select>
+
+            <TextField
+              fullWidth
+              label="E-mail do colaborador:"
+              type="email"
+              value={newCard.email}
+              onChange={(e) => setNewCard({ ...newCard, email: e.target.value })}
+              sx={{ mb: 2 }}
+            />
+
 
 
             <Select

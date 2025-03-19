@@ -59,6 +59,31 @@ app.post("/update-email", async (req, res) => {
   }
 });
 
+
+// rota para enviar email de notificação de tarefa
+app.post("/send-task-email", async (req, res) => {
+  const { to, taskName } = req.body;
+
+  if (!to || !taskName) {
+    return res.status(400).json({ success: false, message: "Dados incompletos." });
+  }
+
+  try {
+    await transporter.sendMail({
+      from: `"Fokus360" <${process.env.EMAIL_USER}>`,
+      to,
+      subject: "Nova tarefa atribuída no Fokus360",
+      text: `Olá! Você foi designado para uma nova tarefa: ${taskName}. Acesse o painel para mais detalhes.`,
+    });
+    console.log(`📧 E-mail enviado para: ${to}`);
+    res.status(200).json({ success: true, message: "E-mail enviado com sucesso!" });
+  } catch (error) {
+    console.error("❌ Erro ao enviar e-mail:", error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+
 // Rota para excluir usuário
 app.post("/delete-user", async (req, res) => {
   const { uid } = req.body;
