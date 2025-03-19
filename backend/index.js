@@ -22,7 +22,11 @@ admin.initializeApp({
 
 const app = express();
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors({
+  origin: ['https://fokus360.grupofokus.com.br', 'http://localhost:3000'],
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true
+}));
 
 // Health Check
 app.get("/", (req, res) => {
