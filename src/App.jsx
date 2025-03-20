@@ -3,7 +3,7 @@ import { Box, CssBaseline, ThemeProvider } from "@mui/material";
 import { ColorModeContext, useMode } from "./theme";
 import { Navbar, SideBar, NavbarKanban } from "./scenes";
 import { Outlet, useLocation } from "react-router-dom";
-import { NotificationProvider } from "./context/NotificationContext"; // Importado
+import { NotificationProvider } from "../src/context/NotificationContext"; // Importado
 
 export const ToggledContext = createContext(null);
 

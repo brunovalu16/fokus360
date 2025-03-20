@@ -25,7 +25,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import axios from "axios"; 
 import { adicionarNotificacao } from "../../services/notificacoesService";
 import { query, orderBy } from "firebase/firestore";
-import { NotificationContext } from "../../../context/NotificationContext";
+import { NotificationContext } from "../../context/NotificationContext";
 
 
 
