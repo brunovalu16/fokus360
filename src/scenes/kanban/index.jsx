@@ -26,6 +26,8 @@ import axios from "axios";
 import { adicionarNotificacao } from "../../services/notificacoesService";
 import { query, orderBy } from "firebase/firestore";
 
+import axios from 'axios';
+
 
 
 
@@ -49,7 +51,7 @@ const Kanban = () => {
     { id: 5, title: "Concluído", cards: [] },
   ]);
 
-
+  const [responsavelId, setResponsavelId] = useState("");
   const [loggedUserName, setLoggedUserName] = useState("")
   const [selectedPriority, setSelectedPriority] = useState(""); // ✅ Estado para filtrar por prioridade
   const [selectedCollaborators, setSelectedCollaborators] = useState([]); // ✅ Estado para filtrar por colaboradores
@@ -157,7 +159,7 @@ corrigirRolesNoFirestore();
       const userData = userDoc.exists() ? userDoc.data() : null;
       const userRole = userData?.role || "default";
   
-      // 🔥 Converte IDs para nomes antes de salvar no Firestore
+      // 🔥 Converte IDs para nomes para salvar no Firestore
       const collaboratorNames = newCard.colaboradores.map((id) => {
         const userEncontrado = users.find((u) => u.id === id);
         return userEncontrado ? userEncontrado.username : "Desconhecido";
@@ -171,7 +173,7 @@ corrigirRolesNoFirestore();
         role: userRole || "default",
       };
   
-      // Salvar no Firestore
+      // Salvar Card no Firestore
       const docRef = await addDoc(kanbanCards, newCardWithUser);
   
       // Atualiza estado local
@@ -188,7 +190,7 @@ corrigirRolesNoFirestore();
   
       console.log("✅ Card criado com nomes dos colaboradores.");
   
-      // ✅ Enviar e-mail apenas SE o campo e-mail estiver preenchido
+      // ✅ Enviar e-mail SE o campo e-mail estiver preenchido
       if (newCard.email) {
         await axios.post('https://fokus360-backend.vercel.app/send-task-email', {
           email: newCard.email,
@@ -196,14 +198,21 @@ corrigirRolesNoFirestore();
           assuntoTarefa: newCard.assunto,
           prazoTarefa: newCard.dataFinalizacao,
         })
-        .then(() => console.log('📧 Notificação enviada'))
-        .catch((err) => console.error('Erro ao enviar notificação:', err));
+        .then(() => console.log('📧 Notificação por e-mail enviada'))
+        .catch((err) => console.error('Erro ao enviar e-mail:', err));
       }
-      
-
-    
   
-      // Limpar inputs depois de fechar
+      // ✅ Enviar notificação no Firestore para cada colaborador selecionado
+      await Promise.all(newCard.colaboradores.map(async (colabId) => {
+        await axios.post('https://fokus360-backend.vercel.app/send-notification', {
+          userId: colabId,
+          mensagem: `Você recebeu uma nova tarefa: ${newCard.nome}`,
+        })
+        .then(() => console.log(`🔔 Notificação enviada para UID: ${colabId}`))
+        .catch((err) => console.error('Erro ao enviar notificação:', err));
+      }));
+  
+      // Limpar inputs depois
       const hoje = new Date().toISOString().slice(0, 10);
       setNewCard({
         nome: "",
@@ -214,17 +223,19 @@ corrigirRolesNoFirestore();
         colaboradores: [],
         responsavel: "",
         prioridade: "medium",
-        email: "", // Limpa também o campo e-mail
+        email: "",
       });
   
-     // 🔥 FECHA o Modal imediatamente no final
-     setModalOpen(false);
+      // FECHA o Modal
+      setModalOpen(false);
+  
     } catch (error) {
       console.error("❌ Erro ao adicionar o cartão:", error);
       alert("Erro ao adicionar cartão. Tente novamente.");
-      setModalOpen(false); // 🔥 Mesmo em caso de erro, força fechamento
+      setModalOpen(false); // Mesmo em caso de erro, fecha
     }
   };
+  
   
   
   
@@ -479,6 +490,20 @@ const handleDrop = async (targetColumnId, targetIndex) => {
   
   // Chamar essa função manualmente uma vez para corrigir os registros antigos
  // corrigirRolesNoFirestore();
+
+
+//enviar notificação
+ const sendNotification = async (userId, tituloTarefa) => {
+  try {
+    await axios.post('https://fokus360-backend.vercel.app/send-notification', {
+      userId: userId,
+      mensagem: `Você recebeu uma nova tarefa: ${tituloTarefa}`
+    });
+    console.log("🔔 Notificação enviada!");
+  } catch (error) {
+    console.error("Erro ao enviar notificação:", error);
+  }
+};
 
 
 
