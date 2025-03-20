@@ -1095,12 +1095,12 @@ const handleDrop = async (targetColumnId, targetIndex) => {
 
   {/* ✅ Filtra apenas o usuário logado */}
   {users
-    .filter((user) => user.username === newCard.departamento) // Só exibe quem está logado
-    .map((user) => (
-      <MenuItem key={user.id} value={user.id}>
-        <ListItemText primary={user.username} />
-      </MenuItem>
-    ))}
+  .filter((user) => user.uid === user?.uid) // Mostra sempre o logado
+  .map((user) => (
+    <MenuItem key={user.id} value={user.id}>
+      <ListItemText primary={user.username} />
+    </MenuItem>
+  ))}
 </Select>
 
    
