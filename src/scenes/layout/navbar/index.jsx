@@ -8,6 +8,7 @@ import { authFokus360, dbFokus360 as db } from "../../../data/firebase-config";
 import { Badge, Popover, List, ListItem, ListItemText } from "@mui/material";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { updateDoc } from "firebase/firestore"; // IMPORTAR updateDoc
+import { NotificationContext } from "../../../context/NotificationContext";
 
 import { onAuthStateChanged, signOut } from "firebase/auth";
 
@@ -21,7 +22,7 @@ import { Avatar } from "@mui/material";
 
 const Navbar = () => {
   const theme = useTheme();
-  const [notifications, setNotifications] = useState([]);
+  const { notifications, setNotifications } = useContext(NotificationContext);
   const [anchorEl, setAnchorEl] = useState(null);
   const isXsDevices = useMediaQuery("(max-width:466px)");
   const [user, setUser] = useState(null);
@@ -78,7 +79,7 @@ useEffect(() => {
     const querySnapshot = await getDocs(q);
     setNotifications(
       querySnapshot.docs.map((doc) => ({
-        id: doc.id, // PRECISA DO ID para editar depois
+        id: doc.id,
         mensagem: doc.data().mensagem,
       }))
     );
@@ -90,13 +91,25 @@ useEffect(() => {
 
 
 
-
-
-
-  // Ao clicar no ícone
-const handleNotificationsClick = (event) => {
+const handleNotificationsClick = async (event) => {
   setAnchorEl(event.currentTarget);
+  
+  // Recarregar as notificações toda vez que abrir
+  const q = query(
+    collection(dbFokus360, "notificacoes"),
+    where("userId", "==", user.uid),
+    where("lido", "==", false)
+  );
+  const querySnapshot = await getDocs(q);
+  setNotifications(
+    querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      mensagem: doc.data().mensagem,
+    }))
+  );
 };
+
+
 
 // Fechar popup
 const handleNotificationsClose = () => {

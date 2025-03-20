@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Box,
   Typography,
@@ -25,6 +25,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import axios from "axios"; 
 import { adicionarNotificacao } from "../../services/notificacoesService";
 import { query, orderBy } from "firebase/firestore";
+import { NotificationContext } from "../../../context/NotificationContext";
 
 
 
@@ -157,7 +158,7 @@ corrigirRolesNoFirestore();
       const userData = userDoc.exists() ? userDoc.data() : null;
       const userRole = userData?.role || "default";
   
-      // 🔥 Converte IDs para nomes para salvar no Firestore
+      // Converte IDs para nomes para salvar no Firestore
       const collaboratorNames = newCard.colaboradores.map((id) => {
         const userEncontrado = users.find((u) => u.id === id);
         return userEncontrado ? userEncontrado.username : "Desconhecido";
@@ -188,7 +189,7 @@ corrigirRolesNoFirestore();
   
       console.log("✅ Card criado com nomes dos colaboradores.");
   
-      // ✅ Enviar e-mail SE o campo e-mail estiver preenchido
+      // Enviar e-mail SE o campo e-mail estiver preenchido
       if (newCard.email) {
         await axios.post('https://fokus360-backend.vercel.app/send-task-email', {
           email: newCard.email,
@@ -200,7 +201,7 @@ corrigirRolesNoFirestore();
         .catch((err) => console.error('Erro ao enviar e-mail:', err));
       }
   
-      // ✅ Enviar notificação no Firestore para cada colaborador selecionado
+      // Enviar notificação no Firestore para cada colaborador selecionado
       await Promise.all(newCard.colaboradores.map(async (colabId) => {
         await axios.post('https://fokus360-backend.vercel.app/send-notification', {
           userId: colabId,
@@ -224,15 +225,15 @@ corrigirRolesNoFirestore();
         email: "",
       });
   
-      // FECHA o Modal
       setModalOpen(false);
   
     } catch (error) {
       console.error("❌ Erro ao adicionar o cartão:", error);
       alert("Erro ao adicionar cartão. Tente novamente.");
-      setModalOpen(false); // Mesmo em caso de erro, fecha
+      setModalOpen(false);
     }
   };
+  
   
   
   

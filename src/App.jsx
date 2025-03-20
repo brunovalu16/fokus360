@@ -1,13 +1,11 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState } from "react";
 import { Box, CssBaseline, ThemeProvider } from "@mui/material";
 import { ColorModeContext, useMode } from "./theme";
 import { Navbar, SideBar, NavbarKanban } from "./scenes";
-import { Outlet } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
+import { NotificationProvider } from "./context/NotificationContext"; // Importado
 
 export const ToggledContext = createContext(null);
-
-
 
 function App() {
   const [theme, colorMode] = useMode();
@@ -15,15 +13,16 @@ function App() {
   const values = { toggled, setToggled };
 
   const location = useLocation(); // Pegando a rota atual
-  
+
   return (
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <ToggledContext.Provider value={values}>
-          <Box sx={{ display: "flex", height: "100vh", maxWidth: "100%" }}>
-            <SideBar />
-            <Box
+        <NotificationProvider> {/* Notification Provider AQUI */}
+          <ToggledContext.Provider value={values}>
+            <Box sx={{ display: "flex", height: "100vh", maxWidth: "100%" }}>
+              <SideBar />
+              <Box
                 sx={{
                   flexGrow: 1,
                   display: "flex",
@@ -33,26 +32,19 @@ function App() {
                 }}
               >
 
+                {/* Navbar condicional */}
+                {location.pathname === "/kanban" ? <NavbarKanban /> : <Navbar />}
 
-          <Navbar />
-
-
-              
-              <Box sx={{ overflowY: "auto", flex: 1, maxWidth: "100%" }}>
-                <Outlet />
+                <Box sx={{ overflowY: "auto", flex: 1, maxWidth: "100%" }}>
+                  <Outlet />
+                </Box>
               </Box>
             </Box>
-          </Box>
-        </ToggledContext.Provider>
+          </ToggledContext.Provider>
+        </NotificationProvider>
       </ThemeProvider>
     </ColorModeContext.Provider>
   );
 }
 
 export default App;
-
-
-//Criar um navbar específico para uma pagina específica
-
-// {/* Verifica se a rota é "/pagina-especifica" e exibe o NavbarKanban */}
- // {location.pathname === "/kanban" ? <NavbarKanban /> : <Navbar />}
