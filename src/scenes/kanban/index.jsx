@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -23,9 +23,10 @@ import FilterListIcon from "@mui/icons-material/FilterList"; // Ícone para o Se
 import ClearAllIcon from "@mui/icons-material/ClearAll"; // Ícone para limpar filtro
 import { onAuthStateChanged } from "firebase/auth";
 import axios from "axios"; 
-import { adicionarNotificacao } from "../../services/notificacoesService";
 import { query, orderBy } from "firebase/firestore";
 import { NotificationContext } from "../../context/NotificationContext";
+import { useContext } from "react";
+
 
 
 
@@ -59,6 +60,9 @@ const Kanban = () => {
   const [selectedDepartment, setSelectedDepartment] = useState([]); // ✅ Adicionando o estado
   const [allCards, setAllCards] = useState([]); // 🔥 Armazena todos os cards para aplicar os filtros depois
   const [user, setUser] = useState(null); // Estado para armazenar o usuário logado
+
+  const { setNotifications } = useContext(NotificationContext);
+
   //gerenciar o filtro da barra de pesquisa
   const [selectedFilter, setSelectedFilter] = useState(null);
   const [isOpen, setIsOpen] = useState(false); // ✅ Controla se o Select está aberto ou fechado
@@ -158,7 +162,7 @@ corrigirRolesNoFirestore();
       const userData = userDoc.exists() ? userDoc.data() : null;
       const userRole = userData?.role || "default";
   
-      // Converte IDs para nomes para salvar no Firestore
+      // Converte IDs para nomes
       const collaboratorNames = newCard.colaboradores.map((id) => {
         const userEncontrado = users.find((u) => u.id === id);
         return userEncontrado ? userEncontrado.username : "Desconhecido";
@@ -175,7 +179,7 @@ corrigirRolesNoFirestore();
       // Salvar Card no Firestore
       const docRef = await addDoc(kanbanCards, newCardWithUser);
   
-      // Atualiza estado local
+      // Atualiza localmente
       setAllCards([...allCards, { ...newCardWithUser, id: docRef.id }]);
       setColumns((prevColumns) =>
         prevColumns.map((col) => ({
@@ -189,7 +193,7 @@ corrigirRolesNoFirestore();
   
       console.log("✅ Card criado com nomes dos colaboradores.");
   
-      // Enviar e-mail SE o campo e-mail estiver preenchido
+      // Enviar e-mail (se houver)
       if (newCard.email) {
         await axios.post('https://fokus360-backend.vercel.app/send-task-email', {
           email: newCard.email,
@@ -197,21 +201,29 @@ corrigirRolesNoFirestore();
           assuntoTarefa: newCard.assunto,
           prazoTarefa: newCard.dataFinalizacao,
         })
-        .then(() => console.log('📧 Notificação por e-mail enviada'))
+        .then(() => console.log('📧 E-mail enviado'))
         .catch((err) => console.error('Erro ao enviar e-mail:', err));
       }
   
-      // Enviar notificação no Firestore para cada colaborador selecionado
+      // Enviar notificação para cada colaborador
       await Promise.all(newCard.colaboradores.map(async (colabId) => {
         await axios.post('https://fokus360-backend.vercel.app/send-notification', {
           userId: colabId,
           mensagem: `Você recebeu uma nova tarefa: ${newCard.nome}`,
         })
-        .then(() => console.log(`🔔 Notificação enviada para UID: ${colabId}`))
+        .then(() => {
+          console.log(`🔔 Notificação enviada para UID: ${colabId}`);
+  
+          // ✅ Atualiza o estado global de notificações
+          setNotifications((prev) => [
+            ...prev,
+            { mensagem: `Você recebeu uma nova tarefa: ${newCard.nome}`, lido: false },
+          ]);
+        })
         .catch((err) => console.error('Erro ao enviar notificação:', err));
       }));
   
-      // Limpar inputs depois
+      // Limpar inputs
       const hoje = new Date().toISOString().slice(0, 10);
       setNewCard({
         nome: "",
@@ -233,6 +245,7 @@ corrigirRolesNoFirestore();
       setModalOpen(false);
     }
   };
+
   
   
   
