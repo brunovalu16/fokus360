@@ -72,7 +72,7 @@ useEffect(() => {
     if (!user) return;
 
     const q = query(
-      collection(dbFokus360, "notificacoes"),
+      collection(db, "notificacoes"),
       where("userId", "==", user.uid),
       where("lido", "==", false)
     );
@@ -96,7 +96,7 @@ const handleNotificationsClick = async (event) => {
   
   // Recarregar as notificações toda vez que abrir
   const q = query(
-    collection(dbFokus360, "notificacoes"),
+    collection(db, "notificacoes"),
     where("userId", "==", user.uid),
     where("lido", "==", false)
   );
@@ -174,7 +174,7 @@ const open = Boolean(anchorEl);
 // função para marcar notificação como lida
   const handleMarkAsRead = async (notificationId) => {
     try {
-      const notifRef = doc(dbFokus360, "notificacoes", notificationId);
+      const notifRef = doc(db, "notificacoes", notificationId);
       await updateDoc(notifRef, { lido: true });
   
       // Atualizar localmente (remove a notificação da lista atual)
