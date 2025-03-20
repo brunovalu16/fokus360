@@ -26,8 +26,6 @@ import axios from "axios";
 import { adicionarNotificacao } from "../../services/notificacoesService";
 import { query, orderBy } from "firebase/firestore";
 
-import axios from 'axios';
-
 
 
 
