@@ -32,8 +32,7 @@ function App() {
                 }}
               >
 
-                {/* Navbar condicional */}
-                {location.pathname === "/kanban" ? <NavbarKanban /> : <Navbar />}
+                <Navbar />
 
                 <Box sx={{ overflowY: "auto", flex: 1, maxWidth: "100%" }}>
                   <Outlet />
@@ -48,3 +47,6 @@ function App() {
 }
 
 export default App;
+
+//{/* Navbar condicional */}
+//{location.pathname === "/kanban" ? <NavbarKanban /> : <Navbar />}
