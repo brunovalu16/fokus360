@@ -24,6 +24,7 @@ import ClearAllIcon from "@mui/icons-material/ClearAll"; // Ícone para limpar f
 import { onAuthStateChanged } from "firebase/auth";
 import axios from "axios"; 
 import { adicionarNotificacao } from "../../services/notificacoesService";
+import { query, orderBy } from "firebase/firestore";
 
 
 
@@ -111,25 +112,28 @@ corrigirRolesNoFirestore();
   //Exibir Apenas os Cards do Usuário Logado
   const fetchCards = async () => {
     try {
-      const querySnapshot = await getDocs(kanbanCards);
+      const q = query(kanbanCards, orderBy("position", "asc")); // 🔥 ordena certinho pela posição
+  
+      const querySnapshot = await getDocs(q);
       const cardsFromFirestore = querySnapshot.docs.map((doc) => {
         const data = doc.data();
         return {
           id: doc.id,
           ...data,
-          role: data.role || "default", // 🔥 Se `role` for null, define "default"
+          role: data.role || "default",
         };
       });
-
-      console.log("📋 Todos os cards carregados:", cardsFromFirestore); // 🔥 Verifique os dados no console
-
-      setAllCards(cardsFromFirestore); // 🔥 Salva todos os cards para filtragem
+  
+      console.log("📋 Todos os cards carregados:", cardsFromFirestore);
+  
+      setAllCards(cardsFromFirestore);
+  
       setColumns(
         columns.map((column) => ({
           ...column,
-          cards: cardsFromFirestore.filter(
-            (card) => card.columnId === column.id
-          ),
+          cards: cardsFromFirestore
+            .filter((card) => card.columnId === column.id)
+            .sort((a, b) => a.position - b.position), // Garantir ordenação local também!
         }))
       );
     } catch (error) {
@@ -186,13 +190,20 @@ corrigirRolesNoFirestore();
   
       // ✅ Enviar e-mail apenas SE o campo e-mail estiver preenchido
       if (newCard.email) {
-        await axios.post("https://fokus360-api.vercel.app/send-task-email", {
-          email: newCard.email, // Chave 'email' combinando com o backend
-        });
-        console.log(`📧 E-mail enviado para: ${newCard.email}`);
+        await axios.post('https://fokus360-backend.vercel.app/send-task-email', {
+          email: newCard.email,
+          tituloTarefa: newCard.nome,
+          assuntoTarefa: newCard.assunto,
+          prazoTarefa: newCard.dataFinalizacao,
+        })
+        .then(() => console.log('📧 Notificação enviada'))
+        .catch((err) => console.error('Erro ao enviar notificação:', err));
       }
+      
+
+    
   
-      // Limpar inputs
+      // Limpar inputs depois de fechar
       const hoje = new Date().toISOString().slice(0, 10);
       setNewCard({
         nome: "",
@@ -206,9 +217,12 @@ corrigirRolesNoFirestore();
         email: "", // Limpa também o campo e-mail
       });
   
-      setModalOpen(false);
+     // 🔥 FECHA o Modal imediatamente no final
+     setModalOpen(false);
     } catch (error) {
-      console.error("Erro ao adicionar o cartão:", error);
+      console.error("❌ Erro ao adicionar o cartão:", error);
+      alert("Erro ao adicionar cartão. Tente novamente.");
+      setModalOpen(false); // 🔥 Mesmo em caso de erro, força fechamento
     }
   };
   
@@ -275,41 +289,38 @@ const handleDrop = async (targetColumnId, targetIndex) => {
   const { card, columnId: sourceColumnId } = draggingCard;
 
   try {
-    const updatedColumns = columns.map((column) => {
-      if (column.id === sourceColumnId) {
-        return {
-          ...column,
-          cards: column.cards.filter((c) => c.id !== card.id), // Remove da coluna antiga
-        };
-      }
-      return column;
-    });
+    let updatedColumns = [...columns];
 
-    const newColumns = updatedColumns.map((column) => {
-      if (column.id === targetColumnId) {
-        const newCards = [...column.cards];
-        newCards.splice(targetIndex, 0, { ...card, columnId: targetColumnId });
+    // Remover o card da coluna antiga
+    const sourceColumn = updatedColumns.find(col => col.id === sourceColumnId);
+    const cardToMove = sourceColumn.cards.find(c => c.id === card.id);
+    sourceColumn.cards = sourceColumn.cards.filter(c => c.id !== card.id);
 
-        return { ...column, cards: newCards };
-      }
-      return column;
-    });
+    // Inserir o card na nova posição da coluna alvo
+    const targetColumn = updatedColumns.find(col => col.id === targetColumnId);
+    targetColumn.cards.splice(targetIndex, 0, cardToMove);
 
-    setColumns(newColumns);
+    setColumns(updatedColumns);
     setDraggingCard(null);
 
-    // 🔥 Atualizar no Firestore
-    const cardDocRef = doc(dbFokus360, "kanbanCards", card.id);
-    await updateDoc(cardDocRef, {
-      columnId: targetColumnId,
-      position: targetIndex,
-    });
+    // 🔥 Atualizar no Firestore as posições de TODOS os cards na coluna alvo
+    await Promise.all(
+      targetColumn.cards.map(async (c, index) => {
+        const cardDocRef = doc(dbFokus360, "kanbanCards", c.id);
+        await updateDoc(cardDocRef, {
+          columnId: targetColumnId,
+          position: index, // Atualizando posição certinha!
+        });
+      })
+    );
 
-    console.log(`✅ Card ${card.id} movido para a coluna ${targetColumnId} na posição ${targetIndex}`);
+    console.log(`✅ Reordenação da coluna ${targetColumnId} salva no Firestore.`);
   } catch (error) {
-    console.error("❌ Erro ao reordenar o cartão:", error);
+    console.error("❌ Erro ao reordenar cartões:", error);
   }
 };
+
+
 
   
 
@@ -1405,9 +1416,11 @@ const handleDrop = async (targetColumnId, targetIndex) => {
 
 const kanbanStyle = {
   display: "flex",
+  alignItems: "flex-start",
   overflowX: "auto",
-  overflowY: "hidden",
-  marginBottom: "50px",
+  overflowY: "auto", // 🔥 Se todas colunas juntas forem maiores que a tela
+  gap: "15px",
+  paddingBottom: "20px",
 };
 
 const modalStyle = {
@@ -1415,24 +1428,29 @@ const modalStyle = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: "500px",
+  width: "90%", // 🔥 mais responsivo em telas pequenas
+  maxWidth: "500px", // 🔥 mantém limite para telas grandes
+  maxHeight: "90vh", // 🔥 ocupa no máximo 90% da altura da tela
   bgcolor: "background.paper",
   boxShadow: 24,
   p: 4,
   borderRadius: "10px",
+  overflowY: "auto", // 🔥 permite rolagem se o conteúdo exceder
 };
 
 const columnStyle = {
   display: "flex",
   flexDirection: "column",
-  flex: "1 1 280px", // Flexibilidade com largura mínima
-  padding: "16px", // Substituindo 'p' para consistência
-  margin: "3px", // Espaçamento entre colunas
+  flex: "1 1 280px",
+  padding: "16px",
+  margin: "3px",
   bgcolor: "#e8e9ea",
   borderRadius: "10px",
-  minWidth: "100px", // Largura mínima
-  maxWidth: "100%", // Garante que a largura máxima não ultrapasse o contêiner
-  height: "100vh",
+  minWidth: "100px",
+  maxWidth: "100%",
+  minHeight: "100vh", // 🔥 Altura mínima sempre 100% da tela
+  height: "auto", // 🔥 Cresce conforme necessário
+  flexGrow: 1, // 🔥 Permite expansão
 };
 
 const cardContainerStyle = {
