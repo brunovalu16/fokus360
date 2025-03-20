@@ -7,8 +7,10 @@ import { ToggledContext } from "../../../App";
 import { authFokus360, dbFokus360 as db } from "../../../data/firebase-config";
 import { Badge, Popover, List, ListItem, ListItemText } from "@mui/material";
 import { collection, query, where, getDocs } from "firebase/firestore";
+import { updateDoc } from "firebase/firestore"; // IMPORTAR updateDoc
 
 import { onAuthStateChanged, signOut } from "firebase/auth";
+
 
 import { doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
@@ -74,11 +76,18 @@ useEffect(() => {
       where("lido", "==", false)
     );
     const querySnapshot = await getDocs(q);
-    setNotifications(querySnapshot.docs.map((doc) => doc.data().mensagem));
+    setNotifications(
+      querySnapshot.docs.map((doc) => ({
+        id: doc.id, // PRECISA DO ID para editar depois
+        mensagem: doc.data().mensagem,
+      }))
+    );
   };
 
   fetchNotifications();
 }, [user]);
+
+
 
 
 
@@ -149,34 +158,53 @@ const open = Boolean(anchorEl);
   }, []);
   
 
+// função para marcar notificação como lida
+  const handleMarkAsRead = async (notificationId) => {
+    try {
+      const notifRef = doc(dbFokus360, "notificacoes", notificationId);
+      await updateDoc(notifRef, { lido: true });
+  
+      // Atualizar localmente (remove a notificação da lista atual)
+      setNotifications((prev) =>
+        prev.filter((notif) => notif.id !== notificationId)
+      );
+    } catch (error) {
+      console.error("Erro ao marcar notificação como lida:", error);
+    }
+  };
+
 
   return (
     <>
 
-      <Popover
-        open={open}
-        anchorEl={anchorEl}
-        onClose={handleNotificationsClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}
-      >
-        <List sx={{ width: "250px" }}>
-        {notifications.length === 0 ? (
-          <ListItem>
-            <ListItemText primary="Nenhuma notificação" />
-          </ListItem>
-        ) : (
-          notifications.map((noti, index) => (
-            <ListItem key={index}>
-              <ListItemText primary={noti} />  {/* Aqui mostra a mensagem */}
-            </ListItem>
-          ))
-        )}
+<Popover
+  open={open}
+  anchorEl={anchorEl}
+  onClose={handleNotificationsClose}
+  anchorOrigin={{
+    vertical: "bottom",
+    horizontal: "right",
+  }}
+>
+  <List sx={{ width: "250px" }}>
+    {notifications.length === 0 ? (
+      <ListItem>
+        <ListItemText primary="Nenhuma notificação" />
+      </ListItem>
+    ) : (
+      notifications.map((noti) => (
+        <ListItem 
+          key={noti.id} 
+          button 
+          onClick={() => handleMarkAsRead(noti.id)}
+        >
+          <ListItemText primary={noti.mensagem} />
+        </ListItem>
+      ))
+    )}
+  </List>
+</Popover>
 
-        </List>
-      </Popover>
 
       <Toolbar
         sx={{
