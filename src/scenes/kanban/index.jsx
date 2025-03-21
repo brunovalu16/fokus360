@@ -121,6 +121,19 @@ corrigirRolesNoFirestore();
       const querySnapshot = await getDocs(q);
       const cardsFromFirestore = querySnapshot.docs.map((doc) => {
         const data = doc.data();
+
+         // 🔥 Verifica se colaboradores veio no formato de array de strings, ou já como objeto
+          const colaboradoresCorrigido = data.colaboradores.map((colab) => {
+            if (typeof colab === "string") {
+              // Caso antigo: só string (nome ou id)
+              const userEncontrado = users.find((u) => u.id === colab || u.username === colab);
+              return userEncontrado
+                ? { id: userEncontrado.id, username: userEncontrado.username }
+                : { id: colab, username: "Desconhecido" };
+            }
+            return colab; // já está no formato correto
+          });
+
         return {
           id: doc.id,
           ...data,
@@ -462,10 +475,11 @@ const handleDrop = async (targetColumnId, targetIndex) => {
     if (selectedCollaborators.length > 0) {
       filteredCards = filteredCards.filter((card) =>
         card.colaboradores.some((colab) =>
-          selectedCollaborators.includes(colab)
+          selectedCollaborators.includes(colab.username)
         )
       );
     }
+    
   
     // 🔥 Filtrar por prioridade (se definida)
     if (selectedPriority) {
