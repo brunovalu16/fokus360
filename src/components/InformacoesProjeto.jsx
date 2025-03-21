@@ -35,6 +35,7 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
     unidade: "",
     solicitante: "",
     solicitanteEmail: "", // Adicionado para o e-mail do solicitante
+    colaboradorEmail: "",
     categoria: "",
     colaboradores: [],
     responsavel: "",
@@ -74,6 +75,7 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
         unidade: "",
         solicitante: "",
         solicitanteEmail: "",
+        colaboradorEmail: "",
         categoria: "",
         colaboradores: [],
         responsavel: "",
@@ -156,6 +158,7 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
         unidade: "",
         solicitante: "",
         solicitanteEmail: "",
+        colaboradorEmail: "",
         categoria: "",
         colaboradores: [],
         responsavel: "",
@@ -317,6 +320,13 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
                 label="E-mail do Solicitante"
                 name="solicitanteEmail" // Nome associado ao estado para o e-mail do solicitante
                 value={formValues.solicitanteEmail} // Valor do e-mail do solicitante
+                onChange={handleChange} // Atualiza o estado ao alterar o campo
+                fullWidth
+              />
+              <TextField
+                label="E-mail dos colaboradores"
+                name="colaboradorEmail" // Nome associado ao estado para o e-mail do solicitante
+                value={formValues.colaboradorEmail} // Valor do e-mail do solicitante
                 onChange={handleChange} // Atualiza o estado ao alterar o campo
                 fullWidth
               />
