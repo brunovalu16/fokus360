@@ -36,6 +36,7 @@ const CadastroProjetos = () => {
     unidade: "",
     solicitante: "",
     solicitanteEmail: "",
+    colaboradorEmail: "",
     categoria: "",
     colaboradores: [],
     orcamento: "",
@@ -112,7 +113,7 @@ const CadastroProjetos = () => {
 
 
 
-  
+  //Função para adicionar projetos
   const handleAdicionarProjeto = async () => {
     try {
       // Verifica se os dados essenciais estão preenchidos
@@ -129,6 +130,7 @@ const CadastroProjetos = () => {
         unidade: informacoesProjeto.unidade,
         solicitante: informacoesProjeto.solicitante,
         solicitanteEmail: informacoesProjeto.solicitanteEmail,
+        colaboradorEmail: informacoesProjeto.colaboradorEmail,
         categoria: informacoesProjeto.categoria,
         colaboradores: informacoesProjeto.colaboradores,
         orcamento: informacoesProjeto.orcamento,
