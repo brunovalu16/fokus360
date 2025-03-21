@@ -116,7 +116,7 @@ const CadastroProjetos = () => {
   //Função para adicionar projetos
   const handleAdicionarProjeto = async () => {
     try {
-      // Verifica se os dados essenciais estão preenchidos
+      // Validação básica
       if (!informacoesProjeto.nome.trim()) {
         alert("O nome do projeto é obrigatório!");
         return;
@@ -167,11 +167,74 @@ const CadastroProjetos = () => {
         })),
       };
   
-      // Cria uma referência para um novo documento na coleção "projetos"
+      // 👉 Salva no Firestore
       const projetoRef = doc(collection(dbFokus360, "projetos"));
       await setDoc(projetoRef, projetoData);
   
-      setShowAlert(true); // Mostra alerta de sucesso
+      // 👉 Montar lista de e-mails (colaboradores + responsáveis do plano de ação)
+      let emailsToNotify = [];
+  
+      // E-mails dos colaboradores (campo input)
+      if (informacoesProjeto.colaboradorEmail) {
+        const colaboradores = informacoesProjeto.colaboradorEmail.split(/[,;]/).map(e => e.trim());
+        emailsToNotify = [...emailsToNotify, ...colaboradores];
+      }
+  
+      // Responsáveis do plano de ação
+      (informacoesProjeto.estrategicas || []).forEach(estrategica => {
+        (estrategica.taticas || []).forEach(tatica => {
+          (tatica.operacionais || []).forEach(op => {
+            (op.tarefas || []).forEach(tarefa => {
+              if (tarefa.planoDeAcao?.quemEmail) {
+                const responsaveis = tarefa.planoDeAcao.quemEmail.split(/[,;]/).map(e => e.trim());
+                emailsToNotify = [...emailsToNotify, ...responsaveis];
+              }
+            });
+          });
+        });
+      });
+  
+      // Remover duplicados
+      emailsToNotify = [...new Set(emailsToNotify.filter(email => email))];
+  
+      console.log("📧 E-mails a serem enviados:", emailsToNotify);
+  
+      // 👉 Enviar e-mails
+      if (emailsToNotify.length > 0) {
+        const emailResponse = await fetch('https://fokus360-backend.vercel.app/send-project-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            emails: emailsToNotify,
+            tituloProjeto: informacoesProjeto.nome,
+            descricaoProjeto: informacoesProjeto.descricao,
+          }),
+        });
+  
+        if (emailResponse.ok) {
+          console.log("📧 E-mails enviados com sucesso!");
+        } else {
+          console.error("Erro ao enviar e-mails:", await emailResponse.text());
+        }
+  
+        // 👉 Enviar notificações para colaboradores (IDs)
+        const notificationResponse = await fetch('https://fokus360-backend.vercel.app/send-project-notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userIds: informacoesProjeto.colaboradores,
+            mensagem: `Você foi adicionado ao projeto: ${informacoesProjeto.nome}`,
+          }),
+        });
+  
+        if (notificationResponse.ok) {
+          console.log("🔔 Notificações enviadas com sucesso!");
+        } else {
+          console.error("Erro ao enviar notificações:", await notificationResponse.text());
+        }
+      }
+  
+      setShowAlert(true);
       setMensagem(true);
       console.log("✅ Projeto adicionado com sucesso!");
   
