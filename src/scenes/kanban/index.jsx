@@ -162,18 +162,22 @@ corrigirRolesNoFirestore();
       const userRole = userData?.role || "default";
   
       // Converte IDs para nomes
-      const collaboratorNames = newCard.colaboradores.map((id) => {
+      const collaboratorDetails = newCard.colaboradores.map((id) => {
         const userEncontrado = users.find((u) => u.id === id);
-        return userEncontrado ? userEncontrado.username : "Desconhecido";
+        return {
+          id: id,
+          username: userEncontrado ? userEncontrado.username : "Desconhecido",
+        };
       });
-  
+      
       const newCardWithUser = {
         ...newCard,
-        colaboradores: collaboratorNames,
+        colaboradores: collaboratorDetails,
         columnId: 1,
         createdBy: user.uid,
         role: userRole || "default",
       };
+      
   
       // Salvar Card no Firestore
       const docRef = await addDoc(kanbanCards, newCardWithUser);
@@ -205,22 +209,17 @@ corrigirRolesNoFirestore();
       }
   
       // Enviar notificação para cada colaborador
-      await Promise.all(newCard.colaboradores.map(async (colabId) => {
+      await Promise.all(newCardWithUser.colaboradores.map(async (colab) => {
         await axios.post('https://fokus360-backend.vercel.app/send-notification', {
-          userId: colabId,
+          userId: colab.id,   // Pega o id
           mensagem: `Você recebeu uma nova tarefa: ${newCard.nome}`,
         })
         .then(() => {
-          console.log(`🔔 Notificação enviada para UID: ${colabId}`);
-  
-          // ✅ Atualiza o estado global de notificações
-          setNotifications((prev) => [
-            ...prev,
-            { mensagem: `Você recebeu uma nova tarefa: ${newCard.nome}`, lido: false },
-          ]);
+          console.log(`🔔 Notificação enviada para UID: ${colab.id}`);
         })
         .catch((err) => console.error('Erro ao enviar notificação:', err));
       }));
+      
   
       // Limpar inputs
       const hoje = new Date().toISOString().slice(0, 10);
@@ -1408,8 +1407,9 @@ const handleDrop = async (targetColumnId, targetIndex) => {
                           </Typography>
                           <Typography variant="body2">
                             <strong>Responsáveis:</strong>{" "}
-                            {card.colaboradores.join(", ")}
+                            {card.colaboradores.map(colab => colab.username).join(", ")}
                           </Typography>
+
                           <Typography variant="body2">
                             <strong>Data de Criação:</strong> {card.dataCriacao}
                           </Typography>
