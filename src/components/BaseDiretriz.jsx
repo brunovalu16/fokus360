@@ -42,6 +42,7 @@ const BaseDiretriz = ({ projectId, estrategicas: propEstrategicas, onUpdate, Lim
       porQue: "",
       quem: [],
       quando: "",
+      quemEmail: "",
       onde: "",
       como: "",
       valor: "",
@@ -61,6 +62,7 @@ const BaseDiretriz = ({ projectId, estrategicas: propEstrategicas, onUpdate, Lim
           porQue: "",
           quem: [],
           quando: "",
+          quemEmail: "",
           onde: "",
           como: "",
           valor: "",
@@ -196,6 +198,7 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       porQue: "",
       quem: [],
       quando: "",
+      quemEmail: "",
       onde: "",
       como: "",
       valor: "",
@@ -584,8 +587,9 @@ const saveEstrategicas = async (projectId, novoArray) => {
 
             {/* Form para adicionar Tática dentro da Estratégica */}
             <NovaTaticaForm
-              onAdd={(titulo, desc) => handleAddTatica(estrategica.id, titulo, desc)}
-
+              onAdd={(titulo, desc) =>
+                handleAddTatica(estrategica.id, titulo, desc)
+              }
             />
 
             <Box
@@ -641,8 +645,8 @@ const saveEstrategicas = async (projectId, novoArray) => {
                   <Button
                     disableRipple
                     onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveTatica(estrategica.id, tatica.id); // estrategica.id e tatica.id estão corretos
+                      e.stopPropagation();
+                      handleRemoveTatica(estrategica.id, tatica.id); // estrategica.id e tatica.id estão corretos
                     }}
                     sx={{
                       minWidth: "40px",
@@ -652,8 +656,10 @@ const saveEstrategicas = async (projectId, novoArray) => {
                       "&:hover": { backgroundColor: "transparent" },
                     }}
                   >
-                    <DeleteForeverIcon sx={{ fontSize: 24, color: "#dddddd" }} />
-                </Button>
+                    <DeleteForeverIcon
+                      sx={{ fontSize: 24, color: "#dddddd" }}
+                    />
+                  </Button>
                 </AccordionSummary>
 
                 {/* Detalhes: Diretriz Operacional */}
@@ -674,7 +680,12 @@ const saveEstrategicas = async (projectId, novoArray) => {
                   {/* Form para adicionar Operacional */}
                   <NovaOperacionalForm
                     onAdd={(titulo, desc) =>
-                      handleAddOperacional(estrategica.id, tatica.id, titulo, desc)
+                      handleAddOperacional(
+                        estrategica.id,
+                        tatica.id,
+                        titulo,
+                        desc
+                      )
                     }
                   />
 
@@ -741,7 +752,11 @@ const saveEstrategicas = async (projectId, novoArray) => {
                           disableRipple
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleRemoveOperacional(estrategica.id, tatica.id, operacional.id);
+                            handleRemoveOperacional(
+                              estrategica.id,
+                              tatica.id,
+                              operacional.id
+                            );
                           }}
                           sx={{
                             minWidth: "40px",
@@ -751,7 +766,9 @@ const saveEstrategicas = async (projectId, novoArray) => {
                             "&:hover": { backgroundColor: "transparent" },
                           }}
                         >
-                          <DeleteForeverIcon sx={{ fontSize: 24, color: "#dddddd" }} />
+                          <DeleteForeverIcon
+                            sx={{ fontSize: 24, color: "#dddddd" }}
+                          />
                         </Button>
                       </AccordionSummary>
 
@@ -774,7 +791,14 @@ const saveEstrategicas = async (projectId, novoArray) => {
                               fullWidth
                             />
                             <Button
-                              onClick={() => handleAddTarefa( estrategica.id, tatica.id, operacional.id, novaTarefa)}
+                              onClick={() =>
+                                handleAddTarefa(
+                                  estrategica.id,
+                                  tatica.id,
+                                  operacional.id,
+                                  novaTarefa
+                                )
+                              }
                               sx={{ minWidth: "40px" }}
                             >
                               <AddCircleOutlineIcon
@@ -783,9 +807,7 @@ const saveEstrategicas = async (projectId, novoArray) => {
                             </Button>
                           </Box>
 
-
                           {/* 🔹 Exibir as tarefas já adicionadas */}
-
 
                           {operacional.tarefas.length > 0 && (
                             <List>
@@ -815,32 +837,32 @@ const saveEstrategicas = async (projectId, novoArray) => {
 
                                     {/* 🔹 Botão de deletar */}
                                     <Button
-  onClick={(e) => {
-    e.stopPropagation(); // Impede que o Accordion abra/feche
-    handleRemoveTarefa(
-      estrategica.id,
-      tatica.id,
-      operacional.id,
-      tarefa.id
-    );
-  }}
-  sx={{
-    color: "#dc2626",
-    minWidth: "40px",
-    padding: "5px",
-    backgroundColor: "transparent",
-    "&:hover": { backgroundColor: "transparent" },
-  }}
->
-  <DeleteForeverIcon sx={{ fontSize: 24 }} />
-</Button>
+                                      onClick={(e) => {
+                                        e.stopPropagation(); // Impede que o Accordion abra/feche
+                                        handleRemoveTarefa(
+                                          estrategica.id,
+                                          tatica.id,
+                                          operacional.id,
+                                          tarefa.id
+                                        );
+                                      }}
+                                      sx={{
+                                        color: "#dc2626",
+                                        minWidth: "40px",
+                                        padding: "5px",
+                                        backgroundColor: "transparent",
+                                        "&:hover": {
+                                          backgroundColor: "transparent",
+                                        },
+                                      }}
+                                    >
+                                      <DeleteForeverIcon
+                                        sx={{ fontSize: 24 }}
+                                      />
+                                    </Button>
                                   </AccordionSummary>
-                                  
-
 
                                   {/* 🔹 Detalhes do Accordion (Plano de Ação - 5W2H) */}
-
-
 
                                   <AccordionDetails>
                                     <Box
@@ -864,12 +886,7 @@ const saveEstrategicas = async (projectId, novoArray) => {
                                       </Typography>
                                     </Box>
 
-
-
                                     {/* 🔹 Campos do 5W2H */}
-
-
-
 
                                     <Box
                                       sx={{
@@ -950,6 +967,18 @@ const saveEstrategicas = async (projectId, novoArray) => {
                                           </MenuItem>
                                         ))}
                                       </Select>
+                                      <TextField
+                                        label="E-mail dos responsáveis"
+                                        name="quemEmail" // Nome associado ao estado para o e-mail do solicitante
+                                        value={tarefa.planoDeAcao.quemEmail ?? ""}
+                                        onChange={(e) =>
+                                          handleEditTarefa(
+                                            tarefa.id,
+                                            "quemEmail",
+                                            e.target.value
+                                          )
+                                        }
+                                      />
 
                                       <TextField
                                         label="Quando?"
