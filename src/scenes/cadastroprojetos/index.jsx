@@ -201,7 +201,7 @@ const CadastroProjetos = () => {
   
       // 👉 Enviar e-mails
       if (emailsToNotify.length > 0) {
-        const emailResponse = await fetch('https://fokus360-backend.vercel.app/send-project-email', {
+        const emailResponse = await fetch('https://fokus360-backend.vercel.app/send-project-emails', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -218,7 +218,7 @@ const CadastroProjetos = () => {
         }
   
         // 👉 Enviar notificações para colaboradores (IDs)
-        const notificationResponse = await fetch('https://fokus360-backend.vercel.app/send-project-notification', {
+        const notificationResponse = await fetch('https://fokus360-backend.vercel.app/send-project-notifications', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
