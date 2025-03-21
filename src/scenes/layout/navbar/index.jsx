@@ -9,6 +9,7 @@ import { Badge, Popover, List, ListItem, ListItemText } from "@mui/material";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { updateDoc } from "firebase/firestore"; // IMPORTAR updateDoc
 import { NotificationContext } from "../../../context/NotificationContext";
+import TaskIcon from '@mui/icons-material/Task'
 
 import { onAuthStateChanged, signOut } from "firebase/auth";
 
@@ -199,24 +200,39 @@ const open = Boolean(anchorEl);
     horizontal: "right",
   }}
 >
-  <List sx={{ width: "250px" }}>
-    {notifications.length === 0 ? (
-      <ListItem>
-        <ListItemText primary="Nenhuma notificação" />
+<List
+  sx={{
+    width: "300px",
+    maxHeight: "300px",
+    overflowY: "auto",
+  }}
+>
+  {notifications.length === 0 ? (
+    <ListItem>
+      <ListItemText primary="Nenhuma notificação" />
+    </ListItem>
+  ) : (
+    notifications.map((noti, index) => (
+      <ListItem
+        key={noti.id}
+        button
+        onClick={() => handleMarkAsRead(noti.id)}
+        sx={{
+          backgroundColor: index % 2 === 0 ? "#ffffff" : "#f5f5f5",
+          "&:hover": {
+            backgroundColor: "#e0e0e0",
+          },
+        }}
+      >
+        <TaskIcon sx={{ color: "#5f53e5", marginRight: 1 }} />
+        <ListItemText primary={noti.mensagem} />
       </ListItem>
-    ) : (
-      notifications.map((noti) => (
-        <ListItem 
-          key={noti.id} 
-          button 
-          onClick={() => handleMarkAsRead(noti.id)}
-        >
-          <ListItemText primary={noti.mensagem} />
-        </ListItem>
-      ))
-    )}
-  </List>
+    ))
+  )}
+</List>
+
 </Popover>
+
 
 
       <Toolbar
@@ -347,7 +363,6 @@ const open = Boolean(anchorEl);
             <Badge badgeContent={notifications.length} color="error">
               <NotificationsOutlined />
             </Badge>
-
           </IconButton>
 
 
