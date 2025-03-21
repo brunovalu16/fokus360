@@ -155,6 +155,7 @@ const CadastroProjetos = () => {
                   oQue: tarefa.planoDeAcao?.oQue || "",
                   porQue: tarefa.planoDeAcao?.porQue || "",
                   quem: tarefa.planoDeAcao?.quem || [],
+                  quemEmail: tarefa.planoDeAcao?.quemEmail || [],
                   quando: tarefa.planoDeAcao?.quando || "",
                   onde: tarefa.planoDeAcao?.onde || "",
                   como: tarefa.planoDeAcao?.como || "",

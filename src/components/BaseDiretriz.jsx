@@ -42,7 +42,7 @@ const BaseDiretriz = ({ projectId, estrategicas: propEstrategicas, onUpdate, Lim
       porQue: "",
       quem: [],
       quando: "",
-      quemEmail: "",
+      quemEmail: [],
       onde: "",
       como: "",
       valor: "",
@@ -62,7 +62,7 @@ const BaseDiretriz = ({ projectId, estrategicas: propEstrategicas, onUpdate, Lim
           porQue: "",
           quem: [],
           quando: "",
-          quemEmail: "",
+          quemEmail: [],
           onde: "",
           como: "",
           valor: "",
@@ -198,7 +198,7 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       porQue: "",
       quem: [],
       quando: "",
-      quemEmail: "",
+      quemEmail: [],
       onde: "",
       como: "",
       valor: "",
@@ -970,7 +970,7 @@ const saveEstrategicas = async (projectId, novoArray) => {
                                       <TextField
                                         label="E-mail dos responsáveis"
                                         name="quemEmail" // Nome associado ao estado para o e-mail do solicitante
-                                        value={tarefa.planoDeAcao.quemEmail ?? ""}
+                                        value={tarefa.planoDeAcao.quemEmail ?? []}
                                         onChange={(e) =>
                                           handleEditTarefa(
                                             tarefa.id,
