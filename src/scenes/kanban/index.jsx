@@ -122,24 +122,25 @@ corrigirRolesNoFirestore();
       const cardsFromFirestore = querySnapshot.docs.map((doc) => {
         const data = doc.data();
 
+          
          // 🔥 Verifica se colaboradores veio no formato de array de strings, ou já como objeto
-          const colaboradoresCorrigido = data.colaboradores.map((colab) => {
-            if (typeof colab === "string") {
-              // Caso antigo: só string (nome ou id)
-              const userEncontrado = users.find((u) => u.id === colab || u.username === colab);
-              return userEncontrado
-                ? { id: userEncontrado.id, username: userEncontrado.username }
-                : { id: colab, username: "Desconhecido" };
-            }
-            return colab; // já está no formato correto
-          });
+  const colaboradoresCorrigido = data.colaboradores.map((colab) => {
+    if (typeof colab === "string") {
+      const userEncontrado = users.find((u) => u.id === colab || u.username === colab);
+      return userEncontrado
+        ? { id: userEncontrado.id, username: userEncontrado.username }
+        : { id: colab, username: "Desconhecido" };
+    }
+    return colab;
+  });
 
-        return {
-          id: doc.id,
-          ...data,
-          role: data.role || "default",
-        };
-      });
+  return {
+    id: doc.id,
+    ...data,
+    colaboradores: colaboradoresCorrigido, // <-- Aqui estava faltando!!!
+    role: data.role || "default",
+  };
+});
   
       console.log("📋 Todos os cards carregados:", cardsFromFirestore);
   
@@ -182,29 +183,32 @@ corrigirRolesNoFirestore();
           username: userEncontrado ? userEncontrado.username : "Desconhecido",
         };
       });
-      
+  
+      // Definir a posição como próximo card (ordem correta)
+      const maxPosition = allCards.length;
+  
       const newCardWithUser = {
         ...newCard,
         colaboradores: collaboratorDetails,
         columnId: 1,
         createdBy: user.uid,
-        role: userRole || "default",
+        role: userRole,
+        position: maxPosition, // IMPORTANTE!
       };
-      
   
-      // Salvar Card no Firestore
+      // Salvar no Firestore
       const docRef = await addDoc(kanbanCards, newCardWithUser);
   
       // Atualiza localmente
-      setAllCards([...allCards, { ...newCardWithUser, id: docRef.id }]);
+      const cardComId = { ...newCardWithUser, id: docRef.id };
+      setAllCards([...allCards, cardComId]);
+  
       setColumns((prevColumns) =>
-        prevColumns.map((col) => ({
-          ...col,
-          cards:
-            col.id === 1
-              ? [...col.cards, { ...newCardWithUser, id: docRef.id }]
-              : col.cards,
-        }))
+        prevColumns.map((col) =>
+          col.id === 1
+            ? { ...col, cards: [...col.cards, cardComId] }
+            : col
+        )
       );
   
       console.log("✅ Card criado com nomes dos colaboradores.");
@@ -224,7 +228,7 @@ corrigirRolesNoFirestore();
       // Enviar notificação para cada colaborador
       await Promise.all(newCardWithUser.colaboradores.map(async (colab) => {
         await axios.post('https://fokus360-backend.vercel.app/send-notification', {
-          userId: colab.id,   // Pega o id
+          userId: colab.id,
           mensagem: `Você recebeu uma nova tarefa: ${newCard.nome}`,
         })
         .then(() => {
@@ -232,7 +236,15 @@ corrigirRolesNoFirestore();
         })
         .catch((err) => console.error('Erro ao enviar notificação:', err));
       }));
-      
+  
+      // 🔥 Atualiza contador de notificações na Navbar (pega contexto)
+      setNotifications((prev) => [
+        ...prev,
+        ...newCardWithUser.colaboradores.map((colab) => ({
+          mensagem: `Você recebeu uma nova tarefa: ${newCard.nome}`,
+          id: `${docRef.id}-${colab.id}`, // gera um ID único fake pra exibição
+        })),
+      ]);
   
       // Limpar inputs
       const hoje = new Date().toISOString().slice(0, 10);
@@ -256,6 +268,7 @@ corrigirRolesNoFirestore();
       setModalOpen(false);
     }
   };
+  
 
   
   
