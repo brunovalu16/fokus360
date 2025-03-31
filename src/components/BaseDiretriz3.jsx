@@ -564,7 +564,7 @@ const areaRolesMap = {
       await Promise.all(
         usuarios.map(async (user) => {
           // Enviar notificação
-          await fetch("https://fokus360-api.vercel.app/send-notification", {
+          await fetch("https://fokus360-backend.vercel.app/send-notification", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -574,7 +574,7 @@ const areaRolesMap = {
           });
   
           // Enviar e-mail
-          await fetch("https://fokus360-api.vercel.app/send-task-email", {
+          await fetch("https://fokus360-backend.vercel.app/send-task-email", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
