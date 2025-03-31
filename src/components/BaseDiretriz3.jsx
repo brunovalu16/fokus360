@@ -630,7 +630,7 @@ const areaRolesMap = {
         alert("Selecione pelo menos uma unidade.");
         return;
       }
-      if (taticasSelecionadas.length === 0) {
+      if (areastaticasSelecionadas.length === 0) {
         alert("Selecione pelo menos uma Tática.");
         return;
       }
