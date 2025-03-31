@@ -687,7 +687,7 @@ const areaRolesMap = {
 const handleSalvarOperacional = async () => {
   try {
     // 1) Verificar se há táticas
-    const allOperacional = estrategicas.flatMap((est) => est.operacional);
+    const allOperacional = estrategicas.flatMap((est) => est.taticas.flatMap((tatica) => tatica.operacionais));    
     if (allOperacional.length === 0) {
       alert("Adicione ao menos uma Tática.");
       return;
@@ -1274,10 +1274,10 @@ const handleSalvarOperacional = async () => {
                         backgroundColor: "#f44336", // Cor ao clicar (pressionado)
                       },
                     }}
-                    variant="contained"
+                    variant="contained" 
                     onClick={handleSalvarOperacional}
                   >
-                    SALVAR DIRETRIZES TÁTICAS
+                    SALVAR DIRETRIZES OPERACIONAIS
                   </Button>
 
                   <Box
