@@ -497,15 +497,16 @@ const saveEstrategicas = async (projectId, novoArray) => {
 // Mapeamento de Áreas e seus perfis (roles) para o campo de select de areas da empresa
 //conecta as areas aos usuarios cadastrados de cada area
 const areaRolesMap = {
-  CONTABILIDADE: ["12", "13", "14"],
-  CONTROLADORIA: ["15", "16", "17", "18"],
-  FINANCEIRO: ["19", "20", "21"],
-  JURIDICO: ["22", "23", "24"],
-  LOGISTICA: ["25", "26", "27"],
-  MARKETING: ["28", "29", "30"],
-  RECURSOSHUMANOS: ["31", "32", "33"],
-  TRADE: ["09", "10", "11"],
+  "25FT05zvwGNditGma9Z4": ["19", "20", "21"], // FINANCEIRO
+  "47W05V7tgDVVyMCve9e1": ["28", "29", "30"], // MARKETING
+  "L2V5XLKvP0Ut9gyQVJiH": ["12", "13", "14"], // CONTABILIDADE
+  "i73QGK2jRgmoN4vNyPAf": ["15", "16", "17", "18"], // CONTROLADORIA
+  "qx8XjIjcstoXnHenJGEa": ["22", "23", "24"], // JURIDICO
+  "u61drZ23ZQWIkCZk1x20": ["25", "26", "27"], // LOGISTICA
+  "wpJB6txSxD2DzzFBESfW": ["09", "10", "11"], // TRADE
+  "wzMNANRkdaELthrNUt5f": ["31", "32", "33"], // RECURSOSHUMANOS
 };
+
 
 
 
@@ -547,9 +548,9 @@ const areaRolesMap = {
   
       // 👉 Identificar roles vinculados
       const rolesVinculados = areasSelecionadas.flatMap(
-        (areaId) =>
-          Object.entries(areaRolesMap).find(([key]) => key === areaId)?.[1] || []
+        (areaId) => areaRolesMap[areaId] || []
       );
+      
   
       if (rolesVinculados.length === 0) {
         alert("Nenhum perfil vinculado às áreas selecionadas.");
