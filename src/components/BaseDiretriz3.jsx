@@ -573,9 +573,9 @@ const areaRolesMap = {
       alert("✅ Diretrizes Estratégicas salvas e notificações enviadas!");
   
       // ✅ Limpar estados
-      setEstrategicas([]);
-      setAreasSelecionadas([]);
-      setUnidadeSelecionadas([]);
+      //setEstrategicas([]);
+      //setAreasSelecionadas([]);
+      //setUnidadeSelecionadas([]);
     } catch (error) {
       console.error("Erro ao salvar diretrizes estratégicas:", error);
       alert("Erro ao salvar diretrizes. Tente novamente.");
