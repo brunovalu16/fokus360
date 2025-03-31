@@ -692,7 +692,7 @@ const handleSalvarOperacional = async () => {
           id: operacional.id,
           titulo: operacional.titulo,
           descricao: operacional.descricao,
-          tarefas: operacional.tarefas || [], // 👈 inclui tarefas, mesmo vazio
+          tarefas: operacional.tarefas || [], // Inclui tarefas, mesmo vazio
         }))
       )
     );
@@ -716,7 +716,7 @@ const handleSalvarOperacional = async () => {
 
     const projetoRef = doc(collection(db, "projetos"));
     const data = {
-      operacional: allOperacional, // 👈 Agora vem completo, inclusive com tarefas
+      operacional: allOperacional,
       areasoperacionalSelecionadas,
       areasResponsaveis: areasSelecionadas,
       unidadesRelacionadas: unidadeSelecionadas,
@@ -725,6 +725,7 @@ const handleSalvarOperacional = async () => {
 
     await setDoc(projetoRef, data);
 
+    // 🔔 Enviar notificação e e-mail para usuários das áreas
     const rolesVinculados = areasoperacionalSelecionadas.flatMap(
       (areaId) => areaRolesMap[areaId] || []
     );
@@ -760,12 +761,41 @@ const handleSalvarOperacional = async () => {
       })
     );
 
+    // ➤ Enviar e-mails para responsáveis informados no plano de ação
+    await Promise.all(
+      allOperacional.flatMap((operacional) =>
+        (operacional.tarefas || []).flatMap((tarefa) => {
+          const emails = tarefa.planoDeAcao?.quemEmail || [];
+          const emailList = Array.isArray(emails) ? emails : [emails];
+          return emailList
+            .filter((email) => email.trim() !== "")
+            .map(async (email) => {
+              await fetch(
+                "https://fokus360-backend.vercel.app/send-task-email",
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    email,
+                    tituloTarefa: tarefa.tituloTarefa || "Nova Tarefa",
+                    assuntoTarefa:
+                      "Você foi designado para um plano de ação",
+                    prazoTarefa: tarefa.planoDeAcao?.quando || "Sem prazo",
+                  }),
+                }
+              );
+            });
+        })
+      )
+    );
+
     alert("✅ Operacionais salvas e notificações enviadas!");
   } catch (error) {
     console.error("Erro ao salvar Operacionais:", error);
     alert("Erro ao salvar Operacionais. Tente novamente.");
   }
 };
+
 
   
 
