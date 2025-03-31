@@ -235,17 +235,62 @@ const open = Boolean(anchorEl);
 
 
 
-      
+      <Toolbar
+        sx={{
+          backgroundColor: "#f2f0f0",
+          boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <KeyboardDoubleArrowRightIcon
+          size="large"
+          edge="start"
+          color="inherit"
+          aria-label="menu"
+          sx={{ color: "#312783", marginRight: "10px" }}
+        />
+
+        <Typography
+          variant="h8"
+          component="div"
+          sx={{ color: "#7f7f7f", fontSize: "10px" }}
+        >
+          Copyright © 2024 | Grupo Fokus
+        </Typography>
+
+        <Typography
+          variant="h8"
+          component="div"
+          sx={{
+            color: "#7f7f7f",
+            display: "flex",
+            alignItems: "flex-end",
+            
+            transform: "scale(0.7)",
+          }}
+        >
+          Desenvolvido por:
+          <img
+            //src={colibri}
+            //alt="Logo Colibri"
+            style={{
+              width: "100px",
+              height: "auto",
+              marginLeft: "-110px",
+              marginRight: "20px",
+            }}
+          />
+          Flow | Sistemas inteligentes
+        </Typography>
+      </Toolbar>
 
       <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          p={5} // Diminui padding
-          sx={{
-            backgroundColor: "#e8e5e5",
-            height: "60px", // Altura menor
-          }}
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        p={5}
+        sx={{
+          backgroundColor: "#e8e5e5",
+        }}
       >
         {/* Conteúdo do Box */}
 
@@ -371,8 +416,8 @@ const open = Boolean(anchorEl);
         sx={{
           "&.MuiToolbar-root": {
             // &.MUI É A BIBLIOTECA
-            height: "20px", // Define a altura fixa
-            minHeight: "20px", // Define a altura mínima
+            height: "40px", // Define a altura fixa
+            minHeight: "40px", // Define a altura mínima
             padding: "0", // Remove o padding
           },
           alignSelf: "center",
@@ -385,7 +430,7 @@ const open = Boolean(anchorEl);
             sx={{
               color: "#00ebf7",
               marginLeft: "15px",
-              fontSize: "15px",
+              fontSize: "17px",
               marginLeft: "38px",
             }}
           />
@@ -397,7 +442,7 @@ const open = Boolean(anchorEl);
           sx={{
             flexGrow: 1,
             color: "#c2c2c2",
-            fontSize: "10px",
+            fontSize: "12px",
             marginBottom: "3px",
           }}
         >

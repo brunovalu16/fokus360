@@ -344,7 +344,7 @@ const handleEdit = (id) => {
           variant="contained"
           color="primary"
           sx={{
-            marginRight: "70px",
+            marginRight: "10px",
             fontSize: "10px",
             fontWeight: "bold",
             borderRadius: "5px",
@@ -355,6 +355,24 @@ const handleEdit = (id) => {
           }}
         >
           NOVO USUÁRIO
+        </Button>
+        <Button
+          component={Link}
+          to="/cadastroareas"
+          variant="contained"
+          color="primary"
+          sx={{
+            marginRight: "70px",
+            fontSize: "10px",
+            fontWeight: "bold",
+            borderRadius: "5px",
+            padding: "10px 20px",
+            backgroundColor: "#3f2cb2",
+            boxShadow: "none",
+            "&:hover": { backgroundColor: "#3f2cb2" },
+          }}
+        >
+          CRIAR ÁREAS
         </Button>
       </Box>
 

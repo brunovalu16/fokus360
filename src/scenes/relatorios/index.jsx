@@ -37,6 +37,31 @@ const Relatorios = () => {
     "09": ["Trade", "Indústrias"],
     "10": ["Trade", "Indústrias"],
     "11": ["Trade", "Indústrias"],
+    "12": ["Projetos"],
+    "13": ["Projetos"],
+    "14": ["Projetos"],
+    "15": ["Projetos"],
+    "16": ["Projetos"],
+    "17": ["Projetos"],
+    "18": ["Projetos"],
+    "19": ["Financeiro", "Indústrias"],
+    "20": ["Financeiro", "Indústrias"],
+    "21": ["Financeiro", "Indústrias"],
+    "22": ["Projetos"],
+    "23": ["Projetos"],
+    "24": ["Projetos"],
+    "25": ["Logística", "Indústrias"],
+    "26": ["Logística", "Indústrias"],
+    "27": ["Logística", "Indústrias"],
+    "28": ["Projetos"],
+    "29": ["Projetos"],
+    "30": ["Projetos"],
+    "31": ["Projetos"],
+    "32": ["Projetos"],
+    "33": ["Projetos"],
+    "34": ["Central de monitoramento", "Indústrias"],
+    "35": ["Central de monitoramento", "Indústrias"],
+    "36": ["Central de monitoramento", "Indústrias"],
   };
 
   // Obter o perfil do usuário logado
@@ -274,7 +299,8 @@ const Relatorios = () => {
               overflow: "auto",
             }}
           >
-            {activeContent === "Vendas" && visibleLinks.includes("Vendas") && (
+            {activeContent === "Vendas" &&
+            visibleLinks.includes("Vendas") && (
               <>
                 <Button
                   component={Link} // Define que o botão será um Link do React Router
@@ -348,7 +374,8 @@ const Relatorios = () => {
                 </Button>
               </>
             )}
-            {activeContent === "Trade" && visibleLinks.includes("Trade") && (
+            {activeContent === "Trade" &&
+            visibleLinks.includes("Trade") && (
               <>
               {/** 
                 <Button fullWidth variant="contained" sx={mainButtonStyle}>

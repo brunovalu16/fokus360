@@ -19,19 +19,23 @@ import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRig
 import ArrowDropDownCircleIcon from '@mui/icons-material/ArrowDropDownCircle';
 import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { doc, updateDoc, getFirestore, collection, getDocs } from "firebase/firestore";
+import { doc, updateDoc, getFirestore, collection, getDocs, setDoc  } from "firebase/firestore";
 import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para Fokus360
 
-// Seu componente de tarefas (5W2H)
-import DiretrizData from "./DiretrizData";
 
 
-const BaseDiretriz = ({ projectId, estrategicas: propEstrategicas, onUpdate, LimpaEstado }) => {
+
+const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, onUpdate, LimpaEstado }) => {
 
   // Inputs para criar nova Diretriz Estratégica
+
   const [novaEstrategica, setNovaEstrategica] = useState("");
   const [descEstrategica, setDescEstrategica] = useState("");
   const [estrategicas, setEstrategicas] = useState(propEstrategicas || []);
+  const [areas, setAreas] = useState([]);
+  const [unidades, setUnidades] = useState([]);
+  const [areasSelecionadas, setAreasSelecionadas] = useState([]);
+  const [unidadeSelecionadas, setUnidadeSelecionadas] = useState([]); 
   const [users, setUsers] = useState([]);
   const [novaTarefa, setNovaTarefa] = useState("");
   const [tarefasLocais, setTarefasLocais] = useState([]);
@@ -126,6 +130,34 @@ useEffect(() => {
     onUpdate([...estrategicas]);
   }
 }, [estrategicas]);
+
+
+//Buscar dados do Firestore
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const queryAreas = await getDocs(collection(db, "areas"));
+      const areasList = queryAreas.docs.map((doc) => ({
+        id: doc.id,
+        nome: doc.data().nome,
+      }));
+      setAreas(areasList);
+
+      const queryUnidades = await getDocs(collection(db, "unidade"));
+      const unidadesList = queryUnidades.docs.map((doc) => ({
+        id: doc.id,
+        nome: doc.data().nome,
+      }));
+      setUnidades(unidadesList);
+
+    } catch (error) {
+      console.error("Erro ao buscar áreas e unidades:", error);
+    }
+  };
+
+  fetchData();
+}, []);
+
 
 
 const handleEditTarefa = (tarefaId, campo, valor) => {
@@ -454,6 +486,120 @@ const saveEstrategicas = async (projectId, novoArray) => {
     }
   }, [LimpaEstado]);
 
+
+
+
+  //============================================================================================================================
+
+
+
+
+// Mapeamento de Áreas e seus perfis (roles) para o campo de select de areas da empresa
+//conecta as areas aos usuarios cadastrados de cada area
+const areaRolesMap = {
+  CONTABILIDADE: ["12", "13", "14"],
+  CONTROLADORIA: ["15", "16", "17", "18"],
+  FINANCEIRO: ["19", "20", "21"],
+  JURIDICO: ["22", "23", "24"],
+  LOGISTICA: ["25", "26", "27"],
+  MARKETING: ["28", "29", "30"],
+  RECURSOSHUMANOS: ["31", "32", "33"],
+  TRADE: ["09", "10", "11"],
+};
+
+
+
+// -------------------------------------
+  // Salvar somente Diretrizes Estrategicas
+  // -------------------------------------
+
+  const buscarUsuariosPorRole = async (roles) => {
+    const querySnapshot = await getDocs(collection(db, "user"));
+    return querySnapshot.docs
+      .map((doc) => ({ id: doc.id, ...doc.data() }))
+      .filter((user) => roles.includes(user.role));
+  };
+  
+  const handleSalvarEstrategicas = async () => {
+    try {
+      if (estrategicas.length === 0) {
+        alert("Adicione ao menos uma Diretriz Estratégica.");
+        return;
+      }
+      if (areasSelecionadas.length === 0) {
+        alert("Selecione pelo menos uma área responsável.");
+        return;
+      }
+      if (unidadeSelecionadas.length === 0) {
+        alert("Selecione pelo menos uma unidade.");
+        return;
+      }
+  
+      // 👉 Salvar o projeto
+      const projetoRef = doc(collection(db, "projetos"));
+      const data = {
+        estrategicas,
+        areasResponsaveis: areasSelecionadas,
+        unidadesRelacionadas: unidadeSelecionadas,
+        createdAt: new Date(),
+      };
+      await setDoc(projetoRef, data);
+  
+      // 👉 Identificar roles vinculados
+      const rolesVinculados = areasSelecionadas.flatMap(
+        (areaId) =>
+          Object.entries(areaRolesMap).find(([key]) => key === areaId)?.[1] || []
+      );
+  
+      if (rolesVinculados.length === 0) {
+        alert("Nenhum perfil vinculado às áreas selecionadas.");
+        return;
+      }
+  
+      // 👉 Buscar usuários por roles
+      const usuarios = await buscarUsuariosPorRole(rolesVinculados);
+  
+      // 👉 Enviar notificação + e-mail
+      await Promise.all(
+        usuarios.map(async (user) => {
+          // Enviar notificação
+          await fetch("https://fokus360-api.vercel.app/send-notification", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userId: user.id,
+              mensagem: "Nova Diretriz Estratégica criada para sua área.",
+            }),
+          });
+  
+          // Enviar e-mail
+          await fetch("https://fokus360-api.vercel.app/send-task-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: user.email,
+              tituloTarefa: "Nova Diretriz Estratégica",
+              assuntoTarefa: "Foi criada uma nova diretriz estratégica vinculada à sua área.",
+              prazoTarefa: "Sem prazo",
+            }),
+          });
+        })
+      );
+  
+      alert("✅ Diretrizes Estratégicas salvas e notificações enviadas!");
+  
+      // ✅ Limpar estados
+      setEstrategicas([]);
+      setAreasSelecionadas([]);
+      setUnidadeSelecionadas([]);
+    } catch (error) {
+      console.error("Erro ao salvar diretrizes estratégicas:", error);
+      alert("Erro ao salvar diretrizes. Tente novamente.");
+    }
+  };
+  
+  
+
   // -------------------------------------
   // Render
   // -------------------------------------
@@ -469,6 +615,8 @@ const saveEstrategicas = async (projectId, novoArray) => {
       >
         Criar Diretriz Estratégica
       </Typography>
+
+
       <Box display="flex" flexDirection="column" gap={2} mb={4}>
         <TextField
           label="Nome da Diretriz Estratégica..."
@@ -486,24 +634,96 @@ const saveEstrategicas = async (projectId, novoArray) => {
           rows={2}
         />
         */}
-        <Button
-          onClick={handleAddEstrategica}
-          disableRipple
+        <Box
           sx={{
-            alignSelf: "flex-start",
-            backgroundColor: "transparent",
-            "&:hover": {
-              backgroundColor: "transparent",
-              boxShadow: "none",
-            },
-            "&:focus": {
-              outline: "none",
-            },
+            display: "flex",
+            alignItems: "center",
+            gap: 2, // Espaço entre os elementos (pode ajustar conforme necessário)
+            flexWrap: "wrap", // Para quebrar linha em telas pequenas
           }}
         >
-          <AddCircleOutlineIcon sx={{ fontSize: 25, color: "#312783" }} />
-        </Button>
-      </Box>
+          
+
+        {/* Áreas */}
+          <Select
+            multiple
+            value={areasSelecionadas}
+            onChange={(event) => setAreasSelecionadas(event.target.value)}
+            displayEmpty
+            sx={{ minWidth: "300px", backgroundColor: "#fff", marginTop: "10px" }}
+            renderValue={(selected) =>
+              selected.length === 0
+                ? "Selecione as áreas responsáveis"
+                : selected
+                    .map((id) => areas.find((area) => area.id === id)?.nome || "Desconhecida")
+                    .join(", ")
+            }
+          >
+            {areas.map((area) => (
+              <MenuItem key={area.id} value={area.id}>
+                <Checkbox checked={areasSelecionadas.includes(area.id)} />
+                <ListItemText primary={area.nome} />
+              </MenuItem>
+            ))}
+          </Select>
+
+          {/* Unidades */}
+          <Select
+            multiple
+            value={unidadeSelecionadas}
+            onChange={(event) => setUnidadeSelecionadas(event.target.value)}
+            displayEmpty
+            sx={{ minWidth: "300px", backgroundColor: "#fff", marginTop: "10px" }}
+            renderValue={(selected) =>
+              selected.length === 0
+                ? "Selecione a Unidade"
+                : selected
+                    .map((id) => unidades.find((uni) => uni.id === id)?.nome || "Desconhecida")
+                    .join(", ")
+            }
+          >
+            {unidades.map((uni) => (
+              <MenuItem key={uni.id} value={uni.id}>
+                <Checkbox checked={unidadeSelecionadas.includes(uni.id)} />
+                <ListItemText primary={uni.nome} />
+              </MenuItem>
+            ))}
+          </Select>
+
+          <Button
+            onClick={handleAddEstrategica}
+            disableRipple
+            sx={{
+              backgroundColor: "transparent",
+              "&:hover": {
+                backgroundColor: "transparent",
+                boxShadow: "none",
+              },
+              "&:focus": {
+                outline: "none",
+              },
+            }}
+          >
+            <AddCircleOutlineIcon sx={{ fontSize: 25, color: "#312783" }} />
+          </Button>
+
+            <Button
+              variant="contained"
+              sx={{
+                backgroundColor: "#312783",
+                color: "#fff",
+                "&:hover": {
+                  backgroundColor: "#312783",
+                },
+              }}
+              onClick={handleSalvarEstrategicas}
+            >
+              SALVAR DIRETRIZES ESTRATÉGICAS
+            </Button>
+          </Box>
+
+        </Box>
+
 
       <Box display="flex" alignItems="center" marginBottom="20px">
         <ArrowDropDownCircleIcon
@@ -569,6 +789,7 @@ const saveEstrategicas = async (projectId, novoArray) => {
               <DeleteForeverIcon sx={{ fontSize: 24, color: "#dddddd" }} />
             </Button>
           </AccordionSummary>
+
 
           {/* Detalhes: Diretriz TÁTICA */}
           <AccordionDetails>
@@ -1053,7 +1274,7 @@ const saveEstrategicas = async (projectId, novoArray) => {
   );
 };
 
-export default BaseDiretriz;
+export default BaseDiretriz3;
 
 
 

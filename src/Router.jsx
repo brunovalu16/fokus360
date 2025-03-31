@@ -28,6 +28,8 @@ import FluxoGrama from "./components/FluxoGrama";
 import Listafluxograma from "./scenes/Listafluxograma";
 import Roteirizacao from "./scenes/roteirizacao";
 import Monitoramento from "./scenes/monitoramento";
+import CadastroAreas from "./scenes/cadastroAreas";
+import Planejamento from "./scenes/planejamento";
 import {
   Team,
   Invoices,
@@ -54,6 +56,7 @@ const router = createBrowserRouter(
         { path: "/cadastro", element: <PrivateRoute><Cadastro /></PrivateRoute> },
         { path: "/home", element: <PrivateRoute><Home /></PrivateRoute> },
         { path: "/dashboard", element: <PrivateRoute><Dashboard /></PrivateRoute> },
+        { path: "/planejamento", element: <PrivateRoute><Planejamento /></PrivateRoute> },
         { path: "/user", element: <PrivateRoute><User /></PrivateRoute> },
         { path: "/painelindustrias", element: <PrivateRoute><PainelIndustrias /></PrivateRoute> },
         { path: "/dashboardprojeto", element: <PrivateRoute><DashboardProjeto /></PrivateRoute> },
@@ -75,6 +78,7 @@ const router = createBrowserRouter(
         { path: "/fluxograma", element: <PrivateRoute><FluxoGrama /></PrivateRoute> },
         { path: "/listafluxograma", element: <PrivateRoute><Listafluxograma /></PrivateRoute> },
         { path: "/calendar", element: <PrivateRoute><Calendar /></PrivateRoute> },
+        { path: "/cadastroareas", element: <PrivateRoute><CadastroAreas /></PrivateRoute> },
         { path: "/bar", element: <PrivateRoute><Bar /></PrivateRoute> },
         { path: "/pie", element: <PrivateRoute><Pie /></PrivateRoute> },
         { path: "/stream", element: <PrivateRoute><Stream /></PrivateRoute> },

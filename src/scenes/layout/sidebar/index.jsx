@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import { Box, IconButton, Button, Divider, useTheme } from "@mui/material";
-import { Menu, MenuItem, Sidebar } from "react-pro-sidebar";
+import { Menu, MenuItem, Sidebar, SubMenu  } from "react-pro-sidebar";
 import {
   MenuOutlined,
   Home as HomeIcon,
@@ -11,6 +11,11 @@ import {
   AssignmentTurnedIn as AssignmentTurnedInIcon,
   PowerSettingsNew as LogoutIcon,
 } from "@mui/icons-material";
+import { Tooltip } from "@mui/material";
+import FilterTiltShiftIcon from '@mui/icons-material/FilterTiltShift';
+import GroupWorkIcon from '@mui/icons-material/GroupWork';
+import HeatPumpIcon from '@mui/icons-material/HeatPump';
+
 
 import { useNavigate, Link } from "react-router-dom";
 import logo from "../../../assets/images/icone_logo.png";
@@ -33,6 +38,9 @@ const SideBar = () => {
   const colors = tokens(theme.palette.mode);
   const navigate = useNavigate();
   const [isLoadingRole, setIsLoadingRole] = useState(true); // Adiciona o estado de carregamento
+  const [openProjetos, setOpenProjetos] = useState(false);
+  const [openCsc, setOpenCsc] = useState(false);
+
 
 
   
@@ -156,52 +164,293 @@ const SideBar = () => {
           marginLeft: "3px",
         }}
       >
-        <Menu
-          menuItemStyles={{
-            button: {
-              color: "#312783",
-              ":hover": {
-                color: "#22d3ee",
-                background: "transparent",
-                transition: ".4s ease",
-              },
-            },
-          }}
-        >
-          
-          <MenuItem component={<Link to="/home" />} icon={<HomeIcon sx={{ fontSize: 25 }} />}>
-            Home
-          </MenuItem>
+<Menu
+  menuItemStyles={{
+    button: {
+      color: "#312783",
+      backgroundColor: "#f2f0f0",
+      ":hover": {
+        color: "#22d3ee",
+        background: "transparent",
+        transition: ".4s ease",
+      },
+    },
+  }}
+>
+  <MenuItem component={<Link to="/home" />} icon={<HomeIcon sx={{ fontSize: 25 }} />}>
+    Home
+  </MenuItem>
 
-          <MenuItem
-            component={<Link to="/relatorios" />}
-            icon={<AssessmentIcon />}
+  <MenuItem component={<Link to="/relatorios" />} icon={<AssessmentIcon />}>
+    Relatórios
+  </MenuItem>
+
+ 
+
+
+
+  {/* SUBMENU DE PROJETOS */}
+  
+  <div
+  onMouseEnter={() => setOpenProjetos(true)}
+  onMouseLeave={() => setOpenProjetos(false)}
+>
+  {!collapsed ? (
+    <SubMenu
+      open={openProjetos}
+      label="Projetos"
+      icon={<PieChartIcon />}
+      menuItemStyles={{
+        button: {
+          padding: "5px 10px",
+          fontSize: "13px",
+          margin: "1px 0",
+          ":hover": {
+            color: "#22d3ee",
+          },
+        },
+      }}
+    >
+      <MenuItem
+        component={<Link to="/projetos" />}
+        style={{
+          padding: "5px 10px",
+          fontSize: "13px",
+          margin: "2px 0",
+        }}
+      >
+        Projetos
+      </MenuItem>
+
+      <MenuItem
+        component={<Link to="/planejamento" />}
+        style={{
+          padding: "5px 10px",
+          fontSize: "13px",
+          margin: "2px 0",
+        }}
+      >
+        Planejamento Estratégico
+      </MenuItem>
+    </SubMenu>
+  ) : (
+    <Tooltip
+      title={
+        <Box display="flex" flexDirection="column">
+          <Link to="/projetos" style={{ color: "#fff", textDecoration: "none", padding: "4px" }}>
+            Todos os Projetos
+          </Link>
+          <Link
+            to="/projetos"
+            style={{ color: "#fff", textDecoration: "none", padding: "4px" }}
           >
-            Relatórios
-          </MenuItem>
+            Planejamento Estratégico
+          </Link>
+        </Box>
+      }
+      placement="right"
+      arrow
+    >
+      <MenuItem icon={<PieChartIcon />} />
+    </Tooltip>
+  )}
+</div>
 
-          <MenuItem component={<Link to="/arquivos" />} icon={<SourceIcon />}>
-            Arquivos
-          </MenuItem>
+<MenuItem component={<Link to="/arquivos" />} icon={<SourceIcon />}>
+    Arquivos
+  </MenuItem>
 
-          <MenuItem
-            component={<Link to="/kanban" />}
-            icon={<AssignmentTurnedInIcon />}
+  <MenuItem component={<Link to="/kanban" />} icon={<AssignmentTurnedInIcon />}>
+    Tarefas
+  </MenuItem>
+
+{/* SUBMENU DE CSC */}
+<div
+  onMouseEnter={() => setOpenCsc(true)}
+  onMouseLeave={() => setOpenCsc(false)}
+>
+  {!collapsed ? (
+    <SubMenu
+      open={openCsc}
+      label="CSC"
+      icon={<HeatPumpIcon />}
+      menuItemStyles={{
+        button: {
+          padding: "5px 10px",
+          fontSize: "13px",
+          margin: "1px 0",
+          ":hover": {
+            color: "#22d3ee",
+          },
+        },
+      }}
+    >
+      <MenuItem
+        component={<Link to="/projetos" />}
+        style={{
+          padding: "5px 10px",
+          fontSize: "13px",
+          margin: "2px 0",
+        }}
+      >
+        Contabilidade
+      </MenuItem>
+
+      <MenuItem
+        component={<Link to="/projetos" />}
+        style={{
+          padding: "5px 10px",
+          fontSize: "13px",
+          margin: "2px 0",
+        }}
+      >
+        Controladoria
+      </MenuItem>
+      <MenuItem
+        component={<Link to="/projetos" />}
+        style={{
+          padding: "5px 10px",
+          fontSize: "13px",
+          margin: "2px 0",
+        }}
+      >
+       Financeiro
+      </MenuItem>
+      <MenuItem
+        component={<Link to="/projetos" />}
+        style={{
+          padding: "5px 10px",
+          fontSize: "13px",
+          margin: "2px 0",
+        }}
+      >
+        Gestão Estratégica
+      </MenuItem>
+      <MenuItem
+        component={<Link to="/projetos" />}
+        style={{
+          padding: "5px 10px",
+          fontSize: "13px",
+          margin: "2px 0",
+        }}
+      >
+        Jurídico
+      </MenuItem>
+      <MenuItem
+        component={<Link to="/projetos" />}
+        style={{
+          padding: "5px 10px",
+          fontSize: "13px",
+          margin: "2px 0",
+        }}
+      >
+        Logistica
+      </MenuItem>
+      <MenuItem
+        component={<Link to="/projetos" />}
+        style={{
+          padding: "5px 10px",
+          fontSize: "13px",
+          margin: "2px 0",
+        }}
+      >
+        Marketing
+      </MenuItem>
+      <MenuItem
+        component={<Link to="/projetos" />}
+        style={{
+          padding: "5px 10px",
+          fontSize: "13px",
+          margin: "2px 0",
+        }}
+      >
+        Recursos Humanos
+      </MenuItem>
+      <MenuItem
+        component={<Link to="/projetos" />}
+        style={{
+          padding: "5px 10px",
+          fontSize: "13px",
+          margin: "2px 0",
+        }}
+      >
+        TI
+      </MenuItem>
+    </SubMenu>
+  ) : (
+    <Tooltip
+      title={
+        <Box display="flex" flexDirection="column">
+          <Link to="/projetos" style={{ color: "#fff", textDecoration: "none", padding: "4px" }}>
+            Contabilidade
+          </Link>
+          <Link
+            to="/projetos"
+            style={{ color: "#fff", textDecoration: "none", padding: "4px" }}
           >
-            Tarefas
-          </MenuItem>
+            Controladoria
+          </Link>
+          <Link
+            to="/projetos"
+            style={{ color: "#fff", textDecoration: "none", padding: "4px" }}
+          >
+            Financeiro
+          </Link>
+          <Link
+            to="/projetos"
+            style={{ color: "#fff", textDecoration: "none", padding: "4px" }}
+          >
+            Gestão Estratégica
+          </Link>
+          <Link
+            to="/projetos"
+            style={{ color: "#fff", textDecoration: "none", padding: "4px" }}
+          >
+            Jurídico
+          </Link>
+          <Link
+            to="/projetos"
+            style={{ color: "#fff", textDecoration: "none", padding: "4px" }}
+          >
+            Logistica
+          </Link>
+          <Link
+            to="/projetos"
+            style={{ color: "#fff", textDecoration: "none", padding: "4px" }}
+          >
+            Marketing
+          </Link>
+          <Link
+            to="/projetos"
+            style={{ color: "#fff", textDecoration: "none", padding: "4px" }}
+          >
+            Recursos Humanos
+          </Link>
+          <Link
+            to="/projetos"
+            style={{ color: "#fff", textDecoration: "none", padding: "4px" }}
+          >
+            TI
+          </Link>
+        </Box>
+      }
+      placement="right"
+      arrow
+    >
+      <MenuItem icon={<HeatPumpIcon />} />
+    </Tooltip>
+  )}
+</div>
 
-          <MenuItem component={<Link to="/projetos" />} icon={<PieChartIcon />}>
-            Projetos
-          </MenuItem>
-          {/** 
+</Menu>
+
+
+
+        {/** 
           <MenuItem component={<Link to="/monitoramento" />} icon={<LocationOnIcon sx={{ fontSize: 28 }} />}>
             Monitoramento
           </MenuItem>
           */}
-
-
-        </Menu>
       </Box>
 
       {/* Rodapé */}
