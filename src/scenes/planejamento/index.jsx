@@ -17,7 +17,7 @@ import DescriptionIcon from "@mui/icons-material/Description";
 // IMPORTS DOS SEUS COMPONENTES
 import { Header } from "../../components";
 import BaseDiretriz3 from "../../components/BaseDiretriz3";
-import InformacoesProjeto from "../../components/InformacoesProjeto";
+import InformacoesPlanejamento from "../../components/InformacoesPlanejamento";
 
 // IMPORTS DO FIREBASE
 import { dbFokus360 } from "../../data/firebase-config"; // ✅ Usa a instância correta
@@ -28,7 +28,7 @@ const Planejamento = () => {
   const [mensagem, setMensagem] = useState(false);
   const [projectId, setProjectId] = useState(null);
   const [showAlert, setShowAlert] = useState(false);
-  const [informacoesProjeto, setInformacoesProjeto] = useState({
+  const [informacoesPlanejamento, setInformacoesPlanejamento] = useState({
     nome: "",
     descricao: "",
     dataInicio: "",
@@ -44,24 +44,20 @@ const Planejamento = () => {
   });
 
   useEffect(() => {
-    //console.log("📌 Estado atualizado de informacoesProjeto antes de salvar:", informacoesProjeto);
-  }, [informacoesProjeto]);
+    //console.log("📌 Estado atualizado de informacoesPlanejamento antes de salvar:", informacoesPlanejamento);
+  }, [InformacoesPlanejamento]);
   
 
-  const diretrizes = informacoesProjeto.diretrizes;
+  const diretrizes = InformacoesPlanejamento.diretrizes;
 
 
-  //Atualiza o Pai para limpar os campos
-  useEffect(() => {
-    setInterval(setMensagem(false), 2000);
-  },[mensagem]);
 
   
 
   const handleEstrategicasUpdate = (estrategicasAtualizadas) => {
     //console.log("📢 CadastroProjetos recebeu estratégicas:", JSON.stringify(estrategicasAtualizadas, null, 2));
 
-    setInformacoesProjeto((prev) => {
+    setInformacoesPlanejamento((prev) => {
         // Se estiver vazio, simplesmente sobrescreve com o novo array
         if (!estrategicasAtualizadas || estrategicasAtualizadas.length === 0) {
             return { ...prev, estrategicas: [] };
@@ -94,7 +90,7 @@ const Planejamento = () => {
             })
         };
 
-        console.log("📢 Depois do setInformacoesProjeto (com tarefas corretas):", JSON.stringify(atualizado, null, 2));
+        console.log("📢 Depois do setInformacoesPlanejamento (com tarefas corretas):", JSON.stringify(atualizado, null, 2));
         return atualizado;
     });
 };
@@ -102,7 +98,7 @@ const Planejamento = () => {
 // Função para limpar campos após salvar
 {/**
   const limparestado = () => {
-  console.log("�� Limpando estado de informacoesProjeto:");
+  console.log("�� Limpando estado de informacoesPlanejamento:");
   setMensagem(true);
   console.log(mensagem);
 };
@@ -117,26 +113,26 @@ const Planejamento = () => {
   const handleAdicionarProjeto = async () => {
     try {
       // Validação básica
-      if (!informacoesProjeto.nome.trim()) {
+      if (!informacoesPlanejamento.nome.trim()) {
         alert("O nome do projeto é obrigatório!");
         return;
       }
   
       const projetoData = {
-        nome: informacoesProjeto.nome,
-        descricao: informacoesProjeto.descricao,
-        dataInicio: informacoesProjeto.dataInicio,
-        prazoPrevisto: informacoesProjeto.prazoPrevisto,
-        unidade: informacoesProjeto.unidade,
-        solicitante: informacoesProjeto.solicitante,
-        solicitanteEmail: informacoesProjeto.solicitanteEmail,
-        colaboradorEmail: informacoesProjeto.colaboradorEmail,
-        categoria: informacoesProjeto.categoria,
-        colaboradores: informacoesProjeto.colaboradores,
-        orcamento: informacoesProjeto.orcamento,
+        nome: informacoesPlanejamento.nome,
+        descricao: informacoesPlanejamento.descricao,
+        dataInicio: informacoesPlanejamento.dataInicio,
+        prazoPrevisto: informacoesPlanejamento.prazoPrevisto,
+        unidade: informacoesPlanejamento.unidade,
+        solicitante: informacoesPlanejamento.solicitante,
+        solicitanteEmail: informacoesPlanejamento.solicitanteEmail,
+        colaboradorEmail: informacoesPlanejamento.colaboradorEmail,
+        categoria: informacoesPlanejamento.categoria,
+        colaboradores: informacoesPlanejamento.colaboradores,
+        orcamento: informacoesPlanejamento.orcamento,
         createdAt: new Date(),
   
-        diretrizes: (informacoesProjeto.estrategicas || []).map((estrategica) => ({
+        diretrizes: (informacoesPlanejamento.estrategicas || []).map((estrategica) => ({
           id: estrategica.id?.toString() || Date.now().toString(),
           titulo: estrategica.titulo || "",
           descricao: estrategica.descricao || "",
@@ -175,13 +171,13 @@ const Planejamento = () => {
       let emailsToNotify = [];
   
       // E-mails dos colaboradores (campo input)
-      if (informacoesProjeto.colaboradorEmail) {
-        const colaboradores = informacoesProjeto.colaboradorEmail.split(/[,;]/).map(e => e.trim());
+      if (informacoesPlanejamento.colaboradorEmail) {
+        const colaboradores = informacoesPlanejamento.colaboradorEmail.split(/[,;]/).map(e => e.trim());
         emailsToNotify = [...emailsToNotify, ...colaboradores];
       }
   
       // Responsáveis do plano de ação
-      (informacoesProjeto.estrategicas || []).forEach(estrategica => {
+      (informacoesPlanejamento.estrategicas || []).forEach(estrategica => {
         (estrategica.taticas || []).forEach(tatica => {
           (tatica.operacionais || []).forEach(op => {
             (op.tarefas || []).forEach(tarefa => {
@@ -206,8 +202,8 @@ const Planejamento = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             emails: emailsToNotify,
-            tituloProjeto: informacoesProjeto.nome,
-            descricaoProjeto: informacoesProjeto.descricao,
+            tituloProjeto: informacoesPlanejamento.nome,
+            descricaoProjeto: informacoesPlanejamento.descricao,
           }),
         });
   
@@ -222,8 +218,8 @@ const Planejamento = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userIds: informacoesProjeto.colaboradores,
-            mensagem: `Você foi adicionado ao projeto: ${informacoesProjeto.nome}`,
+            userIds: informacoesPlanejamento.colaboradores,
+            mensagem: `Você foi adicionado ao projeto: ${informacoesPlanejamento.nome}`,
           }),
         });
   
@@ -246,25 +242,25 @@ const Planejamento = () => {
 
 
 //Função para salvar apenas a parte de InformacoesPlanejamento
-  const handleSalvarInformacoesProjeto = async () => {
+  const handleSalvarInformacoesPlanejamento = async () => {
     try {
-      if (!informacoesProjeto.nome.trim()) {
+      if (!informacoesPlanejamento.nome.trim()) {
         alert("O nome do projeto é obrigatório!");
         return;
       }
   
       const projetoData = {
-        nome: informacoesProjeto.nome,
-        descricao: informacoesProjeto.descricao,
-        dataInicio: informacoesProjeto.dataInicio,
-        prazoPrevisto: informacoesProjeto.prazoPrevisto,
-        unidade: informacoesProjeto.unidade,
-        solicitante: informacoesProjeto.solicitante,
-        solicitanteEmail: informacoesProjeto.solicitanteEmail,
-        colaboradorEmail: informacoesProjeto.colaboradorEmail,
-        categoria: informacoesProjeto.categoria,
-        colaboradores: informacoesProjeto.colaboradores,
-        orcamento: informacoesProjeto.orcamento,
+        nome: informacoesPlanejamento.nome,
+        descricao: informacoesPlanejamento.descricao,
+        dataInicio: informacoesPlanejamento.dataInicio,
+        prazoPrevisto: informacoesPlanejamento.prazoPrevisto,
+        unidade: informacoesPlanejamento.unidade,
+        solicitante: informacoesPlanejamento.solicitante,
+        solicitanteEmail: informacoesPlanejamento.solicitanteEmail,
+        colaboradorEmail: informacoesPlanejamento.colaboradorEmail,
+        categoria: informacoesPlanejamento.categoria,
+        colaboradores: informacoesPlanejamento.colaboradores,
+        orcamento: informacoesPlanejamento.orcamento,
         createdAt: new Date(),
       };
   
@@ -340,11 +336,19 @@ const Planejamento = () => {
             <Typography sx={{ marginTop: "4px" }}>ADICIONAR INFORMAÇÕES DO PROJETO</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <InformacoesProjeto onUpdate={setInformacoesProjeto} LimpaEstado={mensagem} />
+
+
+          <InformacoesPlanejamento
+            onUpdate={(prev) => setInformacoesPlanejamento(prev)}
+            onSaveProjectId={(id) => setProjectId(id)} 
+          />
+
+
+
 
             <Box display="flex" justifyContent="flex-end" marginTop="20px">
               <Button
-                onClick={handleSalvarInformacoesProjeto}
+                onClick={handleSalvarInformacoesPlanejamento}
                 variant="contained"
                 sx={{
                   backgroundColor: "#5f53e5",
@@ -371,7 +375,7 @@ const Planejamento = () => {
 
           <BaseDiretriz3
             projectId={projectId}
-            estrategicas={informacoesProjeto.estrategicas} 
+            estrategicas={informacoesPlanejamento.estrategicas} 
             onUpdate={handleEstrategicasUpdate} 
             LimpaEstado={mensagem}
           />

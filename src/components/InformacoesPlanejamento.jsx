@@ -23,7 +23,7 @@ console.log("Apps Inicializados:", getApps()); // ✅ Deve exibir os apps carreg
  *  Recebe:
  *    - onUpdate( (prev) => ({ ...prev, ... }) ) => para atualizar no pai
  */
-const InformacoesPlanejamento = ({ onUpdate, LimpaEstado }) => {
+const InformacoesPlanejamento = ({ onUpdate, LimpaEstado, onSaveProjectId }) => {
   const [users, setUsers] = useState([]);
   const [mensagem, setMensagem] = useState(LimpaEstado);
 
@@ -122,53 +122,43 @@ const InformacoesPlanejamento = ({ onUpdate, LimpaEstado }) => {
   // Função para salvar os dados no Firestore
   const handleSave = async () => {
     try {
-      // Validações básicas
       if (!formValues.nome) {
         alert("O nome do projeto é obrigatório!");
         return;
       }
-
-      // Converte datas para o formato ISO (yyyy-MM-dd)
+  
       const formatarDataParaISO = (data) => {
         if (!data) return "";
-        const [ano, mes, dia] = data.split("-"); // Ajuste para tratar o input tipo "date"
+        const [ano, mes, dia] = data.split("-");
         return `${ano}-${mes}-${dia}`;
       };
-
+  
       const dataInicioISO = formatarDataParaISO(formValues.dataInicio);
       const prazoPrevistoISO = formatarDataParaISO(formValues.prazoPrevisto);
-
-      // Atualiza os valores formatados
+  
       const projetoFormatado = {
         ...formValues,
         dataInicio: dataInicioISO,
         prazoPrevisto: prazoPrevistoISO,
       };
-
-      // Salva no Firestore
-      await addDoc(collection(dbFokus360, "projetos"), projetoFormatado); // ✅ Usa a instância correta
-
-
+  
+      const docRef = await addDoc(collection(dbFokus360, "projetos"), projetoFormatado);
+  
       alert("Projeto salvo com sucesso!");
-      setFormValues({
-        nome: "",
-        descricao: "",
-        dataInicio: "",
-        prazoPrevisto: "",
-        unidade: "",
-        solicitante: "",
-        solicitanteEmail: "",
-        colaboradorEmail: "",
-        categoria: "",
-        colaboradores: [],
-        responsavel: "",
-        orcamento: "",
-      });
+  
+      // 👉 Envia o ID para o componente pai
+      if (onSaveProjectId) {
+        onSaveProjectId(docRef.id);
+      }
+  
+      // ❗️ NÃO limpa os campos aqui, para poder continuar criando diretrizes
+  
     } catch (error) {
       console.error("Erro ao salvar o projeto:", error);
       alert("Erro ao salvar o projeto. Tente novamente.");
     }
   };
+  
 
   return (
     <Box>
