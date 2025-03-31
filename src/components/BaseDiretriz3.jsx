@@ -686,14 +686,21 @@ const areaRolesMap = {
 
 const handleSalvarOperacional = async () => {
   try {
-    // 1) Verificar se há táticas
-    const allOperacional = estrategicas.flatMap((est) => est.taticas.flatMap((tatica) => tatica.operacionais));    
+    const allOperacional = estrategicas.flatMap((est) =>
+      est.taticas.flatMap((tatica) =>
+        tatica.operacionais.map((operacional) => ({
+          id: operacional.id,
+          titulo: operacional.titulo,
+          descricao: operacional.descricao,
+          tarefas: operacional.tarefas || [], // 👈 inclui tarefas, mesmo vazio
+        }))
+      )
+    );
+
     if (allOperacional.length === 0) {
-      alert("Adicione ao menos uma Tática.");
+      alert("Adicione ao menos uma Operacional.");
       return;
     }
-
-    // 2) Verificar se áreas/unidades foram selecionadas
     if (areasSelecionadas.length === 0) {
       alert("Selecione pelo menos uma área responsável.");
       return;
@@ -707,19 +714,17 @@ const handleSalvarOperacional = async () => {
       return;
     }
 
-    // 3) Criar doc no Firestore (salvando as Operacional)
     const projetoRef = doc(collection(db, "projetos"));
     const data = {
-      operacional: allOperacional,
+      operacional: allOperacional, // 👈 Agora vem completo, inclusive com tarefas
       areasoperacionalSelecionadas,
       areasResponsaveis: areasSelecionadas,
       unidadesRelacionadas: unidadeSelecionadas,
       createdAt: new Date(),
     };
-    
+
     await setDoc(projetoRef, data);
 
-    // 4) Identificar roles vinculadas
     const rolesVinculados = areasoperacionalSelecionadas.flatMap(
       (areaId) => areaRolesMap[areaId] || []
     );
@@ -728,12 +733,10 @@ const handleSalvarOperacional = async () => {
       return;
     }
 
-    // 5) Buscar usuários e enviar notificação/e-mail
     const usuarios = await buscarUsuariosPorRole(rolesVinculados);
 
     await Promise.all(
       usuarios.map(async (user) => {
-        // Enviar notificação
         await fetch("https://fokus360-backend.vercel.app/send-notification", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -743,14 +746,14 @@ const handleSalvarOperacional = async () => {
           }),
         });
 
-        // Enviar e-mail
         await fetch("https://fokus360-backend.vercel.app/send-task-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: user.email,
             tituloTarefa: "Nova Diretriz Operacional",
-            assuntoTarefa: "Foi criada uma nova diretriz Operacional vinculada à sua área.",
+            assuntoTarefa:
+              "Foi criada uma nova diretriz Operacional vinculada à sua área.",
             prazoTarefa: "Sem prazo",
           }),
         });
@@ -758,18 +761,12 @@ const handleSalvarOperacional = async () => {
     );
 
     alert("✅ Operacionais salvas e notificações enviadas!");
-
-    // 6) Limpar estados se quiser
-    // setEstrategicas([]);
-    // setAreasSelecionadas([]);
-    // setUnidadeSelecionadas([]);
-    // setTaticasSelecionadas([]);
-
   } catch (error) {
     console.error("Erro ao salvar Operacionais:", error);
     alert("Erro ao salvar Operacionais. Tente novamente.");
   }
 };
+
   
 
   // -------------------------------------
