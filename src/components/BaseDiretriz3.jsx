@@ -25,15 +25,18 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
 
 
 
-const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, onUpdate, LimpaEstado }) => {
+const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacional, onUpdate, LimpaEstado }) => {
 
   const [limpaEstado, setLimpaEstado] = useState("");
+
+  const [areasSelecionadas, setAreasSelecionadas] = useState([]);
+  const [estrategicas, setEstrategicas] = useState(propEstrategicas || []);
 
   const [taticas, setTaticas] = useState([]);
   const [areastaticasSelecionadas, setAreastaticasSelecionadas] = useState([]);
 
-  const [areasSelecionadas, setAreasSelecionadas] = useState([]);
-  const [estrategicas, setEstrategicas] = useState(propEstrategicas || []);
+  const [areasoperacionalSelecionadas, setAreasoperacionalSelecionadas] = useState([]);
+  const [operacional, setOperacional] = useState(propOperacional || []);
   
 
   const [novaEstrategica, setNovaEstrategica] = useState("");
@@ -675,7 +678,98 @@ const areaRolesMap = {
     }
   };
 
-//===========================================================================================================================================  
+//=========================================================================================================================================== 
+
+
+
+//========================================= Salvar Operacional ====================================================
+
+const handleSalvarOperacional = async () => {
+  try {
+    // 1) Verificar se há táticas
+    const allOperacional = estrategicas.flatMap((est) => est.operacional);
+    if (allOperacional.length === 0) {
+      alert("Adicione ao menos uma Tática.");
+      return;
+    }
+
+    // 2) Verificar se áreas/unidades foram selecionadas
+    if (areasSelecionadas.length === 0) {
+      alert("Selecione pelo menos uma área responsável.");
+      return;
+    }
+    if (unidadeSelecionadas.length === 0) {
+      alert("Selecione pelo menos uma unidade.");
+      return;
+    }
+    if (areasoperacionalSelecionadas.length === 0) {
+      alert("Selecione pelo menos uma Operacional.");
+      return;
+    }
+
+    // 3) Criar doc no Firestore (salvando as Operacional)
+    const projetoRef = doc(collection(db, "projetos"));
+    const data = {
+      operacional: allOperacional,
+      areasoperacionalSelecionadas,
+      areasResponsaveis: areasSelecionadas,
+      unidadesRelacionadas: unidadeSelecionadas,
+      createdAt: new Date(),
+    };
+    
+    await setDoc(projetoRef, data);
+
+    // 4) Identificar roles vinculadas
+    const rolesVinculados = areasoperacionalSelecionadas.flatMap(
+      (areaId) => areaRolesMap[areaId] || []
+    );
+    if (rolesVinculados.length === 0) {
+      alert("Nenhum perfil vinculado às áreas selecionadas.");
+      return;
+    }
+
+    // 5) Buscar usuários e enviar notificação/e-mail
+    const usuarios = await buscarUsuariosPorRole(rolesVinculados);
+
+    await Promise.all(
+      usuarios.map(async (user) => {
+        // Enviar notificação
+        await fetch("https://fokus360-backend.vercel.app/send-notification", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: user.id,
+            mensagem: "Nova Diretriz Operacional criada para sua área.",
+          }),
+        });
+
+        // Enviar e-mail
+        await fetch("https://fokus360-backend.vercel.app/send-task-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: user.email,
+            tituloTarefa: "Nova Diretriz Operacional",
+            assuntoTarefa: "Foi criada uma nova diretriz tática vinculada à sua área.",
+            prazoTarefa: "Sem prazo",
+          }),
+        });
+      })
+    );
+
+    alert("✅ Operacionais salvas e notificações enviadas!");
+
+    // 6) Limpar estados se quiser
+    // setEstrategicas([]);
+    // setAreasSelecionadas([]);
+    // setUnidadeSelecionadas([]);
+    // setTaticasSelecionadas([]);
+
+  } catch (error) {
+    console.error("Erro ao salvar Operacionais:", error);
+    alert("Erro ao salvar Operacionais. Tente novamente.");
+  }
+};
   
 
   // -------------------------------------
@@ -693,7 +787,6 @@ const areaRolesMap = {
       >
         Criar Diretriz Estratégica
       </Typography>
-
 
       <Box display="flex" flexDirection="column" gap={2} mb={4}>
         <TextField
@@ -720,20 +813,26 @@ const areaRolesMap = {
             flexWrap: "wrap", // Para quebrar linha em telas pequenas
           }}
         >
-          
-
-        {/* Áreas */}
+          {/* Áreas */}
           <Select
             multiple
             value={areasSelecionadas}
             onChange={(event) => setAreasSelecionadas(event.target.value)}
             displayEmpty
-            sx={{ minWidth: "300px", backgroundColor: "#fff", marginTop: "10px" }}
+            sx={{
+              minWidth: "300px",
+              backgroundColor: "#fff",
+              marginTop: "10px",
+            }}
             renderValue={(selected) =>
               selected.length === 0
                 ? "Selecione as áreas responsáveis"
                 : selected
-                    .map((id) => areas.find((area) => area.id === id)?.nome || "Desconhecida")
+                    .map(
+                      (id) =>
+                        areas.find((area) => area.id === id)?.nome ||
+                        "Desconhecida"
+                    )
                     .join(", ")
             }
           >
@@ -751,12 +850,20 @@ const areaRolesMap = {
             value={unidadeSelecionadas}
             onChange={(event) => setUnidadeSelecionadas(event.target.value)}
             displayEmpty
-            sx={{ minWidth: "300px", backgroundColor: "#fff", marginTop: "10px" }}
+            sx={{
+              minWidth: "300px",
+              backgroundColor: "#fff",
+              marginTop: "10px",
+            }}
             renderValue={(selected) =>
               selected.length === 0
                 ? "Selecione a Unidade"
                 : selected
-                    .map((id) => unidades.find((uni) => uni.id === id)?.nome || "Desconhecida")
+                    .map(
+                      (id) =>
+                        unidades.find((uni) => uni.id === id)?.nome ||
+                        "Desconhecida"
+                    )
                     .join(", ")
             }
           >
@@ -785,23 +892,21 @@ const areaRolesMap = {
             <AddCircleOutlineIcon sx={{ fontSize: 25, color: "#312783" }} />
           </Button>
 
-            <Button
-              variant="contained"
-              sx={{
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: "#312783",
+              color: "#fff",
+              "&:hover": {
                 backgroundColor: "#312783",
-                color: "#fff",
-                "&:hover": {
-                  backgroundColor: "#312783",
-                },
-              }}
-              onClick={handleSalvarEstrategicas}
-            >
-              SALVAR DIRETRIZES ESTRATÉGICAS
-            </Button>
-          </Box>
-
+              },
+            }}
+            onClick={handleSalvarEstrategicas}
+          >
+            SALVAR DIRETRIZES ESTRATÉGICAS
+          </Button>
         </Box>
-
+      </Box>
 
       <Box display="flex" alignItems="center" marginBottom="20px">
         <ArrowDropDownCircleIcon
@@ -868,7 +973,6 @@ const areaRolesMap = {
             </Button>
           </AccordionSummary>
 
-
           {/* Detalhes: Diretriz TÁTICA */}
           <AccordionDetails>
             <Box display="flex" alignItems="center" marginBottom="20px">
@@ -883,67 +987,82 @@ const areaRolesMap = {
                 Diretriz Tática
               </Typography>
             </Box>
-            
-            
 
-          <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 2,
-            marginBottom: "10px",
-            flexWrap: "wrap", // Se quiser quebrar no mobile
-          }}
-        >
-          {/* Áreas */}
-          <Select
-            multiple
-            value={areastaticasSelecionadas}
-            onChange={(event) => setAreastaticasSelecionadas(event.target.value)}
-            displayEmpty
-            sx={{ minWidth: "300px", backgroundColor: "#fff", marginTop: "10px" }}
-            renderValue={(selected) =>
-              selected.length === 0
-                ? "Selecione as áreas responsáveis"
-                : selected
-                    .map((id) => areas.find((area) => area.id === id)?.nome || "Desconhecida")
-                    .join(", ")
-            }
-          >
-            {areas.map((area) => (
-              <MenuItem key={area.id} value={area.id}>
-                <Checkbox checked={areastaticasSelecionadas.includes(area.id)} />
-                <ListItemText primary={area.nome} />
-              </MenuItem>
-            ))}
-          </Select>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                marginBottom: "10px",
+                flexWrap: "wrap", // Se quiser quebrar no mobile
+              }}
+            >
+              {/* Áreas */}
+              <Select
+                multiple
+                value={areastaticasSelecionadas}
+                onChange={(event) =>
+                  setAreastaticasSelecionadas(event.target.value)
+                }
+                displayEmpty
+                sx={{
+                  minWidth: "300px",
+                  backgroundColor: "#fff",
+                  marginTop: "10px",
+                }}
+                renderValue={(selected) =>
+                  selected.length === 0
+                    ? "Selecione as áreas responsáveis"
+                    : selected
+                        .map(
+                          (id) =>
+                            areas.find((area) => area.id === id)?.nome ||
+                            "Desconhecida"
+                        )
+                        .join(", ")
+                }
+              >
+                {areas.map((area) => (
+                  <MenuItem key={area.id} value={area.id}>
+                    <Checkbox
+                      checked={areastaticasSelecionadas.includes(area.id)}
+                    />
+                    <ListItemText primary={area.nome} />
+                  </MenuItem>
+                ))}
+              </Select>
 
-
-
-          {/* Unidades */}
-          <Select
-            multiple
-            value={unidadeSelecionadas}
-            onChange={(event) => setUnidadeSelecionadas(event.target.value)}
-            displayEmpty
-            sx={{ minWidth: "300px", backgroundColor: "#fff", marginTop: "10px" }}
-            renderValue={(selected) =>
-              selected.length === 0
-                ? "Selecione a Unidade"
-                : selected
-                    .map((id) => unidades.find((uni) => uni.id === id)?.nome || "Desconhecida")
-                    .join(", ")
-            }
-          >
-            {unidades.map((uni) => (
-              <MenuItem key={uni.id} value={uni.id}>
-                <Checkbox checked={unidadeSelecionadas.includes(uni.id)} />
-                <ListItemText primary={uni.nome} />
-              </MenuItem>
-            ))}
-          </Select>
-        </Box>
-
+              {/* Unidades */}
+              <Select
+                multiple
+                value={unidadeSelecionadas}
+                onChange={(event) => setUnidadeSelecionadas(event.target.value)}
+                displayEmpty
+                sx={{
+                  minWidth: "300px",
+                  backgroundColor: "#fff",
+                  marginTop: "10px",
+                }}
+                renderValue={(selected) =>
+                  selected.length === 0
+                    ? "Selecione a Unidade"
+                    : selected
+                        .map(
+                          (id) =>
+                            unidades.find((uni) => uni.id === id)?.nome ||
+                            "Desconhecida"
+                        )
+                        .join(", ")
+                }
+              >
+                {unidades.map((uni) => (
+                  <MenuItem key={uni.id} value={uni.id}>
+                    <Checkbox checked={unidadeSelecionadas.includes(uni.id)} />
+                    <ListItemText primary={uni.nome} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </Box>
 
             {/* Form para adicionar Tática dentro da Estratégica */}
             <NovaTaticaForm
@@ -951,25 +1070,22 @@ const areaRolesMap = {
                 handleAddTatica(estrategica.id, titulo, desc)
               }
             />
-          
 
-          <Button
-            sx={{
-              backgroundColor: "#4caf50",
-              "&:hover": {
-                backgroundColor: "#45a049", // Cor ao passar o mouse
-              },
-              "&:active": {
-                backgroundColor: "#388e3c", // Cor ao clicar (pressionado)
-              },
-            }}
-            variant="contained"
-            onClick={handleSalvarTaticas}
-          >
-            SALVAR DIRETRIZES TÁTICAS
-        </Button>
-   
-            
+            <Button
+              sx={{
+                backgroundColor: "#4caf50",
+                "&:hover": {
+                  backgroundColor: "#45a049", // Cor ao passar o mouse
+                },
+                "&:active": {
+                  backgroundColor: "#388e3c", // Cor ao clicar (pressionado)
+                },
+              }}
+              variant="contained"
+              onClick={handleSalvarTaticas}
+            >
+              SALVAR DIRETRIZES TÁTICAS
+            </Button>
 
             <Box
               display="flex"
@@ -988,9 +1104,6 @@ const areaRolesMap = {
                 Diretriz Tática
               </Typography>
             </Box>
-            
-
-            
 
             {/* Accordion das Táticas */}
             {estrategica.taticas.map((tatica) => (
@@ -1059,6 +1172,86 @@ const areaRolesMap = {
                     </Typography>
                   </Box>
 
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      marginBottom: "10px",
+                      flexWrap: "wrap", // Se quiser quebrar no mobile
+                    }}
+                  >
+                    {/* Áreas */}
+                    <Select
+                      multiple
+                      value={areasoperacionalSelecionadas}
+                      onChange={(event) =>
+                        setAreasoperacionalSelecionadas(event.target.value)
+                      }
+                      displayEmpty
+                      sx={{
+                        minWidth: "300px",
+                        backgroundColor: "#fff",
+                        marginTop: "10px",
+                      }}
+                      renderValue={(selected) =>
+                        selected.length === 0
+                          ? "Selecione as áreas responsáveis"
+                          : selected
+                              .map(
+                                (id) =>
+                                  areas.find((area) => area.id === id)?.nome ||
+                                  "Desconhecida"
+                              )
+                              .join(", ")
+                      }
+                    >
+                      {areas.map((area) => (
+                        <MenuItem key={area.id} value={area.id}>
+                          <Checkbox
+                            checked={areasoperacionalSelecionadas.includes(area.id)}
+                          />
+                          <ListItemText primary={area.nome} />
+                        </MenuItem>
+                      ))}
+                    </Select>
+
+                    {/* Unidades */}
+                    <Select
+                      multiple
+                      value={unidadeSelecionadas}
+                      onChange={(event) =>
+                        setUnidadeSelecionadas(event.target.value)
+                      }
+                      displayEmpty
+                      sx={{
+                        minWidth: "300px",
+                        backgroundColor: "#fff",
+                        marginTop: "10px",
+                      }}
+                      renderValue={(selected) =>
+                        selected.length === 0
+                          ? "Selecione a Unidade"
+                          : selected
+                              .map(
+                                (id) =>
+                                  unidades.find((uni) => uni.id === id)?.nome ||
+                                  "Desconhecida"
+                              )
+                              .join(", ")
+                      }
+                    >
+                      {unidades.map((uni) => (
+                        <MenuItem key={uni.id} value={uni.id}>
+                          <Checkbox
+                            checked={unidadeSelecionadas.includes(uni.id)}
+                          />
+                          <ListItemText primary={uni.nome} />
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </Box>
+
                   {/* Form para adicionar Operacional */}
                   <NovaOperacionalForm
                     onAdd={(titulo, desc) =>
@@ -1070,6 +1263,22 @@ const areaRolesMap = {
                       )
                     }
                   />
+
+                  <Button
+                    sx={{
+                      backgroundColor: "#f44336",
+                      "&:hover": {
+                        backgroundColor: "#f44336", // Cor ao passar o mouse
+                      },
+                      "&:active": {
+                        backgroundColor: "#f44336", // Cor ao clicar (pressionado)
+                      },
+                    }}
+                    variant="contained"
+                    onClick={handleSalvarOperacional}
+                  >
+                    SALVAR DIRETRIZES TÁTICAS
+                  </Button>
 
                   <Box
                     display="flex"
@@ -1352,7 +1561,9 @@ const areaRolesMap = {
                                       <TextField
                                         label="E-mail dos responsáveis"
                                         name="quemEmail" // Nome associado ao estado para o e-mail do solicitante
-                                        value={tarefa.planoDeAcao.quemEmail ?? []}
+                                        value={
+                                          tarefa.planoDeAcao.quemEmail ?? []
+                                        }
                                         onChange={(e) =>
                                           handleEditTarefa(
                                             tarefa.id,
