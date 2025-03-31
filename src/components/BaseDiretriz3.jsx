@@ -750,7 +750,7 @@ const handleSalvarOperacional = async () => {
           body: JSON.stringify({
             email: user.email,
             tituloTarefa: "Nova Diretriz Operacional",
-            assuntoTarefa: "Foi criada uma nova diretriz tática vinculada à sua área.",
+            assuntoTarefa: "Foi criada uma nova diretriz Operacional vinculada à sua área.",
             prazoTarefa: "Sem prazo",
           }),
         });
