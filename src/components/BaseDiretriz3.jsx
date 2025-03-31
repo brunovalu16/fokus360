@@ -27,6 +27,8 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
 
 const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, onUpdate, LimpaEstado }) => {
 
+  const [limpaEstado, setLimpaEstado] = useState("");
+
   const [taticas, setTaticas] = useState([]);
   const [areastaticasSelecionadas, setAreastaticasSelecionadas] = useState([]);
 
@@ -60,24 +62,7 @@ const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, onUpdate, Li
 
 
 
-    // Monitorando a mensagem para limpar os inputs
-  useEffect(() => {
-    if (LimpaEstado) {
-      setFormValues({
-        tituloTarefa: novaTarefa,
-        planoDeAcao: {
-          oQue: "",
-          porQue: "",
-          quem: [],
-          quando: "",
-          quemEmail: [],
-          onde: "",
-          como: "",
-          valor: "",
-        },
-      });
-    }
-  }, [LimpaEstado]);
+
 
 
   useEffect(() => {
@@ -454,12 +439,7 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
 };
 
 
-  //useEffect que monitora LimpaEstado para resetar estrategicas
-  useEffect(() => {
-    if (LimpaEstado) {
-      setEstrategicas([]); // 🔹 Limpa as diretrizes estratégicas
-    }
-  }, [LimpaEstado]);
+ 
   
   
   
@@ -479,16 +459,12 @@ const saveEstrategicas = async (projectId, novoArray) => {
   }
 };
 
-  // -------------------------------------
-  // Limpar tudo quando LimpaEstado mudar
-  // -------------------------------------
-  useEffect(() => {
-    if (LimpaEstado) {
-      setEstrategicas([]);
-      setNovaEstrategica("");
-      setDescEstrategica("");
-    }
-  }, [LimpaEstado]);
+//limpa estado quando sai da pagina
+useEffect(() => {
+  return () => {
+    setLimpaEstado(true); // quando desmontar
+  };
+}, []);
 
 
 
