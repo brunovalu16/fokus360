@@ -509,6 +509,10 @@ const areaRolesMap = {
   
   const handleSalvarEstrategicas = async () => {
     try {
+      if (!projectId) {
+        alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
+        return;
+      }
       if (estrategicas.length === 0) {
         alert("Adicione ao menos uma Diretriz Estratégica.");
         return;
@@ -522,34 +526,28 @@ const areaRolesMap = {
         return;
       }
   
-      // 👉 Salvar o projeto
-      const projetoRef = doc(collection(db, "projetos"));
-      const data = {
+      const projetoRef = doc(db, "projetos", projectId);
+      await updateDoc(projetoRef, {
         estrategicas,
         areasResponsaveis: areasSelecionadas,
         unidadesRelacionadas: unidadeSelecionadas,
-        createdAt: new Date(),
-      };
-      await setDoc(projetoRef, data);
+        updatedAt: new Date(),
+      });
   
-      // 👉 Identificar roles vinculados
+      // Enviar notificação e e-mail
       const rolesVinculados = areasSelecionadas.flatMap(
         (areaId) => areaRolesMap[areaId] || []
       );
-      
   
       if (rolesVinculados.length === 0) {
         alert("Nenhum perfil vinculado às áreas selecionadas.");
         return;
       }
   
-      // 👉 Buscar usuários por roles
       const usuarios = await buscarUsuariosPorRole(rolesVinculados);
   
-      // 👉 Enviar notificação + e-mail
       await Promise.all(
         usuarios.map(async (user) => {
-          // Enviar notificação
           await fetch("https://fokus360-backend.vercel.app/send-notification", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -559,7 +557,6 @@ const areaRolesMap = {
             }),
           });
   
-          // Enviar e-mail
           await fetch("https://fokus360-backend.vercel.app/send-task-email", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -574,16 +571,12 @@ const areaRolesMap = {
       );
   
       alert("✅ Diretrizes Estratégicas salvas e notificações enviadas!");
-  
-      // ✅ Limpar estados
-      //setEstrategicas([]);
-      //setAreasSelecionadas([]);
-      //setUnidadeSelecionadas([]);
     } catch (error) {
       console.error("Erro ao salvar diretrizes estratégicas:", error);
       alert("Erro ao salvar diretrizes. Tente novamente.");
     }
   };
+  
   
   //=============================================================================================================
 
@@ -593,14 +586,16 @@ const areaRolesMap = {
 
   const handleSalvarTaticas = async () => {
     try {
-      // 1) Verificar se há táticas
+      if (!projectId) {
+        alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
+        return;
+      }
+  
       const allTaticas = estrategicas.flatMap((est) => est.taticas);
       if (allTaticas.length === 0) {
         alert("Adicione ao menos uma Tática.");
         return;
       }
-  
-      // 2) Verificar se áreas/unidades foram selecionadas
       if (areasSelecionadas.length === 0) {
         alert("Selecione pelo menos uma área responsável.");
         return;
@@ -614,33 +609,28 @@ const areaRolesMap = {
         return;
       }
   
-      // 3) Criar doc no Firestore (salvando as táticas)
-      const projetoRef = doc(collection(db, "projetos"));
-      const data = {
+      const projetoRef = doc(db, "projetos", projectId);
+      await updateDoc(projetoRef, {
         taticas: allTaticas,
         areastaticasSelecionadas,
         areasResponsaveis: areasSelecionadas,
         unidadesRelacionadas: unidadeSelecionadas,
-        createdAt: new Date(),
-      };
-      
-      await setDoc(projetoRef, data);
+        updatedAt: new Date(),
+      });
   
-      // 4) Identificar roles vinculadas
       const rolesVinculados = areasSelecionadas.flatMap(
         (areaId) => areaRolesMap[areaId] || []
       );
+  
       if (rolesVinculados.length === 0) {
         alert("Nenhum perfil vinculado às áreas selecionadas.");
         return;
       }
   
-      // 5) Buscar usuários e enviar notificação/e-mail
       const usuarios = await buscarUsuariosPorRole(rolesVinculados);
   
       await Promise.all(
         usuarios.map(async (user) => {
-          // Enviar notificação
           await fetch("https://fokus360-backend.vercel.app/send-notification", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -650,7 +640,6 @@ const areaRolesMap = {
             }),
           });
   
-          // Enviar e-mail
           await fetch("https://fokus360-backend.vercel.app/send-task-email", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -665,18 +654,12 @@ const areaRolesMap = {
       );
   
       alert("✅ Táticas salvas e notificações enviadas!");
-  
-      // 6) Limpar estados se quiser
-      // setEstrategicas([]);
-      // setAreasSelecionadas([]);
-      // setUnidadeSelecionadas([]);
-      // setTaticasSelecionadas([]);
-  
     } catch (error) {
       console.error("Erro ao salvar táticas:", error);
       alert("Erro ao salvar táticas. Tente novamente.");
     }
   };
+  
 
 //=========================================================================================================================================== 
 
@@ -686,13 +669,18 @@ const areaRolesMap = {
 
 const handleSalvarOperacional = async () => {
   try {
+    if (!projectId) {
+      alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
+      return;
+    }
+
     const allOperacional = estrategicas.flatMap((est) =>
       est.taticas.flatMap((tatica) =>
         tatica.operacionais.map((operacional) => ({
           id: operacional.id,
           titulo: operacional.titulo,
           descricao: operacional.descricao,
-          tarefas: operacional.tarefas || [], // Inclui tarefas, mesmo vazio
+          tarefas: operacional.tarefas || [],
         }))
       )
     );
@@ -714,21 +702,19 @@ const handleSalvarOperacional = async () => {
       return;
     }
 
-    const projetoRef = doc(collection(db, "projetos"));
-    const data = {
+    const projetoRef = doc(db, "projetos", projectId);
+    await updateDoc(projetoRef, {
       operacional: allOperacional,
       areasoperacionalSelecionadas,
       areasResponsaveis: areasSelecionadas,
       unidadesRelacionadas: unidadeSelecionadas,
-      createdAt: new Date(),
-    };
+      updatedAt: new Date(),
+    });
 
-    await setDoc(projetoRef, data);
-
-    // 🔔 Enviar notificação e e-mail para usuários das áreas
     const rolesVinculados = areasoperacionalSelecionadas.flatMap(
       (areaId) => areaRolesMap[areaId] || []
     );
+
     if (rolesVinculados.length === 0) {
       alert("Nenhum perfil vinculado às áreas selecionadas.");
       return;
@@ -761,7 +747,6 @@ const handleSalvarOperacional = async () => {
       })
     );
 
-    // ➤ Enviar e-mails para responsáveis informados no plano de ação
     await Promise.all(
       allOperacional.flatMap((operacional) =>
         (operacional.tarefas || []).flatMap((tarefa) => {
@@ -795,6 +780,7 @@ const handleSalvarOperacional = async () => {
     alert("Erro ao salvar Operacionais. Tente novamente.");
   }
 };
+
 
 
   
