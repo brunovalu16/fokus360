@@ -27,14 +27,18 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
 
 const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, onUpdate, LimpaEstado }) => {
 
-  // Inputs para criar nova Diretriz Estratégica
+  const [taticas, setTaticas] = useState([]);
+  const [areastaticasSelecionadas, setAreastaticasSelecionadas] = useState([]);
+
+  const [areasSelecionadas, setAreasSelecionadas] = useState([]);
+  const [estrategicas, setEstrategicas] = useState(propEstrategicas || []);
+  
 
   const [novaEstrategica, setNovaEstrategica] = useState("");
   const [descEstrategica, setDescEstrategica] = useState("");
-  const [estrategicas, setEstrategicas] = useState(propEstrategicas || []);
   const [areas, setAreas] = useState([]);
   const [unidades, setUnidades] = useState([]);
-  const [areasSelecionadas, setAreasSelecionadas] = useState([]);
+
   const [unidadeSelecionadas, setUnidadeSelecionadas] = useState([]); 
   const [users, setUsers] = useState([]);
   const [novaTarefa, setNovaTarefa] = useState("");
@@ -489,7 +493,7 @@ const saveEstrategicas = async (projectId, novoArray) => {
 
 
 
-  //============================================================================================================================
+  //======================================================== ESTRATÉGICAS + MAPEAMENTO GERAL ==============================================================
 
 
 
@@ -510,9 +514,7 @@ const areaRolesMap = {
 
 
 
-// -------------------------------------
-  // Salvar somente Diretrizes Estrategicas
-  // -------------------------------------
+
 
   const buscarUsuariosPorRole = async (roles) => {
     const querySnapshot = await getDocs(collection(db, "user"));
@@ -520,6 +522,11 @@ const areaRolesMap = {
       .map((doc) => ({ id: doc.id, ...doc.data() }))
       .filter((user) => roles.includes(user.role));
   };
+
+
+// -------------------------------------
+  // Salvar somente Diretrizes Estrategicas
+  // -------------------------------------
   
   const handleSalvarEstrategicas = async () => {
     try {
@@ -599,6 +606,100 @@ const areaRolesMap = {
     }
   };
   
+  //=============================================================================================================
+
+
+
+  //========================================= Salvar táticas ====================================================
+
+  const handleSalvarTaticas = async () => {
+    try {
+      // 1) Verificar se há táticas
+      const allTaticas = estrategicas.flatMap((est) => est.taticas);
+      if (allTaticas.length === 0) {
+        alert("Adicione ao menos uma Tática.");
+        return;
+      }
+  
+      // 2) Verificar se áreas/unidades foram selecionadas
+      if (areasSelecionadas.length === 0) {
+        alert("Selecione pelo menos uma área responsável.");
+        return;
+      }
+      if (unidadeSelecionadas.length === 0) {
+        alert("Selecione pelo menos uma unidade.");
+        return;
+      }
+      if (taticasSelecionadas.length === 0) {
+        alert("Selecione pelo menos uma Tática.");
+        return;
+      }
+  
+      // 3) Criar doc no Firestore (salvando as táticas)
+      const projetoRef = doc(collection(db, "projetos"));
+      const data = {
+        taticas: allTaticas,
+        areastaticasSelecionadas,
+        areasResponsaveis: areasSelecionadas,
+        unidadesRelacionadas: unidadeSelecionadas,
+        createdAt: new Date(),
+      };
+      
+      await setDoc(projetoRef, data);
+  
+      // 4) Identificar roles vinculadas
+      const rolesVinculados = areasSelecionadas.flatMap(
+        (areaId) => areaRolesMap[areaId] || []
+      );
+      if (rolesVinculados.length === 0) {
+        alert("Nenhum perfil vinculado às áreas selecionadas.");
+        return;
+      }
+  
+      // 5) Buscar usuários e enviar notificação/e-mail
+      const usuarios = await buscarUsuariosPorRole(rolesVinculados);
+  
+      await Promise.all(
+        usuarios.map(async (user) => {
+          // Enviar notificação
+          await fetch("https://fokus360-backend.vercel.app/send-notification", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userId: user.id,
+              mensagem: "Nova Diretriz Tática criada para sua área.",
+            }),
+          });
+  
+          // Enviar e-mail
+          await fetch("https://fokus360-backend.vercel.app/send-task-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: user.email,
+              tituloTarefa: "Nova Diretriz Tática",
+              assuntoTarefa: "Foi criada uma nova diretriz tática vinculada à sua área.",
+              prazoTarefa: "Sem prazo",
+            }),
+          });
+        })
+      );
+  
+      alert("✅ Táticas salvas e notificações enviadas!");
+  
+      // 6) Limpar estados se quiser
+      // setEstrategicas([]);
+      // setAreasSelecionadas([]);
+      // setUnidadeSelecionadas([]);
+      // setTaticasSelecionadas([]);
+  
+    } catch (error) {
+      console.error("Erro ao salvar táticas:", error);
+      alert("Erro ao salvar táticas. Tente novamente.");
+    }
+  };
+
+//===========================================================================================================================================  
   
 
   // -------------------------------------
@@ -806,6 +907,67 @@ const areaRolesMap = {
                 Diretriz Tática
               </Typography>
             </Box>
+            
+            
+
+          <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            marginBottom: "10px",
+            flexWrap: "wrap", // Se quiser quebrar no mobile
+          }}
+        >
+          {/* Áreas */}
+          <Select
+            multiple
+            value={areastaticasSelecionadas}
+            onChange={(event) => setAreastaticasSelecionadas(event.target.value)}
+            displayEmpty
+            sx={{ minWidth: "300px", backgroundColor: "#fff", marginTop: "10px" }}
+            renderValue={(selected) =>
+              selected.length === 0
+                ? "Selecione as áreas responsáveis"
+                : selected
+                    .map((id) => areas.find((area) => area.id === id)?.nome || "Desconhecida")
+                    .join(", ")
+            }
+          >
+            {areas.map((area) => (
+              <MenuItem key={area.id} value={area.id}>
+                <Checkbox checked={areastaticasSelecionadas.includes(area.id)} />
+                <ListItemText primary={area.nome} />
+              </MenuItem>
+            ))}
+          </Select>
+
+
+
+          {/* Unidades */}
+          <Select
+            multiple
+            value={unidadeSelecionadas}
+            onChange={(event) => setUnidadeSelecionadas(event.target.value)}
+            displayEmpty
+            sx={{ minWidth: "300px", backgroundColor: "#fff", marginTop: "10px" }}
+            renderValue={(selected) =>
+              selected.length === 0
+                ? "Selecione a Unidade"
+                : selected
+                    .map((id) => unidades.find((uni) => uni.id === id)?.nome || "Desconhecida")
+                    .join(", ")
+            }
+          >
+            {unidades.map((uni) => (
+              <MenuItem key={uni.id} value={uni.id}>
+                <Checkbox checked={unidadeSelecionadas.includes(uni.id)} />
+                <ListItemText primary={uni.nome} />
+              </MenuItem>
+            ))}
+          </Select>
+        </Box>
+
 
             {/* Form para adicionar Tática dentro da Estratégica */}
             <NovaTaticaForm
@@ -813,6 +975,15 @@ const areaRolesMap = {
                 handleAddTatica(estrategica.id, titulo, desc)
               }
             />
+          
+
+            <Button
+              variant="contained"
+              onClick={handleSalvarTaticas}
+            >
+              SALVAR DIRETRIZES TÁTICAS
+            </Button>   
+            
 
             <Box
               display="flex"
@@ -831,6 +1002,9 @@ const areaRolesMap = {
                 Diretriz Tática
               </Typography>
             </Box>
+            
+
+            
 
             {/* Accordion das Táticas */}
             {estrategica.taticas.map((tatica) => (
@@ -1323,6 +1497,9 @@ function NovaTaticaForm({ onAdd }) {
         rows={2}
       />
       */}
+
+      
+
       <Button
         onClick={() => {
           onAdd(titulo, desc);
