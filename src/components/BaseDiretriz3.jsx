@@ -977,12 +977,22 @@ const areaRolesMap = {
             />
           
 
-            <Button
-              variant="contained"
-              onClick={handleSalvarTaticas}
-            >
-              SALVAR DIRETRIZES TÁTICAS
-            </Button>   
+          <Button
+            sx={{
+              backgroundColor: "#4caf50",
+              "&:hover": {
+                backgroundColor: "#45a049", // Cor ao passar o mouse
+              },
+              "&:active": {
+                backgroundColor: "#388e3c", // Cor ao clicar (pressionado)
+              },
+            }}
+            variant="contained"
+            onClick={handleSalvarTaticas}
+          >
+            SALVAR DIRETRIZES TÁTICAS
+        </Button>
+   
             
 
             <Box
