@@ -341,7 +341,7 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       titulo,
       descricao,
       operacionais: [],
-      emails,
+      emails, // 👈 está certo!
     };
   
     const atualizadas = estrategicas.map((est) => {
@@ -353,6 +353,13 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   
     setEstrategicas(atualizadas);
     onUpdate && onUpdate(atualizadas);
+    console.log("📩 Estado atualizado com e-mail da tática:", atualizadas);
+  
+    /** ⚠️ Aqui que você pode limpar o input visual, sem perder o estado das táticas **/
+    setEmailsTaticasInput((prev) => ({
+      ...prev,
+      [idEstrategica]: "",
+    }));
   };
   
   
@@ -1163,14 +1170,12 @@ const handleSalvarOperacional = async () => {
   value={emailsTaticasInput[estrategica.id] || ""}
   onChange={(e) => {
     const value = e.target.value;
-
-    // Atualiza estado auxiliar do input
     setEmailsTaticasInput((prev) => ({
       ...prev,
       [estrategica.id]: value,
     }));
 
-    // Atualiza direto no objeto estrategicas -> taticas -> emails
+    // Atualiza o e-mail diretamente no estado das estratégicas
     setEstrategicas((prev) =>
       prev.map((est) => {
         if (est.id === estrategica.id) {
@@ -1192,6 +1197,7 @@ const handleSalvarOperacional = async () => {
   fullWidth
   sx={{ backgroundColor: "#fff" }}
 />
+
 
 
 
