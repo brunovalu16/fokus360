@@ -579,8 +579,9 @@ const areaRolesMap = {
   
       // ✅ Enviar e-mail para os e-mails manuais
       const emailsManuais = estrategicas
-        .flatMap((estrategica) => estrategica.emails || [])
-        .filter((email) => email.trim() !== ""); // ignora vazios
+      .flatMap((estrategica) => estrategica.emails || [])
+      .filter((email) => email.trim() !== "");
+
   
       if (emailsManuais.length > 0) {
         await Promise.all(
@@ -606,19 +607,6 @@ const areaRolesMap = {
       alert("Erro ao salvar diretrizes. Tente novamente.");
     }
   };
-  
-  
-  
-
-//função para atualizar os e-mails digitados por diretriz estratégica
-  const handleChangeEmailsEstrategicas = (id, value) => {
-    const emails = value.split(",").map((email) => email.trim());
-    setEmailsEstrategicas((prev) => ({
-      ...prev,
-      [id]: emails,
-    }));
-  };
-  
   
   
   //=============================================================================================================
