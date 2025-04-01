@@ -321,29 +321,21 @@ const open = Boolean(anchorEl);
           </IconButton>
 
 
-          {userRole !== "01" &&
-            userRole !== "02" &&
-            userRole !== "03" &&
-            userRole !== "04" &&
-            userRole !== "05" &&
-            userRole !== "06" &&
-            userRole !== "07" &&
-            userRole !== "09" &&
-            userRole !== "10" &&
-            userRole !== "11" && (
-              <IconButton
-                component={Link}
-                to="/contacts"
-                sx={{
-                  color: "#312783",
-                  "&:hover": {
-                    backgroundColor: "#f5f5f5",
-                  },
-                }}
-              >
-                <SettingsOutlined />
-              </IconButton>
-            )}
+          {userRole === "08" && (
+            <IconButton
+              component={Link}
+              to="/contacts"
+              sx={{
+                color: "#312783",
+                "&:hover": {
+                  backgroundColor: "#f5f5f5",
+                },
+              }}
+            >
+              <SettingsOutlined />
+            </IconButton>
+          )}
+
 
           <Avatar
             src={formValues.photoURL || ""}
