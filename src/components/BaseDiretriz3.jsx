@@ -331,7 +331,7 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       return;
     }
   
-    const emails = emailsDigitados
+    const emails = (emailsDigitados || "")
       .split(",")
       .map((email) => email.trim())
       .filter((email) => email !== "");
@@ -354,6 +354,8 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
     setEstrategicas(atualizadas);
     onUpdate && onUpdate(atualizadas);
   };
+  
+  
   
   
   
@@ -1187,9 +1189,15 @@ const handleSalvarOperacional = async () => {
             {/* Form para adicionar Tática dentro da Estratégica */}
             <NovaTaticaForm
               onAdd={(titulo, desc) =>
-                handleAddTatica(estrategica.id, titulo, desc, emailsTaticasInput[estrategica.id])
+                handleAddTatica(
+                  estrategica.id,
+                  titulo,
+                  desc,
+                  emailsTaticasInput[estrategica.id] // <-- está correto
+                )
               }
             />
+
 
 
             <Button
