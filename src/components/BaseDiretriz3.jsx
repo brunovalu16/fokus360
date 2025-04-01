@@ -40,6 +40,8 @@ const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacio
 
   const [estrategica, setEstrategica] = useState("");
   const [emailsDigitados, setEmailsDigitados] = useState("");
+
+  const [emailsTaticas, setEmailsTaticas] = useState({});
   
 
   const [novaEstrategica, setNovaEstrategica] = useState("");
@@ -318,27 +320,37 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   const handleAddTatica = (idEstrategica, titulo, descricao) => {
     if (!titulo.trim()) {
       alert("Preencha o nome da Diretriz Tática!");
-      //alert("Preencha o nome e a descrição da Diretriz Tática!");
       return;
     }
+  
+    const emails = emailsTaticas[idEstrategica] || [];
+  
     const novo = {
       id: Date.now(),
       titulo,
       descricao,
       operacionais: [],
+      emails, // ✅ adicionando os e-mails aqui
     };
+  
     const atualizadas = estrategicas.map((est) => {
       if (est.id === idEstrategica) {
         return { ...est, taticas: [...est.taticas, novo] };
       }
       return est;
     });
+  
     setEstrategicas(atualizadas);
   
-    console.log("📌 Atualizando lista de diretrizes (Táticas):", JSON.stringify(atualizadas, null, 2));
-  
     onUpdate && onUpdate(atualizadas);
+  
+    // Limpa campo
+    setEmailsTaticas((prev) => ({
+      ...prev,
+      [idEstrategica]: [],
+    }));
   };
+  
   
 
   // -------------------------------------
@@ -636,7 +648,7 @@ const areaRolesMap = {
         return;
       }
       if (areastaticasSelecionadas.length === 0) {
-        alert("Selecione pelo menos uma Tática.");
+        alert("Selecione pelo menos uma área responsável para a Tática.");
         return;
       }
   
@@ -649,40 +661,61 @@ const areaRolesMap = {
         updatedAt: new Date(),
       });
   
+      // ✅ Enviar notificações para perfis vinculados às áreas
       const rolesVinculados = areasSelecionadas.flatMap(
         (areaId) => areaRolesMap[areaId] || []
       );
   
-      if (rolesVinculados.length === 0) {
-        alert("Nenhum perfil vinculado às áreas selecionadas.");
-        return;
+      if (rolesVinculados.length > 0) {
+        const usuarios = await buscarUsuariosPorRole(rolesVinculados);
+  
+        await Promise.all(
+          usuarios.map(async (user) => {
+            await fetch("https://fokus360-backend.vercel.app/send-notification", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                userId: user.id,
+                mensagem: "Nova Diretriz Tática criada para sua área.",
+              }),
+            });
+  
+            await fetch("https://fokus360-backend.vercel.app/send-task-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: user.email,
+                tituloTarefa: "Nova Diretriz Tática",
+                assuntoTarefa: "Foi criada uma nova diretriz tática vinculada à sua área.",
+                prazoTarefa: "Sem prazo",
+              }),
+            });
+          })
+        );
       }
   
-      const usuarios = await buscarUsuariosPorRole(rolesVinculados);
+      // ✅ Enviar e-mail para os e-mails manuais digitados
+      const emailsManuais = allTaticas
+        .flatMap((tatica) => tatica.emails || [])
+        .filter((email) => email.trim() !== "");
   
-      await Promise.all(
-        usuarios.map(async (user) => {
-          await fetch("https://fokus360-backend.vercel.app/send-notification", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              userId: user.id,
-              mensagem: "Nova Diretriz Tática criada para sua área.",
-            }),
-          });
-  
-          await fetch("https://fokus360-backend.vercel.app/send-task-email", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: user.email,
-              tituloTarefa: "Nova Diretriz Tática",
-              assuntoTarefa: "Foi criada uma nova diretriz tática vinculada à sua área.",
-              prazoTarefa: "Sem prazo",
-            }),
-          });
-        })
-      );
+      if (emailsManuais.length > 0) {
+        await Promise.all(
+          emailsManuais.map(async (email) => {
+            await fetch("https://fokus360-backend.vercel.app/send-task-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: email,
+                tituloTarefa: "Nova Diretriz Tática",
+                assuntoTarefa:
+                  "Foi criada uma nova diretriz tática vinculada ao seu e-mail.",
+                prazoTarefa: "Sem prazo",
+              }),
+            });
+          })
+        );
+      }
   
       alert("✅ Táticas salvas e notificações enviadas!");
     } catch (error) {
@@ -690,6 +723,16 @@ const areaRolesMap = {
       alert("Erro ao salvar táticas. Tente novamente.");
     }
   };
+  
+//Função para atualizar os e-mails digitados na Tática
+  const handleChangeEmailsTaticas = (id, value) => {
+    const emails = value.split(",").map((email) => email.trim());
+    setEmailsTaticas((prev) => ({
+      ...prev,
+      [id]: emails,
+    }));
+  };
+  
   
 
 //=========================================================================================================================================== 
@@ -1047,80 +1090,85 @@ const handleSalvarOperacional = async () => {
             </Box>
 
             <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 2,
-                marginBottom: "10px",
-                flexWrap: "wrap", // Se quiser quebrar no mobile
-              }}
-            >
-              {/* Áreas */}
-              <Select
-                multiple
-                value={areastaticasSelecionadas}
-                onChange={(event) =>
-                  setAreastaticasSelecionadas(event.target.value)
-                }
-                displayEmpty
-                sx={{
-                  minWidth: "300px",
-                  backgroundColor: "#fff",
-                  marginTop: "10px",
-                }}
-                renderValue={(selected) =>
-                  selected.length === 0
-                    ? "Selecione as áreas responsáveis"
-                    : selected
-                        .map(
-                          (id) =>
-                            areas.find((area) => area.id === id)?.nome ||
-                            "Desconhecida"
-                        )
-                        .join(", ")
-                }
-              >
-                {areas.map((area) => (
-                  <MenuItem key={area.id} value={area.id}>
-                    <Checkbox
-                      checked={areastaticasSelecionadas.includes(area.id)}
-                    />
-                    <ListItemText primary={area.nome} />
-                  </MenuItem>
-                ))}
-              </Select>
+  sx={{
+    display: "flex",
+    alignItems: "center",
+    gap: 2,
+    marginBottom: "10px",
+    flexWrap: "wrap", // Mantém quebrando no mobile
+  }}
+>
+  {/* Áreas */}
+  <Box sx={{ flex: 1, minWidth: "300px" }}>
+    <Select
+      multiple
+      value={areastaticasSelecionadas}
+      onChange={(event) => setAreastaticasSelecionadas(event.target.value)}
+      displayEmpty
+      fullWidth
+      sx={{ backgroundColor: "#fff" }}
+      renderValue={(selected) =>
+        selected.length === 0
+          ? "Selecione as áreas responsáveis"
+          : selected
+              .map(
+                (id) =>
+                  areas.find((area) => area.id === id)?.nome || "Desconhecida"
+              )
+              .join(", ")
+      }
+    >
+      {areas.map((area) => (
+        <MenuItem key={area.id} value={area.id}>
+          <Checkbox checked={areastaticasSelecionadas.includes(area.id)} />
+          <ListItemText primary={area.nome} />
+        </MenuItem>
+      ))}
+    </Select>
+  </Box>
 
-              {/* Unidades */}
-              <Select
-                multiple
-                value={unidadeSelecionadas}
-                onChange={(event) => setUnidadeSelecionadas(event.target.value)}
-                displayEmpty
-                sx={{
-                  minWidth: "300px",
-                  backgroundColor: "#fff",
-                  marginTop: "10px",
-                }}
-                renderValue={(selected) =>
-                  selected.length === 0
-                    ? "Selecione a Unidade"
-                    : selected
-                        .map(
-                          (id) =>
-                            unidades.find((uni) => uni.id === id)?.nome ||
-                            "Desconhecida"
-                        )
-                        .join(", ")
-                }
-              >
-                {unidades.map((uni) => (
-                  <MenuItem key={uni.id} value={uni.id}>
-                    <Checkbox checked={unidadeSelecionadas.includes(uni.id)} />
-                    <ListItemText primary={uni.nome} />
-                  </MenuItem>
-                ))}
-              </Select>
-            </Box>
+  {/* Unidades */}
+  <Box sx={{ flex: 1, minWidth: "300px" }}>
+    <Select
+      multiple
+      value={unidadeSelecionadas}
+      onChange={(event) => setUnidadeSelecionadas(event.target.value)}
+      displayEmpty
+      fullWidth
+      sx={{ backgroundColor: "#fff" }}
+      renderValue={(selected) =>
+        selected.length === 0
+          ? "Selecione a Unidade"
+          : selected
+              .map(
+                (id) =>
+                  unidades.find((uni) => uni.id === id)?.nome || "Desconhecida"
+              )
+              .join(", ")
+      }
+    >
+      {unidades.map((uni) => (
+        <MenuItem key={uni.id} value={uni.id}>
+          <Checkbox checked={unidadeSelecionadas.includes(uni.id)} />
+          <ListItemText primary={uni.nome} />
+        </MenuItem>
+      ))}
+    </Select>
+  </Box>
+
+  {/* E-mails adicionais */}
+  <Box sx={{ flex: 1, minWidth: "300px" }}>
+    <TextField
+      label="E-mails adicionais (separe por vírgula)"
+      value={emailsDigitados}
+      onChange={(e) => setEmailsDigitados(e.target.value)}
+      fullWidth
+      sx={{ backgroundColor: "#fff" }}
+    />
+  </Box>
+</Box>
+
+            
 
             {/* Form para adicionar Tática dentro da Estratégica */}
             <NovaTaticaForm
