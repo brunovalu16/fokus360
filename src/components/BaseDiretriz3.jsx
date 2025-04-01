@@ -724,14 +724,7 @@ const areaRolesMap = {
     }
   };
   
-//Função para atualizar os e-mails digitados na Tática
-  const handleChangeEmailsTaticas = (id, value) => {
-    const emails = value.split(",").map((email) => email.trim());
-    setEmailsTaticas((prev) => ({
-      ...prev,
-      [id]: emails,
-    }));
-  };
+
   
   
 
