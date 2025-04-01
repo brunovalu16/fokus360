@@ -331,14 +331,18 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       return;
     }
   
-    const emails = emailsTaticas[idEstrategica] || [];
+    const emailsDigitados = emailsTaticas[idEstrategica] || "";
+    const emails = emailsDigitados
+      .split(",")
+      .map((email) => email.trim())
+      .filter((email) => email !== "");
   
     const novo = {
       id: Date.now(),
       titulo,
       descricao,
       operacionais: [],
-      emails, // ✅ adicionando os e-mails aqui
+      emails, // agora está certo!
     };
   
     const atualizadas = estrategicas.map((est) => {
@@ -349,7 +353,6 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
     });
   
     setEstrategicas(atualizadas);
-  
     onUpdate && onUpdate(atualizadas);
   };
   
