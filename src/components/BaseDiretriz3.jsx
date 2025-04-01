@@ -1163,12 +1163,14 @@ const handleSalvarOperacional = async () => {
   value={emailsTaticasInput[estrategica.id] || ""}
   onChange={(e) => {
     const value = e.target.value;
+
+    // Atualiza estado auxiliar do input
     setEmailsTaticasInput((prev) => ({
       ...prev,
       [estrategica.id]: value,
     }));
 
-    // Atualiza também o estado das táticas
+    // Atualiza direto no objeto estrategicas -> taticas -> emails
     setEstrategicas((prev) =>
       prev.map((est) => {
         if (est.id === estrategica.id) {
