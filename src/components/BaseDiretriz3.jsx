@@ -1153,8 +1153,8 @@ const handleSalvarOperacional = async () => {
   <Box sx={{ flex: 1, minWidth: "300px" }}>
     <TextField
       label="E-mails adicionais (separe por vírgula)"
-      value={emailsDigitados}
-      onChange={(e) => setEmailsDigitados(e.target.value)}
+      value={emailsTaticas}
+      onChange={(e) => setEmailsTaticas(e.target.value)}
       fullWidth
       sx={{ backgroundColor: "#fff" }}
     />
