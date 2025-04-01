@@ -325,13 +325,15 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   // -------------------------------------
   //|| !descricao.trim()
 
-  const handleAddTatica = (idEstrategica, titulo, descricao, emailsDigitados) => {
+  const handleAddTatica = (idEstrategica, titulo, descricao) => {
     if (!titulo.trim()) {
       alert("Preencha o nome da Diretriz Tática!");
       return;
     }
   
-    const emails = (emailsDigitados || "")
+    // Busca os e-mails diretamente do estado do input
+    const emailsInput = emailsTaticasInput[idEstrategica] || "";
+    const emails = emailsInput
       .split(",")
       .map((email) => email.trim())
       .filter((email) => email !== "");
@@ -341,7 +343,7 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       titulo,
       descricao,
       operacionais: [],
-      emails, // 👈 está certo!
+      emails, // ✅ Aqui já vem certo!
     };
   
     const atualizadas = estrategicas.map((est) => {
@@ -355,12 +357,13 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
     onUpdate && onUpdate(atualizadas);
     console.log("📩 Estado atualizado com e-mail da tática:", atualizadas);
   
-    /** ⚠️ Aqui que você pode limpar o input visual, sem perder o estado das táticas **/
+    /** ✅ Limpa apenas o input visual, sem afetar as táticas */
     setEmailsTaticasInput((prev) => ({
       ...prev,
       [idEstrategica]: "",
     }));
   };
+  
   
   
   
@@ -1212,11 +1215,11 @@ const handleSalvarOperacional = async () => {
                 handleAddTatica(
                   estrategica.id,
                   titulo,
-                  desc,
-                  emailsTaticasInput[estrategica.id] // <-- está correto
+                  desc
                 )
               }
             />
+
 
 
 
