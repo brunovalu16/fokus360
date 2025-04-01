@@ -325,13 +325,12 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   // -------------------------------------
   //|| !descricao.trim()
 
-  const handleAddTatica = (idEstrategica, titulo, descricao) => {
+  const handleAddTatica = (idEstrategica, titulo, descricao, emailsDigitados) => {
     if (!titulo.trim()) {
       alert("Preencha o nome da Diretriz Tática!");
       return;
     }
   
-    const emailsDigitados = emailsTaticasInput[idEstrategica] || "";
     const emails = emailsDigitados
       .split(",")
       .map((email) => email.trim())
@@ -342,7 +341,7 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       titulo,
       descricao,
       operacionais: [],
-      emails, // ✅ Agora ele vai salvar o que digitou
+      emails,
     };
   
     const atualizadas = estrategicas.map((est) => {
@@ -355,6 +354,7 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
     setEstrategicas(atualizadas);
     onUpdate && onUpdate(atualizadas);
   };
+  
   
   
   
@@ -1187,9 +1187,10 @@ const handleSalvarOperacional = async () => {
             {/* Form para adicionar Tática dentro da Estratégica */}
             <NovaTaticaForm
               onAdd={(titulo, desc) =>
-                handleAddTatica(estrategica.id, titulo, desc)
+                handleAddTatica(estrategica.id, titulo, desc, emailsTaticasInput[estrategica.id])
               }
             />
+
 
             <Button
               sx={{
