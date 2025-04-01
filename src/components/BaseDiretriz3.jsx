@@ -298,7 +298,7 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   
     setNovaEstrategica("");
     setDescEstrategica("");
-    setEmailsDigitados(""); // limpa os e-mails
+    //setEmailsDigitados(""); // limpa os e-mails
   };
   
   
@@ -343,12 +343,6 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
     setEstrategicas(atualizadas);
   
     onUpdate && onUpdate(atualizadas);
-  
-    // Limpa campo
-    setEmailsTaticas((prev) => ({
-      ...prev,
-      [idEstrategica]: [],
-    }));
   };
   
   
