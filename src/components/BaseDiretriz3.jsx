@@ -39,7 +39,7 @@ const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacio
   const [operacional, setOperacional] = useState(propOperacional || []);
 
   const [estrategica, setEstrategica] = useState("");
-  const [emailsEstrategicas, setEmailsEstrategicas] = useState({});
+  const [emailsDigitados, setEmailsDigitados] = useState("");
   
 
   const [novaEstrategica, setNovaEstrategica] = useState("");
@@ -273,25 +273,32 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   const handleAddEstrategica = () => {
     if (!novaEstrategica.trim()) {
       alert("Preencha o nome da Diretriz Estratégica!");
-      //alert("Preencha o nome e a descrição da Diretriz Estratégica!");
       return;
     }
+  
+    const emails = emailsDigitados
+      .split(",")
+      .map((email) => email.trim())
+      .filter((email) => email !== ""); // remove vazios
+  
     const item = {
       id: Date.now(),
       titulo: novaEstrategica,
       descricao: descEstrategica,
       taticas: [],
+      emails, // ✅ Adicionando aqui
     };
+  
     const atualizado = [...estrategicas, item];
     setEstrategicas(atualizado);
-  
-    console.log("📌 Atualizando lista de diretrizes (Estrategicas):", JSON.stringify(atualizado, null, 2));
   
     onUpdate && onUpdate(atualizado);
   
     setNovaEstrategica("");
     setDescEstrategica("");
+    setEmailsDigitados(""); // limpa os e-mails
   };
+  
   
 
   // -------------------------------------
@@ -529,15 +536,9 @@ const areaRolesMap = {
         return;
       }
   
-      // ✅ Anexar os e-mails manuais dentro de cada estratégica
-      const estrategicasComEmails = estrategicas.map((estrategica) => ({
-        ...estrategica,
-        emails: emailsEstrategicas[estrategica.id] || [],
-      }));
-  
       const projetoRef = doc(db, "projetos", projectId);
       await updateDoc(projetoRef, {
-        estrategicas: estrategicasComEmails,
+        estrategicas, // já contém os e-mails porque agora você está salvando eles ao criar a estratégica
         areasResponsaveis: areasSelecionadas,
         unidadesRelacionadas: unidadeSelecionadas,
         updatedAt: new Date(),
@@ -548,39 +549,38 @@ const areaRolesMap = {
         (areaId) => areaRolesMap[areaId] || []
       );
   
-      if (rolesVinculados.length === 0) {
-        alert("Nenhum perfil vinculado às áreas selecionadas.");
-        return;
+      if (rolesVinculados.length > 0) {
+        const usuarios = await buscarUsuariosPorRole(rolesVinculados);
+  
+        await Promise.all(
+          usuarios.map(async (user) => {
+            await fetch("https://fokus360-backend.vercel.app/send-notification", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                userId: user.id,
+                mensagem: "Nova Diretriz Estratégica criada para sua área.",
+              }),
+            });
+  
+            await fetch("https://fokus360-backend.vercel.app/send-task-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: user.email,
+                tituloTarefa: "Nova Diretriz Estratégica",
+                assuntoTarefa: "Foi criada uma nova diretriz estratégica vinculada à sua área.",
+                prazoTarefa: "Sem prazo",
+              }),
+            });
+          })
+        );
       }
   
-      const usuarios = await buscarUsuariosPorRole(rolesVinculados);
-  
-      await Promise.all(
-        usuarios.map(async (user) => {
-          await fetch("https://fokus360-backend.vercel.app/send-notification", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              userId: user.id,
-              mensagem: "Nova Diretriz Estratégica criada para sua área.",
-            }),
-          });
-  
-          await fetch("https://fokus360-backend.vercel.app/send-task-email", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: user.email,
-              tituloTarefa: "Nova Diretriz Estratégica",
-              assuntoTarefa: "Foi criada uma nova diretriz estratégica vinculada à sua área.",
-              prazoTarefa: "Sem prazo",
-            }),
-          });
-        })
-      );
-  
       // ✅ Enviar e-mail para os e-mails manuais
-      const emailsManuais = Object.values(emailsEstrategicas).flat();
+      const emailsManuais = estrategicas
+        .flatMap((estrategica) => estrategica.emails || [])
+        .filter((email) => email.trim() !== ""); // ignora vazios
   
       if (emailsManuais.length > 0) {
         await Promise.all(
@@ -606,6 +606,7 @@ const areaRolesMap = {
       alert("Erro ao salvar diretrizes. Tente novamente.");
     }
   };
+  
   
   
 
@@ -930,6 +931,18 @@ const handleSalvarOperacional = async () => {
             ))}
           </Select>
 
+          <TextField
+          label="E-mails adicionais (separe por vírgula)"
+          value={emailsDigitados}
+          onChange={(e) => setEmailsDigitados(e.target.value)}
+          sx={{
+            minWidth: "300px",
+            backgroundColor: "#fff",
+            marginTop: "10px",
+          }}
+        />
+
+
           <Button
             onClick={handleAddEstrategica}
             disableRipple
@@ -946,15 +959,7 @@ const handleSalvarOperacional = async () => {
           >
             <AddCircleOutlineIcon sx={{ fontSize: 25, color: "#312783" }} />
           </Button>
-          <TextField
-            label="E-mails adicionais para essa Diretriz (separe por vírgula)"
-            value={(emailsEstrategicas[estrategica.id] || []).join(", ")}
-            onChange={(e) =>
-              handleChangeEmailsEstrategicas(estrategica.id, e.target.value)
-            }
-            fullWidth
-            sx={{ mt: 2 }}  
-          />
+          
 
           <Button
             variant="contained"
