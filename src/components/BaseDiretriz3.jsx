@@ -37,6 +37,9 @@ const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacio
 
   const [areasoperacionalSelecionadas, setAreasoperacionalSelecionadas] = useState([]);
   const [operacional, setOperacional] = useState(propOperacional || []);
+
+  const [estrategica, setEstrategica] = useState("");
+  const [emailsEstrategicas, setEmailsEstrategicas] = useState({});
   
 
   const [novaEstrategica, setNovaEstrategica] = useState("");
@@ -526,15 +529,21 @@ const areaRolesMap = {
         return;
       }
   
+      // ✅ Anexar os e-mails manuais dentro de cada estratégica
+      const estrategicasComEmails = estrategicas.map((estrategica) => ({
+        ...estrategica,
+        emails: emailsEstrategicas[estrategica.id] || [],
+      }));
+  
       const projetoRef = doc(db, "projetos", projectId);
       await updateDoc(projetoRef, {
-        estrategicas,
+        estrategicas: estrategicasComEmails,
         areasResponsaveis: areasSelecionadas,
         unidadesRelacionadas: unidadeSelecionadas,
         updatedAt: new Date(),
       });
   
-      // Enviar notificação e e-mail
+      // ✅ Enviar notificações e e-mails para usuários das áreas
       const rolesVinculados = areasSelecionadas.flatMap(
         (areaId) => areaRolesMap[areaId] || []
       );
@@ -570,12 +579,45 @@ const areaRolesMap = {
         })
       );
   
+      // ✅ Enviar e-mail para os e-mails manuais
+      const emailsManuais = Object.values(emailsEstrategicas).flat();
+  
+      if (emailsManuais.length > 0) {
+        await Promise.all(
+          emailsManuais.map(async (email) => {
+            await fetch("https://fokus360-backend.vercel.app/send-task-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: email,
+                tituloTarefa: "Nova Diretriz Estratégica",
+                assuntoTarefa:
+                  "Foi criada uma nova diretriz estratégica vinculada ao seu e-mail.",
+                prazoTarefa: "Sem prazo",
+              }),
+            });
+          })
+        );
+      }
+  
       alert("✅ Diretrizes Estratégicas salvas e notificações enviadas!");
     } catch (error) {
       console.error("Erro ao salvar diretrizes estratégicas:", error);
       alert("Erro ao salvar diretrizes. Tente novamente.");
     }
   };
+  
+  
+
+//função para atualizar os e-mails digitados por diretriz estratégica
+  const handleChangeEmailsEstrategicas = (id, value) => {
+    const emails = value.split(",").map((email) => email.trim());
+    setEmailsEstrategicas((prev) => ({
+      ...prev,
+      [id]: emails,
+    }));
+  };
+  
   
   
   //=============================================================================================================
@@ -904,6 +946,15 @@ const handleSalvarOperacional = async () => {
           >
             <AddCircleOutlineIcon sx={{ fontSize: 25, color: "#312783" }} />
           </Button>
+          <TextField
+            label="E-mails adicionais para essa Diretriz (separe por vírgula)"
+            value={(emailsEstrategicas[estrategica.id] || []).join(", ")}
+            onChange={(e) =>
+              handleChangeEmailsEstrategicas(estrategica.id, e.target.value)
+            }
+            fullWidth
+            sx={{ mt: 2 }}  
+          />
 
           <Button
             variant="contained"
@@ -918,6 +969,7 @@ const handleSalvarOperacional = async () => {
           >
             SALVAR DIRETRIZES ESTRATÉGICAS
           </Button>
+          
         </Box>
       </Box>
 
