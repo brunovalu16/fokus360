@@ -662,38 +662,39 @@ const areaRolesMap = {
       });
   
       // ✅ Enviar notificações para perfis vinculados às áreas
-      const rolesVinculados = areasSelecionadas.flatMap(
-        (areaId) => areaRolesMap[areaId] || []
-      );
-  
-      if (rolesVinculados.length > 0) {
-        const usuarios = await buscarUsuariosPorRole(rolesVinculados);
-  
-        await Promise.all(
-          usuarios.map(async (user) => {
-            await fetch("https://fokus360-backend.vercel.app/send-notification", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                userId: user.id,
-                mensagem: "Nova Diretriz Tática criada para sua área.",
-              }),
-            });
-  
-            await fetch("https://fokus360-backend.vercel.app/send-task-email", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: user.email,
-                tituloTarefa: "Nova Diretriz Tática",
-                assuntoTarefa: "Foi criada uma nova diretriz tática vinculada à sua área.",
-                prazoTarefa: "Sem prazo",
-              }),
-            });
-          })
-        );
-      }
-  
+     // ✅ Enviar notificações para perfis vinculados às áreas da TÁTICA
+const rolesVinculados = areastaticasSelecionadas.flatMap(
+  (areaId) => areaRolesMap[areaId] || []
+);
+
+if (rolesVinculados.length > 0) {
+  const usuarios = await buscarUsuariosPorRole(rolesVinculados);
+
+  await Promise.all(
+    usuarios.map(async (user) => {
+      await fetch("https://fokus360-backend.vercel.app/send-notification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          mensagem: "Nova Diretriz Tática criada para sua área.",
+        }),
+      });
+
+      await fetch("https://fokus360-backend.vercel.app/send-task-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user.email,
+          tituloTarefa: "Nova Diretriz Tática",
+          assuntoTarefa: "Foi criada uma nova diretriz tática vinculada à sua área.",
+          prazoTarefa: "Sem prazo",
+        }),
+      });
+    })
+  );
+}
+
       // ✅ Enviar e-mail para os e-mails manuais digitados
       const emailsManuais = allTaticas
         .flatMap((tatica) => tatica.emails || [])
