@@ -331,18 +331,18 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       return;
     }
   
-    const emailsDigitados = emailsTaticas[idEstrategica] || "";
+    const emailsDigitados = emailsTaticasInput[idEstrategica] || "";
     const emails = emailsDigitados
       .split(",")
       .map((email) => email.trim())
-      .filter((email) => email !== ""); // agora igual à Estratégica
+      .filter((email) => email !== "");
   
     const novo = {
       id: Date.now(),
       titulo,
       descricao,
       operacionais: [],
-      emails,
+      emails, // ✅ Agora ele vai salvar o que digitou
     };
   
     const atualizadas = estrategicas.map((est) => {
@@ -353,9 +353,9 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
     });
   
     setEstrategicas(atualizadas);
-  
     onUpdate && onUpdate(atualizadas);
   };
+  
   
   
   
