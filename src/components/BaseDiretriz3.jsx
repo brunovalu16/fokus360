@@ -708,8 +708,7 @@ const areaRolesMap = {
               body: JSON.stringify({
                 email: email,
                 tituloTarefa: "Nova Diretriz Tática",
-                assuntoTarefa:
-                  "Foi criada uma nova diretriz tática vinculada ao seu e-mail.",
+                assuntoTarefa: "Foi criada uma nova diretriz tática vinculada ao seu e-mail.",
                 prazoTarefa: "Sem prazo",
               }),
             });
@@ -723,6 +722,7 @@ const areaRolesMap = {
       alert("Erro ao salvar táticas. Tente novamente.");
     }
   };
+  
   
 
   
@@ -1151,13 +1151,19 @@ const handleSalvarOperacional = async () => {
 
   {/* E-mails adicionais */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
-    <TextField
+      <TextField
       label="E-mails adicionais (separe por vírgula)"
-      value={emailsTaticas}
-      onChange={(e) => setEmailsTaticas(e.target.value)}
+      value={emailsTaticas[estrategica.id] || ""}
+      onChange={(e) =>
+        setEmailsTaticas((prev) => ({
+          ...prev,
+          [estrategica.id]: e.target.value,
+        }))
+      }
       fullWidth
       sx={{ backgroundColor: "#fff" }}
     />
+
   </Box>
 </Box>
 
