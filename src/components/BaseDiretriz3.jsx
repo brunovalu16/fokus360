@@ -889,16 +889,7 @@ const handleSalvarOperacional = async () => {
           onChange={(e) => setNovaEstrategica(e.target.value)}
           fullWidth
         />
-        {/** 
-        <TextField
-          label="Descrição da Diretriz Estratégica..."
-          value={descEstrategica}
-          onChange={(e) => setDescEstrategica(e.target.value)}
-          fullWidth
-          multiline
-          rows={2}
-        />
-        */}
+        
         <Box
           sx={{
             display: "flex",
@@ -1167,18 +1158,39 @@ const handleSalvarOperacional = async () => {
 
   {/* E-mails adicionais */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
-    <TextField
-      label="E-mails adicionais (separe por vírgula)"
-      value={emailsTaticasInput[estrategica.id] || ""}
-      onChange={(e) =>
-        setEmailsTaticasInput((prev) => ({
-          ...prev,
-          [estrategica.id]: e.target.value,
-        }))
-      }
-      fullWidth
-      sx={{ backgroundColor: "#fff" }}
-    />
+  <TextField
+  label="E-mails adicionais (separe por vírgula)"
+  value={emailsTaticasInput[estrategica.id] || ""}
+  onChange={(e) => {
+    const value = e.target.value;
+    setEmailsTaticasInput((prev) => ({
+      ...prev,
+      [estrategica.id]: value,
+    }));
+
+    // Atualiza também o estado das táticas
+    setEstrategicas((prev) =>
+      prev.map((est) => {
+        if (est.id === estrategica.id) {
+          return {
+            ...est,
+            taticas: est.taticas.map((tatica) => ({
+              ...tatica,
+              emails: value
+                .split(",")
+                .map((email) => email.trim())
+                .filter((email) => email !== ""),
+            })),
+          };
+        }
+        return est;
+      })
+    );
+  }}
+  fullWidth
+  sx={{ backgroundColor: "#fff" }}
+/>
+
 
 
   </Box>
