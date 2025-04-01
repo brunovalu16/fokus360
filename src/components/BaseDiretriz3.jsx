@@ -335,14 +335,14 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
     const emails = emailsDigitados
       .split(",")
       .map((email) => email.trim())
-      .filter((email) => email !== "");
+      .filter((email) => email !== ""); // agora igual à Estratégica
   
     const novo = {
       id: Date.now(),
       titulo,
       descricao,
       operacionais: [],
-      emails, // agora está certo!
+      emails,
     };
   
     const atualizadas = estrategicas.map((est) => {
@@ -353,8 +353,10 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
     });
   
     setEstrategicas(atualizadas);
+  
     onUpdate && onUpdate(atualizadas);
   };
+  
   
   
 
