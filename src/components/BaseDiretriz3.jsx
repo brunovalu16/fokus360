@@ -42,6 +42,8 @@ const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacio
   const [emailsDigitados, setEmailsDigitados] = useState("");
 
   const [emailsTaticas, setEmailsTaticas] = useState({});
+
+  const [emailsTaticasInput, setEmailsTaticasInput] = useState({});
   
 
   const [novaEstrategica, setNovaEstrategica] = useState("");
@@ -67,8 +69,13 @@ const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacio
     },
     });
 
-
-
+//estado separado para controlar os campos de formulário E-mails Estratégicas e Táticas 
+    const [inputEstrategica, setInputEstrategica] = useState({
+      titulo: "",
+      descricao: "",
+      emails: "",
+    });
+    
 
 
 
@@ -281,14 +288,14 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
     const emails = emailsDigitados
       .split(",")
       .map((email) => email.trim())
-      .filter((email) => email !== ""); // remove vazios
+      .filter((email) => email !== "");
   
     const item = {
       id: Date.now(),
       titulo: novaEstrategica,
       descricao: descEstrategica,
       taticas: [],
-      emails, // ✅ Adicionando aqui
+      emails,
     };
   
     const atualizado = [...estrategicas, item];
@@ -298,8 +305,9 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   
     setNovaEstrategica("");
     setDescEstrategica("");
-    //setEmailsDigitados(""); // limpa os e-mails
+    /** Não limpa os e-mails **/
   };
+  
   
   
 
@@ -481,9 +489,13 @@ const saveEstrategicas = async (projectId, novoArray) => {
 //limpa estado quando sai da pagina
 useEffect(() => {
   return () => {
-    setLimpaEstado(true); // quando desmontar
+    setLimpaEstado(true);
+    setEmailsDigitados(""); // limpa o campo Estratégico
+    setEmailsTaticasInput({}); // limpa os campos das Táticas
   };
 }, []);
+
+
 
 
 
@@ -951,15 +963,17 @@ const handleSalvarOperacional = async () => {
           </Select>
 
           <TextField
-          label="E-mails adicionais (separe por vírgula)"
-          value={emailsDigitados}
-          onChange={(e) => setEmailsDigitados(e.target.value)}
-          sx={{
-            minWidth: "300px",
-            backgroundColor: "#fff",
-            marginTop: "10px",
-          }}
-        />
+            label="E-mails adicionais (separe por vírgula)"
+            value={emailsDigitados}
+            onChange={(e) => setEmailsDigitados(e.target.value)}
+            sx={{
+              minWidth: "300px",
+              backgroundColor: "#fff",
+              marginTop: "10px",
+            }}
+          />
+
+
 
 
           <Button
@@ -1146,11 +1160,11 @@ const handleSalvarOperacional = async () => {
 
   {/* E-mails adicionais */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
-      <TextField
+    <TextField
       label="E-mails adicionais (separe por vírgula)"
-      value={emailsTaticas[estrategica.id] || ""}
+      value={emailsTaticasInput[estrategica.id] || ""}
       onChange={(e) =>
-        setEmailsTaticas((prev) => ({
+        setEmailsTaticasInput((prev) => ({
           ...prev,
           [estrategica.id]: e.target.value,
         }))
@@ -1158,6 +1172,7 @@ const handleSalvarOperacional = async () => {
       fullWidth
       sx={{ backgroundColor: "#fff" }}
     />
+
 
   </Box>
 </Box>
