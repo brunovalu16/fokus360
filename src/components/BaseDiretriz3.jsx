@@ -399,16 +399,23 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   const handleAddOperacional = (idEstrategica, idTatica, titulo, descricao) => {
     if (!titulo.trim()) {
       alert("Preencha o nome da Diretriz Operacional!");
-      //alert("Preencha o nome e a descrição da Diretriz Operacional!");
       return;
     }
+  
+    const emailsInput = emailsOperacionaisInput[idTatica] || "";
+    const emails = emailsInput
+      .split(",")
+      .map((email) => email.trim())
+      .filter((email) => email !== "");
+  
     const novo = {
       id: Date.now(),
       titulo,
       descricao,
       tarefas: [],
-      emails: [],
+      emails, // ✅ Agora vem certo
     };
+  
     const atualizadas = estrategicas.map((est) => {
       if (est.id === idEstrategica) {
         const novasTaticas = est.taticas.map((t) => {
@@ -424,12 +431,18 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       }
       return est;
     });
+  
     setEstrategicas(atualizadas);
-  
-    console.log("📌 Atualizando lista de diretrizes (Operacionais):", JSON.stringify(atualizadas, null, 2));
-  
     onUpdate && onUpdate(atualizadas);
+    console.log("📌 Diretriz Operacional atualizada com e-mail:", atualizadas);
+  
+    // Limpa o campo input visualmente (opcional)
+    setEmailsOperacionaisInput((prev) => ({
+      ...prev,
+      [idTatica]: "",
+    }));
   };
+  
   
 
   // -------------------------------------
@@ -1435,14 +1448,13 @@ await Promise.all(
 
                   <TextField
                     label="E-mails adicionais (separe por vírgula)"
-                    value={emailsOperacionaisInput[operacional.id] || ""}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setEmailsOperacionaisInput((prev) => ({
-                        ...prev,
-                        [operacional.id]: value,
-                      }));
-
+                    value={emailsOperacionaisInput[tatica.id] || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setEmailsOperacionaisInput((prev) => ({
+                          ...prev,
+                          [tatica.id]: value,
+                        }));
                       // Atualiza direto no estado
                       setEstrategicas((prev) =>
                         prev.map((est) => ({
