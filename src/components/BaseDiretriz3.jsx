@@ -44,6 +44,8 @@ const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacio
   const [emailsTaticas, setEmailsTaticas] = useState({});
 
   const [emailsTaticasInput, setEmailsTaticasInput] = useState({});
+
+  const [emailsOperacionaisInput, setEmailsOperacionaisInput] = useState({});
   
 
   const [novaEstrategica, setNovaEstrategica] = useState("");
@@ -838,6 +840,30 @@ const handleSalvarOperacional = async () => {
       })
     );
 
+    // ✅ Enviar e-mails para os e-mails manuais digitados
+const emailsManuais = allOperacional
+.flatMap((op) => op.emails || [])
+.filter((email) => email.trim() !== "");
+
+if (emailsManuais.length > 0) {
+await Promise.all(
+  emailsManuais.map(async (email) => {
+    await fetch("https://fokus360-backend.vercel.app/send-task-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: email,
+        tituloTarefa: "Nova Diretriz Operacional",
+        assuntoTarefa:
+          "Foi criada uma nova diretriz operacional vinculada ao seu e-mail.",
+        prazoTarefa: "Sem prazo",
+      }),
+    });
+  })
+);
+}
+
+
     await Promise.all(
       allOperacional.flatMap((operacional) =>
         (operacional.tarefas || []).flatMap((tarefa) => {
@@ -1403,6 +1429,43 @@ const handleSalvarOperacional = async () => {
                       ))}
                     </Select>
                   </Box>
+
+                  <TextField
+                    label="E-mails adicionais (separe por vírgula)"
+                    value={emailsOperacionaisInput[operacional.id] || ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setEmailsOperacionaisInput((prev) => ({
+                        ...prev,
+                        [operacional.id]: value,
+                      }));
+
+                      // Atualiza direto no estado
+                      setEstrategicas((prev) =>
+                        prev.map((est) => ({
+                          ...est,
+                          taticas: est.taticas.map((tat) => ({
+                            ...tat,
+                            operacionais: tat.operacionais.map((op) => {
+                              if (op.id === operacional.id) {
+                                return {
+                                  ...op,
+                                  emails: value
+                                    .split(",")
+                                    .map((email) => email.trim())
+                                    .filter((email) => email !== ""),
+                                };
+                              }
+                              return op;
+                            }),
+                          })),
+                        }))
+                      );
+                    }}
+                    fullWidth
+                    sx={{ backgroundColor: "#fff", marginTop: "10px", marginBottom: "10px" }}
+                  />
+
 
                   {/* Form para adicionar Operacional */}
                   <NovaOperacionalForm
