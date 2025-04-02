@@ -775,9 +775,11 @@ const handleSalvarOperacional = async () => {
           titulo: operacional.titulo,
           descricao: operacional.descricao,
           tarefas: operacional.tarefas || [],
+          emails: operacional.emails || [], 
         }))
       )
     );
+    
 
     if (allOperacional.length === 0) {
       alert("Adicione ao menos uma Operacional.");
