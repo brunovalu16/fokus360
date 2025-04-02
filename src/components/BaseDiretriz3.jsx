@@ -407,6 +407,7 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       titulo,
       descricao,
       tarefas: [],
+      emails: [],
     };
     const atualizadas = estrategicas.map((est) => {
       if (est.id === idEstrategica) {
