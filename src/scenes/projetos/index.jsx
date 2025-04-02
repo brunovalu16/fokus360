@@ -50,6 +50,12 @@ const checkUserAssociation = async (userEmail, userId) => {
         break;
       }
 
+      // ✅ Verifica colaboradorEmail
+      if (data.colaboradorEmail === userEmail) {
+        associated = true;
+        break;
+      }
+
       // Verifica se está em operacional.emails[]
       const operacionais = data.operacional || [];
       for (let operacional of operacionais) {
@@ -82,6 +88,7 @@ const checkUserAssociation = async (userEmail, userId) => {
     setIsUserAssociated(false);
   }
 };
+
 
 
  // Verifica se o usuário logado é solicitante
