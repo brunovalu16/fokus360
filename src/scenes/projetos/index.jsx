@@ -129,6 +129,7 @@ const checkUserAssociation = async (userEmail, userId) => {
       if (currentUser) {
         setUserId(currentUser.uid);
         const email = currentUser.email;
+        await fetchUserRole(); // Primeiro busca o perfil
         await checkUserAssociation(email, currentUser.uid);
         setIsSolicitanteAssociated(await checkSolicitanteAssociation(email));
       } else {
@@ -143,16 +144,9 @@ const checkUserAssociation = async (userEmail, userId) => {
   }, []);
   
   
+  
 
-  useEffect(() => {
-    if (userId) {
-      fetchUserRole();
-      checkUserAssociation();
-      checkSolicitanteAssociation().then(setIsSolicitanteAssociated);
-    }
-  }, [userId]);
-
-  // Controla o clique nos links
+   // Controla o clique nos links
   const handleLinkClick = (e) => {
     //console.log("UserRole atual:", userRole);
     if (userRole === "08") {
@@ -198,6 +192,7 @@ const checkUserAssociation = async (userEmail, userId) => {
   
 
 
+  const hasPermission = userRole === "08" || isUserAssociated || isSolicitanteAssociated;
 
 
   return (
@@ -332,11 +327,7 @@ const checkUserAssociation = async (userEmail, userId) => {
             }}
           >
             <Link
-              to={
-                userRole === "08" || isUserAssociated || isSolicitanteAssociated
-                ? "/dashboard"
-                : "#"
-              }
+              to={hasPermission ? "/dashboard" : "#"}
               onClick={handleLinkClick}
               style={{
                 padding: "10px 20px",
@@ -361,12 +352,7 @@ const checkUserAssociation = async (userEmail, userId) => {
             }}
           >
             <Link
-              to={
-                userRole === "08" || isUserAssociated || isSolicitanteAssociated
-                  ? "/listaprojetos"
-                  : "#"
-                 
-              }
+              to={hasPermission ? "/listaprojetos" : "#"}
               onClick={handleLinkClick}
               style={{
                 backgroundColor: "transparent",
@@ -389,12 +375,7 @@ const checkUserAssociation = async (userEmail, userId) => {
             }}
           >
             <Link
-              to={
-                userRole === "08" || isUserAssociated || isSolicitanteAssociated
-                  ? "/Listafluxograma"
-                  : "#"
-                 
-              }
+              to={hasPermission ? "/Listafluxograma" : "#"}
               onClick={handleLinkClick}
               style={{
                 backgroundColor: "transparent",
