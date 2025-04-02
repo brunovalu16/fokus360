@@ -33,7 +33,6 @@ const checkUserAssociation = async (userEmail, userId) => {
 
   try {
     const projetosSnapshot = await getDocs(collection(dbFokus360, "projetos"));
-
     let associated = false;
 
     for (let docSnap of projetosSnapshot.docs) {
@@ -51,7 +50,17 @@ const checkUserAssociation = async (userEmail, userId) => {
         break;
       }
 
-      // Verifica se o usuário está como responsável nas tarefas
+      // Verifica se está em operacional.emails[]
+      const operacionais = data.operacional || [];
+      for (let operacional of operacionais) {
+        if (operacional.emails && operacional.emails.includes(userEmail)) {
+          associated = true;
+          break;
+        }
+      }
+      if (associated) break;
+
+      // Verifica se está nas tarefas (planoDeAcao.quem)
       const diretrizes = data.diretrizes || [];
       for (let diretriz of diretrizes) {
         const tarefas = diretriz.tarefas || [];
@@ -65,12 +74,6 @@ const checkUserAssociation = async (userEmail, userId) => {
         }
         if (associated) break;
       }
-
-      // Verifica se o e-mail está nas diretrizes (estratégicas, táticas, operacionais)
-      if (isUserInDiretrizes(data, userEmail)) {
-        associated = true;
-        break;
-      }
     }
 
     setIsUserAssociated(associated);
@@ -79,6 +82,7 @@ const checkUserAssociation = async (userEmail, userId) => {
     setIsUserAssociated(false);
   }
 };
+
 
  // Verifica se o usuário logado é solicitante
  const checkSolicitanteAssociation = async (userEmail) => {
@@ -124,10 +128,9 @@ const checkUserAssociation = async (userEmail, userId) => {
     const unsubscribe = onAuthStateChanged(authFokus360, async (currentUser) => {
       if (currentUser) {
         setUserId(currentUser.uid);
-  
         const email = currentUser.email;
-        setIsSolicitanteAssociated(await checkSolicitanteAssociation(email));
         await checkUserAssociation(email, currentUser.uid);
+        setIsSolicitanteAssociated(await checkSolicitanteAssociation(email));
       } else {
         setUserId(null);
         setIsUserAssociated(false);
@@ -138,6 +141,7 @@ const checkUserAssociation = async (userEmail, userId) => {
   
     return () => unsubscribe();
   }, []);
+  
   
 
   useEffect(() => {
