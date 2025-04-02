@@ -25,28 +25,33 @@ const Projetos = () => {
   //const authFokus360 = getAuth(appFokus360 );
 
 // Verifica se o usuário está associado a algum projeto
-const checkUserAssociation = async () => {
+const checkUserAssociation = async (userEmail, userId) => {
   if (!userId) {
-    //console.log("Nenhum usuário logado.");
     setIsUserAssociated(false);
     return;
   }
 
   try {
-    const projetosSnapshot = await getDocs(collection(dbFokus360, "projetos")); // Para Fokus360
+    const projetosSnapshot = await getDocs(collection(dbFokus360, "projetos"));
 
     let associated = false;
 
     for (let docSnap of projetosSnapshot.docs) {
       const data = docSnap.data();
 
-      // Verifica se o usuário é um colaborador
+      // Verifica colaboradores por userId
       if (Array.isArray(data.colaboradores) && data.colaboradores.includes(userId)) {
         associated = true;
         break;
       }
 
-      // Verifica se o usuário está em algum "quem" nas diretrizes/tarefas
+      // Verifica solicitanteEmail
+      if (data.solicitanteEmail === userEmail) {
+        associated = true;
+        break;
+      }
+
+      // Verifica se o usuário está como responsável nas tarefas
       const diretrizes = data.diretrizes || [];
       for (let diretriz of diretrizes) {
         const tarefas = diretriz.tarefas || [];
@@ -60,7 +65,12 @@ const checkUserAssociation = async () => {
         }
         if (associated) break;
       }
-      if (associated) break;
+
+      // Verifica se o e-mail está nas diretrizes (estratégicas, táticas, operacionais)
+      if (isUserInDiretrizes(data, userEmail)) {
+        associated = true;
+        break;
+      }
     }
 
     setIsUserAssociated(associated);
@@ -71,35 +81,23 @@ const checkUserAssociation = async () => {
 };
 
  // Verifica se o usuário logado é solicitante
- const checkSolicitanteAssociation = async () => {
+ const checkSolicitanteAssociation = async (userEmail) => {
   try {
-    const user = authFokus360.currentUser;
-
-    if (!user) {
-      //console.log("Nenhum usuário logado.");
-      return false;
-    }
-
-    const userEmail = user.email;
-    //console.log("E-mail do usuário logado:", userEmail);
-
-    const projetosSnapshot = await getDocs(collection(db, "projetos"));
+    const projetosSnapshot = await getDocs(collection(dbFokus360, "projetos"));
 
     for (let docSnap of projetosSnapshot.docs) {
       const data = docSnap.data();
       if (data.solicitanteEmail === userEmail) {
-        //console.log(`Usuário associado como solicitante no projeto: ${docSnap.id}`);
         return true;
       }
     }
-
-    //console.log("Usuário não associado como solicitante.");
     return false;
   } catch (error) {
-    //console.error("Erro ao verificar associação como solicitante:", error);
+    console.error("Erro ao verificar associação como solicitante:", error);
     return false;
   }
 };
+
 
   // Busca o perfil do usuário no Firestore
   const fetchUserRole = async () => {
@@ -119,27 +117,28 @@ const checkUserAssociation = async () => {
       //console.error("Erro ao buscar perfil do usuário no Firestore:", error);
     }
   };
-  
-
-  
+ 
 
   // Verifica a associação do usuário após logar
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(authFokus360, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(authFokus360, async (currentUser) => {
       if (currentUser) {
-        //console.log(`Usuário logado: ${currentUser.uid}`);
         setUserId(currentUser.uid);
+  
+        const email = currentUser.email;
+        setIsSolicitanteAssociated(await checkSolicitanteAssociation(email));
+        await checkUserAssociation(email, currentUser.uid);
       } else {
-        //console.log("Nenhum usuário logado.");
         setUserId(null);
         setIsUserAssociated(false);
         setIsSolicitanteAssociated(false);
         setUserRole(null);
       }
     });
-
+  
     return () => unsubscribe();
   }, []);
+  
 
   useEffect(() => {
     if (userId) {
@@ -162,6 +161,37 @@ const checkUserAssociation = async () => {
       setIsModalOpen(true);
     }
   };
+
+
+//função para buscar e validar os e-mails nas diretrizes
+  const isUserInDiretrizes = (projeto, userEmail) => {
+    const estrategicas = projeto.estrategicas || [];
+  
+    for (let estrategica of estrategicas) {
+      // Verifica em estrategica.emails
+      if (estrategica.emails && estrategica.emails.includes(userEmail)) {
+        return true;
+      }
+  
+      const taticas = estrategica.taticas || [];
+      for (let tatica of taticas) {
+        // Verifica em tatica.emails
+        if (tatica.emails && tatica.emails.includes(userEmail)) {
+          return true;
+        }
+  
+        const operacionais = tatica.operacionais || [];
+        for (let operacional of operacionais) {
+          // Verifica em operacional.emails
+          if (operacional.emails && operacional.emails.includes(userEmail)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  };
+  
 
 
 
