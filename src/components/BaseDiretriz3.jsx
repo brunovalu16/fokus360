@@ -533,31 +533,16 @@ useEffect(() => {
         return;
       }
   
-      const todasEstrategicas = estrategicas || [];
-
-  
-      const estrategicaParaSalvar = todasEstrategicas.find(e => e.id === idEstrategica);
-  
-      if (!estrategicaParaSalvar) {
-        alert("Estratégica não encontrada!");
-        return;
-      }
-  
       const projetoRef = doc(dbFokus360, "projetos", projectId);
   
+      console.log("🔍 Estratégicas que serão salvas:", JSON.stringify(estrategicas, null, 2));
+  
       await updateDoc(projetoRef, {
-        estrategicas: todasEstrategicas,
+        estrategicas: estrategicas, // Aqui usa o estado correto que contém tudo!
         updatedAt: new Date(),
       });
   
-      // 🔄 Atualiza também o estado local
-      setInformacoesPlanejamento(prev => ({
-        ...prev,
-        estrategicas,
-      }));
-      
       alert("✅ Tática salva com sucesso!");
-  
     } catch (error) {
       console.error("❌ Erro ao salvar tática individual:", error);
       alert("Erro ao salvar tática. Tente novamente.");
