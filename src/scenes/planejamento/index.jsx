@@ -297,43 +297,7 @@ const Planejamento = () => {
   
 
 
-//Função para salvar apenas a parte de InformacoesPlanejamento
-  const handleSalvarInformacoesPlanejamento = async () => {
-    try {
-      if (!informacoesPlanejamento.nome.trim()) {
-        alert("O nome do projeto é obrigatório!");
-        return;
-      }
-  
-      const projetoData = {
-        nome: informacoesPlanejamento.nome,
-        descricao: informacoesPlanejamento.descricao,
-        dataInicio: informacoesPlanejamento.dataInicio,
-        prazoPrevisto: informacoesPlanejamento.prazoPrevisto,
-        unidade: informacoesPlanejamento.unidade,
-        solicitante: informacoesPlanejamento.solicitante,
-        solicitanteEmail: informacoesPlanejamento.solicitanteEmail,
-        colaboradorEmail: informacoesPlanejamento.colaboradorEmail,
-        categoria: informacoesPlanejamento.categoria,
-        colaboradores: informacoesPlanejamento.colaboradores,
-        orcamento: informacoesPlanejamento.orcamento,
-        createdAt: new Date(),
-      };
-  
-      // 👉 Salvar no Firestore
-      const projetoRef = doc(collection(dbFokus360, "projetos"));
-      await setDoc(projetoRef, projetoData);
-      setProjectId(projetoRef.id); // 🔥 Importante: guardar o ID do projeto salvo
-  
-      setShowAlert(true);
-      setMensagem(true);
-      console.log("✅ Informações do projeto salvas com sucesso!");
-  
-    } catch (error) {
-      console.error("❌ Erro ao salvar informações do projeto:", error.message);
-      alert("Erro ao salvar informações. Tente novamente.");
-    }
-  };
+
 
 
 

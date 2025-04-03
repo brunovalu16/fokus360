@@ -273,34 +273,21 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   // -------------------------------------
   //|| !descEstrategica.trim()
 
-  const handleAddEstrategica = () => {
-    if (!novaEstrategica.trim()) {
-      alert("Preencha o nome da Diretriz Estratégica!");
-      return;
-    }
-  
-    const emails = emailsDigitados
-      .split(",")
-      .map((email) => email.trim())
-      .filter((email) => email !== "");
-  
-    const item = {
+  const handleAddEstrategica = (titulo, descricao) => {
+    const novaEstrategica = {
       id: Date.now(),
-      titulo: novaEstrategica,
-      descricao: descEstrategica,
+      titulo,
+      descricao,
       taticas: [],
-      emails,
+      emails: [],
     };
   
-    const atualizado = [...estrategicas, item];
-    setEstrategicas(atualizado);
-  
-    onUpdate && onUpdate(atualizado);
-  
-    setNovaEstrategica("");
-    setDescEstrategica("");
-    /** Não limpa os e-mails **/
+    setInformacoesPlanejamento((prev) => ({
+      ...prev,
+      estrategicas: [...(prev.estrategicas || []), novaEstrategica],
+    }));
   };
+  
   
   
   
@@ -320,38 +307,33 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   //|| !descricao.trim()
 
   const handleAddTatica = (idEstrategica, titulo, descricao) => {
-    if (!titulo.trim()) {
-      alert("Preencha o nome da Diretriz Tática!");
-      return;
-    }
+    setInformacoesPlanejamento((prevState) => {
+      const novasEstrategicas = prevState.estrategicas.map((estrategica) => {
+        if (estrategica.id === idEstrategica) {
+          return {
+            ...estrategica,
+            taticas: [
+              ...(estrategica.taticas || []),
+              {
+                id: Date.now(),
+                titulo,
+                descricao,
+                operacionais: [],
+                emails: [],
+              },
+            ],
+          };
+        }
+        return estrategica;
+      });
   
-    const emailsInput = emailsTaticasInput[idEstrategica] || "";
-    const emails = emailsInput
-      .split(",")
-      .map((email) => email.trim())
-      .filter((email) => email !== "");
-  
-    const novaTatica = {
-      id: Date.now(),
-      titulo,
-      descricao,
-      operacionais: [],
-      emails,
-    };
-  
-    // Atualiza apenas no estado local
-    const atualizadas = estrategicas.map((est) => {
-      if (est.id === idEstrategica) {
-        return { ...est, taticas: [...est.taticas, novaTatica] };
-      }
-      return est;
+      return {
+        ...prevState,
+        estrategicas: novasEstrategicas,
+      };
     });
-  
-    setEstrategicas(atualizadas);
-    onUpdate && onUpdate(atualizadas);
-  
-
   };
+  
   
 
 
