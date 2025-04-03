@@ -40,8 +40,10 @@ const Planejamento = () => {
     categoria: "",
     colaboradores: [],
     orcamento: "",
-    diretrizes: [],
+    estrategicas: [],
   });
+
+  
 
   useEffect(() => {
     //console.log("📌 Estado atualizado de informacoesPlanejamento antes de salvar:", informacoesPlanejamento);
@@ -49,6 +51,68 @@ const Planejamento = () => {
   
 
   const diretrizes = InformacoesPlanejamento.diretrizes;
+
+
+  const handleSalvarEstrategicasNoFirestore = async (novoArrayEstrategicas) => {
+    try {
+      if (!projectId) {
+        alert("Project ID não definido. Salve primeiro as informações do projeto (para ter um ID).");
+        return;
+      }
+
+      const docRef = doc(dbFokus360, "projetos", projectId);
+
+      // A ideia é mandar todo o informacoesPlanejamento, mas atualizando
+      // a parte de "estrategicas" com o array novo que o BaseDiretriz3 passou.
+      await updateDoc(docRef, {
+        ...informacoesPlanejamento,
+        estrategicas: novoArrayEstrategicas,
+        updatedAt: new Date(),
+      });
+
+      // Atualiza no state local, pra ficar coerente
+      setInformacoesPlanejamento((prev) => ({
+        ...prev,
+        estrategicas: novoArrayEstrategicas,
+      }));
+
+      alert("Estratégicas salvas com sucesso!");
+    } catch (error) {
+      console.error("Erro ao salvar estratégicas:", error);
+      alert("Erro ao salvar estratégicas. Verifique console.");
+    }
+  };
+
+
+   // 3) Função p/ SALVAR INFORMAÇÕES GERAIS DO PROJETO
+  // (exemplo de como você já faz)
+  // -----------------------------
+  const handleSalvarInformacoesPlanejamento = async () => {
+    try {
+      if (!informacoesPlanejamento.nome.trim()) {
+        alert("O nome do projeto é obrigatório!");
+        return;
+      }
+
+      // Monta o objeto p/ Firestore
+      const projetoData = {
+        ...informacoesPlanejamento,
+        createdAt: new Date(),
+      };
+
+      // Exemplo: se for criar um novo doc
+      const novoDocRef = doc(collection(dbFokus360, "projetos"));
+      await setDoc(novoDocRef, projetoData);
+
+      // Guardamos o ID
+      setProjectId(novoDocRef.id);
+
+      alert("Informações gerais salvas com sucesso! Project ID: " + novoDocRef.id);
+    } catch (error) {
+      console.error("Erro ao salvar informações:", error);
+      alert("Erro ao salvar informações. Verifique console.");
+    }
+  };
 
 
 
@@ -370,11 +434,18 @@ const Planejamento = () => {
 
 
           <BaseDiretriz3
-            projectId={projectId}
-            estrategicas={informacoesPlanejamento.estrategicas}
-            onUpdate={handleEstrategicasUpdate}
-            onSalvarTaticas={handleSalvarTaticas}
-          />
+      // Aqui enviamos o array inteiro que está no state do pai
+      estrategicas={informacoesPlanejamento.estrategicas}
+      
+      // Aqui passamos uma função que, sempre que o BaseDiretriz3 mudar algo,
+      // atualiza o array no Pai.
+      onUpdate={(estrategicasAtualizadas) => {
+        setInformacoesPlanejamento((prev) => ({
+          ...prev,
+          estrategicas: estrategicasAtualizadas,
+        }));
+      }}
+    />
 
 
 
