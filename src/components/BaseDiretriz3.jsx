@@ -551,10 +551,8 @@ useEffect(() => {
         return;
       }
   
-      // Pega todas as estratégicas do estado
       const todasEstrategicas = informacoesPlanejamento.estrategicas || [];
   
-      // Filtra a estratégica específica
       const estrategicaParaSalvar = todasEstrategicas.find(e => e.id === idEstrategica);
   
       if (!estrategicaParaSalvar) {
@@ -562,13 +560,18 @@ useEffect(() => {
         return;
       }
   
-      // Atualiza só essa estratégica no Firestore (substituindo a lista inteira, mas mantendo as outras)
       const projetoRef = doc(dbFokus360, "projetos", projectId);
   
       await updateDoc(projetoRef, {
         estrategicas: todasEstrategicas,
         updatedAt: new Date(),
       });
+  
+      // 🔄 Atualiza também o estado local
+      setInformacoesPlanejamento(prev => ({
+        ...prev,
+        estrategicas: todasEstrategicas,
+      }));
   
       alert("✅ Tática salva com sucesso!");
   
