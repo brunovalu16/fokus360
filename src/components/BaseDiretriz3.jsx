@@ -27,7 +27,6 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
 
 const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacional, onUpdate, LimpaEstado }) => {
 
-  const [limpaEstado, setLimpaEstado] = useState("");
 
   const [areasSelecionadas, setAreasSelecionadas] = useState([]);
   const [estrategicas, setEstrategicas] = useState(propEstrategicas || []);
@@ -513,14 +512,7 @@ const saveEstrategicas = async (projectId, novoArray) => {
   }
 };
 
-//limpa estado quando sai da pagina
-useEffect(() => {
-  return () => {
-    setLimpaEstado(true);
-    setEmailsDigitados(""); // limpa o campo Estratégico
-    setEmailsTaticasInput({}); // limpa os campos das Táticas
-  };
-}, []);
+
 
 
 // Buscar Áreas e Unidades
@@ -552,7 +544,39 @@ useEffect(() => {
 
 
   //======================================================== ESTRATÉGICAS + MAPEAMENTO GERAL ==============================================================
-
+  const handleSalvarTaticaIndividual = async (idEstrategica) => {
+    try {
+      if (!projectId) {
+        alert("ID do projeto não encontrado.");
+        return;
+      }
+  
+      const projetoRef = doc(db, "projetos", projectId);
+  
+      // Busca projeto atual
+      const projetoSnap = await getDoc(projetoRef);
+      if (!projetoSnap.exists()) {
+        alert("Projeto não encontrado.");
+        return;
+      }
+  
+      const projetoData = projetoSnap.data();
+      const novasEstrategicas = projetoData.estrategicas.map((est) => {
+        if (est.id === idEstrategica) {
+          const estrategicaLocal = estrategicas.find((e) => e.id === idEstrategica);
+          return { ...est, taticas: estrategicaLocal.taticas };
+        }
+        return est;
+      });
+  
+      await updateDoc(projetoRef, { estrategicas: novasEstrategicas });
+      alert("✅ Táticas salvas corretamente dentro da Estratégica!");
+    } catch (error) {
+      console.error("❌ Erro ao salvar tática:", error);
+      alert("Erro ao salvar tática. Tente novamente.");
+    }
+  };
+  
 
 
 
@@ -1196,7 +1220,7 @@ await Promise.all(
                 },
               }}
               variant="contained"
-              onClick={onSalvarTaticas}
+              onClick={() => handleSalvarTaticaIndividual(estrategica.id)}
             >
               SALVAR DIRETRIZES TÁTICAS
             </Button>
