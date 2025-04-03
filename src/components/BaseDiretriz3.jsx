@@ -767,7 +767,7 @@ const areaRolesMap = {
               }),
             });
           })
-        );
+        );  
       }
   
       alert("✅ Táticas salvas corretamente dentro das Estratégicas!");
