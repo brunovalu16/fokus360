@@ -294,7 +294,7 @@ const Planejamento = () => {
       alert("Erro ao adicionar projeto. Tente novamente.");
     }
   };
-  
+    
 
 
   return (

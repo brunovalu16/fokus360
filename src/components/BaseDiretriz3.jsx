@@ -133,7 +133,8 @@ useEffect(() => {
 
 useEffect(() => {
   if (onUpdate && estrategicas.length > 0) {
-    console.log("📢 BaseDiretriz enviando estratégicas para CadastroProjetos:", JSON.stringify(estrategicas, null, 2));
+    console.log("📤 BaseDiretriz3 atualizou estratégias:", JSON.stringify(estrategicas, null, 2));
+
     onUpdate([...estrategicas]);
   }
 }, [estrategicas]);
@@ -305,6 +306,8 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       descricao,
       operacionais: [],
       emails: [],
+      areas: areastaticasSelecionadas,
+      unidade: unidadeSelecionadas
     };
   
     console.log("🆕 Nova Tática:", novaTatica);
@@ -396,13 +399,16 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       .map((email) => email.trim())
       .filter((email) => email !== "");
   
-    const novo = {
-      id: Date.now(),
-      titulo,
-      descricao,
-      tarefas: [],
-      emails, // ✅ Agora vem certo
-    };
+      const novo = {
+        id: Date.now(),
+        titulo,
+        descricao,
+        tarefas: [],
+        emails,
+        areas: areasoperacionalSelecionadas,
+        unidade: unidadeSelecionadas
+      };
+      
   
     const atualizadas = estrategicas.map((est) => {
       if (est.id === idEstrategica) {
