@@ -547,35 +547,37 @@ useEffect(() => {
   const handleSalvarTaticaIndividual = async (idEstrategica) => {
     try {
       if (!projectId) {
-        alert("ID do projeto não encontrado.");
+        alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
         return;
       }
   
-      const projetoRef = doc(db, "projetos", projectId);
+      // Pega todas as estratégicas do estado
+      const todasEstrategicas = informacoesPlanejamento.estrategicas || [];
   
-      // Busca projeto atual
-      const projetoSnap = await getDoc(projetoRef);
-      if (!projetoSnap.exists()) {
-        alert("Projeto não encontrado.");
+      // Filtra a estratégica específica
+      const estrategicaParaSalvar = todasEstrategicas.find(e => e.id === idEstrategica);
+  
+      if (!estrategicaParaSalvar) {
+        alert("Estratégica não encontrada!");
         return;
       }
   
-      const projetoData = projetoSnap.data();
-      const novasEstrategicas = projetoData.estrategicas.map((est) => {
-        if (est.id === idEstrategica) {
-          const estrategicaLocal = estrategicas.find((e) => e.id === idEstrategica);
-          return { ...est, taticas: estrategicaLocal.taticas };
-        }
-        return est;
+      // Atualiza só essa estratégica no Firestore (substituindo a lista inteira, mas mantendo as outras)
+      const projetoRef = doc(dbFokus360, "projetos", projectId);
+  
+      await updateDoc(projetoRef, {
+        estrategicas: todasEstrategicas,
+        updatedAt: new Date(),
       });
   
-      await updateDoc(projetoRef, { estrategicas: novasEstrategicas });
-      alert("✅ Táticas salvas corretamente dentro da Estratégica!");
+      alert("✅ Tática salva com sucesso!");
+  
     } catch (error) {
-      console.error("❌ Erro ao salvar tática:", error);
+      console.error("❌ Erro ao salvar tática individual:", error);
       alert("Erro ao salvar tática. Tente novamente.");
     }
   };
+  
   
 
 
