@@ -26,6 +26,8 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
 
 
 const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacional, onUpdate }) => {
+  const [estrategicas, setEstrategicas] = useState(propEstrategicas || []);
+
  
 
   const [areasSelecionadas, setAreasSelecionadas] = useState([]);
@@ -136,23 +138,6 @@ useEffect(() => {
 }, [estrategicas]);
 
 
-//Buscar dados do Firestore
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const docRef = doc(db, "projetos", projectId);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setEstrategicas(data.diretrizes || []);
-      }
-    } catch (error) {
-      console.error("❌ Erro ao buscar projeto:", error);
-    }
-  };
-
-  if (projectId) fetchData();
-}, [projectId]);
 
 
 
@@ -277,15 +262,17 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       id: Date.now(),
       titulo,
       descricao,
+      emails: emailsDigitados
+        .split(",")
+        .map((e) => e.trim())
+        .filter((e) => e !== ""),
       taticas: [],
-      emails: [],
     };
   
-    setInformacoesPlanejamento((prev) => ({
-      ...prev,
-      estrategicas: [...(prev.estrategicas || []), novaEstrategica],
-    }));
+    setEstrategicas((prev) => [...prev, novaEstrategica]);
+    setEmailsDigitados(""); // limpa campo
   };
+  
   
   
   
