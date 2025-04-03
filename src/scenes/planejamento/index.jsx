@@ -388,18 +388,16 @@ const Planejamento = () => {
 
 
           <BaseDiretriz3
-      // Aqui enviamos o array inteiro que está no state do pai
-      estrategicas={informacoesPlanejamento.estrategicas}
-      
-      // Aqui passamos uma função que, sempre que o BaseDiretriz3 mudar algo,
-      // atualiza o array no Pai.
-      onUpdate={(estrategicasAtualizadas) => {
-        setInformacoesPlanejamento((prev) => ({
-          ...prev,
-          estrategicas: estrategicasAtualizadas,
-        }));
-      }}
-    />
+            projectId={projectId} // 🔥 ESSENCIAL para salvar corretamente
+            estrategicas={informacoesPlanejamento.estrategicas}
+            onUpdate={(estrategicasAtualizadas) => {
+              setInformacoesPlanejamento((prev) => ({
+                ...prev,
+                estrategicas: estrategicasAtualizadas,
+              }));
+            }}
+          />
+
 
 
 

@@ -80,7 +80,14 @@ const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacio
     });
     
 
-
+    useEffect(() => {
+      if (!projectId) {
+        console.warn("⚠️ Atenção: projectId não está definido em BaseDiretriz3.");
+      } else {
+        console.log("✅ projectId recebido em BaseDiretriz3:", projectId);
+      }
+    }, [projectId]);
+    
 
 
   useEffect(() => {
