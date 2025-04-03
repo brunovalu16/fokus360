@@ -533,7 +533,8 @@ useEffect(() => {
         return;
       }
   
-      const todasEstrategicas = informacoesPlanejamento.estrategicas || [];
+      const todasEstrategicas = estrategicas || [];
+
   
       const estrategicaParaSalvar = todasEstrategicas.find(e => e.id === idEstrategica);
   
@@ -552,9 +553,9 @@ useEffect(() => {
       // 🔄 Atualiza também o estado local
       setInformacoesPlanejamento(prev => ({
         ...prev,
-        estrategicas: todasEstrategicas,
+        estrategicas,
       }));
-  
+      
       alert("✅ Tática salva com sucesso!");
   
     } catch (error) {
@@ -1196,21 +1197,21 @@ await Promise.all(
 
 
 
-            <Button
-              sx={{
-                backgroundColor: "#4caf50",
-                "&:hover": {
-                  backgroundColor: "#45a049", // Cor ao passar o mouse
-                },
-                "&:active": {
-                  backgroundColor: "#388e3c", // Cor ao clicar (pressionado)
-                },
-              }}
-              variant="contained"
-              onClick={() => handleSalvarTaticaIndividual(estrategica.id)}
-            >
-              SALVAR DIRETRIZES TÁTICAS
-            </Button>
+              <Button
+                sx={{
+                  backgroundColor: "#4caf50",
+                  "&:hover": {
+                    backgroundColor: "#45a049", // Cor ao passar o mouse
+                  },
+                  "&:active": {
+                    backgroundColor: "#388e3c", // Cor ao clicar (pressionado)
+                  },
+                }}
+                variant="contained"
+                onClick={() => handleSalvarTaticaIndividual(estrategica.id)}
+              >
+                SALVAR DIRETRIZES TÁTICAS
+              </Button>
 
             <Box
               display="flex"

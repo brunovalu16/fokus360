@@ -297,16 +297,6 @@ const Planejamento = () => {
   
 
 
-
-
-
-
- 
-  
-  
-  
-
-
   return (
     <>
       <Box sx={{ marginLeft: "40px", paddingTop: "50px" }}>
