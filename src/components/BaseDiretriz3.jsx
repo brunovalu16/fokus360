@@ -326,7 +326,7 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
     try {
       const projetoRef = doc(db, "projetos", projectId);
       await updateDoc(projetoRef, {
-        estrategicas: estrategicas, // ✅ contém tudo: táticas, operacionais, tarefas
+        estrategicas: novasEstrategicas, // ✅ contém tudo: táticas, operacionais, tarefas
         areasResponsaveis: areasSelecionadas,
         unidadesRelacionadas: unidadeSelecionadas,
         areasoperacionalSelecionadas: areasoperacionalSelecionadas,
