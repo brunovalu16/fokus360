@@ -303,9 +303,6 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
 
   const handleAddTatica = async (idEstrategica, titulo, descricao) => {
     console.log("🔹 Iniciando handleAddTatica");
-    console.log("🔹 ID Estratégica:", idEstrategica);
-    console.log("🔹 Título:", titulo);
-    console.log("🔹 Descrição:", descricao);
   
     const novaTatica = {
       id: Date.now(),
@@ -314,45 +311,42 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       operacionais: [],
       emails: [],
       areas: areastaticasSelecionadas,
-      unidade: unidadeSelecionadas
+      unidade: unidadeSelecionadas,
     };
-  
-    console.log("🆕 Nova Tática:", novaTatica);
   
     const novasEstrategicas = estrategicas.map((estrategica) => {
       if (estrategica.id === idEstrategica) {
-        const novaEstr = {
+        return {
           ...estrategica,
           taticas: [...(estrategica.taticas || []), novaTatica],
         };
-        console.log("✅ Estratégica Atualizada com nova tática:", novaEstr);
-        return novaEstr;
       }
       return estrategica;
     });
   
-    console.log("🗃️ Array completo de estratégicas para salvar:", novasEstrategicas);
-  
     try {
       const projetoRef = doc(db, "projetos", projectId);
+      const projetoSnap = await getDoc(projetoRef);
+      const projetoAtual = projetoSnap.exists() ? projetoSnap.data() : {};
+  
       await updateDoc(projetoRef, {
-        estrategicas: novasEstrategicas, // ✅ Aqui está a versão atualizada com a nova tática incluída
+        ...projetoAtual, // mantém os dados antigos
+        estrategicas: novasEstrategicas,
         areasResponsaveis: areasSelecionadas,
         unidadesRelacionadas: unidadeSelecionadas,
         areasoperacionalSelecionadas: areasoperacionalSelecionadas,
         updatedAt: new Date(),
       });
-      
-      
   
       setEstrategicas(novasEstrategicas);
       onUpdate && onUpdate(novasEstrategicas);
-      console.log("✅ Tática salva corretamente no Firestore dentro da estratégica.");
+      console.log("✅ Tática salva corretamente com merge.");
     } catch (error) {
       console.error("❌ Erro ao salvar tática:", error);
       alert("Erro ao salvar tática. Tente novamente.");
     }
   };
+  
   
   
   
