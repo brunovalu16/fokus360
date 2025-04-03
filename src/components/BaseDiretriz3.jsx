@@ -682,85 +682,7 @@ const areaRolesMap = {
 
 
 
-  //========================================= Salvar táticas ====================================================
-
-
-  const handleSalvarTaticas = async () => {
-    try {
-      if (!projectId) {
-        alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
-        return;
-      }
-  
-      const projetoRef = doc(db, "projetos", projectId);
-      await updateDoc(projetoRef, {
-        estrategicas, // Salva a árvore inteira, com táticas dentro
-        updatedAt: new Date(),
-      });
-  
-      // Notificações - mantém seu fluxo
-      const rolesVinculados = areastaticasSelecionadas.flatMap(
-        (areaId) => areaRolesMap[areaId] || []
-      );
-  
-      if (rolesVinculados.length > 0) {
-        const usuarios = await buscarUsuariosPorRole(rolesVinculados);
-  
-        await Promise.all(
-          usuarios.map(async (user) => {
-            await fetch("https://fokus360-backend.vercel.app/send-notification", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                userId: user.id,
-                mensagem: "Nova Diretriz Tática criada para sua área.",
-              }),
-            });
-  
-            await fetch("https://fokus360-backend.vercel.app/send-task-email", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: user.email,
-                tituloTarefa: "Nova Diretriz Tática",
-                assuntoTarefa: "Foi criada uma nova diretriz tática vinculada à sua área.",
-                prazoTarefa: "Sem prazo",
-              }),
-            });
-          })
-        );
-      }
-  
-      const emailsManuais = estrategicas
-        .flatMap((estrategica) =>
-          estrategica.taticas.flatMap((tatica) => tatica.emails || [])
-        )
-        .filter((email) => email.trim() !== "");
-  
-      if (emailsManuais.length > 0) {
-        await Promise.all(
-          emailsManuais.map(async (email) => {
-            await fetch("https://fokus360-backend.vercel.app/send-task-email", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: email,
-                tituloTarefa: "Nova Diretriz Tática",
-                assuntoTarefa: "Foi criada uma nova diretriz tática vinculada ao seu e-mail.",
-                prazoTarefa: "Sem prazo",
-              }),
-            });
-          })
-        );  
-      }
-  
-      alert("✅ Táticas salvas corretamente dentro das Estratégicas!");
-    } catch (error) {
-      console.error("Erro ao salvar táticas:", error);
-      alert("Erro ao salvar táticas. Tente novamente.");
-    }
-  };
-  
+ 
   
 
   
@@ -1274,7 +1196,7 @@ await Promise.all(
                 },
               }}
               variant="contained"
-              onClick={handleSalvarTaticas}
+              onClick={onSalvarTaticas}
             >
               SALVAR DIRETRIZES TÁTICAS
             </Button>
