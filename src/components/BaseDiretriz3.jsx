@@ -294,6 +294,11 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   //|| !descricao.trim()
 
   const handleAddTatica = async (idEstrategica, titulo, descricao) => {
+    console.log("🔹 Iniciando handleAddTatica");
+    console.log("🔹 ID Estratégica:", idEstrategica);
+    console.log("🔹 Título:", titulo);
+    console.log("🔹 Descrição:", descricao);
+  
     const novaTatica = {
       id: Date.now(),
       titulo,
@@ -302,15 +307,21 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       emails: [],
     };
   
+    console.log("🆕 Nova Tática:", novaTatica);
+  
     const novasEstrategicas = estrategicas.map((estrategica) => {
       if (estrategica.id === idEstrategica) {
-        return {
+        const novaEstr = {
           ...estrategica,
           taticas: [...(estrategica.taticas || []), novaTatica],
         };
+        console.log("✅ Estratégica Atualizada com nova tática:", novaEstr);
+        return novaEstr;
       }
       return estrategica;
     });
+  
+    console.log("🗃️ Array completo de estratégicas para salvar:", novasEstrategicas);
   
     try {
       const projetoRef = doc(db, "projetos", projectId);
@@ -321,12 +332,13 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   
       setEstrategicas(novasEstrategicas);
       onUpdate && onUpdate(novasEstrategicas);
-      console.log("✅ Tática salva corretamente dentro da estratégica no Firestore.");
+      console.log("✅ Tática salva corretamente no Firestore dentro da estratégica.");
     } catch (error) {
       console.error("❌ Erro ao salvar tática:", error);
       alert("Erro ao salvar tática. Tente novamente.");
     }
   };
+  
   
   
   
