@@ -112,12 +112,12 @@ const Planejamento = () => {
   //Função para adicionar projetos
   const handleAdicionarProjeto = async () => {
     try {
-      // Validação básica
       if (!informacoesPlanejamento.nome.trim()) {
         alert("O nome do projeto é obrigatório!");
         return;
       }
   
+      // Montar estrutura em ÁRVORE
       const projetoData = {
         nome: informacoesPlanejamento.nome,
         descricao: informacoesPlanejamento.descricao,
@@ -131,19 +131,27 @@ const Planejamento = () => {
         colaboradores: informacoesPlanejamento.colaboradores,
         orcamento: informacoesPlanejamento.orcamento,
         createdAt: new Date(),
-  
         diretrizes: (informacoesPlanejamento.estrategicas || []).map((estrategica) => ({
           id: estrategica.id?.toString() || Date.now().toString(),
           titulo: estrategica.titulo || "",
           descricao: estrategica.descricao || "",
+          emails: estrategica.emails || [],
+          areas: informacoesPlanejamento.areasResponsaveis || [],
+          unidade: informacoesPlanejamento.unidade,
           taticas: (estrategica.taticas || []).map((tatica) => ({
             id: tatica.id?.toString() || Date.now().toString(),
             titulo: tatica.titulo || "",
             descricao: tatica.descricao || "",
+            emails: tatica.emails || [],
+            areas: informacoesPlanejamento.areastaticasSelecionadas || [],
+            unidade: informacoesPlanejamento.unidade,
             operacionais: (tatica.operacionais || []).map((operacional) => ({
               id: operacional.id?.toString() || Date.now().toString(),
               titulo: operacional.titulo || "",
               descricao: operacional.descricao || "",
+              emails: operacional.emails || [],
+              areas: informacoesPlanejamento.areasoperacionalSelecionadas || [],
+              unidade: informacoesPlanejamento.unidade,
               tarefas: (operacional.tarefas || []).map((tarefa) => ({
                 id: tarefa.id?.toString() || Date.now().toString(),
                 tituloTarefa: tarefa.tituloTarefa || "",
@@ -163,20 +171,20 @@ const Planejamento = () => {
         })),
       };
   
-      // 👉 Salva no Firestore
+      // Salvar no Firestore
       const projetoRef = doc(collection(dbFokus360, "projetos"));
       await setDoc(projetoRef, projetoData);
   
-      // 👉 Montar lista de e-mails (colaboradores + responsáveis do plano de ação)
+      // ---------------------------
+      // Enviar E-MAILS + NOTIFICAÇÕES
+      // ---------------------------
       let emailsToNotify = [];
   
-      // E-mails dos colaboradores (campo input)
       if (informacoesPlanejamento.colaboradorEmail) {
         const colaboradores = informacoesPlanejamento.colaboradorEmail.split(/[,;]/).map(e => e.trim());
         emailsToNotify = [...emailsToNotify, ...colaboradores];
       }
   
-      // Responsáveis do plano de ação
       (informacoesPlanejamento.estrategicas || []).forEach(estrategica => {
         (estrategica.taticas || []).forEach(tatica => {
           (tatica.operacionais || []).forEach(op => {
@@ -190,14 +198,10 @@ const Planejamento = () => {
         });
       });
   
-      // Remover duplicados
       emailsToNotify = [...new Set(emailsToNotify.filter(email => email))];
   
-      console.log("📧 E-mails a serem enviados:", emailsToNotify);
-  
-      // 👉 Enviar e-mails
       if (emailsToNotify.length > 0) {
-        const emailResponse = await fetch('https://fokus360-backend.vercel.app/send-project-emails', {
+        await fetch('https://fokus360-backend.vercel.app/send-project-emails', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -207,14 +211,7 @@ const Planejamento = () => {
           }),
         });
   
-        if (emailResponse.ok) {
-          console.log("📧 E-mails enviados com sucesso!");
-        } else {
-          console.error("Erro ao enviar e-mails:", await emailResponse.text());
-        }
-  
-        // 👉 Enviar notificações para colaboradores (IDs)
-        const notificationResponse = await fetch('https://fokus360-backend.vercel.app/send-project-notifications', {
+        await fetch('https://fokus360-backend.vercel.app/send-project-notifications', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -222,23 +219,18 @@ const Planejamento = () => {
             mensagem: `Você foi adicionado ao projeto: ${informacoesPlanejamento.nome}`,
           }),
         });
-  
-        if (notificationResponse.ok) {
-          console.log("🔔 Notificações enviadas com sucesso!");
-        } else {
-          console.error("Erro ao enviar notificações:", await notificationResponse.text());
-        }
       }
   
       setShowAlert(true);
       setMensagem(true);
-      console.log("✅ Projeto adicionado com sucesso!");
+      console.log("✅ Projeto adicionado no formato ÁRVORE!");
   
     } catch (error) {
       console.error("❌ Erro ao adicionar projeto:", error.message);
       alert("Erro ao adicionar projeto. Tente novamente.");
     }
   };
+  
 
 
 //Função para salvar apenas a parte de InformacoesPlanejamento

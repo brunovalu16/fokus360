@@ -23,9 +23,12 @@ console.log("Apps Inicializados:", getApps()); // ✅ Deve exibir os apps carreg
  *  Recebe:
  *    - onUpdate( (prev) => ({ ...prev, ... }) ) => para atualizar no pai
  */
-const InformacoesPlanejamento = ({ onUpdate, LimpaEstado, onSaveProjectId }) => {
+const InformacoesPlanejamento = ({ projetoData, onUpdate, onSaveProjectId   }) => {
   const [users, setUsers] = useState([]);
-  const [mensagem, setMensagem] = useState(LimpaEstado);
+  const [categoria, setCategoria] = useState("");
+  const [colaboradorEmail, setColaboradorEmail] = useState("");
+  const [areas, setAreas] = useState([]);
+  const [unidade, setUnidade] = useState([]);
 
   const [formValues, setFormValues] = useState({
     nome: "",
@@ -41,6 +44,39 @@ const InformacoesPlanejamento = ({ onUpdate, LimpaEstado, onSaveProjectId }) => 
     responsavel: "",
     orcamento: "",
   });
+
+
+
+
+//preencher os campos normalmente vindo do banco
+useEffect(() => {
+  if (projetoData) {
+    setFormValues((prev) => ({
+      ...prev,
+      nome: projetoData.nome || "",
+      descricao: projetoData.descricao || "",
+      dataInicio: projetoData.dataInicio || "",
+      prazoPrevisto: projetoData.prazoPrevisto || "",
+      unidade: projetoData.unidade || "",
+      solicitante: projetoData.solicitante || "",
+      solicitanteEmail: projetoData.solicitanteEmail || "",
+      colaboradorEmail: projetoData.colaboradorEmail || "",
+      categoria: projetoData.categoria || "",
+      colaboradores: projetoData.colaboradores || [],
+      responsavel: projetoData.responsavel || "",
+      orcamento: projetoData.orcamento || "",
+    }));
+    setAreas(projetoData.areasResponsaveis || []);
+    setUnidade(projetoData.unidade || []);
+  }
+}, [projetoData]);
+
+
+
+
+
+  
+  
 
 
   
@@ -64,25 +100,7 @@ const InformacoesPlanejamento = ({ onUpdate, LimpaEstado, onSaveProjectId }) => 
     fetchUsers();
   }, []);
 
-  // Monitorando a mensagem para limpar os inputs
-  useEffect(() => {
-    if (LimpaEstado) {
-      setFormValues({
-        nome: "",
-        descricao: "",
-        dataInicio: "",
-        prazoPrevisto: "",
-        unidade: "",
-        solicitante: "",
-        solicitanteEmail: "",
-        colaboradorEmail: "",
-        categoria: "",
-        colaboradores: [],
-        responsavel: "",
-        orcamento: "",
-      });
-    }
-  }, [LimpaEstado]);
+ 
 
   // Atualiza local e já dispara onUpdate para o pai
   const handleChange = (event) => {

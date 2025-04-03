@@ -30,6 +30,8 @@ import Roteirizacao from "./scenes/roteirizacao";
 import Monitoramento from "./scenes/monitoramento";
 import CadastroAreas from "./scenes/cadastroAreas";
 import Planejamento from "./scenes/planejamento";
+import DashboardPlanejamento from "./scenes/dashboardplanejamento";
+import DataPlanejamento from "./components/DataPlanejamento";
 import {
   Team,
   Invoices,
@@ -53,8 +55,11 @@ const router = createBrowserRouter(
     {
       element: <App />,
       children: [
-        { path: "/cadastro", element: <PrivateRoute><Cadastro /></PrivateRoute> },
+        { path: "/cadastro", element: <PrivateRoute><dashboardPlanejamento /></PrivateRoute> },
         { path: "/home", element: <PrivateRoute><Home /></PrivateRoute> },
+        { path: "/dataplanejamento", element: <PrivateRoute><DataPlanejamento /></PrivateRoute> },
+        { path: "/dashboardplanejamento", element: <PrivateRoute><DashboardPlanejamento /></PrivateRoute> },
+        { path: "/dashboardplanejamento/:id", element: <PrivateRoute><DashboardPlanejamento /></PrivateRoute> },
         { path: "/dashboard", element: <PrivateRoute><Dashboard /></PrivateRoute> },
         { path: "/planejamento", element: <PrivateRoute><Planejamento /></PrivateRoute> },
         { path: "/user", element: <PrivateRoute><User /></PrivateRoute> },

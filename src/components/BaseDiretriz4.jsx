@@ -25,40 +25,39 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
 
 
 
-const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacional, onUpdate, LimpaEstado }) => {
+const BaseDiretriz4 = ({ projetoData, onUpdate }) => {
+  // Estados para os três conjuntos de diretrizes
+  const [users, setUsers] = useState([]);
 
-  const [limpaEstado, setLimpaEstado] = useState("");
-
-  const [areasSelecionadas, setAreasSelecionadas] = useState([]);
-  const [estrategicas, setEstrategicas] = useState(propEstrategicas || []);
-
-  const [taticas, setTaticas] = useState([]);
+  const [estrategicas, setEstrategicas] = useState(projetoData?.estrategicas || []);
+  const [taticas, setTaticas] = useState(projetoData?.taticas || []);
+  const [operacional, setOperacional] = useState(projetoData?.operacional || []);
   const [areastaticasSelecionadas, setAreastaticasSelecionadas] = useState([]);
-
   const [areasoperacionalSelecionadas, setAreasoperacionalSelecionadas] = useState([]);
-  const [operacional, setOperacional] = useState(propOperacional || []);
-
-  const [estrategica, setEstrategica] = useState("");
-  const [emailsDigitados, setEmailsDigitados] = useState("");
-
-  const [emailsTaticas, setEmailsTaticas] = useState({});
-
   const [emailsTaticasInput, setEmailsTaticasInput] = useState({});
-
   const [emailsOperacionaisInput, setEmailsOperacionaisInput] = useState({});
   
+  
 
-  const [novaEstrategica, setNovaEstrategica] = useState("");
+
+
+
   const [descEstrategica, setDescEstrategica] = useState("");
+  const [novaEstrategica, setNovaEstrategica] = useState("");
+  const [emailsDigitados, setEmailsDigitados] = useState("");
+
   const [areas, setAreas] = useState([]);
   const [unidades, setUnidades] = useState([]);
 
-  const [unidadeSelecionadas, setUnidadeSelecionadas] = useState([]); 
-  const [users, setUsers] = useState([]);
-  const [novaTarefa, setNovaTarefa] = useState("");
-  const [tarefasLocais, setTarefasLocais] = useState([]);
+
+
+
+  // Estados para seleção de áreas, unidades, etc.
+  const [areasSelecionadas, setAreasSelecionadas] = useState(projetoData?.areasResponsaveis || []);
+  const [unidadeSelecionadas, setUnidadeSelecionadas] = useState(projetoData?.unidadesRelacionadas || []);
+
   const [formValues, setFormValues] = useState({
-    tituloTarefa: novaTarefa,
+    tituloTarefa: "",
     planoDeAcao: {
       oQue: "",
       porQue: "",
@@ -69,7 +68,62 @@ const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacio
       como: "",
       valor: "",
     },
-    });
+  });
+
+//preencher os campos normalmente vindo do banco
+  // Exemplo: atualizar os estados quando o projetoData mudar
+  useEffect(() => {
+    if (projetoData) {
+      setEstrategicas(projetoData.estrategicas || []);
+      setTaticas(projetoData.taticas || []);
+      setOperacional(projetoData.operacional || []);
+      setAreasSelecionadas(projetoData.areasResponsaveis || []);
+      setUnidadeSelecionadas(projetoData.unidadesRelacionadas || []);
+  
+      // AQUI, você precisa preencher:
+      const taticasEmails = {};
+      projetoData.taticas?.forEach((tatica) => {
+        taticasEmails[tatica.id] = tatica.emails?.join(", ") || "";
+      });
+      setEmailsTaticasInput(taticasEmails);
+  
+      const areasTatica = projetoData.areasTaticasSelecionadas || [];
+      setAreastaticasSelecionadas(areasTatica);
+    }
+  }, [projetoData]);
+  
+
+
+//Salvar as 3 listas separadas: estrategicas, taticas e operacionais/planodeacao (tarefas)
+  const handleSalvarDiretrizes = async () => {
+    if (!projetoData?.id) {
+      alert("ID do projeto não encontrado.");
+      return;
+    }
+    try {
+      // Supondo que você esteja usando o 'db' importado de firebase-config
+      const projetoRef = doc(db, "projetos", projetoData.id);
+      await updateDoc(projetoRef, {
+        estrategicas,              // Dados atualizados das estratégicas
+        taticas,                   // Dados atualizados das táticas
+        operacional,               // Dados atualizados das operacionais
+        areasResponsaveis: areasSelecionadas,
+        unidadesRelacionadas: unidadeSelecionadas,
+        updatedAt: new Date(),
+      });
+      alert("Diretrizes salvas com sucesso!");
+    } catch (error) {
+      console.error("Erro ao salvar diretrizes:", error);
+      alert("Erro ao salvar diretrizes. Tente novamente.");
+    }
+  };
+
+
+  
+  
+
+
+
 
 //estado separado para controlar os campos de formulário E-mails Estratégicas e Táticas 
     const [inputEstrategica, setInputEstrategica] = useState({
@@ -109,25 +163,6 @@ const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacio
     
 
 
-useEffect(() => {
-  if (!projectId) return;
-
-  const fetchData = async () => {
-    try {
-      const docRef = doc(db, "projetos", projectId);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data() || {};
-        setEstrategicas(data.estrategicas || []); // ✅ Atualizando corretamente
-        if (onUpdate) onUpdate(data.estrategicas || []);
-      }
-    } catch (error) {
-      console.error("❌ Erro ao buscar projeto:", error);
-    }
-  };
-
-  fetchData();
-}, [projectId]);
 
 
 useEffect(() => {
@@ -142,20 +177,27 @@ useEffect(() => {
 useEffect(() => {
   const fetchData = async () => {
     try {
-      const docRef = doc(db, "projetos", projectId);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setEstrategicas(data.diretrizes || []);
-      }
+      const queryAreas = await getDocs(collection(db, "areas"));
+      const areasList = queryAreas.docs.map((doc) => ({
+        id: doc.id,
+        nome: doc.data().nome,
+      }));
+      setAreas(areasList);
+
+      const queryUnidades = await getDocs(collection(db, "unidade"));
+      const unidadesList = queryUnidades.docs.map((doc) => ({
+        id: doc.id,
+        nome: doc.data().nome,
+      }));
+      setUnidades(unidadesList);
+
     } catch (error) {
-      console.error("❌ Erro ao buscar projeto:", error);
+      console.error("Erro ao buscar áreas e unidades:", error);
     }
   };
 
-  if (projectId) fetchData();
-}, [projectId]);
-
+  fetchData();
+}, []);
 
 
 
@@ -286,22 +328,18 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       .filter((email) => email !== "");
   
     const item = {
-      id: Date.now(),
+      id: Date.now().toString(),
       titulo: novaEstrategica,
       descricao: descEstrategica,
-      taticas: [],
       emails,
     };
   
     const atualizado = [...estrategicas, item];
     setEstrategicas(atualizado);
-  
-    onUpdate && onUpdate(atualizado);
-  
     setNovaEstrategica("");
     setDescEstrategica("");
-    /** Não limpa os e-mails **/
   };
+  
   
   
   
@@ -320,44 +358,29 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   // -------------------------------------
   //|| !descricao.trim()
 
-  const handleAddTatica = (idEstrategica, titulo, descricao) => {
+  const handleAddTatica = (titulo, descricao) => {
     if (!titulo.trim()) {
       alert("Preencha o nome da Diretriz Tática!");
       return;
     }
   
-    // Busca os e-mails diretamente do estado do input
-    const emailsInput = emailsTaticasInput[idEstrategica] || "";
-    const emails = emailsInput
+    const emails = emailsTaticasInput
       .split(",")
       .map((email) => email.trim())
       .filter((email) => email !== "");
   
-    const novo = {
-      id: Date.now(),
+    const item = {
+      id: Date.now().toString(),
       titulo,
       descricao,
-      operacionais: [],
-      emails, // ✅ Aqui já vem certo!
+      emails,
     };
   
-    const atualizadas = estrategicas.map((est) => {
-      if (est.id === idEstrategica) {
-        return { ...est, taticas: [...est.taticas, novo] };
-      }
-      return est;
-    });
-  
-    setEstrategicas(atualizadas);
-    onUpdate && onUpdate(atualizadas);
-    console.log("📩 Estado atualizado com e-mail da tática:", atualizadas);
-  
-    /** ✅ Limpa apenas o input visual, sem afetar as táticas */
-    setEmailsTaticasInput((prev) => ({
-      ...prev,
-      [idEstrategica]: "",
-    }));
+    const atualizado = [...taticas, item];
+    setTaticas(atualizado);
+    setEmailsTaticasInput("");
   };
+  
   
   
   
@@ -389,52 +412,30 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   // -------------------------------------
   //|| !descricao.trim()) 
 
-  const handleAddOperacional = (idEstrategica, idTatica, titulo, descricao) => {
+  const handleAddOperacional = (titulo, descricao) => {
     if (!titulo.trim()) {
       alert("Preencha o nome da Diretriz Operacional!");
       return;
     }
   
-    const emailsInput = emailsOperacionaisInput[idTatica] || "";
-    const emails = emailsInput
+    const emails = emailsOperacionaisInput
       .split(",")
       .map((email) => email.trim())
       .filter((email) => email !== "");
   
-    const novo = {
-      id: Date.now(),
+    const item = {
+      id: Date.now().toString(),
       titulo,
       descricao,
       tarefas: [],
-      emails, // ✅ Agora vem certo
+      emails,
     };
   
-    const atualizadas = estrategicas.map((est) => {
-      if (est.id === idEstrategica) {
-        const novasTaticas = est.taticas.map((t) => {
-          if (t.id === idTatica) {
-            return {
-              ...t,
-              operacionais: [...t.operacionais, novo],
-            };
-          }
-          return t;
-        });
-        return { ...est, taticas: novasTaticas };
-      }
-      return est;
-    });
-  
-    setEstrategicas(atualizadas);
-    onUpdate && onUpdate(atualizadas);
-    console.log("📌 Diretriz Operacional atualizada com e-mail:", atualizadas);
-  
-    // Limpa o campo input visualmente (opcional)
-    setEmailsOperacionaisInput((prev) => ({
-      ...prev,
-      [idTatica]: "",
-    }));
+    const atualizado = [...operacional, item];
+    setOperacional(atualizado);
+    setEmailsOperacionaisInput("");
   };
+  
   
   
 
@@ -512,40 +513,9 @@ const saveEstrategicas = async (projectId, novoArray) => {
   }
 };
 
-//limpa estado quando sai da pagina
-useEffect(() => {
-  return () => {
-    setLimpaEstado(true);
-    setEmailsDigitados(""); // limpa o campo Estratégico
-    setEmailsTaticasInput({}); // limpa os campos das Táticas
-  };
-}, []);
 
 
-// Buscar Áreas e Unidades
-useEffect(() => {
-  const fetchAreasUnidades = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, "areas"));
-      const areasList = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setAreas(areasList);
 
-      const unidadesSnapshot = await getDocs(collection(db, "unidade"));
-      const unidadesList = unidadesSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setUnidades(unidadesList);
-    } catch (error) {
-      console.error("❌ Erro ao buscar áreas e unidades:", error);
-    }
-  };
-
-  fetchAreasUnidades();
-}, []);
 
 
 
@@ -979,15 +949,7 @@ await Promise.all(
               marginTop: "10px",
             }}
             renderValue={(selected) =>
-              selected.length === 0
-                ? "Selecione as áreas responsáveis"
-                : selected
-                    .map(
-                      (id) =>
-                        areas.find((area) => area.id === id)?.nome ||
-                        "Desconhecida"
-                    )
-                    .join(", ")
+              selected.map((id) => areas.find((area) => area.id === id)?.nome).join(", ")
             }
           >
             {areas.map((area) => (
@@ -1010,15 +972,7 @@ await Promise.all(
               marginTop: "10px",
             }}
             renderValue={(selected) =>
-              selected.length === 0
-                ? "Selecione a Unidade"
-                : selected
-                    .map(
-                      (id) =>
-                        unidades.find((uni) => uni.id === id)?.nome ||
-                        "Desconhecida"
-                    )
-                    .join(", ")
+              selected.map((id) => areas.find((area) => area.id === id)?.nome).join(", ")
             }
           >
             {unidades.map((uni) => (
@@ -1893,7 +1847,7 @@ await Promise.all(
   );
 };
 
-export default BaseDiretriz3;
+export default BaseDiretriz4;
 
 
 
