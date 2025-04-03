@@ -294,7 +294,7 @@ const Planejamento = () => {
       alert("Erro ao adicionar projeto. Tente novamente.");
     }
   };
-    
+
 
 
   return (
@@ -362,7 +362,7 @@ const Planejamento = () => {
 
             <Box display="flex" justifyContent="flex-end" marginTop="20px">
               <Button
-                onClick={handleSalvarInformacoesPlanejamento}
+                onClick={handleAdicionarProjeto}
                 variant="contained"
                 sx={{
                   backgroundColor: "#5f53e5",
