@@ -29,7 +29,7 @@ const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacio
 
 
   const [areasSelecionadas, setAreasSelecionadas] = useState([]);
-  const [estrategicas, setEstrategicas] = useState(propEstrategicas || []);
+  const [localEstrategicas, setLocalEstrategicas] = useState(estrategicas || []);
 
   const [taticas, setTaticas] = useState([]);
   const [areastaticasSelecionadas, setAreastaticasSelecionadas] = useState([]);
