@@ -533,16 +533,23 @@ useEffect(() => {
         return;
       }
   
+      // Usa o estado mais atualizado que está sendo montado ao vivo
+      const estrategicaParaSalvar = estrategicas.find((e) => e.id === idEstrategica);
+  
+      if (!estrategicaParaSalvar) {
+        alert("Estratégica não encontrada!");
+        return;
+      }
+  
+      // Atualiza no Firestore todo o array `estrategicas` que já contém as táticas
       const projetoRef = doc(dbFokus360, "projetos", projectId);
-  
-      console.log("🔍 Estratégicas que serão salvas:", JSON.stringify(estrategicas, null, 2));
-  
       await updateDoc(projetoRef, {
-        estrategicas: estrategicas, // Aqui usa o estado correto que contém tudo!
+        estrategicas: estrategicas,
         updatedAt: new Date(),
       });
   
       alert("✅ Tática salva com sucesso!");
+  
     } catch (error) {
       console.error("❌ Erro ao salvar tática individual:", error);
       alert("Erro ao salvar tática. Tente novamente.");
@@ -1172,7 +1179,7 @@ await Promise.all(
             <NovaTaticaForm
               onAdd={(titulo, desc) =>
                 handleAddTatica(
-                  estrategica.id,
+                  idEstrategica,
                   titulo,
                   desc
                 )
