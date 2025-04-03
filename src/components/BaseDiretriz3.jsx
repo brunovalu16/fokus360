@@ -326,7 +326,6 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       return;
     }
   
-    // Busca os e-mails diretamente do estado do input
     const emailsInput = emailsTaticasInput[idEstrategica] || "";
     const emails = emailsInput
       .split(",")
@@ -338,7 +337,7 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       titulo,
       descricao,
       operacionais: [],
-      emails, // ✅ Aqui já vem certo!
+      emails,
     };
   
     const atualizadas = estrategicas.map((est) => {
@@ -350,14 +349,32 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   
     setEstrategicas(atualizadas);
     onUpdate && onUpdate(atualizadas);
-    console.log("📩 Estado atualizado com e-mail da tática:", atualizadas);
   
-    /** ✅ Limpa apenas o input visual, sem afetar as táticas */
+    /** ✅ Aqui já salva no Firestore */
+    salvarEstrategicasNoFirestore(atualizadas);
+  
     setEmailsTaticasInput((prev) => ({
       ...prev,
       [idEstrategica]: "",
     }));
   };
+
+
+  const salvarEstrategicasNoFirestore = async (estrategicasAtualizadas) => {
+    try {
+      if (!projectId) return;
+      const projetoRef = doc(db, "projetos", projectId);
+      await updateDoc(projetoRef, {
+        estrategicas: estrategicasAtualizadas,
+        updatedAt: new Date(),
+      });
+      console.log("✅ Estratégicas atualizadas no Firestore com táticas!");
+    } catch (error) {
+      console.error("❌ Erro ao salvar estratégicas:", error);
+    }
+  };
+  
+  
   
   
   
