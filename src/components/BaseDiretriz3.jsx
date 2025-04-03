@@ -27,10 +27,10 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
 
 const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacional, onUpdate, estrategicas }) => {
 
+  const [estrategicas, setEstrategicas] = useState(propEstrategicas || []);
 
   const [areasSelecionadas, setAreasSelecionadas] = useState([]);
-  const [localEstrategicas, setLocalEstrategicas] = useState(estrategicas || []);
-
+  
   const [taticas, setTaticas] = useState([]);
   const [areastaticasSelecionadas, setAreastaticasSelecionadas] = useState([]);
 
@@ -533,28 +533,19 @@ useEffect(() => {
         return;
       }
   
-      // Usa o estado mais atualizado que está sendo montado ao vivo
-      const estrategicaParaSalvar = estrategicas.find((e) => e.id === idEstrategica);
-  
-      if (!estrategicaParaSalvar) {
-        alert("Estratégica não encontrada!");
-        return;
-      }
-  
-      // Atualiza no Firestore todo o array `estrategicas` que já contém as táticas
       const projetoRef = doc(dbFokus360, "projetos", projectId);
       await updateDoc(projetoRef, {
-        estrategicas: estrategicas,
+        estrategicas: estrategicas, // usa diretamente o estado sincronizado
         updatedAt: new Date(),
       });
   
       alert("✅ Tática salva com sucesso!");
-  
     } catch (error) {
       console.error("❌ Erro ao salvar tática individual:", error);
       alert("Erro ao salvar tática. Tente novamente.");
     }
   };
+  
   
   
 
