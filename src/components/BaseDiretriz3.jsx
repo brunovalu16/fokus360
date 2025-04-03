@@ -25,9 +25,8 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
 
 
 
-const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacional, onUpdate, estrategicas }) => {
-
-  const [estrategicas, setEstrategicas] = useState(propEstrategicas || []);
+const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacional, onUpdate }) => {
+ 
 
   const [areasSelecionadas, setAreasSelecionadas] = useState([]);
   
