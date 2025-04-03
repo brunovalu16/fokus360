@@ -538,27 +538,7 @@ useEffect(() => {
 
 
   //======================================================== ESTRATÉGICAS + MAPEAMENTO GERAL ==============================================================
-  const handleSalvarTaticaIndividual = async (idEstrategica) => {
-    try {
-      if (!projectId) {
-        alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
-        return;
-      }
-  
-      const projetoRef = doc(db, "projetos", projectId); // CORRETO
-      await updateDoc(projetoRef, {
-        estrategicas: estrategicas, // usa diretamente o estado sincronizado
-        updatedAt: new Date(),
-      });
-  
-      alert("✅ Tática salva com sucesso!");
-    } catch (error) {
-      console.error("❌ Erro ao salvar tática individual:", error);
-      alert("Erro ao salvar tática. Tente novamente.");
-    }
-  };
-  
-  
+ 
   
 
 
@@ -1162,21 +1142,20 @@ const handleSalvarOperacional = async () => {
 
 
 
-              <Button
-                sx={{
-                  backgroundColor: "#4caf50",
-                  "&:hover": {
-                    backgroundColor: "#45a049", // Cor ao passar o mouse
-                  },
-                  "&:active": {
-                    backgroundColor: "#388e3c", // Cor ao clicar (pressionado)
-                  },
-                }}
-                variant="contained"
-                onClick={() => handleSalvarTaticaIndividual(estrategica.id)}
-              >
-                SALVAR DIRETRIZES TÁTICAS
-              </Button>
+<Button
+  variant="contained"
+  disabled
+  sx={{
+    backgroundColor: "#4caf50",
+    color: "#fff",
+    "&:hover": {
+      backgroundColor: "#4caf50",
+    },
+  }}
+>
+  TÁTICA SALVA AUTOMATICAMENTE
+</Button>
+
 
             <Box
               display="flex"
