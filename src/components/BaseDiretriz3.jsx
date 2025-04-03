@@ -326,12 +326,13 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
     try {
       const projetoRef = doc(db, "projetos", projectId);
       await updateDoc(projetoRef, {
-        estrategicas: novasEstrategicas, // ✅ contém tudo: táticas, operacionais, tarefas
+        estrategicas: novasEstrategicas, // ✅ Aqui está a versão atualizada com a nova tática incluída
         areasResponsaveis: areasSelecionadas,
         unidadesRelacionadas: unidadeSelecionadas,
         areasoperacionalSelecionadas: areasoperacionalSelecionadas,
         updatedAt: new Date(),
       });
+      
       
   
       setEstrategicas(novasEstrategicas);
@@ -1132,12 +1133,13 @@ const handleSalvarOperacional = async () => {
             <NovaTaticaForm
               onAdd={(titulo, desc) =>
                 handleAddTatica(
-                  idEstrategica,
+                  estrategica.id,
                   titulo,
                   desc
                 )
               }
             />
+
 
 
 
