@@ -691,9 +691,11 @@ const areaRolesMap = {
       const projetoRef = doc(db, "projetos", projectId);
       await updateDoc(projetoRef, {
         taticas: allTaticas,
-        areasResponsaveistaticas: areastaticasSelecionadas, // 🔥 Aqui está a chave!
+        areasResponsaveis: areastaticasSelecionadas, // ✅ Adicione isto
+        areasResponsaveistaticas: areastaticasSelecionadas,
         updatedAt: new Date(),
       });
+      
   
       // 🔔 Notificação para perfis vinculados às áreas táticas
       const rolesVinculados = areastaticasSelecionadas.flatMap(
@@ -801,9 +803,11 @@ const handleSalvarOperacional = async () => {
     const projetoRef = doc(db, "projetos", projectId);
     await updateDoc(projetoRef, {
       operacional: allOperacional,
-      areasResponsaveisoperacional: areasoperacionalSelecionadas, // 🔥 Aqui está a chave!
+      areasResponsaveis: areasoperacionalSelecionadas, // ✅ Adicione isto
+      areasResponsaveisoperacional: areasoperacionalSelecionadas,
       updatedAt: new Date(),
     });
+    
 
     // 🔔 Busca usuários pelas áreas operacionais e envia notificações
     const rolesVinculados = todasAreasOperacionais.flatMap(
