@@ -673,7 +673,7 @@ const areaRolesMap = {
   const handleSalvarTaticas = async () => {
     try {
       if (!projectId) {
-        alert("ID do projeto não encontrado.");
+        alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
         return;
       }
   
@@ -682,7 +682,6 @@ const areaRolesMap = {
         alert("Adicione ao menos uma Tática.");
         return;
       }
-  
       if (areastaticasSelecionadas.length === 0) {
         alert("Selecione ao menos uma área responsável para a Tática.");
         return;
@@ -691,20 +690,17 @@ const areaRolesMap = {
       const projetoRef = doc(db, "projetos", projectId);
       await updateDoc(projetoRef, {
         taticas: allTaticas,
-        areasResponsaveis: areastaticasSelecionadas, // ✅ Adicione isto
-        areasResponsaveistaticas: areastaticasSelecionadas,
+        areasResponsaveis: areasSelecionadas, // Campo global, se necessário
+        areasResponsaveistaticas: areastaticasSelecionadas, // Novo campo para táticas
         updatedAt: new Date(),
       });
-      
   
-      // 🔔 Notificação para perfis vinculados às áreas táticas
+      // Notificação para perfis vinculados às áreas (táticas)
       const rolesVinculados = areastaticasSelecionadas.flatMap(
         (areaId) => areaRolesMap[areaId] || []
       );
-  
       if (rolesVinculados.length > 0) {
         const usuarios = await buscarUsuariosPorRole(rolesVinculados);
-  
         await Promise.all(
           usuarios.map(async (user) => {
             await fetch("https://fokus360-backend.vercel.app/send-notification", {
@@ -715,7 +711,6 @@ const areaRolesMap = {
                 mensagem: "Nova Diretriz Tática criada para sua área.",
               }),
             });
-  
             await fetch("https://fokus360-backend.vercel.app/send-task-email", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -730,11 +725,10 @@ const areaRolesMap = {
         );
       }
   
-      // ✉️ E-mails manuais nas táticas
+      // Envio de e-mails manuais das táticas
       const emailsManuais = allTaticas
         .flatMap((tatica) => tatica.emails || [])
         .filter((email) => email.trim() !== "");
-  
       if (emailsManuais.length > 0) {
         await Promise.all(
           emailsManuais.map(async (email) => {
@@ -742,7 +736,7 @@ const areaRolesMap = {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                email: email,
+                email,
                 tituloTarefa: "Nova Diretriz Tática",
                 assuntoTarefa: "Foi criada uma nova diretriz tática vinculada ao seu e-mail.",
                 prazoTarefa: "Sem prazo",
@@ -774,7 +768,7 @@ const areaRolesMap = {
 const handleSalvarOperacional = async () => {
   try {
     if (!projectId) {
-      alert("ID do projeto não encontrado.");
+      alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
       return;
     }
 
@@ -794,28 +788,33 @@ const handleSalvarOperacional = async () => {
       alert("Adicione ao menos uma Operacional.");
       return;
     }
-
     if (areasoperacionalSelecionadas.length === 0) {
       alert("Selecione ao menos uma área responsável para a Operacional.");
+      return;
+    }
+    if (unidadeSelecionadas.length === 0) {
+      alert("Selecione ao menos uma unidade.");
       return;
     }
 
     const projetoRef = doc(db, "projetos", projectId);
     await updateDoc(projetoRef, {
       operacional: allOperacional,
-      areasResponsaveis: areasoperacionalSelecionadas, // ✅ Adicione isto
-      areasResponsaveisoperacional: areasoperacionalSelecionadas,
+      areasResponsaveis: areasSelecionadas, // Campo global, se necessário
+      areasResponsaveisoperacional: areasoperacionalSelecionadas, // Novo campo para operacionais
+      unidadesRelacionadas: unidadeSelecionadas,
       updatedAt: new Date(),
     });
-    
 
-    // 🔔 Busca usuários pelas áreas operacionais e envia notificações
-    const rolesVinculados = todasAreasOperacionais.flatMap(
+    // Notificação para perfis vinculados às áreas operacionais
+    const rolesVinculados = areasoperacionalSelecionadas.flatMap(
       (areaId) => areaRolesMap[areaId] || []
     );
-
+    if (rolesVinculados.length === 0) {
+      alert("Nenhum perfil vinculado às áreas selecionadas.");
+      return;
+    }
     const usuarios = await buscarUsuariosPorRole(rolesVinculados);
-
     await Promise.all(
       usuarios.map(async (user) => {
         await fetch("https://fokus360-backend.vercel.app/send-notification", {
@@ -826,7 +825,6 @@ const handleSalvarOperacional = async () => {
             mensagem: "Nova Diretriz Operacional criada para sua área.",
           }),
         });
-
         await fetch("https://fokus360-backend.vercel.app/send-task-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -840,11 +838,10 @@ const handleSalvarOperacional = async () => {
       })
     );
 
-    // 🔔 Envia e-mails manuais adicionados nas operacionais
+    // Envio de e-mails manuais nas operacionais
     const emailsManuais = allOperacional
       .flatMap((op) => op.emails || [])
       .filter((email) => email.trim() !== "");
-
     if (emailsManuais.length > 0) {
       await Promise.all(
         emailsManuais.map(async (email) => {
@@ -862,7 +859,7 @@ const handleSalvarOperacional = async () => {
       );
     }
 
-    // 🔔 Envia e-mails para os responsáveis das tarefas (quemEmail)
+    // Envio de e-mails para os responsáveis das tarefas (quemEmail)
     await Promise.all(
       allOperacional.flatMap((operacional) =>
         (operacional.tarefas || []).flatMap((tarefa) => {
