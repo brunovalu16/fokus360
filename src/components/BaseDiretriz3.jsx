@@ -673,7 +673,7 @@ const areaRolesMap = {
   const handleSalvarTaticas = async () => {
     try {
       if (!projectId) {
-        alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
+        alert("ID do projeto não encontrado.");
         return;
       }
   
@@ -683,27 +683,15 @@ const areaRolesMap = {
         return;
       }
   
-      if (areasSelecionadas.length === 0) {
-        alert("Selecione pelo menos uma área responsável estratégica.");
-        return;
-      }
-  
-      if (unidadeSelecionadas.length === 0) {
-        alert("Selecione pelo menos uma unidade.");
-        return;
-      }
-  
       if (areastaticasSelecionadas.length === 0) {
-        alert("Selecione pelo menos uma área responsável tática.");
+        alert("Selecione ao menos uma área responsável para a Tática.");
         return;
       }
   
       const projetoRef = doc(db, "projetos", projectId);
       await updateDoc(projetoRef, {
         taticas: allTaticas,
-        areasResponsaveis: areasSelecionadas,
-        areasResponsaveistaticas: areastaticasSelecionadas, // ✅ CAMPO NOVO
-        unidadesRelacionadas: unidadeSelecionadas,
+        areasResponsaveistaticas: areastaticasSelecionadas, // 🔥 Aqui está a chave!
         updatedAt: new Date(),
       });
   
@@ -784,51 +772,36 @@ const areaRolesMap = {
 const handleSalvarOperacional = async () => {
   try {
     if (!projectId) {
-      alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
+      alert("ID do projeto não encontrado.");
       return;
     }
 
     const allOperacional = estrategicas.flatMap((est) =>
       est.taticas.flatMap((tatica) =>
-        tatica.operacionais.map((operacional) => ({
-          id: operacional.id,
-          titulo: operacional.titulo,
-          descricao: operacional.descricao,
-          tarefas: operacional.tarefas || [],
-          emails: operacional.emails || [],
+        tatica.operacionais.map((op) => ({
+          id: op.id,
+          titulo: op.titulo,
+          descricao: op.descricao,
+          tarefas: op.tarefas || [],
+          emails: op.emails || [],
         }))
       )
     );
 
     if (allOperacional.length === 0) {
-      alert("Adicione ao menos uma Diretriz Operacional.");
+      alert("Adicione ao menos uma Operacional.");
       return;
     }
 
-    if (areasSelecionadas.length === 0) {
-      alert("Selecione pelo menos uma área estratégica.");
+    if (areasoperacionalSelecionadas.length === 0) {
+      alert("Selecione ao menos uma área responsável para a Operacional.");
       return;
     }
 
-    if (unidadeSelecionadas.length === 0) {
-      alert("Selecione pelo menos uma unidade.");
-      return;
-    }
-
-    const todasAreasOperacionais = Object.values(areasOperacionaisPorId).flat();
-    if (todasAreasOperacionais.length === 0) {
-      alert("Selecione pelo menos uma área operacional.");
-      return;
-    }
-
-    // 🔥 Atualiza o documento no Firestore
     const projetoRef = doc(db, "projetos", projectId);
     await updateDoc(projetoRef, {
       operacional: allOperacional,
-      areasResponsaveis: areasSelecionadas,
-      areasResponsaveistaticas: areasSelecionadas, // mesmo valor das estratégicas
-      areasResponsaveisoperacional: todasAreasOperacionais,
-      unidadesRelacionadas: unidadeSelecionadas,
+      areasResponsaveisoperacional: areasoperacionalSelecionadas, // 🔥 Aqui está a chave!
       updatedAt: new Date(),
     });
 
