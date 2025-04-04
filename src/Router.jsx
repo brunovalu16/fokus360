@@ -55,10 +55,11 @@ const router = createBrowserRouter(
     {
       element: <App />,
       children: [
-        { path: "/cadastro", element: <PrivateRoute><dashboardPlanejamento /></PrivateRoute> },
+        { path: "/cadastro", element: <PrivateRoute><Cadastro /></PrivateRoute> },
         { path: "/home", element: <PrivateRoute><Home /></PrivateRoute> },
         { path: "/dataplanejamento", element: <PrivateRoute><DataPlanejamento /></PrivateRoute> },
         { path: "/dashboardplanejamento", element: <PrivateRoute><DashboardPlanejamento /></PrivateRoute> },
+        { path: "/dashboardplanejamento/:id", element: <PrivateRoute><DashboardPlanejamento /></PrivateRoute> },
         { path: "/dashboard", element: <PrivateRoute><Dashboard /></PrivateRoute> },
         { path: "/planejamento", element: <PrivateRoute><Planejamento /></PrivateRoute> },
         { path: "/user", element: <PrivateRoute><User /></PrivateRoute> },
