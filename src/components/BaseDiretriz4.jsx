@@ -36,6 +36,8 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
   const [areasoperacionalSelecionadas, setAreasoperacionalSelecionadas] = useState([]);
   const [emailsTaticasInput, setEmailsTaticasInput] = useState({});
   const [emailsOperacionaisInput, setEmailsOperacionaisInput] = useState({});
+  const [novaTarefa, setNovaTarefa] = useState("");
+
   
   
 
@@ -80,7 +82,6 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
       setAreasSelecionadas(projetoData.areasResponsaveis || []);
       setUnidadeSelecionadas(projetoData.unidadesRelacionadas || []);
   
-      // AQUI, você precisa preencher:
       const taticasEmails = {};
       projetoData.taticas?.forEach((tatica) => {
         taticasEmails[tatica.id] = tatica.emails?.join(", ") || "";
@@ -89,6 +90,9 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
   
       const areasTatica = projetoData.areasTaticasSelecionadas || [];
       setAreastaticasSelecionadas(areasTatica);
+  
+      const areasOp = projetoData.areasoperacionalSelecionadas || [];
+      setAreasoperacionalSelecionadas(areasOp); // ✅ isso estava faltando
     }
   }, [projetoData]);
   
@@ -916,19 +920,14 @@ await Promise.all(
       </Typography>
 
       <Box display="flex" flexDirection="column" gap={2} mb={4}>
-        <TextField
-          label="Nome da Diretriz Estratégica..."
-          value={novaEstrategica}
-          onChange={(e) => setNovaEstrategica(e.target.value)}
-          fullWidth
-        />
+        
         
         <Box
           sx={{
             display: "flex",
-            alignItems: "center",
-            gap: 2, // Espaço entre os elementos (pode ajustar conforme necessário)
-            flexWrap: "wrap", // Para quebrar linha em telas pequenas
+            flexDirection: "row",
+            gap: 2,
+            width: "100%",
           }}
         >
           {/* Áreas */}
@@ -938,7 +937,7 @@ await Promise.all(
             onChange={(event) => setAreasSelecionadas(event.target.value)}
             displayEmpty
             sx={{
-              minWidth: "300px",
+              flex: 1,
               backgroundColor: "#fff",
               marginTop: "10px",
             }}
@@ -961,12 +960,16 @@ await Promise.all(
             onChange={(event) => setUnidadeSelecionadas(event.target.value)}
             displayEmpty
             sx={{
-              minWidth: "300px",
+              flex: 1,
               backgroundColor: "#fff",
               marginTop: "10px",
             }}
             renderValue={(selected) =>
-              selected.map((id) => areas.find((area) => area.id === id)?.nome).join(", ")
+              selected.length === 0
+                ? "Selecione a Unidade"
+                : selected
+                    .map((id) => unidades.find((uni) => uni.id === id)?.nome || "Desconhecida")
+                    .join(", ")
             }
           >
             {unidades.map((uni) => (
@@ -977,53 +980,77 @@ await Promise.all(
             ))}
           </Select>
 
+          {/* E-mails adicionais */}
           <TextField
             label="E-mails adicionais (separe por vírgula)"
             value={emailsDigitados}
             onChange={(e) => setEmailsDigitados(e.target.value)}
             sx={{
-              minWidth: "300px",
+              flex: 1,
               backgroundColor: "#fff",
               marginTop: "10px",
             }}
           />
-
-
-
-
-          <Button
-            onClick={handleAddEstrategica}
-            disableRipple
-            sx={{
-              backgroundColor: "transparent",
-              "&:hover": {
-                backgroundColor: "transparent",
-                boxShadow: "none",
-              },
-              "&:focus": {
-                outline: "none",
-              },
-            }}
-          >
-            <AddCircleOutlineIcon sx={{ fontSize: 25, color: "#312783" }} />
-          </Button>
-          
-
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: "#312783",
-              color: "#fff",
-              "&:hover": {
-                backgroundColor: "#312783",
-              },
-            }}
-            onClick={handleSalvarEstrategicas}
-          >
-            SALVAR DIRETRIZES ESTRATÉGICAS
-          </Button>
           
         </Box>
+        <TextField
+          label="Nome da Diretriz Estratégica..."
+          value={novaEstrategica}
+          onChange={(e) => setNovaEstrategica(e.target.value)}
+          fullWidth
+        />
+
+        {/* Botões "+" e "Salvar Estratégicas" alinhados à esquerda em coluna */}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              gap: 2,
+              marginTop: 2,
+              width: "300px", // igual aos campos select e inputs
+            }}
+          >
+            {/* Botão "+" */}
+            <Button
+              onClick={handleAddEstrategica}
+              disableRipple
+              sx={{
+                backgroundColor: "transparent",
+                paddingLeft: 0,
+                "&:hover": {
+                  backgroundColor: "transparent",
+                  boxShadow: "none",
+                },
+                "&:focus": {
+                  outline: "none",
+                },
+              }}
+            >
+              <AddCircleOutlineIcon sx={{ fontSize: 25, color: "#312783" }} />
+            </Button>
+
+            {/* Botão SALVAR */}
+            <Button
+              variant="contained"
+              onClick={handleSalvarEstrategicas}
+              sx={{
+                backgroundColor: "#312783",
+                color: "#fff",
+                
+                "&:hover": {
+                  backgroundColor: "#312783",
+                },
+              }}
+            >
+              SALVAR DIRETRIZES ESTRATÉGICAS
+            </Button>
+            
+          </Box>
+
+{/* Título da seção Estratégica */}
+
+
       </Box>
 
       <Box display="flex" alignItems="center" marginBottom="20px">
@@ -1332,119 +1359,113 @@ await Promise.all(
                   </Box>
 
                   <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 2,
-                      marginBottom: "10px",
-                      flexWrap: "wrap", // Se quiser quebrar no mobile
-                    }}
-                  >
-                    {/* Áreas */}
-                    <Select
-                      multiple
-                      value={areasoperacionalSelecionadas}
-                      onChange={(event) =>
-                        setAreasoperacionalSelecionadas(event.target.value)
-                      }
-                      displayEmpty
-                      sx={{
-                        minWidth: "300px",
-                        backgroundColor: "#fff",
-                        marginTop: "10px",
-                      }}
-                      renderValue={(selected) =>
-                        selected.length === 0
-                          ? "Selecione as áreas responsáveis"
-                          : selected
-                              .map(
-                                (id) =>
-                                  areas.find((area) => area.id === id)?.nome ||
-                                  "Desconhecida"
-                              )
-                              .join(", ")
-                      }
-                    >
-                      {areas.map((area) => (
-                        <MenuItem key={area.id} value={area.id}>
-                          <Checkbox
-                            checked={areasoperacionalSelecionadas.includes(area.id)}
-                          />
-                          <ListItemText primary={area.nome} />
-                        </MenuItem>
-                      ))}
-                    </Select>
+  sx={{
+    display: "flex",
+    flexWrap: "wrap", // permite quebra no mobile
+    gap: 2,
+    width: "100%",
+    marginBottom: "10px",
+  }}
+>
+  {/* Áreas */}
+  <Select
+    multiple
+    value={areasoperacionalSelecionadas}
+    onChange={(event) => setAreasoperacionalSelecionadas(event.target.value)}
+    displayEmpty
+    sx={{
+      flex: 1,
+      minWidth: "250px",
+      backgroundColor: "#fff",
+      marginTop: "10px",
+    }}
+    renderValue={(selected) =>
+      selected.length === 0
+        ? "Selecione as áreas responsáveis"
+        : selected
+            .map(
+              (id) => areas.find((area) => area.id === id)?.nome || "Desconhecida"
+            )
+            .join(", ")
+    }
+  >
+    {areas.map((area) => (
+      <MenuItem key={area.id} value={area.id}>
+        <Checkbox checked={areasoperacionalSelecionadas.includes(area.id)} />
+        <ListItemText primary={area.nome} />
+      </MenuItem>
+    ))}
+  </Select>
 
-                    {/* Unidades */}
-                    <Select
-                      multiple
-                      value={unidadeSelecionadas}
-                      onChange={(event) =>
-                        setUnidadeSelecionadas(event.target.value)
-                      }
-                      displayEmpty
-                      sx={{
-                        minWidth: "300px",
-                        backgroundColor: "#fff",
-                        marginTop: "10px",
-                      }}
-                      renderValue={(selected) =>
-                        selected.length === 0
-                          ? "Selecione a Unidade"
-                          : selected
-                              .map(
-                                (id) =>
-                                  unidades.find((uni) => uni.id === id)?.nome ||
-                                  "Desconhecida"
-                              )
-                              .join(", ")
-                      }
-                    >
-                      {unidades.map((uni) => (
-                        <MenuItem key={uni.id} value={uni.id}>
-                          <Checkbox
-                            checked={unidadeSelecionadas.includes(uni.id)}
-                          />
-                          <ListItemText primary={uni.nome} />
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </Box>
+  {/* Unidades */}
+  <Select
+    multiple
+    value={unidadeSelecionadas}
+    onChange={(event) => setUnidadeSelecionadas(event.target.value)}
+    displayEmpty
+    sx={{
+      flex: 1,
+      minWidth: "250px",
+      backgroundColor: "#fff",
+      marginTop: "10px",
+    }}
+    renderValue={(selected) =>
+      selected.length === 0
+        ? "Selecione a Unidade"
+        : selected
+            .map((id) => unidades.find((uni) => uni.id === id)?.nome || "Desconhecida")
+            .join(", ")
+    }
+  >
+    {unidades.map((uni) => (
+      <MenuItem key={uni.id} value={uni.id}>
+        <Checkbox checked={unidadeSelecionadas.includes(uni.id)} />
+        <ListItemText primary={uni.nome} />
+      </MenuItem>
+    ))}
+  </Select>
 
-                  <TextField
-                    label="E-mails adicionais (separe por vírgula)"
-                    value={emailsOperacionaisInput[tatica.id] || ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setEmailsOperacionaisInput((prev) => ({
-                          ...prev,
-                          [tatica.id]: value,
-                        }));
-                      // Atualiza direto no estado
-                      setEstrategicas((prev) =>
-                        prev.map((est) => ({
-                          ...est,
-                          taticas: est.taticas.map((tat) => ({
-                            ...tat,
-                            operacionais: tat.operacionais.map((op) => {
-                              if (op.id === operacional.id) {
-                                return {
-                                  ...op,
-                                  emails: value
-                                    .split(",")
-                                    .map((email) => email.trim())
-                                    .filter((email) => email !== ""),
-                                };
-                              }
-                              return op;
-                            }),
-                          })),
-                        }))
-                      );
-                    }}
-                    fullWidth
-                    sx={{ backgroundColor: "#fff", marginTop: "10px", marginBottom: "10px" }}
-                  />
+  {/* E-mails adicionais */}
+  <TextField
+    label="E-mails adicionais (separe por vírgula)"
+    value={emailsOperacionaisInput[tatica.id] || ""}
+    onChange={(e) => {
+      const value = e.target.value;
+      setEmailsOperacionaisInput((prev) => ({
+        ...prev,
+        [tatica.id]: value,
+      }));
+
+      setEstrategicas((prev) =>
+        prev.map((est) => ({
+          ...est,
+          taticas: est.taticas.map((tat) => ({
+            ...tat,
+            operacionais: tat.operacionais.map((op) => {
+              if (op.id === operacional.id) {
+                return {
+                  ...op,
+                  emails: value
+                    .split(",")
+                    .map((email) => email.trim())
+                    .filter((email) => email !== ""),
+                };
+              }
+              return op;
+            }),
+          })),
+        }))
+      );
+    }}
+    sx={{
+      flex: 1,
+      minWidth: "250px",
+      backgroundColor: "#fff",
+      marginTop: "10px",
+    }}
+  />
+</Box>
+
 
 
                   {/* Form para adicionar Operacional */}

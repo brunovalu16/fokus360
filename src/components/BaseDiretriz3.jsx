@@ -589,8 +589,9 @@ const areaRolesMap = {
   
       const projetoRef = doc(db, "projetos", projectId);
       await updateDoc(projetoRef, {
-        estrategicas, // já contém os e-mails porque agora você está salvando eles ao criar a estratégica
         areasResponsaveis: areasSelecionadas,
+        areasResponsaveistaticas: [], // inicia vazio, se quiser
+        areasResponsaveisoperacional: [], // idem
         unidadesRelacionadas: unidadeSelecionadas,
         updatedAt: new Date(),
       });
@@ -694,7 +695,7 @@ const areaRolesMap = {
       const projetoRef = doc(db, "projetos", projectId);
       await updateDoc(projetoRef, {
         taticas: allTaticas,
-        areastaticasSelecionadas,
+        areasResponsaveistaticas: areastaticasSelecionadas,
         areasResponsaveis: areasSelecionadas,
         unidadesRelacionadas: unidadeSelecionadas,
         updatedAt: new Date(),
@@ -814,7 +815,7 @@ const handleSalvarOperacional = async () => {
     const projetoRef = doc(db, "projetos", projectId);
     await updateDoc(projetoRef, {
       operacional: allOperacional,
-      areasoperacionalSelecionadas,
+      areasResponsaveisoperacional: areasoperacionalSelecionadas,
       areasResponsaveis: areasSelecionadas,
       unidadesRelacionadas: unidadeSelecionadas,
       updatedAt: new Date(),
