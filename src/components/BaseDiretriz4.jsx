@@ -25,11 +25,11 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
 
 
 
-const BaseDiretriz4 = ({ projetoData, onUpdate }) => {
+  const BaseDiretriz4 = ({ projetoData, onUpdate }) => {
   // Estados para os três conjuntos de diretrizes
   const [users, setUsers] = useState([]);
 
-  const [estrategicas, setEstrategicas] = useState(projetoData?.estrategicas || []);
+  const [estrategicas, setEstrategicas] = useState([]);
   const [taticas, setTaticas] = useState(projetoData?.taticas || []);
   const [operacional, setOperacional] = useState(projetoData?.operacional || []);
   const [areastaticasSelecionadas, setAreastaticasSelecionadas] = useState([]);
@@ -136,11 +136,7 @@ const BaseDiretriz4 = ({ projetoData, onUpdate }) => {
 
 
 
-  useEffect(() => {
-    if (onUpdate) {
-      onUpdate(estrategicas); // ✅ Envia atualizações para CadastroProjetos
-    }
-  }, [estrategicas]);
+
   
   
      // 🔹 Carregar usuários do Firebase
@@ -165,12 +161,7 @@ const BaseDiretriz4 = ({ projetoData, onUpdate }) => {
 
 
 
-useEffect(() => {
-  if (onUpdate && estrategicas.length > 0) {
-    console.log("📢 BaseDiretriz enviando estratégicas para CadastroProjetos:", JSON.stringify(estrategicas, null, 2));
-    onUpdate([...estrategicas]);
-  }
-}, [estrategicas]);
+
 
 
 //Buscar dados do Firestore
@@ -249,7 +240,8 @@ const handleRemoveTarefa = (idEstrategica, idTatica, idOperacional, idTarefa) =>
       };
     })
   );
-  onUpdate && onUpdate(estrategicas); // <- CHAMA onUpdate!  ESSENCIAL!
+  onUpdate && onUpdate({ estrategicas: estrategicas  });
+// <- CHAMA onUpdate!  ESSENCIAL!
 };
 
 
@@ -350,7 +342,8 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   const handleRemoveEstrategica = (id) => {
     const atualizado = estrategicas.filter((d) => d.id !== id);
     setEstrategicas(atualizado);
-    onUpdate && onUpdate(atualizado);
+    onUpdate && onUpdate({ estrategicas: atualizado    });
+
   };
 
   // -------------------------------------
@@ -404,7 +397,8 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       return est;
     });
     setEstrategicas(atualizadas);
-    onUpdate && onUpdate(atualizadas);
+    onUpdate && onUpdate({ estrategicas: atualizadas  });
+
   };
 
   // -------------------------------------
@@ -459,7 +453,8 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       return est;
     });
     setEstrategicas(atualizadas);
-    onUpdate && onUpdate(atualizadas);
+    onUpdate && onUpdate({ estrategicas: atualizadas  });
+
   };
 
   // -------------------------------------
@@ -486,10 +481,9 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
           }),
         };
       });
-    
+      onUpdate && onUpdate({ estrategicas: atualizado });
       return atualizado;
-    });
-    
+    }); 
 };
 
 
