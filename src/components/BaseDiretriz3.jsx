@@ -330,13 +330,13 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       const projetoAtual = projetoSnap.exists() ? projetoSnap.data() : {};
   
       await updateDoc(projetoRef, {
-        ...projetoAtual, // mantém os dados antigos
         estrategicas: novasEstrategicas,
-        areasResponsaveis: areasSelecionadas,
-        unidadesRelacionadas: unidadeSelecionadas,
-        areasoperacionalSelecionadas: areasoperacionalSelecionadas,
+        areasResponsaveis,
+        unidadesRelacionadas,
         updatedAt: new Date(),
+        // ... e só mais o que fizer sentido
       });
+      
   
       setEstrategicas(novasEstrategicas);
       onUpdate && onUpdate(novasEstrategicas);
@@ -581,97 +581,7 @@ const areaRolesMap = {
   // Salvar somente Diretrizes Estrategicas
   // -------------------------------------
   
-  const handleSalvarEstrategicas = async () => {
-    try {
-      if (!projectId) {
-        alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
-        return;
-      }
-      if (estrategicas.length === 0) {
-        alert("Adicione ao menos uma Diretriz Estratégica.");
-        return;
-      }
-      if (areasSelecionadas.length === 0) {
-        alert("Selecione pelo menos uma área responsável.");
-        return;
-      }
-      if (unidadeSelecionadas.length === 0) {
-        alert("Selecione pelo menos uma unidade.");
-        return;
-      }
-  
-      const projetoRef = doc(db, "projetos", projectId);
-      await updateDoc(projetoRef, {
-        estrategicas, // já contém os e-mails porque agora você está salvando eles ao criar a estratégica
-        areasResponsaveis: areasSelecionadas,
-        unidadesRelacionadas: unidadeSelecionadas,
-        updatedAt: new Date(),
-      });
-  
-      // ✅ Enviar notificações e e-mails para usuários das áreas
-      const rolesVinculados = areasSelecionadas.flatMap(
-        (areaId) => areaRolesMap[areaId] || []
-      );
-  
-      if (rolesVinculados.length > 0) {
-        const usuarios = await buscarUsuariosPorRole(rolesVinculados);
-  
-        await Promise.all(
-          usuarios.map(async (user) => {
-            await fetch("https://fokus360-backend.vercel.app/send-notification", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                userId: user.id,
-                mensagem: "Nova Diretriz Estratégica criada para sua área.",
-              }),
-            });
-  
-            await fetch("https://fokus360-backend.vercel.app/send-task-email", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: user.email,
-                tituloTarefa: "Nova Diretriz Estratégica",
-                assuntoTarefa: "Foi criada uma nova diretriz estratégica vinculada à sua área.",
-                prazoTarefa: "Sem prazo",
-              }),
-            });
-          })
-        );
-      }
-  
-      // ✅ Enviar e-mail para os e-mails manuais
-      const emailsManuais = estrategicas
-      .flatMap((estrategica) => estrategica.emails || [])
-      .filter((email) => email.trim() !== "");
-
-  
-      if (emailsManuais.length > 0) {
-        await Promise.all(
-          emailsManuais.map(async (email) => {
-            await fetch("https://fokus360-backend.vercel.app/send-task-email", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: email,
-                tituloTarefa: "Nova Diretriz Estratégica",
-                assuntoTarefa:
-                  "Foi criada uma nova diretriz estratégica vinculada ao seu e-mail.",
-                prazoTarefa: "Sem prazo",
-              }),
-            });
-          })
-        );
-      }
-  
-      alert("✅ Diretrizes Estratégicas salvas e notificações enviadas!");
-    } catch (error) {
-      console.error("Erro ao salvar diretrizes estratégicas:", error);
-      alert("Erro ao salvar diretrizes. Tente novamente.");
-    }
-  };
-  
+ 
   
   //=============================================================================================================
 

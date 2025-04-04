@@ -47,10 +47,10 @@ const Planejamento = () => {
 
   useEffect(() => {
     //console.log("📌 Estado atualizado de informacoesPlanejamento antes de salvar:", informacoesPlanejamento);
-  }, [InformacoesPlanejamento]);
+  }, [informacoesPlanejamento]);
   
 
-  const diretrizes = InformacoesPlanejamento.diretrizes;
+  const diretrizes = informacoesPlanejamento.diretrizes;
 
 
   const handleSalvarEstrategicasNoFirestore = async (novoArrayEstrategicas) => {
