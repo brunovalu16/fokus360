@@ -674,8 +674,6 @@ const areaRolesMap = {
     try {
       if (!projectId) {
         alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
-        console.log("🌟 Táticas - Áreas selecionadas:", areastaticasSelecionadas);
-
         return;
       }
   
@@ -684,65 +682,65 @@ const areaRolesMap = {
         alert("Adicione ao menos uma Tática.");
         return;
       }
+  
       if (areasSelecionadas.length === 0) {
-        alert("Selecione pelo menos uma área responsável.");
+        alert("Selecione pelo menos uma área responsável estratégica.");
         return;
       }
+  
       if (unidadeSelecionadas.length === 0) {
         alert("Selecione pelo menos uma unidade.");
         return;
       }
+  
       if (areastaticasSelecionadas.length === 0) {
-        alert("Selecione pelo menos uma área responsável para a Tática.");
+        alert("Selecione pelo menos uma área responsável tática.");
         return;
       }
   
       const projetoRef = doc(db, "projetos", projectId);
       await updateDoc(projetoRef, {
         taticas: allTaticas,
-        areasResponsaveistaticas: Object.values(areasTaticasPorId).flat(), // 🔥 Agora dinâmico
         areasResponsaveis: areasSelecionadas,
-        areasResponsaveistaticas: areastaticasSelecionadas, // 🔥 ADICIONADO!
+        areasResponsaveistaticas: areastaticasSelecionadas, // ✅ CAMPO NOVO
         unidadesRelacionadas: unidadeSelecionadas,
         updatedAt: new Date(),
       });
-      
   
-      // ✅ Enviar notificações para perfis vinculados às áreas
-     // ✅ Enviar notificações para perfis vinculados às áreas da TÁTICA
-const rolesVinculados = areastaticasSelecionadas.flatMap(
-  (areaId) => areaRolesMap[areaId] || []
-);
-
-if (rolesVinculados.length > 0) {
-  const usuarios = await buscarUsuariosPorRole(rolesVinculados);
-
-  await Promise.all(
-    usuarios.map(async (user) => {
-      await fetch("https://fokus360-backend.vercel.app/send-notification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          mensagem: "Nova Diretriz Tática criada para sua área.",
-        }),
-      });
-
-      await fetch("https://fokus360-backend.vercel.app/send-task-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: user.email,
-          tituloTarefa: "Nova Diretriz Tática",
-          assuntoTarefa: "Foi criada uma nova diretriz tática vinculada à sua área.",
-          prazoTarefa: "Sem prazo",
-        }),
-      });
-    })
-  );
-}
-
-      // ✅ Enviar e-mail para os e-mails manuais digitados
+      // 🔔 Notificação para perfis vinculados às áreas táticas
+      const rolesVinculados = areastaticasSelecionadas.flatMap(
+        (areaId) => areaRolesMap[areaId] || []
+      );
+  
+      if (rolesVinculados.length > 0) {
+        const usuarios = await buscarUsuariosPorRole(rolesVinculados);
+  
+        await Promise.all(
+          usuarios.map(async (user) => {
+            await fetch("https://fokus360-backend.vercel.app/send-notification", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                userId: user.id,
+                mensagem: "Nova Diretriz Tática criada para sua área.",
+              }),
+            });
+  
+            await fetch("https://fokus360-backend.vercel.app/send-task-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: user.email,
+                tituloTarefa: "Nova Diretriz Tática",
+                assuntoTarefa: "Foi criada uma nova diretriz tática vinculada à sua área.",
+                prazoTarefa: "Sem prazo",
+              }),
+            });
+          })
+        );
+      }
+  
+      // ✉️ E-mails manuais nas táticas
       const emailsManuais = allTaticas
         .flatMap((tatica) => tatica.emails || [])
         .filter((email) => email.trim() !== "");
@@ -770,6 +768,7 @@ if (rolesVinculados.length > 0) {
       alert("Erro ao salvar táticas. Tente novamente.");
     }
   };
+  
   
   
 
@@ -827,12 +826,13 @@ const handleSalvarOperacional = async () => {
     await updateDoc(projetoRef, {
       operacional: allOperacional,
       areasResponsaveis: areasSelecionadas,
+      areasResponsaveistaticas: areasSelecionadas, // mesmo valor das estratégicas
       areasResponsaveisoperacional: todasAreasOperacionais,
       unidadesRelacionadas: unidadeSelecionadas,
       updatedAt: new Date(),
     });
 
-    // 🔥 Envia notificações para todos os usuários vinculados às áreas operacionais
+    // 🔔 Busca usuários pelas áreas operacionais e envia notificações
     const rolesVinculados = todasAreasOperacionais.flatMap(
       (areaId) => areaRolesMap[areaId] || []
     );
@@ -863,7 +863,7 @@ const handleSalvarOperacional = async () => {
       })
     );
 
-    // 🔥 Envia e-mails manuais adicionados nas operacionais
+    // 🔔 Envia e-mails manuais adicionados nas operacionais
     const emailsManuais = allOperacional
       .flatMap((op) => op.emails || [])
       .filter((email) => email.trim() !== "");
@@ -885,7 +885,7 @@ const handleSalvarOperacional = async () => {
       );
     }
 
-    // 🔥 Envia e-mails para os responsáveis das tarefas (quemEmail)
+    // 🔔 Envia e-mails para os responsáveis das tarefas (quemEmail)
     await Promise.all(
       allOperacional.flatMap((operacional) =>
         (operacional.tarefas || []).flatMap((tarefa) => {
@@ -915,6 +915,7 @@ const handleSalvarOperacional = async () => {
     alert("Erro ao salvar Operacionais. Tente novamente.");
   }
 };
+
 
 
 
