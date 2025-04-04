@@ -33,13 +33,12 @@ const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacio
   const [estrategicas, setEstrategicas] = useState(propEstrategicas || []);
 
   const [areasTaticasPorId, setAreasTaticasPorId] = useState({});
-  const [areasOperacionaisPorId, setAreasOperacionaisPorId] = useState({});
 
 
   const [taticas, setTaticas] = useState([]);
   const [areastaticasSelecionadas, setAreastaticasSelecionadas] = useState([]);
 
-  const [areasoperacionalSelecionadas, setAreasoperacionalSelecionadas] = useState([]);
+  const [areasOperacionaisPorId, setAreasOperacionaisPorId] = useState({});
   const [operacional, setOperacional] = useState(propOperacional || []);
 
   const [estrategica, setEstrategica] = useState("");
@@ -787,8 +786,6 @@ const handleSalvarOperacional = async () => {
   try {
     if (!projectId) {
       alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
-      console.log("📌 Operacional - Áreas selecionadas:", areasoperacionalSelecionadas);
-
       return;
     }
 
@@ -799,48 +796,46 @@ const handleSalvarOperacional = async () => {
           titulo: operacional.titulo,
           descricao: operacional.descricao,
           tarefas: operacional.tarefas || [],
-          emails: operacional.emails || [], 
+          emails: operacional.emails || [],
         }))
       )
     );
-    
 
     if (allOperacional.length === 0) {
-      alert("Adicione ao menos uma Operacional.");
+      alert("Adicione ao menos uma Diretriz Operacional.");
       return;
     }
+
     if (areasSelecionadas.length === 0) {
-      alert("Selecione pelo menos uma área responsável.");
+      alert("Selecione pelo menos uma área estratégica.");
       return;
     }
+
     if (unidadeSelecionadas.length === 0) {
       alert("Selecione pelo menos uma unidade.");
       return;
     }
-    if (areasoperacionalSelecionadas.length === 0) {
-      alert("Selecione pelo menos uma Operacional.");
+
+    const todasAreasOperacionais = Object.values(areasOperacionaisPorId).flat();
+    if (todasAreasOperacionais.length === 0) {
+      alert("Selecione pelo menos uma área operacional.");
       return;
     }
 
+    // 🔥 Atualiza o documento no Firestore
     const projetoRef = doc(db, "projetos", projectId);
     await updateDoc(projetoRef, {
       operacional: allOperacional,
       areasResponsaveis: areasSelecionadas,
-      areasResponsaveisoperacional: Object.values(areasOperacionaisPorId).flat(),
+      areasResponsaveisoperacional: todasAreasOperacionais,
       unidadesRelacionadas: unidadeSelecionadas,
       updatedAt: new Date(),
     });
-    
-    
 
-    const rolesVinculados = areasoperacionalSelecionadas.flatMap(
+    // 🔥 Envia notificações para todos os usuários vinculados às áreas operacionais
+    const rolesVinculados = todasAreasOperacionais.flatMap(
       (areaId) => areaRolesMap[areaId] || []
     );
-
-    if (rolesVinculados.length === 0) {
-      alert("Nenhum perfil vinculado às áreas selecionadas.");
-      return;
-    }
 
     const usuarios = await buscarUsuariosPorRole(rolesVinculados);
 
@@ -861,38 +856,36 @@ const handleSalvarOperacional = async () => {
           body: JSON.stringify({
             email: user.email,
             tituloTarefa: "Nova Diretriz Operacional",
-            assuntoTarefa:
-              "Foi criada uma nova diretriz Operacional vinculada à sua área.",
+            assuntoTarefa: "Foi criada uma nova diretriz operacional vinculada à sua área.",
             prazoTarefa: "Sem prazo",
           }),
         });
       })
     );
 
-    // ✅ Enviar e-mails para os e-mails manuais digitados
-const emailsManuais = allOperacional
-.flatMap((op) => op.emails || [])
-.filter((email) => email.trim() !== "");
+    // 🔥 Envia e-mails manuais adicionados nas operacionais
+    const emailsManuais = allOperacional
+      .flatMap((op) => op.emails || [])
+      .filter((email) => email.trim() !== "");
 
-if (emailsManuais.length > 0) {
-await Promise.all(
-  emailsManuais.map(async (email) => {
-    await fetch("https://fokus360-backend.vercel.app/send-task-email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: email,
-        tituloTarefa: "Nova Diretriz Operacional",
-        assuntoTarefa:
-          "Foi criada uma nova diretriz operacional vinculada ao seu e-mail.",
-        prazoTarefa: "Sem prazo",
-      }),
-    });
-  })
-);
-}
+    if (emailsManuais.length > 0) {
+      await Promise.all(
+        emailsManuais.map(async (email) => {
+          await fetch("https://fokus360-backend.vercel.app/send-task-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: email,
+              tituloTarefa: "Nova Diretriz Operacional",
+              assuntoTarefa: "Foi criada uma nova diretriz operacional vinculada ao seu e-mail.",
+              prazoTarefa: "Sem prazo",
+            }),
+          });
+        })
+      );
+    }
 
-
+    // 🔥 Envia e-mails para os responsáveis das tarefas (quemEmail)
     await Promise.all(
       allOperacional.flatMap((operacional) =>
         (operacional.tarefas || []).flatMap((tarefa) => {
@@ -901,20 +894,16 @@ await Promise.all(
           return emailList
             .filter((email) => email.trim() !== "")
             .map(async (email) => {
-              await fetch(
-                "https://fokus360-backend.vercel.app/send-task-email",
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    email,
-                    tituloTarefa: tarefa.tituloTarefa || "Nova Tarefa",
-                    assuntoTarefa:
-                      "Você foi designado para um plano de ação",
-                    prazoTarefa: tarefa.planoDeAcao?.quando || "Sem prazo",
-                  }),
-                }
-              );
+              await fetch("https://fokus360-backend.vercel.app/send-task-email", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  email,
+                  tituloTarefa: tarefa.tituloTarefa || "Nova Tarefa",
+                  assuntoTarefa: "Você foi designado para um plano de ação",
+                  prazoTarefa: tarefa.planoDeAcao?.quando || "Sem prazo",
+                }),
+              });
             });
         })
       )
@@ -1414,9 +1403,7 @@ await Promise.all(
                           ? "Selecione as áreas responsáveis"
                           : selected
                               .map(
-                                (id) =>
-                                  areas.find((area) => area.id === id)?.nome ||
-                                  "Desconhecida"
+                                (id) => areas.find((area) => area.id === id)?.nome || "Desconhecida"
                               )
                               .join(", ")
                       }
@@ -1424,12 +1411,13 @@ await Promise.all(
                       {areas.map((area) => (
                         <MenuItem key={area.id} value={area.id}>
                           <Checkbox
-                            checked={areasoperacionalSelecionadas.includes(area.id)}
+                            checked={(areasOperacionaisPorId[tatica.id] || []).includes(area.id)}
                           />
                           <ListItemText primary={area.nome} />
                         </MenuItem>
                       ))}
                     </Select>
+
 
                     {/* Unidades */}
                     <Select
