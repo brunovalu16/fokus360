@@ -1860,19 +1860,7 @@ await Promise.all(
           </AccordionDetails>
         </Accordion>
       ))}
-      <Button
-            variant="contained"
-            sx={{
-              backgroundColor: "#312783",
-              color: "#fff",
-              "&:hover": {
-                backgroundColor: "#312783",
-              },
-            }}
-            onClick={handleSalvarEstrategicas}
-          >
-            SALVAR DIRETRIZES ESTRATÉGICAS
-          </Button>
+      
     </Box>
   );
 };
