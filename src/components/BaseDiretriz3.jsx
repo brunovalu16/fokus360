@@ -32,6 +32,10 @@ const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacio
   const [areasSelecionadas, setAreasSelecionadas] = useState([]);
   const [estrategicas, setEstrategicas] = useState(propEstrategicas || []);
 
+  const [areasTaticasPorId, setAreasTaticasPorId] = useState({});
+  const [areasOperacionaisPorId, setAreasOperacionaisPorId] = useState({});
+
+
   const [taticas, setTaticas] = useState([]);
   const [areastaticasSelecionadas, setAreastaticasSelecionadas] = useState([]);
 
@@ -671,6 +675,8 @@ const areaRolesMap = {
     try {
       if (!projectId) {
         alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
+        console.log("🌟 Táticas - Áreas selecionadas:", areastaticasSelecionadas);
+
         return;
       }
   
@@ -695,6 +701,7 @@ const areaRolesMap = {
       const projetoRef = doc(db, "projetos", projectId);
       await updateDoc(projetoRef, {
         taticas: allTaticas,
+        areasResponsaveistaticas: Object.values(areasTaticasPorId).flat(), // 🔥 Agora dinâmico
         areasResponsaveis: areasSelecionadas,
         areasResponsaveistaticas: areastaticasSelecionadas, // 🔥 ADICIONADO!
         unidadesRelacionadas: unidadeSelecionadas,
@@ -780,6 +787,8 @@ const handleSalvarOperacional = async () => {
   try {
     if (!projectId) {
       alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
+      console.log("📌 Operacional - Áreas selecionadas:", areasoperacionalSelecionadas);
+
       return;
     }
 
@@ -817,7 +826,7 @@ const handleSalvarOperacional = async () => {
     await updateDoc(projetoRef, {
       operacional: allOperacional,
       areasResponsaveis: areasSelecionadas,
-      areasResponsaveisoperacional: areasoperacionalSelecionadas, // 🔥 ADICIONADO!
+      areasResponsaveisoperacional: Object.values(areasOperacionaisPorId).flat(),
       unidadesRelacionadas: unidadeSelecionadas,
       updatedAt: new Date(),
     });
@@ -1158,8 +1167,13 @@ await Promise.all(
   <Box sx={{ flex: 1, minWidth: "300px" }}>
     <Select
       multiple
-      value={areastaticasSelecionadas}
-      onChange={(event) => setAreastaticasSelecionadas(event.target.value)}
+      value={areasTaticasPorId[estrategica.id] || []}
+      onChange={(event) =>
+        setAreasTaticasPorId((prev) => ({
+          ...prev,
+          [estrategica.id]: event.target.value,
+        }))
+      }
       displayEmpty
       fullWidth
       sx={{ backgroundColor: "#fff" }}
@@ -1382,9 +1396,12 @@ await Promise.all(
                     {/* Áreas */}
                     <Select
                       multiple
-                      value={areasoperacionalSelecionadas}
+                      value={areasOperacionaisPorId[tatica.id] || []}
                       onChange={(event) =>
-                        setAreasoperacionalSelecionadas(event.target.value)
+                        setAreasOperacionaisPorId((prev) => ({
+                          ...prev,
+                          [tatica.id]: event.target.value,
+                        }))
                       }
                       displayEmpty
                       sx={{
