@@ -693,12 +693,12 @@ const areaRolesMap = {
       return;
     }
   
-    const projetoRef = doc(db, "projetos", projectId);
     await updateDoc(projetoRef, {
-      areasResponsaveis: areasSelecionadasTaticas,
+      areasResponsaveistaticas: areasSelecionadasTaticas,
       unidadesRelacionadas: unidadeSelecionadas,
       updatedAt: new Date(),
     });
+    
       
   
       // 🔔 Notificação para perfis vinculados às áreas táticas
