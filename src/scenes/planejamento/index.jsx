@@ -103,6 +103,7 @@ const Planejamento = () => {
       // Exemplo: se for criar um novo doc
       const novoDocRef = doc(collection(dbFokus360, "projetos"));
       await setDoc(novoDocRef, projetoData);
+      setProjectId(projetoRef.id);
 
       // Guardamos o ID
       setProjectId(novoDocRef.id);
