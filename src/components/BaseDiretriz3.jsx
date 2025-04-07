@@ -693,11 +693,13 @@ const areaRolesMap = {
       return;
     }
   
+    const projetoRef = doc(db, "projetos", projectId); // ✅ ESSENCIAL!
+
     console.log("🟡 Salvando TÁTICAS:", areasSelecionadasTaticas);
     await updateDoc(projetoRef, {
       areasResponsaveistaticas: areasSelecionadasTaticas,
       unidadesRelacionadas: unidadeSelecionadas,
-      updatedAt: new Date(),  
+      updatedAt: new Date(),
     });
     
       
