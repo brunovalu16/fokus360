@@ -29,6 +29,13 @@ const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacio
 
   const [limpaEstado, setLimpaEstado] = useState("");
 
+
+  const [areasSelecionadasTaticas, setAreasSelecionadasTaticas] = useState([]);
+
+
+
+
+
   const [areasSelecionadas, setAreasSelecionadas] = useState([]);
   const [estrategicas, setEstrategicas] = useState(propEstrategicas || []);
 
@@ -680,23 +687,22 @@ const areaRolesMap = {
         alert("Adicione ao menos uma Tática.");
         return;
       }
+    
+    if (areasSelecionadas.length === 0) {
+      alert("Selecione pelo menos uma área responsável.");
+      return;
+    }
   
-      if (areastaticasSelecionadas.length === 0) {
-        alert("Selecione ao menos uma área responsável para a Tática.");
-        return;
-      }
-  
-      const projetoRef = doc(db, "projetos", projectId);
-      await updateDoc(projetoRef, {
-        taticas: allTaticas,
-        areasResponsaveis: areastaticasSelecionadas, // ✅ Adicione isto
-        areasResponsaveistaticas: areastaticasSelecionadas,
-        updatedAt: new Date(),
-      });
+    const projetoRef = doc(db, "projetos", projectId);
+    await updateDoc(projetoRef, {
+      areasResponsaveis: areasSelecionadasTaticas,
+      unidadesRelacionadas: unidadeSelecionadas,
+      updatedAt: new Date(),
+    });
       
   
       // 🔔 Notificação para perfis vinculados às áreas táticas
-      const rolesVinculados = areastaticasSelecionadas.flatMap(
+      const rolesVinculados = areasSelecionadasTaticas.flatMap(
         (areaId) => areaRolesMap[areaId] || []
       );
   
@@ -1132,13 +1138,8 @@ const handleSalvarOperacional = async () => {
   <Box sx={{ flex: 1, minWidth: "300px" }}>
     <Select
       multiple
-      value={areasTaticasPorId[estrategica.id] || []}
-      onChange={(event) =>
-        setAreasTaticasPorId((prev) => ({
-          ...prev,
-          [estrategica.id]: event.target.value,
-        }))
-      }
+      value={areasSelecionadasTaticas}
+      onChange={(event) => setAreasSelecionadasTaticas(event.target.value)}
       displayEmpty
       fullWidth
       sx={{ backgroundColor: "#fff" }}
@@ -1155,7 +1156,7 @@ const handleSalvarOperacional = async () => {
     >
       {areas.map((area) => (
         <MenuItem key={area.id} value={area.id}>
-          <Checkbox checked={areastaticasSelecionadas.includes(area.id)} />
+          <Checkbox checked={areasSelecionadasTaticas.includes(area.id)} />
           <ListItemText primary={area.nome} />
         </MenuItem>
       ))}
