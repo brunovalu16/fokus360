@@ -54,7 +54,7 @@ const InformacoesPlanejamento2 = ({ projetoData, onUpdate, onSaveProjectId   }) 
 
 //preencher os campos normalmente vindo do banco
 useEffect(() => {
-  if (projetoData) {
+  if (projetoData?.id) {
     setFormValues((prev) => ({
       ...prev,
       nome: projetoData.nome || "",
@@ -73,7 +73,9 @@ useEffect(() => {
     setAreas(projetoData.areasResponsaveis || []);
     setUnidade(projetoData.unidade || []);
   }
-}, [projetoData]);
+}, [projetoData?.id]);
+
+
 
 
 
