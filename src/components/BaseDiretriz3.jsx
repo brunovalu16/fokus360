@@ -588,25 +588,19 @@ const areaRolesMap = {
         alert("Adicione ao menos uma Diretriz Estratégica.");
         return;
       }
-      if (areasSelecionadas.length === 0) {
-        alert("Selecione pelo menos uma área responsável.");
-        return;
-      }
-      if (unidadeSelecionadas.length === 0) {
-        alert("Selecione pelo menos uma unidade.");
-        return;
-      }
   
-      // 🔎 Log para depuração
-    console.log("🟣 Salvando com areasResponsaveistaticas:", areasSelecionadasTaticas);
-
-    const projetoRef = doc(db, "projetos", projectId);
-    await updateDoc(projetoRef, {
-      areasResponsaveis: areasSelecionadas,
-      areasResponsaveistaticas: areasSelecionadasTaticas, // 👈 Agora salva junto!
-      unidadesRelacionadas: unidadeSelecionadas,
-      updatedAt: new Date(),
-    });
+      const projetoRef = doc(db, "projetos", projectId);
+  
+      console.log("🔍 Estratégicas que serão salvas:", JSON.stringify(estrategicas, null, 2));
+  
+      await updateDoc(projetoRef, {
+        estrategicas, // 👈 agora sim!
+        areasResponsaveis: areasSelecionadas,
+        areasResponsaveistaticas: areasSelecionadasTaticas,
+        unidadesRelacionadas: unidadeSelecionadas,
+        updatedAt: new Date(),
+      });
+    
       
       
   
@@ -703,10 +697,12 @@ const areaRolesMap = {
 
     console.log("🟡 Salvando TÁTICAS:", areasSelecionadasTaticas);
     await updateDoc(projetoRef, {
+      estrategicas, // 👈 sempre salva a estrutura inteira
       areasResponsaveistaticas: areasSelecionadasTaticas,
       unidadesRelacionadas: unidadeSelecionadas,
       updatedAt: new Date(),
     });
+    
     
       
   
@@ -815,11 +811,12 @@ const handleSalvarOperacional = async () => {
 
     const projetoRef = doc(db, "projetos", projectId);
     await updateDoc(projetoRef, {
-      operacional: allOperacional,
-      areasResponsaveis: areasoperacionalSelecionadas, // ✅ Adicione isto
+      estrategicas, 
+      areasResponsaveis: areasoperacionalSelecionadas,
       areasResponsaveisoperacional: areasoperacionalSelecionadas,
       updatedAt: new Date(),
     });
+    
     
 
     // 🔔 Busca usuários pelas áreas operacionais e envia notificações
