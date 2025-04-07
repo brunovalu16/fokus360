@@ -239,6 +239,7 @@ const Planejamento = () => {
       // Salvar no Firestore
       const projetoRef = doc(collection(dbFokus360, "projetos"));
       await setDoc(projetoRef, projetoData);
+      setProjectId(projetoRef.id);
   
       // ---------------------------
       // Enviar E-MAILS + NOTIFICAÇÕES
