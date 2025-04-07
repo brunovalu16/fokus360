@@ -593,8 +593,6 @@ const areaRolesMap = {
       const projetoRef = doc(db, "projetos", projectId);
       await updateDoc(projetoRef, {
         areasResponsaveis: areasSelecionadas,
-        areasResponsaveistaticas: [], // inicia vazio, se quiser
-        areasResponsaveisoperacional: [], // idem
         unidadesRelacionadas: unidadeSelecionadas,
         updatedAt: new Date(),
       });
