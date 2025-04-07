@@ -600,10 +600,11 @@ const areaRolesMap = {
       const projetoRef = doc(db, "projetos", projectId);
       await updateDoc(projetoRef, {
         areasResponsaveis: areasSelecionadas,
-        areastaticasSelecionadas: areasSelecionadasTaticas, // ✅ Adiciona as áreas táticas aqui
+        areasResponsaveistaticas: areasSelecionadasTaticas, 
         unidadesRelacionadas: unidadeSelecionadas,
         updatedAt: new Date(),
       });
+      
       
   
       // ✅ Enviar notificações e e-mails para usuários das áreas
