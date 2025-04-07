@@ -224,32 +224,51 @@ const handleEditTarefa = (tarefaId, campo, valor) => {
   );
 };
 
+// função para apagar tarefas criadas
+const handleRemoveTarefa = async (idEstrategica, idTatica, idOperacional, idTarefa) => {
+  const atualizado = estrategicas.map((estrategica) => {
+    if (estrategica.id !== idEstrategica) return estrategica;
 
-const handleRemoveTarefa = (idEstrategica, idTatica, idOperacional, idTarefa) => {
-  setEstrategicas((prevEstrategicas) =>
-    prevEstrategicas.map((estrategica) => {
-      if (estrategica.id !== idEstrategica) return estrategica;
-      return {
-        ...estrategica,
-        taticas: estrategica.taticas.map((tatica) => {
-          if (tatica.id !== idTatica) return tatica;
-          return {
-            ...tatica,
-            operacionais: tatica.operacionais.map((operacional) => {
-              if (operacional.id !== idOperacional) return operacional;
-              return {
-                ...operacional,
-                tarefas: operacional.tarefas.filter((tarefa) => tarefa.id !== idTarefa),
-              };
-            }),
-          };
-        }),
-      };
-    })
-  );
-  onUpdate && onUpdate({ estrategicas: estrategicas  });
-// <- CHAMA onUpdate!  ESSENCIAL!
+    return {
+      ...estrategica,
+      taticas: estrategica.taticas.map((tatica) => {
+        if (tatica.id !== idTatica) return tatica;
+
+        return {
+          ...tatica,
+          operacionais: tatica.operacionais.map((operacional) => {
+            if (operacional.id !== idOperacional) return operacional;
+
+            return {
+              ...operacional,
+              tarefas: operacional.tarefas.filter((tarefa) => tarefa.id !== idTarefa),
+            };
+          }),
+        };
+      }),
+    };
+  });
+
+  setEstrategicas(atualizado);
+  onUpdate && onUpdate({ estrategicas: atualizado });
+
+  if (!projectId) {
+    console.warn("❌ ID do projeto não encontrado ao remover tarefa.");
+    return;
+  }
+
+  try {
+    const projetoRef = doc(db, "projetos", projectId);
+    await updateDoc(projetoRef, {
+      estrategicas: atualizado,
+      updatedAt: new Date(),
+    });
+    console.log("✅ Tarefa removida do Firestore!");
+  } catch (error) {
+    console.error("❌ Erro ao remover tarefa do Firestore:", error);
+  }
 };
+
 
 
 
