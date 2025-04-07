@@ -255,7 +255,7 @@ const handleRemoveTarefa = (idEstrategica, idTatica, idOperacional, idTarefa) =>
 
 
 
-
+//função para salvar nova tarefa/planodeacao
 const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => {
   if (!novaTarefa || typeof novaTarefa !== "string" || !novaTarefa.trim()) {
     alert("Nome da tarefa é obrigatório.");
@@ -277,35 +277,34 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
     },
   };
 
-  console.log("📌 Adicionando nova tarefa:", JSON.stringify(novaTarefaObj, null, 2));
+  const atualizado = estrategicas.map((estrategica) => {
+    if (estrategica.id !== idEstrategica) return estrategica;
 
-  setEstrategicas((prevEstrategicas) => {
-    return prevEstrategicas.map((estrategica) => {
-      if (estrategica.id !== idEstrategica) return estrategica;
+    return {
+      ...estrategica,
+      taticas: estrategica.taticas.map((tatica) => {
+        if (tatica.id !== idTatica) return tatica;
 
-      return {
-        ...estrategica,
-        taticas: estrategica.taticas.map((tatica) => {
-          if (tatica.id !== idTatica) return tatica;
+        return {
+          ...tatica,
+          operacionais: tatica.operacionais.map((operacional) => {
+            if (operacional.id !== idOperacional) return operacional;
 
-          return {
-            ...tatica,
-            operacionais: tatica.operacionais.map((operacional) => {
-              if (operacional.id !== idOperacional) return operacional;
-
-              return {
-                ...operacional,
-                tarefas: [...(operacional.tarefas || []), novaTarefaObj],
-              };
-            }),
-          };
-        }),
-      };
-    });
+            return {
+              ...operacional,
+              tarefas: [...(operacional.tarefas || []), novaTarefaObj],
+            };
+          }),
+        };
+      }),
+    };
   });
 
-  setNovaTarefa(""); // Limpa o campo de entrada
+  setEstrategicas(atualizado);
+  onUpdate && onUpdate({ estrategicas: atualizado }); // <- ISSO FAZ SALVAR NO BANCO
+
 };
+
 
 
 
