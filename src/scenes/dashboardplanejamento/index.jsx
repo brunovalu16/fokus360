@@ -89,9 +89,11 @@ function DashboardPlanejamento() {
 
     {projetoData ? (
       <>
-        <InformacoesPlanejamento2
-          projetoData={projetoData}
-          onUpdate={(prev) => setProjetoData((antigo) => ({ ...antigo, ...prev }))}
+        <InformacoesPlanejamento2 
+          projetoData={projetoData} 
+          onUpdate={(atualizado) =>
+            setProjetoData((prev) => ({ ...prev, ...atualizado }))
+          }
         />
 
 
