@@ -75,126 +75,127 @@ useEffect(() => {
 
 
  //Função para adicionar projetos
-  const handleAdicionarProjeto = async () => {
-    try {
-      if (!informacoesPlanejamento.nome.trim()) {
-        alert("O nome do projeto é obrigatório!");
-        return;
-      }
-  
-      // Montar estrutura em ÁRVORE
-      const projetoData = {
-        nome: informacoesPlanejamento.nome,
-        descricao: informacoesPlanejamento.descricao,
-        dataInicio: informacoesPlanejamento.dataInicio,
-        prazoPrevisto: informacoesPlanejamento.prazoPrevisto,
-        unidade: informacoesPlanejamento.unidade,
-        solicitante: informacoesPlanejamento.solicitante,
-        solicitanteEmail: informacoesPlanejamento.solicitanteEmail,
-        colaboradorEmail: informacoesPlanejamento.colaboradorEmail,
-        categoria: informacoesPlanejamento.categoria,
-        colaboradores: informacoesPlanejamento.colaboradores,
-        orcamento: informacoesPlanejamento.orcamento,
-        createdAt: new Date(),
-        diretrizes: (informacoesPlanejamento.estrategicas || []).map((estrategica) => ({
-          id: estrategica.id?.toString() || Date.now().toString(),
-          titulo: estrategica.titulo || "",
-          descricao: estrategica.descricao || "",
-          emails: estrategica.emails || [],
-          areas: informacoesPlanejamento.areasResponsaveis || [],
-          unidade: informacoesPlanejamento.unidade,
-          taticas: (estrategica.taticas || []).map((tatica) => ({
-            id: tatica.id?.toString() || Date.now().toString(),
-            titulo: tatica.titulo || "",
-            descricao: tatica.descricao || "",
-            emails: tatica.emails || [],
-            areas: informacoesPlanejamento.areastaticasSelecionadas || [],
-            unidade: informacoesPlanejamento.unidade,
-            operacionais: (tatica.operacionais || []).map((operacional) => ({
-              id: operacional.id?.toString() || Date.now().toString(),
-              titulo: operacional.titulo || "",
-              descricao: operacional.descricao || "",
-              emails: operacional.emails || [],
-              areas: informacoesPlanejamento.areasoperacionalSelecionadas || [],
-              unidade: informacoesPlanejamento.unidade,
-              tarefas: (operacional.tarefas || []).map((tarefa) => ({
-                id: tarefa.id?.toString() || Date.now().toString(),
-                tituloTarefa: tarefa.tituloTarefa || "",
-                planoDeAcao: {
-                  oQue: tarefa.planoDeAcao?.oQue || "",
-                  porQue: tarefa.planoDeAcao?.porQue || "",
-                  quem: tarefa.planoDeAcao?.quem || [],
-                  quemEmail: tarefa.planoDeAcao?.quemEmail || [],
-                  quando: tarefa.planoDeAcao?.quando || "",
-                  onde: tarefa.planoDeAcao?.onde || "",
-                  como: tarefa.planoDeAcao?.como || "",
-                  valor: tarefa.planoDeAcao?.valor || "",
-                },
-              })),
+ const handleAdicionarProjeto = async () => {
+  try {
+    if (!formValues.nome.trim()) {
+      alert("O nome do projeto é obrigatório!");
+      return;
+    }
+
+    // Montar estrutura em ÁRVORE
+    const projetoData = {
+      nome: formValues.nome,
+      descricao: formValues.descricao,
+      dataInicio: formValues.dataInicio,
+      prazoPrevisto: formValues.prazoPrevisto,
+      unidade: formValues.unidade,
+      solicitante: formValues.solicitante,
+      solicitanteEmail: formValues.solicitanteEmail,
+      colaboradorEmail: formValues.colaboradorEmail,
+      categoria: formValues.categoria,
+      colaboradores: formValues.colaboradores,
+      orcamento: formValues.orcamento,
+      createdAt: new Date(),
+      diretrizes: (formValues.estrategicas || []).map((estrategica) => ({
+        id: estrategica.id?.toString() || Date.now().toString(),
+        titulo: estrategica.titulo || "",
+        descricao: estrategica.descricao || "",
+        emails: estrategica.emails || [],
+        areas: formValues.areasResponsaveis || [],
+        unidade: formValues.unidade,
+        taticas: (estrategica.taticas || []).map((tatica) => ({
+          id: tatica.id?.toString() || Date.now().toString(),
+          titulo: tatica.titulo || "",
+          descricao: tatica.descricao || "",
+          emails: tatica.emails || [],
+          areas: formValues.areastaticasSelecionadas || [],
+          unidade: formValues.unidade,
+          operacionais: (tatica.operacionais || []).map((operacional) => ({
+            id: operacional.id?.toString() || Date.now().toString(),
+            titulo: operacional.titulo || "",
+            descricao: operacional.descricao || "",
+            emails: operacional.emails || [],
+            areas: formValues.areasoperacionalSelecionadas || [],
+            unidade: formValues.unidade,
+            tarefas: (operacional.tarefas || []).map((tarefa) => ({
+              id: tarefa.id?.toString() || Date.now().toString(),
+              tituloTarefa: tarefa.tituloTarefa || "",
+              planoDeAcao: {
+                oQue: tarefa.planoDeAcao?.oQue || "",
+                porQue: tarefa.planoDeAcao?.porQue || "",
+                quem: tarefa.planoDeAcao?.quem || [],
+                quemEmail: tarefa.planoDeAcao?.quemEmail || [],
+                quando: tarefa.planoDeAcao?.quando || "",
+                onde: tarefa.planoDeAcao?.onde || "",
+                como: tarefa.planoDeAcao?.como || "",
+                valor: tarefa.planoDeAcao?.valor || "",
+              },
             })),
           })),
         })),
-      };
-  
-      // Salvar no Firestore
-      const projetoRef = doc(collection(dbFokus360, "projetos"));
-      await setDoc(projetoRef, projetoData);
-  
-      // ---------------------------
-      // Enviar E-MAILS + NOTIFICAÇÕES
-      // ---------------------------
-      let emailsToNotify = [];
-  
-      if (informacoesPlanejamento.colaboradorEmail) {
-        const colaboradores = informacoesPlanejamento.colaboradorEmail.split(/[,;]/).map(e => e.trim());
-        emailsToNotify = [...emailsToNotify, ...colaboradores];
-      }
-  
-      (informacoesPlanejamento.estrategicas || []).forEach(estrategica => {
-        (estrategica.taticas || []).forEach(tatica => {
-          (tatica.operacionais || []).forEach(op => {
-            (op.tarefas || []).forEach(tarefa => {
-              if (tarefa.planoDeAcao?.quemEmail) {
-                const responsaveis = tarefa.planoDeAcao.quemEmail.split(/[,;]/).map(e => e.trim());
-                emailsToNotify = [...emailsToNotify, ...responsaveis];
-              }
-            });
+      })),
+    };
+
+    // Salvar no Firestore
+    const projetoRef = doc(collection(dbFokus360, "projetos"));
+    await setDoc(projetoRef, projetoData);
+
+    // ---------------------------
+    // Enviar E-MAILS + NOTIFICAÇÕES
+    // ---------------------------
+    let emailsToNotify = [];
+
+    if (formValues.colaboradorEmail) {
+      const colaboradores = formValues.colaboradorEmail.split(/[,;]/).map(e => e.trim());
+      emailsToNotify = [...emailsToNotify, ...colaboradores];
+    }
+
+    (formValues.estrategicas || []).forEach(estrategica => {
+      (estrategica.taticas || []).forEach(tatica => {
+        (tatica.operacionais || []).forEach(op => {
+          (op.tarefas || []).forEach(tarefa => {
+            if (tarefa.planoDeAcao?.quemEmail) {
+              const responsaveis = tarefa.planoDeAcao.quemEmail.split(/[,;]/).map(e => e.trim());
+              emailsToNotify = [...emailsToNotify, ...responsaveis];
+            }
           });
         });
       });
-  
-      emailsToNotify = [...new Set(emailsToNotify.filter(email => email))];
-  
-      if (emailsToNotify.length > 0) {
-        await fetch('https://fokus360-backend.vercel.app/send-project-emails', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            emails: emailsToNotify,
-            tituloProjeto: informacoesPlanejamento.nome,
-            descricaoProjeto: informacoesPlanejamento.descricao,
-          }),
-        });
-  
-        await fetch('https://fokus360-backend.vercel.app/send-project-notifications', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userIds: informacoesPlanejamento.colaboradores,
-            mensagem: `Você foi adicionado ao projeto: ${informacoesPlanejamento.nome}`,
-          }),
-        });
-      }
-  
-      setShowAlert(true);
-      setMensagem(true);
-      console.log("✅ Projeto adicionado no formato ÁRVORE!");
-  
-    } catch (error) {
-      console.error("❌ Erro ao adicionar projeto:", error.message);
-      alert("Erro ao adicionar projeto. Tente novamente.");
+    });
+
+    emailsToNotify = [...new Set(emailsToNotify.filter(email => email))];
+
+    if (emailsToNotify.length > 0) {
+      await fetch('https://fokus360-backend.vercel.app/send-project-emails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          emails: emailsToNotify,
+          tituloProjeto: formValues.nome,
+          descricaoProjeto: formValues.descricao,
+        }),
+      });
+
+      await fetch('https://fokus360-backend.vercel.app/send-project-notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userIds: formValues.colaboradores,
+          mensagem: `Você foi adicionado ao projeto: ${formValues.nome}`,
+        }),
+      });
     }
-  };
+
+    setShowAlert(true);
+    setMensagem(true);
+    console.log("✅ Projeto adicionado no formato ÁRVORE!");
+
+  } catch (error) {
+    console.error("❌ Erro ao adicionar projeto:", error.message);
+    alert("Erro ao adicionar projeto. Tente novamente.");
+  }
+};
+
   
   
 
