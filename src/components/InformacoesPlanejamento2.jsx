@@ -11,7 +11,7 @@ import {
   Button,
 } from "@mui/material";
 import { dbFokus360 } from "../data/firebase-config"; // ✅ Usa a instância correta
-import { getDocs, collection, addDoc, doc, setDoc  } from "firebase/firestore";
+import { getDocs, collection, addDoc, doc, setDoc, updateDoc   } from "firebase/firestore";
 import { getApps } from "firebase/app";
 console.log("Apps Inicializados:", getApps()); // ✅ Deve exibir os apps carregados
 
@@ -29,6 +29,10 @@ const InformacoesPlanejamento2 = ({ projetoData, onUpdate, onSaveProjectId   }) 
   const [colaboradorEmail, setColaboradorEmail] = useState("");
   const [areas, setAreas] = useState([]);
   const [unidade, setUnidade] = useState([]);
+
+  const [showAlert, setShowAlert] = useState(false);
+  const [mensagem, setMensagem] = useState(false);
+
 
   const [formValues, setFormValues] = useState({
     nome: "",
@@ -137,8 +141,14 @@ useEffect(() => {
     };
 
     // Salvar no Firestore
-    const projetoRef = doc(collection(dbFokus360, "projetos"));
-    await setDoc(projetoRef, projetoData);
+    if (projetoData?.id) {
+      const projetoRef = doc(dbFokus360, "projetos", projetoData.id);
+      await updateDoc(projetoRef, projetoData);
+    } else {
+      const projetoRef = doc(collection(dbFokus360, "projetos"));
+      await setDoc(projetoRef, projetoData);
+    }
+    
 
     // ---------------------------
     // Enviar E-MAILS + NOTIFICAÇÕES
