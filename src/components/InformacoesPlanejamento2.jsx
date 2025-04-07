@@ -350,21 +350,7 @@ useEffect(() => {
               />
             </Box>
 
-                <Box display="flex" justifyContent="flex-end" marginTop="20px">
-                              <Button
-                                onClick={handleAdicionarProjeto}
-                                variant="contained"
-                                sx={{
-                                  backgroundColor: "#5f53e5",
-                                  color: "#fff",
-                                  "&:hover": {
-                                    backgroundColor: "#5f53e5",
-                                  },
-                                }}
-                              >
-                                SALVAR INFORMAÇÕES DO PROJETO
-                              </Button>
-                            </Box>
+                
            
           </Box>
         </AccordionDetails>
