@@ -239,29 +239,22 @@ const Planejamento = () => {
       const projetoRef = doc(collection(dbFokus360, "projetos"));
       await setDoc(projetoRef, projetoData);
   
-      // ✅ ESSENCIAL: define o ID do projeto para salvar diretrizes depois
-      setProjectId(projetoRef.id);
-  
       // ---------------------------
       // Enviar E-MAILS + NOTIFICAÇÕES
       // ---------------------------
       let emailsToNotify = [];
   
       if (informacoesPlanejamento.colaboradorEmail) {
-        const colaboradores = informacoesPlanejamento.colaboradorEmail
-          .split(/[,;]/)
-          .map((e) => e.trim());
+        const colaboradores = informacoesPlanejamento.colaboradorEmail.split(/[,;]/).map(e => e.trim());
         emailsToNotify = [...emailsToNotify, ...colaboradores];
       }
   
-      (informacoesPlanejamento.estrategicas || []).forEach((estrategica) => {
-        (estrategica.taticas || []).forEach((tatica) => {
-          (tatica.operacionais || []).forEach((op) => {
-            (op.tarefas || []).forEach((tarefa) => {
+      (informacoesPlanejamento.estrategicas || []).forEach(estrategica => {
+        (estrategica.taticas || []).forEach(tatica => {
+          (tatica.operacionais || []).forEach(op => {
+            (op.tarefas || []).forEach(tarefa => {
               if (tarefa.planoDeAcao?.quemEmail) {
-                const responsaveis = tarefa.planoDeAcao.quemEmail
-                  .split(/[,;]/)
-                  .map((e) => e.trim());
+                const responsaveis = tarefa.planoDeAcao.quemEmail.split(/[,;]/).map(e => e.trim());
                 emailsToNotify = [...emailsToNotify, ...responsaveis];
               }
             });
@@ -269,12 +262,12 @@ const Planejamento = () => {
         });
       });
   
-      emailsToNotify = [...new Set(emailsToNotify.filter((email) => email))];
+      emailsToNotify = [...new Set(emailsToNotify.filter(email => email))];
   
       if (emailsToNotify.length > 0) {
-        await fetch("https://fokus360-backend.vercel.app/send-project-emails", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        await fetch('https://fokus360-backend.vercel.app/send-project-emails', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             emails: emailsToNotify,
             tituloProjeto: informacoesPlanejamento.nome,
@@ -282,9 +275,9 @@ const Planejamento = () => {
           }),
         });
   
-        await fetch("https://fokus360-backend.vercel.app/send-project-notifications", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        await fetch('https://fokus360-backend.vercel.app/send-project-notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             userIds: informacoesPlanejamento.colaboradores,
             mensagem: `Você foi adicionado ao projeto: ${informacoesPlanejamento.nome}`,
@@ -295,12 +288,12 @@ const Planejamento = () => {
       setShowAlert(true);
       setMensagem(true);
       console.log("✅ Projeto adicionado no formato ÁRVORE!");
+  
     } catch (error) {
       console.error("❌ Erro ao adicionar projeto:", error.message);
       alert("Erro ao adicionar projeto. Tente novamente.");
     }
   };
-  
 
 
 

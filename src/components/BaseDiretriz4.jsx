@@ -224,39 +224,58 @@ const handleEditTarefa = (tarefaId, campo, valor) => {
   );
 };
 
+// função para apagar tarefas criadas
+const handleRemoveTarefa = async (idEstrategica, idTatica, idOperacional, idTarefa) => {
+  const atualizado = estrategicas.map((estrategica) => {
+    if (estrategica.id !== idEstrategica) return estrategica;
 
-const handleRemoveTarefa = (idEstrategica, idTatica, idOperacional, idTarefa) => {
-  setEstrategicas((prevEstrategicas) =>
-    prevEstrategicas.map((estrategica) => {
-      if (estrategica.id !== idEstrategica) return estrategica;
-      return {
-        ...estrategica,
-        taticas: estrategica.taticas.map((tatica) => {
-          if (tatica.id !== idTatica) return tatica;
-          return {
-            ...tatica,
-            operacionais: tatica.operacionais.map((operacional) => {
-              if (operacional.id !== idOperacional) return operacional;
-              return {
-                ...operacional,
-                tarefas: operacional.tarefas.filter((tarefa) => tarefa.id !== idTarefa),
-              };
-            }),
-          };
-        }),
-      };
-    })
-  );
-  onUpdate && onUpdate({ estrategicas: estrategicas  });
-// <- CHAMA onUpdate!  ESSENCIAL!
+    return {
+      ...estrategica,
+      taticas: estrategica.taticas.map((tatica) => {
+        if (tatica.id !== idTatica) return tatica;
+
+        return {
+          ...tatica,
+          operacionais: tatica.operacionais.map((operacional) => {
+            if (operacional.id !== idOperacional) return operacional;
+
+            return {
+              ...operacional,
+              tarefas: operacional.tarefas.filter((tarefa) => tarefa.id !== idTarefa),
+            };
+          }),
+        };
+      }),
+    };
+  });
+
+  setEstrategicas(atualizado);
+  onUpdate && onUpdate({ estrategicas: atualizado });
+
+  if (!projectId) {
+    console.warn("❌ ID do projeto não encontrado ao remover tarefa.");
+    return;
+  }
+
+  try {
+    const projetoRef = doc(db, "projetos", projectId);
+    await updateDoc(projetoRef, {
+      estrategicas: atualizado,
+      updatedAt: new Date(),
+    });
+    console.log("✅ Tarefa removida do Firestore!");
+  } catch (error) {
+    console.error("❌ Erro ao remover tarefa do Firestore:", error);
+  }
 };
 
 
 
 
 
+
 //função para salvar nova tarefa/planodeacao
-const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => {
+const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTarefa) => {
   if (!novaTarefa || typeof novaTarefa !== "string" || !novaTarefa.trim()) {
     alert("Nome da tarefa é obrigatório.");
     return;
@@ -301,9 +320,25 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   });
 
   setEstrategicas(atualizado);
-  onUpdate && onUpdate({ estrategicas: atualizado }); // <- ISSO FAZ SALVAR NO BANCO
 
+  // 🔄 SALVAR NO FIRESTORE
+  if (!projectId) {
+    console.warn("❌ ID do projeto não encontrado ao salvar tarefa.");
+    return;
+  }
+
+  try {
+    const projetoRef = doc(db, "projetos", projectId);
+    await updateDoc(projetoRef, {
+      estrategicas: atualizado,
+      updatedAt: new Date(),
+    });
+    console.log("✅ Tarefa adicionada e salva no Firestore!");
+  } catch (error) {
+    console.error("❌ Erro ao salvar tarefa no Firestore:", error);
+  }
 };
+
 
 
 
@@ -1190,6 +1225,118 @@ await Promise.all(
                 {estrategica.descricao}
               </Typography>
             </Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, mr: 2 }}>
+
+
+
+
+
+
+          
+              {/* Campos filtros estrategica */}
+              
+                {/* Checkbox: Concluída */}
+
+  {/* Checkbox: Concluída */}
+  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 120 }}>
+    <Checkbox
+      size="small"
+      checked={estrategica.status === "concluida"}
+      onChange={() => {
+        const atualizado = estrategicas.map((e) =>
+          e.id === estrategica.id ? { ...e, status: "concluida" } : e
+        );
+        setEstrategicas(atualizado);
+        onUpdate && onUpdate({ estrategicas: atualizado });
+      }}
+      sx={{
+        width: 20,
+        height: 20,
+        color: "#fff",
+        '&.Mui-checked': {
+          color: "#fff",
+        },
+        padding: 0,
+      }}
+    />
+    <Typography sx={{ color: "#fff", fontSize: "0.8rem" }}>
+      Concluída
+    </Typography>
+  </Box>
+
+  {/* Checkbox: Em Andamento */}
+  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 130 }}>
+    <Checkbox
+      size="small"
+      checked={estrategica.status === "andamento"}
+      onChange={() => {
+        const atualizado = estrategicas.map((e) =>
+          e.id === estrategica.id ? { ...e, status: "andamento" } : e
+        );
+        setEstrategicas(atualizado);
+        onUpdate && onUpdate({ estrategicas: atualizado });
+      }}
+      sx={{
+        width: 20,
+        height: 20,
+        color: "#fff",
+        '&.Mui-checked': {
+          color: "#fff",
+        },
+        padding: 0,
+      }}
+    />
+    <Typography sx={{ color: "#fff", fontSize: "0.8rem" }}>
+      Em Andamento
+    </Typography>
+  </Box>
+
+  {/* Bolinha de status + texto fixo */}
+  <Box
+    sx={{
+      display: "flex",
+      alignItems: "center",
+      gap: 0.5,
+      minWidth: 120, // <- espaço reservado fixo
+      justifyContent: "flex-start",
+    }}
+  >
+    <Box
+      sx={{
+        width: 14,
+        height: 14,
+        borderRadius: "50%",
+        backgroundColor:
+          estrategica.status === "concluida"
+            ? "#22c55e"
+            : estrategica.status === "andamento"
+            ? "#00d2e3"
+            : estrategica.status === "atrasada"
+            ? "#ef4444"
+            : "#9ca3af",
+        border: "1px solid white",
+      }}
+    />
+    <Typography sx={{ color: "#fff", fontSize: "0.8rem", whiteSpace: "nowrap" }}>
+      {estrategica.status === "concluida"
+        ? "No prazo"
+        : estrategica.status === "andamento"
+        ? "" // <- não mostra texto quando estiver em andamento
+        : estrategica.status === "atrasada"
+        ? "Atrasada"
+        : "Não realizada"}
+    </Typography>
+  </Box>
+</Box>
+
+
+
+
+
+
+
+
+
             <Button
               disableRipple
               onClick={(e) => {
