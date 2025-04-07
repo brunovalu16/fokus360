@@ -89,7 +89,7 @@ useEffect(() => {
     }
 
     // Montar estrutura em ÁRVORE
-    const projetoData = {
+    const projetoPayload = {
       nome: formValues.nome,
       descricao: formValues.descricao,
       dataInicio: formValues.dataInicio,
@@ -145,11 +145,12 @@ useEffect(() => {
     // Salvar no Firestore
     if (projetoData?.id) {
       const projetoRef = doc(dbFokus360, "projetos", projetoData.id);
-      await updateDoc(projetoRef, projetoData);
+      await updateDoc(projetoRef, projetoPayload);
     } else {
       const projetoRef = doc(collection(dbFokus360, "projetos"));
-      await setDoc(projetoRef, projetoData);
+      await setDoc(projetoRef, projetoPayload);
     }
+    
     
 
     // ---------------------------
