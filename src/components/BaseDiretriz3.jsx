@@ -693,10 +693,11 @@ const areaRolesMap = {
       return;
     }
   
+    console.log("🟡 Salvando TÁTICAS:", areasSelecionadasTaticas);
     await updateDoc(projetoRef, {
       areasResponsaveistaticas: areasSelecionadasTaticas,
       unidadesRelacionadas: unidadeSelecionadas,
-      updatedAt: new Date(),
+      updatedAt: new Date(),  
     });
     
       
