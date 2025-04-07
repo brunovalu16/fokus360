@@ -89,7 +89,11 @@ function DashboardPlanejamento() {
 
     {projetoData ? (
       <>
-        <InformacoesPlanejamento2 projetoData={projetoData} onUpdate={() => {}} />
+        <InformacoesPlanejamento2
+          projetoData={projetoData}
+          onUpdate={(prev) => setProjetoData((antigo) => ({ ...antigo, ...prev }))}
+        />
+
 
         <Box display="flex" alignItems="center" gap={1} sx={{ marginTop: "50px", marginBottom: "50px" }}>
           <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
