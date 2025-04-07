@@ -195,7 +195,7 @@ const Planejamento = () => {
         colaboradores: informacoesPlanejamento.colaboradores,
         orcamento: informacoesPlanejamento.orcamento,
         createdAt: new Date(),
-        diretrizes: (informacoesPlanejamento.estrategicas || []).map((estrategica) => ({
+        estrategicas: (informacoesPlanejamento.estrategicas || []).map((estrategica) => ({
           id: estrategica.id?.toString() || Date.now().toString(),
           titulo: estrategica.titulo || "",
           descricao: estrategica.descricao || "",
