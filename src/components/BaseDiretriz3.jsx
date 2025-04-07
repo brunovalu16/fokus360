@@ -597,13 +597,16 @@ const areaRolesMap = {
         return;
       }
   
-      const projetoRef = doc(db, "projetos", projectId);
-      await updateDoc(projetoRef, {
-        areasResponsaveis: areasSelecionadas,
-        areasResponsaveistaticas: areasSelecionadasTaticas, 
-        unidadesRelacionadas: unidadeSelecionadas,
-        updatedAt: new Date(),
-      });
+      // 🔎 Log para depuração
+    console.log("🟣 Salvando com areasResponsaveistaticas:", areasSelecionadasTaticas);
+
+    const projetoRef = doc(db, "projetos", projectId);
+    await updateDoc(projetoRef, {
+      areasResponsaveis: areasSelecionadas,
+      areasResponsaveistaticas: areasSelecionadasTaticas, // 👈 Agora salva junto!
+      unidadesRelacionadas: unidadeSelecionadas,
+      updatedAt: new Date(),
+    });
       
       
   
