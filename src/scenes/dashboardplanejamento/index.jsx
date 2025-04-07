@@ -7,6 +7,7 @@ import { getDoc, doc } from "firebase/firestore";
 import { dbFokus360 } from "../../data/firebase-config";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 
 import InformacoesPlanejamento2 from "../../components/InformacoesPlanejamento2";
@@ -17,7 +18,6 @@ import DadosProjeto2 from "../../components/DadosProjeto2";
 function DashboardPlanejamento() {
 
   const { id } = useParams();
-  console.log("ID da URL:", id);
   const [projetoData, setProjetoData] = useState(null);
 
 
@@ -56,7 +56,12 @@ function DashboardPlanejamento() {
       title={
         <Box display="flex" alignItems="center" gap={1}>
           <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
-          <Typography>GERENCIADOR DE RELATÓRIOS</Typography>
+          <Typography sx={{ fontSize: "20px", marginTop: "20px", marginBottom: "20px" }}>
+            {" "}
+            <Box component="span" fontWeight="bold" color="#312783">
+              {projetoData?.nome}
+            </Box>
+          </Typography>
         </Box>
       }
     />
@@ -79,10 +84,8 @@ function DashboardPlanejamento() {
   >
     <DadosProjeto2 />
 
-    <Box display="flex" alignItems="center" gap={1} sx={{ marginTop: "50px", marginBottom: "50px" }}>
-      <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
-      <Typography>INFORMAÇÕES DO PROJETO</Typography>
-    </Box>
+    
+
 
     {projetoData ? (
       <>

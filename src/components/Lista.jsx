@@ -468,7 +468,7 @@ useEffect(() => {
         <Button
           component={Link}
           size="small"
-          to={`/dashboardprojeto?id=${row.id}`}
+          to={`/dashboardplanejamento/${row.id}`}
           disableRipple
           disableFocusRipple
           tabIndex={-1} 

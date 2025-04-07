@@ -30,13 +30,15 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
   const [users, setUsers] = useState([]);
 
   const [estrategicas, setEstrategicas] = useState([]);
-  const [taticas, setTaticas] = useState(projetoData?.taticas || []);
-  const [operacional, setOperacional] = useState(projetoData?.operacional || []);
+
+
   const [areastaticasSelecionadas, setAreastaticasSelecionadas] = useState([]);
   const [areasoperacionalSelecionadas, setAreasoperacionalSelecionadas] = useState([]);
   const [emailsTaticasInput, setEmailsTaticasInput] = useState({});
   const [emailsOperacionaisInput, setEmailsOperacionaisInput] = useState({});
   const [novaTarefa, setNovaTarefa] = useState("");
+
+  const projectId = projetoData?.id;
 
   
   
@@ -77,8 +79,9 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
   useEffect(() => {
     if (projetoData) {
       setEstrategicas(projetoData.estrategicas || []);
-      setTaticas(projetoData.taticas || []);
-      setOperacional(projetoData.operacional || []);
+
+
+      
       setAreasSelecionadas(projetoData.areasResponsaveis || []);
       setUnidadeSelecionadas(projetoData.unidadesRelacionadas || []);
   
@@ -88,7 +91,7 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
       });
       setEmailsTaticasInput(taticasEmails);
   
-      const areasTatica = projetoData.areasTaticasSelecionadas || [];
+      const areasTatica = projetoData.areastaticasSelecionadas || [];
       setAreastaticasSelecionadas(areasTatica);
   
       const areasOp = projetoData.areasoperacionalSelecionadas || [];
@@ -328,6 +331,7 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       titulo: novaEstrategica,
       descricao: descEstrategica,
       emails,
+      taticas: [], // ✅ ESSENCIAL para evitar o erro
     };
   
     const atualizado = [...estrategicas, item];
@@ -343,40 +347,69 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   // -------------------------------------
   // Remover Diretriz Estratégica
   // -------------------------------------
-  const handleRemoveEstrategica = (id) => {
+  const handleRemoveEstrategica = async (id) => {
     const atualizado = estrategicas.filter((d) => d.id !== id);
     setEstrategicas(atualizado);
-    onUpdate && onUpdate({ estrategicas: atualizado    });
-
+    onUpdate && onUpdate({ estrategicas: atualizado });
+  
+    if (!projectId) {
+      console.warn("❌ ID do projeto não encontrado para salvar exclusão");
+      return;
+    }
+  
+    try {
+      const projetoRef = doc(db, "projetos", projectId);
+      await updateDoc(projetoRef, {
+        estrategicas: atualizado,
+        updatedAt: new Date(),
+      });
+      console.log("✅ Estratégica deletada e Firestore atualizado!");
+    } catch (error) {
+      console.error("❌ Erro ao remover estratégica no Firestore:", error);
+    }
   };
+  
 
   // -------------------------------------
   // Criar nova Diretriz Tática
   // -------------------------------------
   //|| !descricao.trim()
 
-  const handleAddTatica = (titulo, descricao) => {
+  const handleAddTatica = (idEstrategica, titulo, descricao) => {
     if (!titulo.trim()) {
       alert("Preencha o nome da Diretriz Tática!");
       return;
     }
   
-    const emails = emailsTaticasInput
-      .split(",")
-      .map((email) => email.trim())
-      .filter((email) => email !== "");
+    const emails =
+      (emailsTaticasInput[idEstrategica] || "")
+        .split(",")
+        .map((email) => email.trim())
+        .filter((email) => email !== "");
   
-    const item = {
+    const novaTatica = {
       id: Date.now().toString(),
       titulo,
       descricao,
       emails,
+      operacionais: [], // ✅ Já inicializa
     };
   
-    const atualizado = [...taticas, item];
-    setTaticas(atualizado);
-    setEmailsTaticasInput("");
+    const atualizado = estrategicas.map((est) => {
+      if (est.id === idEstrategica) {
+        return {
+          ...est,
+          taticas: [...(est.taticas || []), novaTatica],
+        };
+      }
+      return est;
+    });
+  
+    setEstrategicas(atualizado);
+    onUpdate && onUpdate({ estrategicas: atualizado });
   };
+  
+
   
   
   
@@ -390,7 +423,7 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   // -------------------------------------
   // Remover Diretriz Tática
   // -------------------------------------
-  const handleRemoveTatica = (idEstrategica, idTatica) => {
+  const handleRemoveTatica = async (idEstrategica, idTatica) => {
     const atualizadas = estrategicas.map((est) => {
       if (est.id === idEstrategica) {
         return {
@@ -400,28 +433,46 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       }
       return est;
     });
+  
     setEstrategicas(atualizadas);
-    onUpdate && onUpdate({ estrategicas: atualizadas  });
-
+    onUpdate && onUpdate({ estrategicas: atualizadas });
+  
+    if (!projectId) {
+      console.warn("❌ ID do projeto não encontrado para salvar exclusão de tática");
+      return;
+    }
+  
+    try {
+      const projetoRef = doc(db, "projetos", projectId);
+      await updateDoc(projetoRef, {
+        estrategicas: atualizadas,
+        updatedAt: new Date(),
+      });
+      console.log("✅ Tática removida e Firestore atualizado!");
+    } catch (error) {
+      console.error("❌ Erro ao remover tática no Firestore:", error);
+    }
   };
+  
 
   // -------------------------------------
   // Criar nova Diretriz Operacional
   // -------------------------------------
   //|| !descricao.trim()) 
 
-  const handleAddOperacional = (titulo, descricao) => {
+  const handleAddOperacional = (idEstrategica, idTatica, titulo, descricao) => {
     if (!titulo.trim()) {
       alert("Preencha o nome da Diretriz Operacional!");
       return;
     }
   
-    const emails = emailsOperacionaisInput
-      .split(",")
-      .map((email) => email.trim())
-      .filter((email) => email !== "");
+    const emails =
+      (emailsOperacionaisInput[idTatica] || "")
+        .split(",")
+        .map((email) => email.trim())
+        .filter((email) => email !== "");
   
-    const item = {
+    const novaOperacional = {
       id: Date.now().toString(),
       titulo,
       descricao,
@@ -429,10 +480,33 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       emails,
     };
   
-    const atualizado = [...operacional, item];
-    setOperacional(atualizado);
-    setEmailsOperacionaisInput("");
+    const atualizado = estrategicas.map((estrategica) => {
+      if (estrategica.id !== idEstrategica) return estrategica;
+  
+      return {
+        ...estrategica,
+        taticas: estrategica.taticas.map((tatica) => {
+          if (tatica.id !== idTatica) return tatica;
+  
+          return {
+            ...tatica,
+            operacionais: [...(tatica.operacionais || []), novaOperacional],
+          };
+        }),
+      };
+    });
+  
+    setEstrategicas(atualizado);
+    onUpdate && onUpdate({ estrategicas: atualizado });
+  
+    // Limpar e-mails digitados
+    setEmailsOperacionaisInput((prev) => ({
+      ...prev,
+      [idTatica]: "",
+    }));
   };
+  
+
   
   
   
@@ -440,7 +514,7 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   // -------------------------------------
   // Remover Diretriz Operacional
   // -------------------------------------
-  const handleRemoveOperacional = (idEstrategica, idTatica, idOp) => {
+  const handleRemoveOperacional = async (idEstrategica, idTatica, idOp) => {
     const atualizadas = estrategicas.map((est) => {
       if (est.id === idEstrategica) {
         const novasTaticas = est.taticas.map((t) => {
@@ -456,10 +530,27 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       }
       return est;
     });
+  
     setEstrategicas(atualizadas);
-    onUpdate && onUpdate({ estrategicas: atualizadas  });
-
+    onUpdate && onUpdate({ estrategicas: atualizadas });
+  
+    if (!projectId) {
+      console.warn("❌ ID do projeto não encontrado para salvar exclusão de operacional");
+      return;
+    }
+  
+    try {
+      const projetoRef = doc(db, "projetos", projectId);
+      await updateDoc(projetoRef, {
+        estrategicas: atualizadas,
+        updatedAt: new Date(),
+      });
+      console.log("✅ Operacional removido e Firestore atualizado!");
+    } catch (error) {
+      console.error("❌ Erro ao remover operacional no Firestore:", error);
+    }
   };
+  
 
   // -------------------------------------
   // Atualiza a Diretriz Operacional quando `DiretrizData` muda (tarefas, 5W2H)
@@ -938,7 +1029,7 @@ await Promise.all(
             displayEmpty
             sx={{
               flex: 1,
-              backgroundColor: "#fff",
+              backgroundColor: "transparent",
               marginTop: "10px",
             }}
             renderValue={(selected) =>
@@ -961,7 +1052,7 @@ await Promise.all(
             displayEmpty
             sx={{
               flex: 1,
-              backgroundColor: "#fff",
+              backgroundColor: "transparent",
               marginTop: "10px",
             }}
             renderValue={(selected) =>
@@ -987,7 +1078,7 @@ await Promise.all(
             onChange={(e) => setEmailsDigitados(e.target.value)}
             sx={{
               flex: 1,
-              backgroundColor: "#fff",
+              backgroundColor: "transparent",
               marginTop: "10px",
             }}
           />
@@ -1103,6 +1194,7 @@ await Promise.all(
             <Button
               disableRipple
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation(); // Isso é importante para evitar que o Accordion abra/feche
                 handleRemoveEstrategica(estrategica.id); // Correto: estrategica.id
               }}
@@ -1150,7 +1242,7 @@ await Promise.all(
       onChange={(event) => setAreastaticasSelecionadas(event.target.value)}
       displayEmpty
       fullWidth
-      sx={{ backgroundColor: "#fff" }}
+      sx={{ backgroundColor: "transparent" }}
       renderValue={(selected) =>
         selected.length === 0
           ? "Selecione as áreas responsáveis"
@@ -1179,7 +1271,7 @@ await Promise.all(
       onChange={(event) => setUnidadeSelecionadas(event.target.value)}
       displayEmpty
       fullWidth
-      sx={{ backgroundColor: "#fff" }}
+      sx={{ backgroundColor: "transparent" }}
       renderValue={(selected) =>
         selected.length === 0
           ? "Selecione a Unidade"
@@ -1232,7 +1324,7 @@ await Promise.all(
     );
   }}
   fullWidth
-  sx={{ backgroundColor: "#fff" }}
+  sx={{ backgroundColor: "transparent" }}
 />
 
 
@@ -1376,7 +1468,7 @@ await Promise.all(
     sx={{
       flex: 1,
       minWidth: "250px",
-      backgroundColor: "#fff",
+      backgroundColor: "transparent",
       marginTop: "10px",
     }}
     renderValue={(selected) =>
@@ -1406,7 +1498,7 @@ await Promise.all(
     sx={{
       flex: 1,
       minWidth: "250px",
-      backgroundColor: "#fff",
+      backgroundColor: "transparent",
       marginTop: "10px",
     }}
     renderValue={(selected) =>
@@ -1460,7 +1552,7 @@ await Promise.all(
     sx={{
       flex: 1,
       minWidth: "250px",
-      backgroundColor: "#fff",
+      backgroundColor: "transparent",
       marginTop: "10px",
     }}
   />
@@ -1475,7 +1567,7 @@ await Promise.all(
                         estrategica.id,
                         tatica.id,
                         titulo,
-                        desc
+                        desc  
                       )
                     }
                   />
