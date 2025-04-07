@@ -804,20 +804,21 @@ const handleSalvarOperacional = async () => {
       return;
     }
 
-    if (areasoperacionalSelecionadas.length === 0) {
+    // ✅ Coleta todas as áreas selecionadas nas operacionais
+    const todasAreasOperacionais = Object.values(areasOperacionaisPorId).flat();
+
+    if (todasAreasOperacionais.length === 0) {
       alert("Selecione ao menos uma área responsável para a Operacional.");
       return;
     }
 
     const projetoRef = doc(db, "projetos", projectId);
     await updateDoc(projetoRef, {
-      estrategicas, 
-      areasResponsaveis: areasoperacionalSelecionadas,
-      areasResponsaveisoperacional: areasoperacionalSelecionadas,
+      estrategicas,
+      areasResponsaveis: todasAreasOperacionais,
+      areasResponsaveisoperacional: todasAreasOperacionais,
       updatedAt: new Date(),
     });
-    
-    
 
     // 🔔 Busca usuários pelas áreas operacionais e envia notificações
     const rolesVinculados = todasAreasOperacionais.flatMap(
@@ -850,7 +851,7 @@ const handleSalvarOperacional = async () => {
       })
     );
 
-    // 🔔 Envia e-mails manuais adicionados nas operacionais
+    // ✉️ Envia e-mails manuais adicionados nas operacionais
     const emailsManuais = allOperacional
       .flatMap((op) => op.emails || [])
       .filter((email) => email.trim() !== "");
@@ -872,7 +873,7 @@ const handleSalvarOperacional = async () => {
       );
     }
 
-    // 🔔 Envia e-mails para os responsáveis das tarefas (quemEmail)
+    // ✉️ Envia e-mails para os responsáveis das tarefas (quemEmail)
     await Promise.all(
       allOperacional.flatMap((operacional) =>
         (operacional.tarefas || []).flatMap((tarefa) => {
@@ -902,6 +903,7 @@ const handleSalvarOperacional = async () => {
     alert("Erro ao salvar Operacionais. Tente novamente.");
   }
 };
+
 
 
 
