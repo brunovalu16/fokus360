@@ -256,7 +256,7 @@ const handleRemoveTarefa = (idEstrategica, idTatica, idOperacional, idTarefa) =>
 
 
 //função para salvar nova tarefa/planodeacao
-const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => {
+const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTarefa) => {
   if (!novaTarefa || typeof novaTarefa !== "string" || !novaTarefa.trim()) {
     alert("Nome da tarefa é obrigatório.");
     return;
@@ -301,9 +301,25 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   });
 
   setEstrategicas(atualizado);
-  onUpdate && onUpdate({ estrategicas: atualizado }); // <- ISSO FAZ SALVAR NO BANCO
 
+  // 🔄 SALVAR NO FIRESTORE
+  if (!projectId) {
+    console.warn("❌ ID do projeto não encontrado ao salvar tarefa.");
+    return;
+  }
+
+  try {
+    const projetoRef = doc(db, "projetos", projectId);
+    await updateDoc(projetoRef, {
+      estrategicas: atualizado,
+      updatedAt: new Date(),
+    });
+    console.log("✅ Tarefa adicionada e salva no Firestore!");
+  } catch (error) {
+    console.error("❌ Erro ao salvar tarefa no Firestore:", error);
+  }
 };
+
 
 
 
