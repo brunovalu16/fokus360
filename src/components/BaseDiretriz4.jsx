@@ -32,8 +32,8 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
   const [estrategicas, setEstrategicas] = useState([]);
 
 
-  const [areastaticasSelecionadas, setAreastaticasSelecionadas] = useState([]);
-  const [areasoperacionalSelecionadas, setAreasoperacionalSelecionadas] = useState([]);
+  
+
   const [emailsTaticasInput, setEmailsTaticasInput] = useState({});
   const [emailsOperacionaisInput, setEmailsOperacionaisInput] = useState({});
   const [novaTarefa, setNovaTarefa] = useState("");
