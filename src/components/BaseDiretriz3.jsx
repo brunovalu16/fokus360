@@ -33,6 +33,7 @@ const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacio
 
 
 
+
   const [areasSelecionadasTaticas, setAreasSelecionadasTaticas] = useState([]);
 
 
@@ -46,7 +47,11 @@ const [areasPorIdTatica, setAreasPorIdTatica] = useState({});
 const [unidadesPorIdTatica, setUnidadesPorIdTatica] = useState({});
 const [emailsPorIdTatica, setEmailsPorIdTatica] = useState({});
 
-// Operacionais (já existe)
+// Operacionais
+const [areasPorIdOperacional, setAreasPorIdOperacional] = useState({});
+const [unidadesPorIdOperacional, setUnidadesPorIdOperacional] = useState({});
+const [emailsPorIdOperacional, setEmailsPorIdOperacional] = useState({});
+
 
 
 
@@ -604,9 +609,13 @@ const areaRolesMap = {
         const taticasAtualizadas = estrategica.taticas.map((tatica) => {
           const operacionaisAtualizadas = tatica.operacionais.map((op) => ({
             ...op,
-            areasResponsaveis: areasOperacionaisPorId[tatica.id] || [],
+            areasResponsaveis: areasOperacionaisPorId[op.id] || [],
             unidades: unidadesPorIdOperacional?.[op.id] || [],
-            emails: op.emails || [],
+            emails:
+              (emailsPorIdOperacional?.[op.id] || "")
+                .split(",")
+                .map((e) => e.trim())
+                .filter((e) => e !== "") || [],
           }));
   
           return {
@@ -1668,11 +1677,11 @@ const handleSalvarOperacional = async () => {
   <Box sx={{ flex: 1, minWidth: "300px" }}>
     <Select
       multiple
-      value={areasOperacionaisPorId[tatica.id] || []}
+      value={areasPorIdOperacional[operacional.id] || []}
       onChange={(event) =>
-        setAreasOperacionaisPorId((prev) => ({
+        setAreasPorIdOperacional((prev) => ({
           ...prev,
-          [tatica.id]: event.target.value,
+          [operacional.id]: event.target.value,
         }))
       }
       displayEmpty
@@ -1706,8 +1715,13 @@ const handleSalvarOperacional = async () => {
   <Box sx={{ flex: 1, minWidth: "300px" }}>
     <Select
       multiple
-      value={unidadeSelecionadas}
-      onChange={(event) => setUnidadeSelecionadas(event.target.value)}
+      value={unidadesPorIdOperacional[operacional.id] || []}
+      onChange={(event) =>
+        setUnidadesPorIdOperacional((prev) => ({
+          ...prev,
+          [operacional.id]: event.target.value,
+        }))
+      }
       displayEmpty
       fullWidth
       sx={{ backgroundColor: "#fff" }}
@@ -1733,39 +1747,44 @@ const handleSalvarOperacional = async () => {
 
   {/* E-mails adicionais */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
-    <TextField
-      label="E-mails adicionais (separe por vírgula)"
-      value={emailsOperacionaisInput[tatica.id] || ""}
-      onChange={(e) => {
-        const value = e.target.value;
-        setEmailsOperacionaisInput((prev) => ({
-          ...prev,
-          [tatica.id]: value,
-        }));
-        setEstrategicas((prev) =>
-          prev.map((est) => ({
-            ...est,
-            taticas: est.taticas.map((tat) => ({
-              ...tat,
-              operacionais: tat.operacionais.map((op) => {
-                if (op.id === operacional.id) {
-                  return {
-                    ...op,
-                    emails: value
-                      .split(",")
-                      .map((email) => email.trim())
-                      .filter((email) => email !== ""),
-                  };
-                }
-                return op;
-              }),
-            })),
-          }))
-        );
-      }}
-      fullWidth
-      sx={{ backgroundColor: "#fff" }}
-    />
+  <TextField
+  label="E-mails adicionais (separe por vírgula)"
+  value={emailsPorIdOperacional[operacional.id] || ""}
+  onChange={(e) => {
+    const value = e.target.value;
+
+    // Atualiza o estado de e-mails por ID da operacional
+    setEmailsPorIdOperacional((prev) => ({
+      ...prev,
+      [operacional.id]: value,
+    }));
+
+    // Atualiza a estrutura de estratégicas com os e-mails corretos
+    setEstrategicas((prev) =>
+      prev.map((est) => ({
+        ...est,
+        taticas: est.taticas.map((tat) => ({
+          ...tat,
+          operacionais: tat.operacionais.map((op) => {
+            if (op.id === operacional.id) {
+              return {
+                ...op,
+                emails: value
+                  .split(",")
+                  .map((email) => email.trim())
+                  .filter((email) => email !== ""),
+              };
+            }
+            return op;
+          }),
+        })),
+      }))
+    );
+  }}
+  fullWidth
+  sx={{ backgroundColor: "#fff" }}
+/>
+
   </Box>
 </Box>
 
@@ -2042,6 +2061,48 @@ const handleSalvarOperacional = async () => {
                         </Box>
 
                         {/** ======================================== FIM OPERACIONAIS ========================================= */}
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
                       </AccordionDetails>
                     </Accordion>
                   ))}
