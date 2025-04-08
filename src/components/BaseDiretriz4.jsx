@@ -33,6 +33,8 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
 
   const [areasResponsaveistaticas, setAreasResponsaveistaticas] = useState([]);
 
+  
+  const [areasResponsaveisoperacional , setAreasResponsaveisoperacional ] = useState([]);
 
 
   
@@ -95,7 +97,7 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
   
       // ✅ Corrigido: nomes corretos dos campos no Firestore
       setAreasResponsaveistaticas(projetoData.areasResponsaveistaticas || []);
-      setAreasoperacionalSelecionadas(projetoData.areasResponsaveisoperacional || []);
+      setAreasResponsaveisoperacional(projetoData.areasResponsaveisoperacional || []);
     }
   }, [projetoData]);
   
@@ -1612,8 +1614,8 @@ await Promise.all(
   {/* Áreas */}
   <Select
     multiple
-    value={areasoperacionalSelecionadas}
-    onChange={(event) => setAreasoperacionalSelecionadas(event.target.value)}
+    value={areasResponsaveisoperacional}
+    onChange={(event) => setAreasResponsaveisoperacional(event.target.value)}
     displayEmpty
     sx={{
       flex: 1,
@@ -1633,7 +1635,7 @@ await Promise.all(
   >
     {areas.map((area) => (
       <MenuItem key={area.id} value={area.id}>
-        <Checkbox checked={areasoperacionalSelecionadas.includes(area.id)} />
+        <Checkbox checked={areasResponsaveisoperacional.includes(area.id)} />
         <ListItemText primary={area.nome} />
       </MenuItem>
     ))}
