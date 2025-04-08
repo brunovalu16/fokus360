@@ -56,6 +56,7 @@ const [emailsPorIdOperacional, setEmailsPorIdOperacional] = useState({});
 
 
 
+
   const [areasSelecionadas, setAreasSelecionadas] = useState([]);
   const [estrategicas, setEstrategicas] = useState(propEstrategicas || []);
 
@@ -1675,74 +1676,72 @@ const handleSalvarOperacional = async () => {
                       <Box sx={{ display: "flex", width: "100%", gap: 2, flexWrap: "wrap", mt: 2 }}>
   {/* Áreas Responsáveis */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
-    <Select
-      multiple
-      value={areasPorIdOperacional[operacional.id] || []}
-      onChange={(event) =>
-        setAreasPorIdOperacional((prev) => ({
-          ...prev,
-          [operacional.id]: event.target.value,
-        }))
-      }
-      displayEmpty
-      fullWidth
-      sx={{ backgroundColor: "#fff" }}
-      renderValue={(selected) =>
-        selected.length === 0
-          ? "Selecione as áreas responsáveis"
-          : selected
-              .map(
-                (id) =>
-                  areas.find((area) => area.id === id)?.nome || "Desconhecida"
-              )
-              .join(", ")
-      }
-    >
-      {areas.map((area) => (
-        <MenuItem key={area.id} value={area.id}>
-          <Checkbox
-            checked={(areasOperacionaisPorId[tatica.id] || []).includes(
-              area.id
-            )}
-          />
-          <ListItemText primary={area.nome} />
-        </MenuItem>
-      ))}
-    </Select>
+    {/* Áreas Responsáveis */}
+<Select
+  multiple
+  value={areasOperacionaisPorId[operacional.id] || []}
+  onChange={(event) =>
+    setAreasOperacionaisPorId((prev) => ({
+      ...prev,
+      [operacional.id]: event.target.value,
+    }))
+  }
+  displayEmpty
+  fullWidth
+  sx={{ backgroundColor: "#fff" }}
+  renderValue={(selected) =>
+    selected.length === 0
+      ? "Selecione as áreas responsáveis"
+      : selected
+          .map(
+            (id) => areas.find((area) => area.id === id)?.nome || "Desconhecida"
+          )
+          .join(", ")
+  }
+>
+  {areas.map((area) => (
+    <MenuItem key={area.id} value={area.id}>
+      <Checkbox
+        checked={(areasOperacionaisPorId[operacional.id] || []).includes(area.id)}
+      />
+      <ListItemText primary={area.nome} />
+    </MenuItem>
+  ))}
+</Select>
   </Box>
 
   {/* Unidades */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
-    <Select
-      multiple
-      value={unidadesPorIdOperacional[operacional.id] || []}
-      onChange={(event) =>
-        setUnidadesPorIdOperacional((prev) => ({
-          ...prev,
-          [operacional.id]: event.target.value,
-        }))
-      }
-      displayEmpty
-      fullWidth
-      sx={{ backgroundColor: "#fff" }}
-      renderValue={(selected) =>
-        selected.length === 0
-          ? "Selecione a Unidade"
-          : selected
-              .map(
-                (id) =>
-                  unidades.find((uni) => uni.id === id)?.nome || "Desconhecida"
-              )
-              .join(", ")
-      }
-    >
-      {unidades.map((uni) => (
-        <MenuItem key={uni.id} value={uni.id}>
-          <Checkbox checked={unidadeSelecionadas.includes(uni.id)} />
-          <ListItemText primary={uni.nome} />
-        </MenuItem>
-      ))}
-    </Select>
+    {/* Unidades */}
+<Select
+  multiple
+  value={unidadesPorIdOperacional[operacional.id] || []}
+  onChange={(event) =>
+    setUnidadesPorIdOperacional((prev) => ({
+      ...prev,
+      [operacional.id]: event.target.value,
+    }))
+  }
+  displayEmpty
+  fullWidth
+  sx={{ backgroundColor: "#fff" }}
+  renderValue={(selected) =>
+    selected.length === 0
+      ? "Selecione a Unidade"
+      : selected
+          .map(
+            (id) => unidades.find((uni) => uni.id === id)?.nome || "Desconhecida"
+          )
+          .join(", ")
+  }
+>
+  {unidades.map((uni) => (
+    <MenuItem key={uni.id} value={uni.id}>
+      <Checkbox checked={(unidadesPorIdOperacional[operacional.id] || []).includes(uni.id)} />
+      <ListItemText primary={uni.nome} />
+    </MenuItem>
+  ))}
+</Select>
   </Box>
 
   {/* E-mails adicionais */}
