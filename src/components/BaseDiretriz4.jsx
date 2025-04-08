@@ -802,7 +802,6 @@ const areaRolesMap = {
       const projetoRef = doc(db, "projetos", projectId);
       await updateDoc(projetoRef, {
         taticas: allTaticas,
-        areastaticasSelecionadas,
         areasResponsaveis: areasSelecionadas,
         unidadesRelacionadas: unidadeSelecionadas,
         updatedAt: new Date(),
@@ -922,7 +921,6 @@ const handleSalvarOperacional = async () => {
     const projetoRef = doc(db, "projetos", projectId);
     await updateDoc(projetoRef, {
       operacional: allOperacional,
-      areasoperacionalSelecionadas,
       areasResponsaveis: areasSelecionadas,
       unidadesRelacionadas: unidadeSelecionadas,
       updatedAt: new Date(),
