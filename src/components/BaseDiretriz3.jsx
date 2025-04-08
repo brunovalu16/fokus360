@@ -33,6 +33,18 @@ const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacio
   const [areasSelecionadasTaticas, setAreasSelecionadasTaticas] = useState([]);
 
 
+  // Estratégicas
+const [areasPorIdEstrategica, setAreasPorIdEstrategica] = useState({});
+const [unidadesPorIdEstrategica, setUnidadesPorIdEstrategica] = useState({});
+const [emailsPorIdEstrategica, setEmailsPorIdEstrategica] = useState({});
+
+// Táticas
+const [areasPorIdTatica, setAreasPorIdTatica] = useState({});
+const [unidadesPorIdTatica, setUnidadesPorIdTatica] = useState({});
+const [emailsPorIdTatica, setEmailsPorIdTatica] = useState({});
+
+// Operacionais (já existe)
+
 
 
 
@@ -581,29 +593,52 @@ const areaRolesMap = {
   const handleSalvarEstrategicas = async () => {
     try {
       if (!projectId) {
-        alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
+        alert("ID do projeto não encontrado.");
         return;
       }
-      if (estrategicas.length === 0) {
-        alert("Adicione ao menos uma Diretriz Estratégica.");
-        return;
-      }
+  
+      const estrategicasAtualizadas = estrategicas.map((estrategica) => {
+        const taticasAtualizadas = estrategica.taticas.map((tatica) => {
+          const operacionaisAtualizadas = tatica.operacionais.map((op) => ({
+            ...op,
+            areasResponsaveis: areasOperacionaisPorId[tatica.id] || [],
+            unidades: unidadesPorIdOperacional?.[op.id] || [],
+            emails: op.emails || [],
+          }));
+  
+          return {
+            ...tatica,
+            areasResponsaveis: areasPorIdTatica[tatica.id] || [],
+            unidades: unidadesPorIdTatica[tatica.id] || [],
+            emails:
+              (emailsPorIdTatica[tatica.id] || "")
+                .split(",")
+                .map((e) => e.trim())
+                .filter((e) => e !== "") || [],
+            operacionais: operacionaisAtualizadas,
+          };
+        });
+  
+        return {
+          ...estrategica,
+          areasResponsaveis: areasPorIdEstrategica[estrategica.id] || [],
+          unidades: unidadesPorIdEstrategica[estrategica.id] || [],
+          emails:
+            (emailsPorIdEstrategica[estrategica.id] || "")
+              .split(",")
+              .map((e) => e.trim())
+              .filter((e) => e !== "") || [],
+          taticas: taticasAtualizadas,
+        };
+      });
   
       const projetoRef = doc(db, "projetos", projectId);
-  
-      console.log("🔍 Estratégicas que serão salvas:", JSON.stringify(estrategicas, null, 2));
-  
       await updateDoc(projetoRef, {
-        estrategicas, // 👈 agora sim!
-        areasResponsaveis: areasSelecionadas,
-        areasResponsaveistaticas: areasSelecionadasTaticas,
-        unidadesRelacionadas: unidadeSelecionadas,
+        estrategicas: estrategicasAtualizadas,
         updatedAt: new Date(),
       });
     
       
-      
-  
       // ✅ Enviar notificações e e-mails para usuários das áreas
       const rolesVinculados = areasSelecionadas.flatMap(
         (areaId) => areaRolesMap[areaId] || []
@@ -933,7 +968,7 @@ const handleSalvarOperacional = async () => {
           onChange={(e) => setNovaEstrategica(e.target.value)}
           fullWidth
         />
-        
+
         <Box
           sx={{
             display: "flex",
@@ -942,82 +977,7 @@ const handleSalvarOperacional = async () => {
             flexWrap: "wrap", // Para quebrar linha em telas pequenas
           }}
         >
-          {/* Áreas */}
-          <Select
-            multiple
-            value={areasSelecionadas}
-            onChange={(event) => setAreasSelecionadas(event.target.value)}
-            displayEmpty
-            sx={{
-              minWidth: "300px",
-              backgroundColor: "#fff",
-              marginTop: "10px",
-            }}
-            renderValue={(selected) =>
-              selected.length === 0
-                ? "Selecione as áreas responsáveis"
-                : selected
-                    .map(
-                      (id) =>
-                        areas.find((area) => area.id === id)?.nome ||
-                        "Desconhecida"
-                    )
-                    .join(", ")
-            }
-          >
-            {areas.map((area) => (
-              <MenuItem key={area.id} value={area.id}>
-                <Checkbox checked={areasSelecionadas.includes(area.id)} />
-                <ListItemText primary={area.nome} />
-              </MenuItem>
-            ))}
-          </Select>
-
-          {/* Unidades */}
-          <Select
-            multiple
-            value={unidadeSelecionadas}
-            onChange={(event) => setUnidadeSelecionadas(event.target.value)}
-            displayEmpty
-            sx={{
-              minWidth: "300px",
-              backgroundColor: "#fff",
-              marginTop: "10px",
-            }}
-            renderValue={(selected) =>
-              selected.length === 0
-                ? "Selecione a Unidade"
-                : selected
-                    .map(
-                      (id) =>
-                        unidades.find((uni) => uni.id === id)?.nome ||
-                        "Desconhecida"
-                    )
-                    .join(", ")
-            }
-          >
-            {unidades.map((uni) => (
-              <MenuItem key={uni.id} value={uni.id}>
-                <Checkbox checked={unidadeSelecionadas.includes(uni.id)} />
-                <ListItemText primary={uni.nome} />
-              </MenuItem>
-            ))}
-          </Select>
-
-          <TextField
-            label="E-mails adicionais (separe por vírgula)"
-            value={emailsDigitados}
-            onChange={(e) => setEmailsDigitados(e.target.value)}
-            sx={{
-              minWidth: "300px",
-              backgroundColor: "#fff",
-              marginTop: "10px",
-            }}
-          />
-
-
-
-
+         
           <Button
             onClick={handleAddEstrategica}
             disableRipple
@@ -1034,21 +994,7 @@ const handleSalvarOperacional = async () => {
           >
             <AddCircleOutlineIcon sx={{ fontSize: 25, color: "#312783" }} />
           </Button>
-          
 
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: "#312783",
-              color: "#fff",
-              "&:hover": {
-                backgroundColor: "#312783",
-              },
-            }}
-            onClick={handleSalvarEstrategicas}
-          >
-            SALVAR DIRETRIZES ESTRATÉGICAS
-          </Button>
           
         </Box>
       </Box>
@@ -1066,6 +1012,83 @@ const handleSalvarOperacional = async () => {
         </Typography>
       </Box>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      {/**================================== ESTRATÉGICAS ======================================================  */}
+
       {/* ************************************ */}
       {/* Accordion p/ cada Diretriz Estratégica */}
       {/* ************************************ */}
@@ -1080,7 +1103,7 @@ const handleSalvarOperacional = async () => {
             marginBottom: "10px",
           }}
         >
-          {/* Cabeçalho da Estratégica */}
+          
           <AccordionSummary
             expandIcon={<ExpandMoreIcon sx={{ color: "#b7b7b7" }} />}
             sx={{
@@ -1118,36 +1141,21 @@ const handleSalvarOperacional = async () => {
             </Button>
           </AccordionSummary>
 
-          {/* Detalhes: Diretriz TÁTICA */}
+      
           <AccordionDetails>
-            <Box display="flex" alignItems="center" marginBottom="20px">
-              <SubdirectoryArrowRightIcon
-                sx={{ fontSize: 30, color: "#4caf50", mr: 1 }}
-              />
-              <Typography
-                variant="h6"
-                fontWeight="bold"
-                sx={{ color: "#29c42e", marginTop: 1 }}
-              >
-                Diretriz Tática
-              </Typography>
-            </Box>
 
-            <Box
-  sx={{
-    display: "flex",
-    alignItems: "center",
-    gap: 2,
-    marginBottom: "10px",
-    flexWrap: "wrap", // Mantém quebrando no mobile
-  }}
->
+          <Box sx={{ display: "flex", width: "100%", gap: 2, flexWrap: "wrap", mt: 2 }}>
   {/* Áreas */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
     <Select
       multiple
-      value={areasSelecionadasTaticas}
-      onChange={(event) => setAreasSelecionadasTaticas(event.target.value)}
+      value={areasPorIdEstrategica[estrategica.id] || []}
+      onChange={(event) =>
+        setAreasPorIdEstrategica((prev) => ({
+          ...prev,
+          [estrategica.id]: event.target.value,
+        }))
+      }
       displayEmpty
       fullWidth
       sx={{ backgroundColor: "#fff" }}
@@ -1164,7 +1172,7 @@ const handleSalvarOperacional = async () => {
     >
       {areas.map((area) => (
         <MenuItem key={area.id} value={area.id}>
-          <Checkbox checked={areasSelecionadasTaticas.includes(area.id)} />
+          <Checkbox checked={areasSelecionadas.includes(area.id)} />
           <ListItemText primary={area.nome} />
         </MenuItem>
       ))}
@@ -1175,8 +1183,13 @@ const handleSalvarOperacional = async () => {
   <Box sx={{ flex: 1, minWidth: "300px" }}>
     <Select
       multiple
-      value={unidadeSelecionadas}
-      onChange={(event) => setUnidadeSelecionadas(event.target.value)}
+      value={unidadesPorIdEstrategica[estrategica.id] || []}
+      onChange={(event) =>
+        setUnidadesPorIdEstrategica((prev) => ({
+          ...prev,
+          [estrategica.id]: event.target.value,
+        }))
+      }
       displayEmpty
       fullWidth
       sx={{ backgroundColor: "#fff" }}
@@ -1202,76 +1215,56 @@ const handleSalvarOperacional = async () => {
 
   {/* E-mails adicionais */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
-  <TextField
-  label="E-mails adicionais (separe por vírgula)"
-  value={emailsTaticasInput[estrategica.id] || ""}
-  onChange={(e) => {
-    const value = e.target.value;
-    setEmailsTaticasInput((prev) => ({
-      ...prev,
-      [estrategica.id]: value,
-    }));
-
-    // Atualiza o e-mail diretamente no estado das estratégicas
-    setEstrategicas((prev) =>
-      prev.map((est) => {
-        if (est.id === estrategica.id) {
-          return {
-            ...est,
-            taticas: est.taticas.map((tatica) => ({
-              ...tatica,
-              emails: value
-                .split(",")
-                .map((email) => email.trim())
-                .filter((email) => email !== ""),
-            })),
-          };
-        }
-        return est;
-      })
-    );
-  }}
-  fullWidth
-  sx={{ backgroundColor: "#fff" }}
-/>
-
-
-
-
+    <TextField
+      label="E-mails adicionais (separe por vírgula)"
+      value={emailsPorIdEstrategica[estrategica.id] || ""}
+      onChange={(e) =>
+        setEmailsPorIdEstrategica((prev) => ({
+          ...prev,
+          [estrategica.id]: e.target.value,
+        }))
+      }
+      fullWidth
+      sx={{ backgroundColor: "#fff" }}
+    />
   </Box>
 </Box>
 
-            
+
+
+
+
+            <Box display="flex" alignItems="center" marginBottom="20px">
+              <SubdirectoryArrowRightIcon
+                sx={{ fontSize: 30, color: "#4caf50", mr: 1 }}
+              />
+              <Typography
+                variant="h6"
+                fontWeight="bold"
+                sx={{ color: "#29c42e", marginTop: 1 }}
+              >
+                Diretriz Tática
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                marginBottom: "10px",
+                flexWrap: "wrap", // Mantém quebrando no mobile
+              }}
+            ></Box>
 
             {/* Form para adicionar Tática dentro da Estratégica */}
             <NovaTaticaForm
               onAdd={(titulo, desc) =>
-                handleAddTatica(
-                  estrategica.id,
-                  titulo,
-                  desc
-                )
+                handleAddTatica(estrategica.id, titulo, desc)
               }
             />
 
-
-
-
-            <Button
-              sx={{
-                backgroundColor: "#4caf50",
-                "&:hover": {
-                  backgroundColor: "#45a049", // Cor ao passar o mouse
-                },
-                "&:active": {
-                  backgroundColor: "#388e3c", // Cor ao clicar (pressionado)
-                },
-              }}
-              variant="contained"
-              onClick={handleSalvarTaticas}
-            >
-              SALVAR DIRETRIZES TÁTICAS
-            </Button>
+            
 
             <Box
               display="flex"
@@ -1290,7 +1283,7 @@ const handleSalvarOperacional = async () => {
                 Diretriz Tática
               </Typography>
             </Box>
-
+            
             {/* Accordion das Táticas */}
             {estrategica.taticas.map((tatica) => (
               <Accordion
@@ -1343,8 +1336,124 @@ const handleSalvarOperacional = async () => {
                   </Button>
                 </AccordionSummary>
 
-                {/* Detalhes: Diretriz Operacional */}
+           
                 <AccordionDetails>
+                  {/* Áreas */}
+                  <Box sx={{ display: "flex", width: "100%", gap: 2, flexWrap: "wrap" }}>
+  {/* Áreas */}
+  <Box sx={{ flex: 1, minWidth: "300px" }}>
+    <Select
+      multiple
+      value={areasPorIdTatica[tatica.id] || []}
+      onChange={(event) =>
+        setAreasPorIdTatica((prev) => ({
+          ...prev,
+          [tatica.id]: event.target.value,
+        }))
+      }
+      displayEmpty
+      fullWidth
+      sx={{ backgroundColor: "#fff" }}
+      renderValue={(selected) =>
+        selected.length === 0
+          ? "Selecione as áreas responsáveis"
+          : selected
+              .map(
+                (id) =>
+                  areas.find((area) => area.id === id)?.nome || "Desconhecida"
+              )
+              .join(", ")
+      }
+    >
+      {areas.map((area) => (
+        <MenuItem key={area.id} value={area.id}>
+          <Checkbox checked={areasSelecionadasTaticas.includes(area.id)} />
+          <ListItemText primary={area.nome} />
+        </MenuItem>
+      ))}
+    </Select>
+  </Box>
+
+  {/* Unidades */}
+  <Box sx={{ flex: 1, minWidth: "300px" }}>
+    <Select
+      multiple
+      value={unidadesPorIdTatica[tatica.id] || []}
+      onChange={(event) =>
+        setUnidadesPorIdTatica((prev) => ({
+          ...prev,
+          [tatica.id]: event.target.value,
+        }))
+      }
+      displayEmpty
+      fullWidth
+      sx={{ backgroundColor: "#fff" }}
+      renderValue={(selected) =>
+        selected.length === 0
+          ? "Selecione a Unidade"
+          : selected
+              .map(
+                (id) =>
+                  unidades.find((uni) => uni.id === id)?.nome || "Desconhecida"
+              )
+              .join(", ")
+      }
+    >
+      {unidades.map((uni) => (
+        <MenuItem key={uni.id} value={uni.id}>
+          <Checkbox checked={unidadeSelecionadas.includes(uni.id)} />
+          <ListItemText primary={uni.nome} />
+        </MenuItem>
+      ))}
+    </Select>
+  </Box>
+
+  {/* E-mails adicionais */}
+  <Box sx={{ flex: 1, minWidth: "300px" }}>
+  <TextField
+  label="E-mails adicionais (separe por vírgula)"
+  value={emailsPorIdTatica[tatica.id] || ""}
+  onChange={(e) => {
+    const value = e.target.value;
+
+    // Atualiza o estado individual por tática
+    setEmailsPorIdTatica((prev) => ({
+      ...prev,
+      [tatica.id]: value,
+    }));
+
+    // Atualiza o campo de e-mails dentro da estrutura de `estrategicas`
+    setEstrategicas((prev) =>
+      prev.map((est) => {
+        if (est.id === estrategica.id) {
+          return {
+            ...est,
+            taticas: est.taticas.map((tat) => {
+              if (tat.id === tatica.id) {
+                return {
+                  ...tat,
+                  emails: value
+                    .split(",")
+                    .map((email) => email.trim())
+                    .filter((email) => email !== ""),
+                };
+              }
+              return tat;
+            }),
+          };
+        }
+        return est;
+      })
+    );
+  }}
+  fullWidth
+  sx={{ backgroundColor: "#fff" }}
+/>
+
+  </Box>
+</Box>
+
+
                   <Box display="flex" alignItems="center" marginBottom="20px">
                     <SubdirectoryArrowRightIcon
                       sx={{ fontSize: 30, color: "#f44336", mr: 1 }}
@@ -1358,123 +1467,9 @@ const handleSalvarOperacional = async () => {
                     </Typography>
                   </Box>
 
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 2,
-                      marginBottom: "10px",
-                      flexWrap: "wrap", // Se quiser quebrar no mobile
-                    }}
-                  >
-                    {/* Áreas */}
-                    <Select
-                      multiple
-                      value={areasOperacionaisPorId[tatica.id] || []}
-                      onChange={(event) =>
-                        setAreasOperacionaisPorId((prev) => ({
-                          ...prev,
-                          [tatica.id]: event.target.value,
-                        }))
-                      }
-                      displayEmpty
-                      sx={{
-                        minWidth: "300px",
-                        backgroundColor: "#fff",
-                        marginTop: "10px",
-                      }}
-                      renderValue={(selected) =>
-                        selected.length === 0
-                          ? "Selecione as áreas responsáveis"
-                          : selected
-                              .map(
-                                (id) => areas.find((area) => area.id === id)?.nome || "Desconhecida"
-                              )
-                              .join(", ")
-                      }
-                    >
-                      {areas.map((area) => (
-                        <MenuItem key={area.id} value={area.id}>
-                          <Checkbox
-                            checked={(areasOperacionaisPorId[tatica.id] || []).includes(area.id)}
-                          />
-                          <ListItemText primary={area.nome} />
-                        </MenuItem>
-                      ))}
-                    </Select>
+                  
 
-
-                    {/* Unidades */}
-                    <Select
-                      multiple
-                      value={unidadeSelecionadas}
-                      onChange={(event) =>
-                        setUnidadeSelecionadas(event.target.value)
-                      }
-                      displayEmpty
-                      sx={{
-                        minWidth: "300px",
-                        backgroundColor: "#fff",
-                        marginTop: "10px",
-                      }}
-                      renderValue={(selected) =>
-                        selected.length === 0
-                          ? "Selecione a Unidade"
-                          : selected
-                              .map(
-                                (id) =>
-                                  unidades.find((uni) => uni.id === id)?.nome ||
-                                  "Desconhecida"
-                              )
-                              .join(", ")
-                      }
-                    >
-                      {unidades.map((uni) => (
-                        <MenuItem key={uni.id} value={uni.id}>
-                          <Checkbox
-                            checked={unidadeSelecionadas.includes(uni.id)}
-                          />
-                          <ListItemText primary={uni.nome} />
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </Box>
-
-                  <TextField
-                    label="E-mails adicionais (separe por vírgula)"
-                    value={emailsOperacionaisInput[tatica.id] || ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setEmailsOperacionaisInput((prev) => ({
-                          ...prev,
-                          [tatica.id]: value,
-                        }));
-                      // Atualiza direto no estado
-                      setEstrategicas((prev) =>
-                        prev.map((est) => ({
-                          ...est,
-                          taticas: est.taticas.map((tat) => ({
-                            ...tat,
-                            operacionais: tat.operacionais.map((op) => {
-                              if (op.id === operacional.id) {
-                                return {
-                                  ...op,
-                                  emails: value
-                                    .split(",")
-                                    .map((email) => email.trim())
-                                    .filter((email) => email !== ""),
-                                };
-                              }
-                              return op;
-                            }),
-                          })),
-                        }))
-                      );
-                    }}
-                    fullWidth
-                    sx={{ backgroundColor: "#fff", marginTop: "10px", marginBottom: "10px" }}
-                  />
-
+                  
 
                   {/* Form para adicionar Operacional */}
                   <NovaOperacionalForm
@@ -1488,21 +1483,7 @@ const handleSalvarOperacional = async () => {
                     }
                   />
 
-                  <Button
-                    sx={{
-                      backgroundColor: "#f44336",
-                      "&:hover": {
-                        backgroundColor: "#f44336", // Cor ao passar o mouse
-                      },
-                      "&:active": {
-                        backgroundColor: "#f44336", // Cor ao clicar (pressionado)
-                      },
-                    }}
-                    variant="contained" 
-                    onClick={handleSalvarOperacional}
-                  >
-                    SALVAR DIRETRIZES OPERACIONAIS
-                  </Button>
+                  
 
                   <Box
                     display="flex"
@@ -1526,6 +1507,100 @@ const handleSalvarOperacional = async () => {
                       Diretriz Operacional
                     </Typography>
                   </Box>
+
+                  {/**================================== FIM TÁTICAS ======================================================  */}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                  {/* ======================================== OPERACIONAIS ============================================
+
+
+
+
+
+
+
+
+
+
+
 
                   {/* Lista de Operacionais */}
                   {tatica.operacionais.map((operacional) => (
@@ -1589,6 +1664,117 @@ const handleSalvarOperacional = async () => {
 
                       {/* Detalhes (tarefas, 5W2H) */}
                       <AccordionDetails>
+
+
+                      <Box sx={{ display: "flex", width: "100%", gap: 2, flexWrap: "wrap", mt: 2 }}>
+  {/* Áreas Responsáveis */}
+  <Box sx={{ flex: 1, minWidth: "300px" }}>
+    <Select
+      multiple
+      value={areasOperacionaisPorId[tatica.id] || []}
+      onChange={(event) =>
+        setAreasOperacionaisPorId((prev) => ({
+          ...prev,
+          [tatica.id]: event.target.value,
+        }))
+      }
+      displayEmpty
+      fullWidth
+      sx={{ backgroundColor: "#fff" }}
+      renderValue={(selected) =>
+        selected.length === 0
+          ? "Selecione as áreas responsáveis"
+          : selected
+              .map(
+                (id) =>
+                  areas.find((area) => area.id === id)?.nome || "Desconhecida"
+              )
+              .join(", ")
+      }
+    >
+      {areas.map((area) => (
+        <MenuItem key={area.id} value={area.id}>
+          <Checkbox
+            checked={(areasOperacionaisPorId[tatica.id] || []).includes(
+              area.id
+            )}
+          />
+          <ListItemText primary={area.nome} />
+        </MenuItem>
+      ))}
+    </Select>
+  </Box>
+
+  {/* Unidades */}
+  <Box sx={{ flex: 1, minWidth: "300px" }}>
+    <Select
+      multiple
+      value={unidadeSelecionadas}
+      onChange={(event) => setUnidadeSelecionadas(event.target.value)}
+      displayEmpty
+      fullWidth
+      sx={{ backgroundColor: "#fff" }}
+      renderValue={(selected) =>
+        selected.length === 0
+          ? "Selecione a Unidade"
+          : selected
+              .map(
+                (id) =>
+                  unidades.find((uni) => uni.id === id)?.nome || "Desconhecida"
+              )
+              .join(", ")
+      }
+    >
+      {unidades.map((uni) => (
+        <MenuItem key={uni.id} value={uni.id}>
+          <Checkbox checked={unidadeSelecionadas.includes(uni.id)} />
+          <ListItemText primary={uni.nome} />
+        </MenuItem>
+      ))}
+    </Select>
+  </Box>
+
+  {/* E-mails adicionais */}
+  <Box sx={{ flex: 1, minWidth: "300px" }}>
+    <TextField
+      label="E-mails adicionais (separe por vírgula)"
+      value={emailsOperacionaisInput[tatica.id] || ""}
+      onChange={(e) => {
+        const value = e.target.value;
+        setEmailsOperacionaisInput((prev) => ({
+          ...prev,
+          [tatica.id]: value,
+        }));
+        setEstrategicas((prev) =>
+          prev.map((est) => ({
+            ...est,
+            taticas: est.taticas.map((tat) => ({
+              ...tat,
+              operacionais: tat.operacionais.map((op) => {
+                if (op.id === operacional.id) {
+                  return {
+                    ...op,
+                    emails: value
+                      .split(",")
+                      .map((email) => email.trim())
+                      .filter((email) => email !== ""),
+                  };
+                }
+                return op;
+              }),
+            })),
+          }))
+        );
+      }}
+      fullWidth
+      sx={{ backgroundColor: "#fff" }}
+    />
+  </Box>
+</Box>
+
+
+
+                      
                         <Box>
                           {/* 🔹 Campo para adicionar nova tarefa */}
                           <Box
@@ -1857,6 +2043,8 @@ const handleSalvarOperacional = async () => {
                             </List>
                           )}
                         </Box>
+
+                        {/** ======================================== FIM OPERACIONAIS ========================================= */}
                       </AccordionDetails>
                     </Accordion>
                   ))}
@@ -1866,6 +2054,22 @@ const handleSalvarOperacional = async () => {
           </AccordionDetails>
         </Accordion>
       ))}
+
+      <Box sx={{ display: "flex", justifyContent: "flex-end",  }}>
+      <Button
+            variant="contained"
+            sx={{
+              backgroundColor: "#312783",
+              color: "#fff",
+              "&:hover": {
+                backgroundColor: "#312783",
+              },
+            }}
+            onClick={handleSalvarEstrategicas}
+          >
+            SALVAR
+          </Button>
+          </Box>
     </Box>
   );
 };
