@@ -1175,7 +1175,7 @@ const handleSalvarOperacional = async () => {
     >
       {areas.map((area) => (
         <MenuItem key={area.id} value={area.id}>
-          <Checkbox checked={areasSelecionadas.includes(area.id)} />
+          <Checkbox checked={(areasPorIdEstrategica[estrategica.id] || []).includes(area.id)} />
           <ListItemText primary={area.nome} />
         </MenuItem>
       ))}
@@ -1209,7 +1209,7 @@ const handleSalvarOperacional = async () => {
     >
       {unidades.map((uni) => (
         <MenuItem key={uni.id} value={uni.id}>
-          <Checkbox checked={unidadeSelecionadas.includes(uni.id)} />
+          <Checkbox checked={(unidadesPorIdEstrategica[estrategica.id] || []).includes(uni.id)} />
           <ListItemText primary={uni.nome} />
         </MenuItem>
       ))}
