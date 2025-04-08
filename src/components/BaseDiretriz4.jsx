@@ -79,25 +79,23 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
   useEffect(() => {
     if (projetoData) {
       setEstrategicas(projetoData.estrategicas || []);
-
-
-      
       setAreasSelecionadas(projetoData.areasResponsaveis || []);
       setUnidadeSelecionadas(projetoData.unidadesRelacionadas || []);
   
       const taticasEmails = {};
-      projetoData.taticas?.forEach((tatica) => {
-        taticasEmails[tatica.id] = tatica.emails?.join(", ") || "";
+      projetoData.estrategicas?.forEach((estrategica) => {
+        estrategica.taticas?.forEach((tatica) => {
+          taticasEmails[tatica.id] = tatica.emails?.join(", ") || "";
+        });
       });
       setEmailsTaticasInput(taticasEmails);
   
-      const areasTatica = projetoData.areastaticasSelecionadas || [];
-      setAreastaticasSelecionadas(areasTatica);
-  
-      const areasOp = projetoData.areasoperacionalSelecionadas || [];
-      setAreasoperacionalSelecionadas(areasOp); // ✅ isso estava faltando
+      // ✅ Corrigido: nomes corretos dos campos no Firestore
+      setAreastaticasSelecionadas(projetoData.areasResponsaveistaticas || []);
+      setAreasoperacionalSelecionadas(projetoData.areasResponsaveisoperacional || []);
     }
   }, [projetoData]);
+  
   
 
 
@@ -1225,26 +1223,24 @@ await Promise.all(
                 {estrategica.descricao}
               </Typography>
             </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2, mr: 2 }}>
 
 
 
 
 
-
-          
-              {/* Campos filtros estrategica */}
-              
-                {/* Checkbox: Concluída */}
-
-  {/* Checkbox: Concluída */}
+  <Box sx={{ display: "flex", alignItems: "center", gap: 2, mr: 2 }}>
   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 120 }}>
     <Checkbox
       size="small"
       checked={estrategica.status === "concluida"}
       onChange={() => {
         const atualizado = estrategicas.map((e) =>
-          e.id === estrategica.id ? { ...e, status: "concluida" } : e
+          e.id === estrategica.id
+            ? {
+                ...e,
+                status: e.status === "concluida" ? "" : "concluida",
+              }
+            : e
         );
         setEstrategicas(atualizado);
         onUpdate && onUpdate({ estrategicas: atualizado });
@@ -1252,6 +1248,7 @@ await Promise.all(
       sx={{
         width: 20,
         height: 20,
+        marginLeft: 10,
         color: "#fff",
         '&.Mui-checked': {
           color: "#fff",
@@ -1271,7 +1268,12 @@ await Promise.all(
       checked={estrategica.status === "andamento"}
       onChange={() => {
         const atualizado = estrategicas.map((e) =>
-          e.id === estrategica.id ? { ...e, status: "andamento" } : e
+          e.id === estrategica.id
+            ? {
+                ...e,
+                status: e.status === "andamento" ? "" : "andamento",
+              }
+            : e
         );
         setEstrategicas(atualizado);
         onUpdate && onUpdate({ estrategicas: atualizado });
@@ -1314,7 +1316,7 @@ await Promise.all(
             : estrategica.status === "atrasada"
             ? "#ef4444"
             : "#9ca3af",
-        border: "1px solid white",
+        //border: "1px solid white",
       }}
     />
     <Typography sx={{ color: "#fff", fontSize: "0.8rem", whiteSpace: "nowrap" }}>
