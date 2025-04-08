@@ -31,6 +31,9 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
 
   const [estrategicas, setEstrategicas] = useState([]);
 
+  const [areasResponsaveistaticas, setAreasResponsaveistaticas] = useState([]);
+
+
 
   
 
@@ -91,7 +94,7 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
       setEmailsTaticasInput(taticasEmails);
   
       // ✅ Corrigido: nomes corretos dos campos no Firestore
-      setAreastaticasSelecionadas(projetoData.areasResponsaveistaticas || []);
+      setAreasResponsaveistaticas(projetoData.areasResponsaveistaticas || []);
       setAreasoperacionalSelecionadas(projetoData.areasResponsaveisoperacional || []);
     }
   }, [projetoData]);
@@ -1382,31 +1385,32 @@ await Promise.all(
 >
   {/* Áreas */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
-    <Select
-      multiple
-      value={areastaticasSelecionadas}
-      onChange={(event) => setAreastaticasSelecionadas(event.target.value)}
-      displayEmpty
-      fullWidth
-      sx={{ backgroundColor: "transparent" }}
-      renderValue={(selected) =>
-        selected.length === 0
-          ? "Selecione as áreas responsáveis"
-          : selected
-              .map(
-                (id) =>
-                  areas.find((area) => area.id === id)?.nome || "Desconhecida"
-              )
-              .join(", ")
-      }
-    >
-      {areas.map((area) => (
-        <MenuItem key={area.id} value={area.id}>
-          <Checkbox checked={areastaticasSelecionadas.includes(area.id)} />
-          <ListItemText primary={area.nome} />
-        </MenuItem>
-      ))}
-    </Select>
+  <Select
+    multiple
+    value={areasResponsaveistaticas}
+    onChange={(event) => setAreasResponsaveistaticas(event.target.value)}
+    displayEmpty
+    fullWidth
+    sx={{ backgroundColor: "transparent" }}
+    renderValue={(selected) =>
+      selected.length === 0
+        ? "Selecione as áreas responsáveis"
+        : selected
+            .map(
+              (id) =>
+                areas.find((area) => area.id === id)?.nome || "Desconhecida"
+            )
+            .join(", ")
+    }
+  >
+    {areas.map((area) => (
+      <MenuItem key={area.id} value={area.id}>
+        <Checkbox checked={areasResponsaveistaticas.includes(area.id)} />
+        <ListItemText primary={area.nome} />
+      </MenuItem>
+    ))}
+  </Select>
+
   </Box>
 
   {/* Unidades */}
