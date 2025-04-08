@@ -29,6 +29,9 @@ const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacio
 
   const [limpaEstado, setLimpaEstado] = useState("");
 
+ 
+
+
 
   const [areasSelecionadasTaticas, setAreasSelecionadasTaticas] = useState([]);
 
@@ -1342,70 +1345,64 @@ const handleSalvarOperacional = async () => {
                   <Box sx={{ display: "flex", width: "100%", gap: 2, flexWrap: "wrap" }}>
   {/* Áreas */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
-    <Select
-      multiple
-      value={areasPorIdTatica[tatica.id] || []}
-      onChange={(event) =>
-        setAreasPorIdTatica((prev) => ({
-          ...prev,
-          [tatica.id]: event.target.value,
-        }))
-      }
-      displayEmpty
-      fullWidth
-      sx={{ backgroundColor: "#fff" }}
-      renderValue={(selected) =>
-        selected.length === 0
-          ? "Selecione as áreas responsáveis"
-          : selected
-              .map(
-                (id) =>
-                  areas.find((area) => area.id === id)?.nome || "Desconhecida"
-              )
-              .join(", ")
-      }
-    >
-      {areas.map((area) => (
-        <MenuItem key={area.id} value={area.id}>
-          <Checkbox checked={areasSelecionadasTaticas.includes(area.id)} />
-          <ListItemText primary={area.nome} />
-        </MenuItem>
-      ))}
-    </Select>
+  <Select
+  multiple
+  value={areasPorIdTatica[tatica.id] || []}
+  onChange={(event) =>
+    setAreasPorIdTatica((prev) => ({
+      ...prev,
+      [tatica.id]: event.target.value,
+    }))
+  }
+  renderValue={(selected) =>
+    selected.length === 0
+      ? "Selecione as áreas responsáveis"
+      : selected
+          .map((id) => areas.find((a) => a.id === id)?.nome || "Desconhecida")
+          .join(", ")
+  }
+  fullWidth
+  sx={{ backgroundColor: "#fff" }}
+>
+  {areas.map((area) => (
+    <MenuItem key={area.id} value={area.id}>
+      <Checkbox checked={(areasPorIdTatica[tatica.id] || []).includes(area.id)} />
+      <ListItemText primary={area.nome} />
+    </MenuItem>
+  ))}
+</Select>
+
   </Box>
 
   {/* Unidades */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
-    <Select
-      multiple
-      value={unidadesPorIdTatica[tatica.id] || []}
-      onChange={(event) =>
-        setUnidadesPorIdTatica((prev) => ({
-          ...prev,
-          [tatica.id]: event.target.value,
-        }))
-      }
-      displayEmpty
-      fullWidth
-      sx={{ backgroundColor: "#fff" }}
-      renderValue={(selected) =>
-        selected.length === 0
-          ? "Selecione a Unidade"
-          : selected
-              .map(
-                (id) =>
-                  unidades.find((uni) => uni.id === id)?.nome || "Desconhecida"
-              )
-              .join(", ")
-      }
-    >
-      {unidades.map((uni) => (
-        <MenuItem key={uni.id} value={uni.id}>
-          <Checkbox checked={unidadeSelecionadas.includes(uni.id)} />
-          <ListItemText primary={uni.nome} />
-        </MenuItem>
-      ))}
-    </Select>
+  <Select
+  multiple
+  value={unidadesPorIdTatica[tatica.id] || []}
+  onChange={(event) =>
+    setUnidadesPorIdTatica((prev) => ({
+      ...prev,
+      [tatica.id]: event.target.value,
+    }))
+  }
+  renderValue={(selected) =>
+    selected.length === 0
+      ? "Selecione a Unidade"
+      : selected
+          .map((id) => unidades.find((u) => u.id === id)?.nome || "Desconhecida")
+          .join(", ")
+  }
+  fullWidth
+  sx={{ backgroundColor: "#fff" }}
+>
+  {unidades.map((uni) => (
+    <MenuItem key={uni.id} value={uni.id}>
+      <Checkbox checked={(unidadesPorIdTatica[tatica.id] || []).includes(uni.id)} />
+      <ListItemText primary={uni.nome} />
+    </MenuItem>
+  ))}
+</Select>
+
   </Box>
 
   {/* E-mails adicionais */}
