@@ -1063,7 +1063,10 @@ await Promise.all(
           <Select
             multiple
             value={areasSelecionadas}
-            onChange={(event) => setAreasSelecionadas(event.target.value)}
+            onChange={(event) => {
+              const value = event.target.value;
+              setAreasSelecionadas(value);
+            }}
             displayEmpty
             sx={{
               flex: 1,
