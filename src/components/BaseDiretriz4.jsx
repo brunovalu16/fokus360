@@ -702,11 +702,14 @@ const areaRolesMap = {
   
       const projetoRef = doc(db, "projetos", projectId);
       await updateDoc(projetoRef, {
-        estrategicas, // já contém os e-mails porque agora você está salvando eles ao criar a estratégica
-        areasResponsaveis: areasSelecionadas,
+        estrategicas,
+        areasResponsaveis: areasSelecionadas,            // Estratégico
+        areasResponsaveistaticas,                        // Tático
+        areasResponsaveisoperacional,                    // Operacional
         unidadesRelacionadas: unidadeSelecionadas,
         updatedAt: new Date(),
       });
+      
   
       // ✅ Enviar notificações e e-mails para usuários das áreas
       const rolesVinculados = areasSelecionadas.flatMap(
