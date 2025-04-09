@@ -785,28 +785,32 @@ const areaRolesMap = {
         alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
         return;
       }
-      if (estrategicas.length === 0) {
-        alert("Adicione ao menos uma Diretriz Estratégica.");
-        return;
-      }
-      if (areasSelecionadas.length === 0) {
-        alert("Selecione pelo menos uma área responsável.");
-        return;
-      }
-      if (unidadeSelecionadas.length === 0) {
-        alert("Selecione pelo menos uma unidade.");
-        return;
-      }
+  
+      // Atualiza os campos de áreas, unidades e emails com os valores do estado nos objetos das diretrizes antes de salvar
+      const estrategicasAtualizadas = estrategicas.map((est) => ({
+        ...est,
+        areasResponsaveis: areasPorId[est.id] || [],
+        unidades: unidadesPorId[est.id] || [],
+        emails: (emailsPorId[est.id] || "").split(",").map((email) => email.trim()).filter((email) => email !== ""),
+        taticas: (est.taticas || []).map((tatica) => ({
+          ...tatica,
+          areasResponsaveis: areasTaticasPorId[tatica.id] || [],
+          unidades: unidadesTaticasPorId[tatica.id] || [],
+          emails: (emailsTaticasPorId[tatica.id] || "").split(",").map((email) => email.trim()).filter((email) => email !== ""),
+          operacionais: (tatica.operacionais || []).map((operacional) => ({
+            ...operacional,
+            areasResponsaveis: areasPorIdOperacional[operacional.id] || [],
+            unidades: unidadesPorIdOperacional[operacional.id] || [],
+            emails: (emailsPorIdOperacional[operacional.id] || "").split(",").map((email) => email.trim()).filter((email) => email !== ""),
+          })),
+        })),
+      }));
   
       const projetoRef = doc(db, "projetos", projectId);
       await updateDoc(projetoRef, {
-        estrategicas,
-        areasResponsaveis: areasSelecionadas,            // Estratégico
-        areasResponsaveistaticas,                        // Tático
-        areasResponsaveisoperacional,                    // Operacional
-        unidadesRelacionadas: unidadeSelecionadas,
+        estrategicas: estrategicasAtualizadas,
         updatedAt: new Date(),
-      });
+      }); 
       
   
       // ✅ Enviar notificações e e-mails para usuários das áreas
@@ -866,9 +870,10 @@ const areaRolesMap = {
         );
       }
   
-      alert("✅ Diretrizes Estratégicas salvas e notificações enviadas!");
+      setEstrategicas(estrategicasAtualizadas);
+      alert("✅ Diretrizes atualizadas com sucesso!");
     } catch (error) {
-      console.error("Erro ao salvar diretrizes estratégicas:", error);
+      console.error("Erro ao salvar diretrizes:", error);
       alert("Erro ao salvar diretrizes. Tente novamente.");
     }
   };
