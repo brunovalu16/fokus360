@@ -7,7 +7,6 @@ import { getDoc, doc } from "firebase/firestore";
 import { dbFokus360 } from "../../data/firebase-config";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import { useParams } from "react-router-dom";
-import { useLocation } from "react-router-dom";
 
 
 import InformacoesPlanejamento2 from "../../components/InformacoesPlanejamento2";

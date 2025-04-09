@@ -13,6 +13,7 @@ import {
   AccordionSummary,
   AccordionDetails,
 } from "@mui/material";
+import { FormControlLabel } from "@mui/material"
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
@@ -36,6 +37,24 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
   
   const [areasResponsaveisoperacional , setAreasResponsaveisoperacional ] = useState([]);
 
+// ESTRATEGICAS
+  const [areasPorId, setAreasPorId] = useState({});
+  const [unidadesPorId, setUnidadesPorId] = useState({});
+  const [emailsPorId, setEmailsPorId] = useState({});
+
+// TÁTICAS
+const [areasTaticasPorId, setAreasTaticasPorId] = useState({});
+const [unidadesTaticasPorId, setUnidadesTaticasPorId] = useState({});
+const [emailsTaticasPorId, setEmailsTaticasPorId] = useState({});
+
+// OPERACIONAIS
+const [areasOperacionaisPorId, setAreasOperacionaisPorId] = useState({});
+const [unidadesOperacionaisPorId, setUnidadesOperacionaisPorId] = useState({});
+const [emailsOperacionaisPorId, setEmailsOperacionaisPorId] = useState({});
+
+  
+
+
 
   
 
@@ -44,6 +63,21 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
   const [novaTarefa, setNovaTarefa] = useState("");
 
   const projectId = projetoData?.id;
+
+
+
+const [areasPorIdEstrategica, setAreasPorIdEstrategica] = useState({});
+const [unidadesPorIdEstrategica, setUnidadesPorIdEstrategica] = useState({});
+const [emailsPorIdEstrategica, setEmailsPorIdEstrategica] = useState({});
+
+const [areasPorIdTatica, setAreasPorIdTatica] = useState({});
+const [unidadesPorIdTatica, setUnidadesPorIdTatica] = useState({});
+const [emailsPorIdTatica, setEmailsPorIdTatica] = useState({});
+
+const [areasPorIdOperacional, setAreasPorIdOperacional] = useState({});
+const [unidadesPorIdOperacional, setUnidadesPorIdOperacional] = useState({});
+const [emailsPorIdOperacional, setEmailsPorIdOperacional] = useState({});
+
 
   
   
@@ -83,23 +117,83 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
   // Exemplo: atualizar os estados quando o projetoData mudar
   useEffect(() => {
     if (projetoData) {
-      setEstrategicas(projetoData.estrategicas || []);
-      setAreasSelecionadas(projetoData.areasResponsaveis || []);
-      setUnidadeSelecionadas(projetoData.unidadesRelacionadas || []);
+      console.log("📦 Dados do projeto recebidos:", projetoData);
+      console.log("📦 Estratégicas recebidas:", projetoData.estrategicas);
   
-      const taticasEmails = {};
-      projetoData.estrategicas?.forEach((estrategica) => {
+      const estrategicasCompletas = (projetoData.estrategicas || []).map((estrategica) => ({
+        ...estrategica,
+        emails: estrategica.emails || [],
+        areasResponsaveis: estrategica.areasResponsaveis || [],
+        unidades: estrategica.unidades || [],
+        taticas: (estrategica.taticas || []).map((tatica) => ({
+          ...tatica,
+          emails: tatica.emails || [],
+          areasResponsaveis: tatica.areasResponsaveis || [],
+          unidades: tatica.unidades || [],
+          operacionais: (tatica.operacionais || []).map((operacional) => ({
+            ...operacional,
+            emails: operacional.emails || [],
+            areasResponsaveis: operacional.areasResponsaveis || [],
+            unidades: operacional.unidades || [],
+            tarefas: operacional.tarefas || [],
+          })),
+        })),
+      }));
+  
+      setEstrategicas(estrategicasCompletas);
+  
+      const novaAreasPorId = {};
+      const novasUnidadesPorId = {};
+      const novosEmailsPorId = {};
+
+      const novaAreasTaticasPorId = {};
+      const novasUnidadesTaticasPorId = {};
+      const novosEmailsTaticasPorId = {};
+
+      const novaAreasOperacionaisPorId = {};
+      const novasUnidadesOperacionaisPorId = {};
+      const novosEmailsOperacionaisPorId = {};
+
+  //map
+      estrategicasCompletas.forEach((estrategica) => {
+        // Estratégica
+        novaAreasPorId[estrategica.id] = estrategica.areasResponsaveis || [];
+        novasUnidadesPorId[estrategica.id] = estrategica.unidades || [];
+        novosEmailsPorId[estrategica.id] = (estrategica.emails || []).join(", ");
+      
+        // Táticas
         estrategica.taticas?.forEach((tatica) => {
-          taticasEmails[tatica.id] = tatica.emails?.join(", ") || "";
+          novaAreasTaticasPorId[tatica.id] = tatica.areasResponsaveis || [];
+          novasUnidadesTaticasPorId[tatica.id] = tatica.unidades || [];
+          novosEmailsTaticasPorId[tatica.id] = (tatica.emails || []).join(", ");
+      
+          // Operacionais
+          tatica.operacionais?.forEach((operacional) => {
+            novaAreasOperacionaisPorId[operacional.id] = operacional.areasResponsaveis || [];
+            novasUnidadesOperacionaisPorId[operacional.id] = operacional.unidades || [];
+            novosEmailsOperacionaisPorId[operacional.id] = (operacional.emails || []).join(", ");
+          });
         });
       });
-      setEmailsTaticasInput(taticasEmails);
+      
   
-      // ✅ Corrigido: nomes corretos dos campos no Firestore
-      setAreasResponsaveistaticas(projetoData.areasResponsaveistaticas || []);
-      setAreasResponsaveisoperacional(projetoData.areasResponsaveisoperacional || []);
+      setAreasPorId(novaAreasPorId);
+      setUnidadesPorId(novasUnidadesPorId);
+      setEmailsPorId(novosEmailsPorId);
+
+      setAreasTaticasPorId(novaAreasTaticasPorId);
+      setUnidadesTaticasPorId(novasUnidadesTaticasPorId);
+      setEmailsTaticasPorId(novosEmailsTaticasPorId);
+
+      setAreasPorIdOperacional(novaAreasOperacionaisPorId);
+      setUnidadesPorIdOperacional(novasUnidadesOperacionaisPorId);
+      setEmailsPorIdOperacional(novosEmailsOperacionaisPorId);
+
+
     }
   }, [projetoData]);
+  
+  
   
   
 
@@ -184,6 +278,8 @@ useEffect(() => {
         nome: doc.data().nome,
       }));
       setAreas(areasList);
+      console.log("🔥 Áreas carregadas:", areasList);
+
 
       const queryUnidades = await getDocs(collection(db, "unidade"));
       const unidadesList = queryUnidades.docs.map((doc) => ({
@@ -191,6 +287,8 @@ useEffect(() => {
         nome: doc.data().nome,
       }));
       setUnidades(unidadesList);
+      console.log("🔥 Unidades carregadas:", unidadesList);
+
 
     } catch (error) {
       console.error("Erro ao buscar áreas e unidades:", error);
@@ -1251,35 +1349,54 @@ await Promise.all(
                   minWidth: 120,
                 }}
               >
-                <Checkbox
-                  size="small"
-                  checked={estrategica.status === "concluida"}
-                  onChange={() => {
-                    const atualizado = estrategicas.map((e) =>
-                      e.id === estrategica.id
-                        ? {
-                            ...e,
-                            status: e.status === "concluida" ? "" : "concluida",
-                          }
-                        : e
-                    );
-                    setEstrategicas(atualizado);
-                    onUpdate && onUpdate({ estrategicas: atualizado });
-                  }}
-                  sx={{
-                    width: 20,
-                    height: 20,
-                    marginLeft: 10,
-                    color: "#fff",
-                    "&.Mui-checked": {
-                      color: "#fff",
-                    },
-                    padding: 0,
-                  }}
-                />
-                <Typography sx={{ color: "#fff", fontSize: "0.8rem" }}>
-                  Concluída
-                </Typography>
+           <Box
+  sx={{
+    display: "flex",
+    alignItems: "center",
+    gap: 0.5,
+    minWidth: 120,
+  }}
+>
+  <FormControlLabel
+    control={
+      <Checkbox
+        size="small"
+        checked={estrategica.status === "concluida"}
+        onClick={(e) => e.stopPropagation()} // Impede o accordion de abrir
+        onChange={() => {
+          const atualizado = estrategicas.map((e) =>
+            e.id === estrategica.id
+              ? {
+                  ...e,
+                  status: e.status === "concluida" ? "" : "concluida",
+                }
+              : e
+          );
+          setEstrategicas(atualizado);
+          onUpdate && onUpdate({ estrategicas: atualizado });
+        }}
+        sx={{
+          width: 20,
+          height: 20,
+          marginLeft: 1,
+          color: "#fff",
+          "&.Mui-checked": {
+            color: "#fff",
+          },
+          padding: 0,
+        }}
+      />
+    }
+    label={
+      <Typography sx={{ color: "#fff", fontSize: "0.8rem", marginTop: "5px" }}>
+        Concluída
+      </Typography>
+    }
+    onClick={(e) => e.stopPropagation()} // Evita abrir o Accordion ao clicar no label
+    sx={{ margin: 0, cursor: "pointer" }}
+  />
+</Box>
+
               </Box>
 
               {/* Checkbox: Em Andamento */}
@@ -1291,34 +1408,53 @@ await Promise.all(
                   minWidth: 130,
                 }}
               >
-                <Checkbox
-                  size="small"
-                  checked={estrategica.status === "andamento"}
-                  onChange={() => {
-                    const atualizado = estrategicas.map((e) =>
-                      e.id === estrategica.id
-                        ? {
-                            ...e,
-                            status: e.status === "andamento" ? "" : "andamento",
-                          }
-                        : e
-                    );
-                    setEstrategicas(atualizado);
-                    onUpdate && onUpdate({ estrategicas: atualizado });
-                  }}
-                  sx={{
-                    width: 20,
-                    height: 20,
-                    color: "#fff",
-                    "&.Mui-checked": {
-                      color: "#fff",
-                    },
-                    padding: 0,
-                  }}
-                />
-                <Typography sx={{ color: "#fff", fontSize: "0.8rem" }}>
-                  Em Andamento
-                </Typography>
+                <Box
+  sx={{
+    display: "flex",
+    alignItems: "center",
+    gap: 0.5,
+    minWidth: 130,
+  }}
+>
+  <FormControlLabel
+    control={
+      <Checkbox
+        size="small"
+        checked={estrategica.status === "andamento"}
+        onClick={(e) => e.stopPropagation()}
+        onChange={() => {
+          const atualizado = estrategicas.map((e) =>
+            e.id === estrategica.id
+              ? {
+                  ...e,
+                  status: e.status === "andamento" ? "" : "andamento",
+                }
+              : e
+          );
+          setEstrategicas(atualizado);
+          onUpdate && onUpdate({ estrategicas: atualizado });
+        }}
+        sx={{
+          width: 20,
+          height: 20,
+          color: "#fff",
+          "&.Mui-checked": {
+            color: "#fff",
+          },
+          padding: 0,
+        }}
+      />
+    }
+    label={
+      <Typography sx={{ color: "#fff", fontSize: "0.8rem", marginTop: "5px" }}>
+        Em Andamento
+      </Typography>
+    }
+    onClick={(e) => e.stopPropagation()}
+    sx={{ margin: 0, cursor: "pointer" }}
+  />
+</Box>
+
               </Box>
 
               {/* Bolinha de status + texto fixo */}
@@ -1352,6 +1488,7 @@ await Promise.all(
                     color: "#fff",
                     fontSize: "0.8rem",
                     whiteSpace: "nowrap",
+                    marginTop: "4px"
                   }}
                 >
                   {estrategica.status === "concluida"
@@ -1360,7 +1497,7 @@ await Promise.all(
                     ? "" // <- não mostra texto quando estiver em andamento
                     : estrategica.status === "atrasada"
                     ? "Atrasada"
-                    : "Não realizada"}
+                    : "Não iniciada"}
                 </Typography>
               </Box>
             </Box>
@@ -1400,10 +1537,13 @@ await Promise.all(
           {/* Áreas */}
           <Select
             multiple
-            value={areasSelecionadas}
+            value={areasPorId[estrategica.id] || []}
             onChange={(event) => {
               const value = event.target.value;
-              setAreasSelecionadas(value);
+              setAreasPorId((prev) => ({
+                ...prev,
+                [estrategica.id]: value,
+              }));
             }}
             displayEmpty
             sx={{
@@ -1419,54 +1559,89 @@ await Promise.all(
           >
             {areas.map((area) => (
               <MenuItem key={area.id} value={area.id}>
-                <Checkbox checked={areasSelecionadas.includes(area.id)} />
+                <Checkbox checked={(areasPorId[estrategica.id] || []).includes(area.id)} />
                 <ListItemText primary={area.nome} />
               </MenuItem>
             ))}
           </Select>
 
+
           {/* Unidades */}
           <Select
-            multiple
-            value={unidadeSelecionadas}
-            onChange={(event) => setUnidadeSelecionadas(event.target.value)}
-            displayEmpty
-            sx={{
-              flex: 1,
-              backgroundColor: "transparent",
-              marginTop: "10px",
-            }}
-            renderValue={(selected) =>
-              selected.length === 0
-                ? "Selecione a Unidade"
-                : selected
-                    .map(
-                      (id) =>
-                        unidades.find((uni) => uni.id === id)?.nome ||
-                        "Desconhecida"
-                    )
-                    .join(", ")
-            }
-          >
-            {unidades.map((uni) => (
-              <MenuItem key={uni.id} value={uni.id}>
-                <Checkbox checked={unidadeSelecionadas.includes(uni.id)} />
-                <ListItemText primary={uni.nome} />
-              </MenuItem>
-            ))}
-          </Select>
+  multiple
+  value={unidadesPorId[estrategica.id] || []}
+  onChange={(event) => {
+    const value = event.target.value;
+    setUnidadesPorId((prev) => ({
+      ...prev,
+      [estrategica.id]: value,
+    }));
+  }}
+  displayEmpty
+  sx={{
+    flex: 1,
+    backgroundColor: "transparent",
+    marginTop: "10px",
+  }}
+  renderValue={(selected) =>
+    selected.length === 0
+      ? "Selecione a Unidade"
+      : selected
+          .map(
+            (id) =>
+              unidades.find((uni) => uni.id === id)?.nome || "Desconhecida"
+          )
+          .join(", ")
+  }
+>
+  {unidades.map((uni) => (
+    <MenuItem key={uni.id} value={uni.id}>
+      <Checkbox
+        checked={(unidadesPorId[estrategica.id] || []).includes(uni.id)}
+      />
+      <ListItemText primary={uni.nome} />
+    </MenuItem>
+  ))}
+</Select>
+
 
           {/* E-mails adicionais */}
           <TextField
-            label="E-mails adicionais (separe por vírgula)"
-            value={emailsDigitados}
-            onChange={(e) => setEmailsDigitados(e.target.value)}
-            sx={{
-              flex: 1,
-              backgroundColor: "transparent",
-              marginTop: "10px",
-            }}
-          />
+  label="E-mails adicionais (separe por vírgula)"
+  value={emailsPorId[estrategica.id] || ""}
+  onChange={(e) => {
+    const value = e.target.value;
+
+    // Atualiza o campo de texto
+    setEmailsPorId((prev) => ({
+      ...prev,
+      [estrategica.id]: value,
+    }));
+
+    // Atualiza a estrutura no estado principal
+    setEstrategicas((prev) =>
+      prev.map((est) =>
+        est.id === estrategica.id
+          ? {
+              ...est,
+              emails: value
+                .split(",")
+                .map((email) => email.trim())
+                .filter((email) => email !== ""),
+            }
+          : est
+      )
+    );
+  }}
+  sx={{
+    flex: 1,
+    backgroundColor: "transparent",
+    marginTop: "10px",
+  }}
+/>
+
+
+
         </Box>
 
         <Box display="flex" alignItems="center" marginBottom="20px">
@@ -1674,108 +1849,107 @@ await Promise.all(
               }}
             >
               {/* Áreas */}
-              <Box sx={{ flex: 1, minWidth: "300px" }}>
-                <Select
-                  multiple
-                  value={areasResponsaveistaticas}
-                  onChange={(event) =>
-                    setAreasResponsaveistaticas(event.target.value)
-                  }
-                  displayEmpty
-                  fullWidth
-                  sx={{ backgroundColor: "transparent" }}
-                  renderValue={(selected) =>
-                    selected.length === 0
-                      ? "Selecione as áreas responsáveis"
-                      : selected
-                          .map(
-                            (id) =>
-                              areas.find((area) => area.id === id)?.nome ||
-                              "Desconhecida"
-                          )
-                          .join(", ")
-                  }
-                >
-                  {areas.map((area) => (
-                    <MenuItem key={area.id} value={area.id}>
-                      <Checkbox
-                        checked={areasResponsaveistaticas.includes(area.id)}
-                      />
-                      <ListItemText primary={area.nome} />
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Box>
+              <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
+  {/* Áreas */}
+  <Box sx={{ flex: 1 }}>
+    <Select
+      multiple
+      value={areasTaticasPorId[tatica.id] || []}
+      onChange={(event) => {
+        const value = event.target.value;
+        setAreasTaticasPorId((prev) => ({
+          ...prev,
+          [tatica.id]: value,
+        }));
+      }}
+      displayEmpty
+      fullWidth
+      sx={{ backgroundColor: 'transparent' }}
+      renderValue={(selected) =>
+        selected.length === 0
+          ? 'Selecione as áreas responsáveis'
+          : selected
+              .map((id) => areas.find((area) => area.id === id)?.nome || 'Desconhecida')
+              .join(', ')
+      }
+    >
+      {areas.map((area) => (
+        <MenuItem key={area.id} value={area.id}>
+          <Checkbox checked={(areasTaticasPorId[tatica.id] || []).includes(area.id)} />
+          <ListItemText primary={area.nome} />
+        </MenuItem>
+      ))}
+    </Select>
+  </Box>
 
-              {/* Unidades */}
-              <Box sx={{ flex: 1, minWidth: "300px" }}>
-                <Select
-                  multiple
-                  value={unidadeSelecionadas}
-                  onChange={(event) =>
-                    setUnidadeSelecionadas(event.target.value)
-                  }
-                  displayEmpty
-                  fullWidth
-                  sx={{ backgroundColor: "transparent" }}
-                  renderValue={(selected) =>
-                    selected.length === 0
-                      ? "Selecione a Unidade"
-                      : selected
-                          .map(
-                            (id) =>
-                              unidades.find((uni) => uni.id === id)?.nome ||
-                              "Desconhecida"
-                          )
-                          .join(", ")
-                  }
-                >
-                  {unidades.map((uni) => (
-                    <MenuItem key={uni.id} value={uni.id}>
-                      <Checkbox
-                        checked={unidadeSelecionadas.includes(uni.id)}
-                      />
-                      <ListItemText primary={uni.nome} />
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Box>
+  {/* Unidades */}
+  <Box sx={{ flex: 1 }}>
+    <Select
+      multiple
+      value={unidadesTaticasPorId[tatica.id] || []}
+      onChange={(event) => {
+        const value = event.target.value;
+        setUnidadesTaticasPorId((prev) => ({
+          ...prev,
+          [tatica.id]: value,
+        }));
+      }}
+      displayEmpty
+      fullWidth
+      sx={{ backgroundColor: 'transparent' }}
+      renderValue={(selected) =>
+        selected.length === 0
+          ? 'Selecione a Unidade'
+          : selected
+              .map((id) => unidades.find((uni) => uni.id === id)?.nome || 'Desconhecida')
+              .join(', ')
+      }
+    >
+      {unidades.map((uni) => (
+        <MenuItem key={uni.id} value={uni.id}>
+          <Checkbox checked={(unidadesTaticasPorId[tatica.id] || []).includes(uni.id)} />
+          <ListItemText primary={uni.nome} />
+        </MenuItem>
+      ))}
+    </Select>
+  </Box>
 
-              {/* E-mails adicionais */}
-              <Box sx={{ flex: 1, minWidth: "300px" }}>
-                <TextField
-                  label="E-mails adicionais (separe por vírgula)"
-                  value={emailsTaticasInput[estrategica.id] || ""}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setEmailsTaticasInput((prev) => ({
-                      ...prev,
-                      [estrategica.id]: value,
-                    }));
+  {/* E-mails adicionais */}
+  <Box sx={{ flex: 1 }}>
+    <TextField
+      label="E-mails adicionais (separe por vírgula)"
+      value={emailsTaticasPorId[tatica.id] || ''}
+      onChange={(e) => {
+        const value = e.target.value;
 
-                    // Atualiza o e-mail diretamente no estado das estratégicas
-                    setEstrategicas((prev) =>
-                      prev.map((est) => {
-                        if (est.id === estrategica.id) {
-                          return {
-                            ...est,
-                            taticas: est.taticas.map((tatica) => ({
-                              ...tatica,
-                              emails: value
-                                .split(",")
-                                .map((email) => email.trim())
-                                .filter((email) => email !== ""),
-                            })),
-                          };
-                        }
-                        return est;
-                      })
-                    );
-                  }}
-                  fullWidth
-                  sx={{ backgroundColor: "transparent" }}
-                />
-              </Box>
+        setEmailsTaticasPorId((prev) => ({
+          ...prev,
+          [tatica.id]: value,
+        }));
+
+        setEstrategicas((prev) =>
+          prev.map((est) => ({
+            ...est,
+            taticas: est.taticas.map((t) =>
+              t.id === tatica.id
+                ? {
+                    ...t,
+                    emails: value
+                      .split(',')
+                      .map((email) => email.trim())
+                      .filter((email) => email !== ''),
+                  }
+                : t
+            ),
+          }))
+        );
+      }}
+      fullWidth
+      sx={{ backgroundColor: 'transparent' }}
+    />
+  </Box>
+</Box>
+
             </Box>
             
                   <Box display="flex" alignItems="center" marginBottom="20px">
@@ -1977,128 +2151,145 @@ await Promise.all(
                       <AccordionDetails>
 
                       <Box
-                    sx={{
-                      display: "flex",
-                      flexWrap: "wrap", // permite quebra no mobile
-                      gap: 2,
-                      width: "100%",
-                      marginBottom: "10px",
-                    }}
-                  >
-                    {/* Áreas */}
-                    <Select
-                      multiple
-                      value={areasResponsaveisoperacional}
-                      onChange={(event) =>
-                        setAreasResponsaveisoperacional(event.target.value)
-                      }
-                      displayEmpty
-                      sx={{
-                        flex: 1,
-                        minWidth: "250px",
-                        backgroundColor: "transparent",
-                        marginTop: "10px",
-                      }}
-                      renderValue={(selected) =>
-                        selected.length === 0
-                          ? "Selecione as áreas responsáveis"
-                          : selected
-                              .map(
-                                (id) =>
-                                  areas.find((area) => area.id === id)?.nome ||
-                                  "Desconhecida"
-                              )
-                              .join(", ")
-                      }
-                    >
-                      {areas.map((area) => (
-                        <MenuItem key={area.id} value={area.id}>
-                          <Checkbox
-                            checked={areasResponsaveisoperacional.includes(
-                              area.id
-                            )}
-                          />
-                          <ListItemText primary={area.nome} />
-                        </MenuItem>
-                      ))}
-                    </Select>
+  sx={{
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 2,
+    width: "100%",
+    marginBottom: "10px",
+  }}
+>
+  {/* Áreas */}
+  <Box sx={{ flex: 1, minWidth: "200px" }}>
+    <Select
+      multiple
+      value={areasPorIdOperacional[operacional.id] || []}
+      onChange={(event) => {
+        const value = event.target.value;
+        setAreasPorIdOperacional((prev) => ({
+          ...prev,
+          [operacional.id]: value,
+        }));
+        setEstrategicas((prev) =>
+          prev.map((est) => ({
+            ...est,
+            taticas: est.taticas.map((tatica) => ({
+              ...tatica,
+              operacionais: tatica.operacionais.map((op) =>
+                op.id === operacional.id
+                  ? { ...op, areasResponsaveis: value }
+                  : op
+              ),
+            })),
+          }))
+        );
+      }}
+      displayEmpty
+      fullWidth
+      sx={{ backgroundColor: "transparent", marginTop: "10px" }}
+      renderValue={(selected) =>
+        selected.length === 0
+          ? "Selecione as áreas responsáveis"
+          : selected
+              .map((id) => areas.find((area) => area.id === id)?.nome || "Desconhecida")
+              .join(", ")
+      }
+    >
+      {areas.map((area) => (
+        <MenuItem key={area.id} value={area.id}>
+          <Checkbox
+            checked={(areasPorIdOperacional[operacional.id] || []).includes(area.id)}
+          />
+          <ListItemText primary={area.nome} />
+        </MenuItem>
+      ))}
+    </Select>
+  </Box>
 
-                    {/* Unidades */}
-                    <Select
-                      multiple
-                      value={unidadeSelecionadas}
-                      onChange={(event) =>
-                        setUnidadeSelecionadas(event.target.value)
-                      }
-                      displayEmpty
-                      sx={{
-                        flex: 1,
-                        minWidth: "250px",
-                        backgroundColor: "transparent",
-                        marginTop: "10px",
-                      }}
-                      renderValue={(selected) =>
-                        selected.length === 0
-                          ? "Selecione a Unidade"
-                          : selected
-                              .map(
-                                (id) =>
-                                  unidades.find((uni) => uni.id === id)?.nome ||
-                                  "Desconhecida"
-                              )
-                              .join(", ")
-                      }
-                    >
-                      {unidades.map((uni) => (
-                        <MenuItem key={uni.id} value={uni.id}>
-                          <Checkbox
-                            checked={unidadeSelecionadas.includes(uni.id)}
-                          />
-                          <ListItemText primary={uni.nome} />
-                        </MenuItem>
-                      ))}
-                    </Select>
+  {/* Unidades */}
+  <Box sx={{ flex: 1, minWidth: "200px" }}>
+    <Select
+      multiple
+      value={unidadesPorIdOperacional[operacional.id] || []}
+      onChange={(event) => {
+        const value = event.target.value;
+        setUnidadesPorIdOperacional((prev) => ({
+          ...prev,
+          [operacional.id]: value,
+        }));
+        setEstrategicas((prev) =>
+          prev.map((est) => ({
+            ...est,
+            taticas: est.taticas.map((tatica) => ({
+              ...tatica,
+              operacionais: tatica.operacionais.map((op) =>
+                op.id === operacional.id
+                  ? { ...op, unidades: value }
+                  : op
+              ),
+            })),
+          }))
+        );
+      }}
+      displayEmpty
+      fullWidth
+      sx={{ backgroundColor: "transparent", marginTop: "10px" }}
+      renderValue={(selected) =>
+        selected.length === 0
+          ? "Selecione a Unidade"
+          : selected
+              .map((id) => unidades.find((uni) => uni.id === id)?.nome || "Desconhecida")
+              .join(", ")
+      }
+    >
+      {unidades.map((uni) => (
+        <MenuItem key={uni.id} value={uni.id}>
+          <Checkbox
+            checked={(unidadesPorIdOperacional[operacional.id] || []).includes(uni.id)}
+          />
+          <ListItemText primary={uni.nome} />
+        </MenuItem>
+      ))}
+    </Select>
+  </Box>
 
-                    {/* E-mails adicionais */}
-                    <TextField
-                      label="E-mails adicionais (separe por vírgula)"
-                      value={emailsOperacionaisInput[tatica.id] || ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setEmailsOperacionaisInput((prev) => ({
-                          ...prev,
-                          [tatica.id]: value,
-                        }));
+  {/* E-mails adicionais */}
+  <Box sx={{ flex: 2, minWidth: "200px" }}>
+    <TextField
+      label="E-mails adicionais (separe por vírgula)"
+      value={emailsPorIdOperacional[operacional.id] || ""}
+      onChange={(e) => {
+        const value = e.target.value;
+        setEmailsPorIdOperacional((prev) => ({
+          ...prev,
+          [operacional.id]: value,
+        }));
+        setEstrategicas((prev) =>
+          prev.map((est) => ({
+            ...est,
+            taticas: est.taticas.map((tatica) => ({
+              ...tatica,
+              operacionais: tatica.operacionais.map((op) =>
+                op.id === operacional.id
+                  ? {
+                      ...op,
+                      emails: value
+                        .split(",")
+                        .map((email) => email.trim())
+                        .filter((email) => email !== ""),
+                    }
+                  : op
+              ),
+            })),
+          }))
+        );
+      }}
+      fullWidth
+      sx={{ backgroundColor: "transparent", marginTop: "10px" }}
+    />
+  </Box>
+</Box>
 
-                        setEstrategicas((prev) =>
-                          prev.map((est) => ({
-                            ...est,
-                            taticas: est.taticas.map((tat) => ({
-                              ...tat,
-                              operacionais: tat.operacionais.map((op) => {
-                                if (op.id === operacional.id) {
-                                  return {
-                                    ...op,
-                                    emails: value
-                                      .split(",")
-                                      .map((email) => email.trim())
-                                      .filter((email) => email !== ""),
-                                  };
-                                }
-                                return op;
-                              }),
-                            })),
-                          }))
-                        );
-                      }}
-                      sx={{
-                        flex: 1,
-                        minWidth: "250px",
-                        backgroundColor: "transparent",
-                        marginTop: "10px",
-                      }}
-                    />
-                  </Box>
                         <Box>
                           {/* 🔹 Campo para adicionar nova tarefa */}
                           <Box
