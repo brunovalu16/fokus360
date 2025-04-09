@@ -73,8 +73,9 @@ const Login = () => {
       const userDoc = await getDoc(doc(db, "user", user.uid));
       if (userDoc.exists()) {
         const userRole = userDoc.data().role;
-  
+        
         // Armazenar autenticação no localStorage
+        localStorage.setItem("userId", user.uid); // 👈 salva o ID do usuário logado
         localStorage.setItem("token", user.accessToken); // Salva o token no localStorage
         localStorage.setItem("userRole", userRole); // Armazena o papel do usuário (opcional)
   

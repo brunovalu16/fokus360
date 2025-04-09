@@ -23,10 +23,14 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { doc, updateDoc, getFirestore, collection, getDocs, setDoc  } from "firebase/firestore";
 import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para Fokus360
 
+//API para buscar data universal
+import { buscarDataAtualUTC } from "../utils/dataAtual";
 
 
 
-  const BaseDiretriz4 = ({ projetoData, onUpdate }) => {
+
+
+  const BaseDiretriz4 = ({ projetoData, onUpdate, dataInicio, prazoPrevisto }) => {
   // Estados para os três conjuntos de diretrizes
   const [users, setUsers] = useState([]);
 
@@ -1366,20 +1370,37 @@ await Promise.all(
     control={
       <Checkbox
         size="small"
-        checked={estrategica.status === "concluida"}
-        onClick={(e) => e.stopPropagation()} // Impede o accordion de abrir
-        onChange={() => {
-          const atualizado = estrategicas.map((e) =>
-            e.id === estrategica.id
-              ? {
+        onChange={async () => {
+          const atualizado = await Promise.all(
+            estrategicas.map(async (e) => {
+              if (e.id === estrategica.id) {
+                // Buscar data atual UTC
+                const dataAtual = await buscarDataAtualUTC();
+        
+                // Pegar prazoPrevisto do projeto (que vem de props)
+                const prazo = new Date(projetoData?.prazoPrevisto);
+                const estaAtrasado = dataAtual > prazo;
+        
+                return {
                   ...e,
                   status: e.status === "concluida" ? "" : "concluida",
-                }
-              : e
+                  statusVisual:
+                    e.status === "concluida"
+                      ? ""
+                      : estaAtrasado
+                      ? "atrasada"
+                      : "noprazo",
+                };
+              }
+              return e;
+            })
           );
+        
           setEstrategicas(atualizado);
           onUpdate && onUpdate({ estrategicas: atualizado });
         }}
+        
+        
         sx={{
           width: 20,
           height: 20,
@@ -1479,31 +1500,32 @@ await Promise.all(
                     borderRadius: "50%",
                     backgroundColor:
                       estrategica.status === "concluida"
-                        ? "#22c55e"
+                        ? estrategica.statusVisual === "atrasada"
+                          ? "#ef4444"
+                          : "#22c55e"
                         : estrategica.status === "andamento"
                         ? "#00d2e3"
-                        : estrategica.status === "atrasada"
-                        ? "#ef4444"
                         : "#9ca3af",
-                    //border: "1px solid white",
                   }}
                 />
+
                 <Typography
                   sx={{
                     color: "#fff",
                     fontSize: "0.8rem",
                     whiteSpace: "nowrap",
-                    marginTop: "4px"
+                    marginTop: "4px",
                   }}
                 >
                   {estrategica.status === "concluida"
-                    ? "No prazo"
+                    ? estrategica.statusVisual === "atrasada"
+                      ? "Atrasada"
+                      : "No prazo"
                     : estrategica.status === "andamento"
-                    ? "" // <- não mostra texto quando estiver em andamento
-                    : estrategica.status === "atrasada"
-                    ? "Atrasada"
+                    ? ""
                     : "Não iniciada"}
                 </Typography>
+
               </Box>
             </Box>
 

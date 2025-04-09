@@ -97,8 +97,11 @@ function DashboardPlanejamento() {
 
         <BaseDiretriz4
           projetoData={projetoData}
+          dataInicio={projetoData.dataInicio}
+          prazoPrevisto={projetoData.prazoPrevisto}
           onUpdate={(prev) => setProjetoData((antigo) => ({ ...antigo, ...prev }))}
         />
+
 
       </>
     ) : (

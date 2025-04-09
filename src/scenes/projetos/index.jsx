@@ -111,23 +111,21 @@ const checkUserAssociation = async (userEmail, userId) => {
 
 
   // Busca o perfil do usuário no Firestore
-  const fetchUserRole = async () => {
-    if (!userId) return;
+  const fetchUserRole = async (uid) => {
+    if (!uid) return;
   
     try {
-      const userDoc = await getDoc(doc(db, "user", userId));
+      const userDoc = await getDoc(doc(dbFokus360, "user", uid));
   
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        //console.log("Dados do usuário:", userData); // Exibe todos os dados do documento
-        setUserRole(userData.role || null); // Garante que role será definido
-      } else {
-        //console.log("Documento do usuário não encontrado no Firestore.");
+        setUserRole(userData.role || null);
       }
     } catch (error) {
-      //console.error("Erro ao buscar perfil do usuário no Firestore:", error);
+      console.error("Erro ao buscar perfil do usuário no Firestore:", error);
     }
   };
+  
  
 
   // Verifica a associação do usuário após logar
@@ -136,7 +134,7 @@ const checkUserAssociation = async (userEmail, userId) => {
       if (currentUser) {
         setUserId(currentUser.uid);
         const email = currentUser.email;
-        await fetchUserRole(); // Primeiro busca o perfil
+        await fetchUserRole(currentUser.uid); // ← passe o ID diretamente
         await checkUserAssociation(email, currentUser.uid);
         setIsSolicitanteAssociated(await checkSolicitanteAssociation(email));
       } else {

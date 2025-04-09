@@ -11,7 +11,7 @@ import {
   Button,
 } from "@mui/material";
 import { dbFokus360 } from "../data/firebase-config"; // ✅ Usa a instância correta
-import { getDocs, collection, addDoc, doc, setDoc } from "firebase/firestore";
+import { getDocs, collection, addDoc, doc, setDoc, getDoc } from "firebase/firestore";
 import { getApps } from "firebase/app";
 console.log("Apps Inicializados:", getApps()); // ✅ Deve exibir os apps carregados
 
@@ -29,6 +29,10 @@ const InformacoesPlanejamento2 = ({ projetoData, onUpdate, onSaveProjectId   }) 
   const [colaboradorEmail, setColaboradorEmail] = useState("");
   const [areas, setAreas] = useState([]);
   const [unidade, setUnidade] = useState([]);
+  
+  //Estado para gerenciar perfil de usuario para poder alterar os campos de datas
+  const [perfilUsuario, setPerfilUsuario] = useState(""); // Guarda o perfil do usuário logado
+
 
   const [formValues, setFormValues] = useState({
     nome: "",
@@ -115,22 +119,57 @@ const handleUpdate = async () => {
 
   // Carregar usuários do Firebase
   useEffect(() => {
-    const fetchUsers = async () => {
+    const buscarPerfilUsuario = async () => {
       try {
-        
-        const querySnapshot = await getDocs(collection(dbFokus360, "user")); // ✅ Agora está correto
-
-        const usersList = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          username: doc.data().username,
-        }));
-        setUsers(usersList);
+        const userIdLogado = localStorage.getItem("userId");
+  
+        if (!userIdLogado) {
+          console.warn("userId não encontrado no localStorage.");
+          return;
+        }
+  
+        const userDocRef = doc(dbFokus360, "user", userIdLogado);
+        const userDocSnap = await getDoc(userDocRef);
+  
+        if (userDocSnap.exists()) {
+          const role = userDocSnap.data().role;
+          console.log("Perfil carregado:", role);
+          setPerfilUsuario(role?.toString().padStart(2, "0"));
+        } else {
+          console.warn("Documento do usuário não encontrado.");
+        }
       } catch (error) {
-        console.error("Erro ao buscar usuários:", error);
+        console.error("Erro ao buscar perfil do usuário logado:", error);
       }
     };
-    fetchUsers();
+  
+    buscarPerfilUsuario();
   }, []);
+  
+  
+  //COmpara se o usuario é perfil 08 e libera a edição dos campos de datas
+  const podeEditarDatas = perfilUsuario === "08";
+
+
+  // Carregar todos os usuários para popular o Select de solicitante
+useEffect(() => {
+  const carregarUsuarios = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(dbFokus360, "user"));
+      const listaUsuarios = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        username: doc.data().username,
+      }));  
+      setUsers(listaUsuarios);
+    } catch (error) {
+      console.error("Erro ao carregar usuários para o Select:", error);
+    }
+  };
+
+  carregarUsuarios();
+}, []);
+
+
 
  
 
@@ -209,7 +248,9 @@ const handleUpdate = async () => {
     }
   };
   
-
+  console.log("perfilUsuario:", perfilUsuario);
+  console.log("podeEditarDatas:", perfilUsuario?.toString().padStart(2, "0") === "08");
+  
   return (
     <Box>
       {/* Você pode usar ou não Accordion por fora, mas deixei para ficar similar ao seu código */}
@@ -239,8 +280,10 @@ const handleUpdate = async () => {
                 value={formValues.dataInicio}
                 onChange={handleChange}
                 InputLabelProps={{ shrink: true }}
+                disabled={!podeEditarDatas} // 👈 Aqui é o que faltava!
                 sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}
               />
+
 
               {/* Prazo Previsto */}
               <TextField
@@ -250,8 +293,10 @@ const handleUpdate = async () => {
                 value={formValues.prazoPrevisto}
                 onChange={handleChange}
                 InputLabelProps={{ shrink: true }}
+                disabled={!podeEditarDatas} // 👈 Aqui também
                 sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}
               />
+
 
               {/* Unidade */}
               <Select
