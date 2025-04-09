@@ -120,82 +120,92 @@ const [emailsPorIdOperacional, setEmailsPorIdOperacional] = useState({});
 //preencher os campos normalmente vindo do banco
   // Exemplo: atualizar os estados quando o projetoData mudar
   useEffect(() => {
-    if (projetoData) {
-      console.log("📦 Dados do projeto recebidos:", projetoData);
-      console.log("📦 Estratégicas recebidas:", projetoData.estrategicas);
+    if (!projetoData) return;
   
-      const estrategicasCompletas = (projetoData.estrategicas || []).map((estrategica) => ({
-        ...estrategica,
-        emails: estrategica.emails || [],
-        areasResponsaveis: estrategica.areasResponsaveis || [],
-        unidades: estrategica.unidades || [],
-        taticas: (estrategica.taticas || []).map((tatica) => ({
-          ...tatica,
-          emails: tatica.emails || [],
-          areasResponsaveis: tatica.areasResponsaveis || [],
-          unidades: tatica.unidades || [],
-          operacionais: (tatica.operacionais || []).map((operacional) => ({
-            ...operacional,
-            emails: operacional.emails || [],
-            areasResponsaveis: operacional.areasResponsaveis || [],
-            unidades: operacional.unidades || [],
-            tarefas: operacional.tarefas || [],
+    console.log("📦 Dados do projeto recebidos:", projetoData);
+    console.log("📦 Estratégicas recebidas:", projetoData.estrategicas);
+  
+    (async () => {
+      const dataAtual = await buscarDataAtualUTC();
+  
+      const estrategicasCompletas = (projetoData.estrategicas || []).map((estrategica) => {
+        // Lógica do statusVisual para diretrizes concluídas
+        let statusVisual = "";
+        if (estrategica.status === "concluida" && projetoData?.prazoPrevisto) {
+          const [ano, mes, dia] = projetoData.prazoPrevisto.split("-");
+          const prazoPrevistoDate = new Date(`${ano}-${mes}-${dia}T23:59:59`);
+          statusVisual = dataAtual <= prazoPrevistoDate ? "no_prazo" : "atrasada";
+        }
+  
+        return {
+          ...estrategica,
+          emails: estrategica.emails || [],
+          areasResponsaveis: estrategica.areasResponsaveis || [],
+          unidades: estrategica.unidades || [],
+          statusVisual,
+          taticas: (estrategica.taticas || []).map((tatica) => ({
+            ...tatica,
+            emails: tatica.emails || [],
+            areasResponsaveis: tatica.areasResponsaveis || [],
+            unidades: tatica.unidades || [],
+            operacionais: (tatica.operacionais || []).map((operacional) => ({
+              ...operacional,
+              emails: operacional.emails || [],
+              areasResponsaveis: operacional.areasResponsaveis || [],
+              unidades: operacional.unidades || [],
+              tarefas: operacional.tarefas || [],
+            })),
           })),
-        })),
-      }));
+        };
+      });
   
       setEstrategicas(estrategicasCompletas);
   
+      // Agora os estados auxiliares por ID:
       const novaAreasPorId = {};
       const novasUnidadesPorId = {};
       const novosEmailsPorId = {};
-
+  
       const novaAreasTaticasPorId = {};
       const novasUnidadesTaticasPorId = {};
       const novosEmailsTaticasPorId = {};
-
+  
       const novaAreasOperacionaisPorId = {};
       const novasUnidadesOperacionaisPorId = {};
       const novosEmailsOperacionaisPorId = {};
-
-  //map
+  
       estrategicasCompletas.forEach((estrategica) => {
-        // Estratégica
-        novaAreasPorId[estrategica.id] = estrategica.areasResponsaveis || [];
-        novasUnidadesPorId[estrategica.id] = estrategica.unidades || [];
+        novaAreasPorId[estrategica.id] = estrategica.areasResponsaveis;
+        novasUnidadesPorId[estrategica.id] = estrategica.unidades;
         novosEmailsPorId[estrategica.id] = (estrategica.emails || []).join(", ");
-      
-        // Táticas
+  
         estrategica.taticas?.forEach((tatica) => {
-          novaAreasTaticasPorId[tatica.id] = tatica.areasResponsaveis || [];
-          novasUnidadesTaticasPorId[tatica.id] = tatica.unidades || [];
+          novaAreasTaticasPorId[tatica.id] = tatica.areasResponsaveis;
+          novasUnidadesTaticasPorId[tatica.id] = tatica.unidades;
           novosEmailsTaticasPorId[tatica.id] = (tatica.emails || []).join(", ");
-      
-          // Operacionais
+  
           tatica.operacionais?.forEach((operacional) => {
-            novaAreasOperacionaisPorId[operacional.id] = operacional.areasResponsaveis || [];
-            novasUnidadesOperacionaisPorId[operacional.id] = operacional.unidades || [];
+            novaAreasOperacionaisPorId[operacional.id] = operacional.areasResponsaveis;
+            novasUnidadesOperacionaisPorId[operacional.id] = operacional.unidades;
             novosEmailsOperacionaisPorId[operacional.id] = (operacional.emails || []).join(", ");
           });
         });
       });
-      
   
       setAreasPorId(novaAreasPorId);
       setUnidadesPorId(novasUnidadesPorId);
       setEmailsPorId(novosEmailsPorId);
-
+  
       setAreasTaticasPorId(novaAreasTaticasPorId);
       setUnidadesTaticasPorId(novasUnidadesTaticasPorId);
       setEmailsTaticasPorId(novosEmailsTaticasPorId);
-
+  
       setAreasPorIdOperacional(novaAreasOperacionaisPorId);
       setUnidadesPorIdOperacional(novasUnidadesOperacionaisPorId);
       setEmailsPorIdOperacional(novosEmailsOperacionaisPorId);
-
-
-    }
+    })();
   }, [projetoData]);
+  
   
   
   
@@ -1371,30 +1381,39 @@ await Promise.all(
       <Checkbox
         size="small"
         onChange={async () => {
-          const atualizado = await Promise.all(
-            estrategicas.map(async (e) => {
-              if (e.id === estrategica.id) {
-                // Buscar data atual UTC
-                const dataAtual = await buscarDataAtualUTC();
+          const dataAtual = await buscarDataAtualUTC();
         
-                // Pegar prazoPrevisto do projeto (que vem de props)
-                const prazo = new Date(projetoData?.prazoPrevisto);
-                const estaAtrasado = dataAtual > prazo;
+          const atualizado = estrategicas.map((e) => {
+            if (e.id !== estrategica.id) return e;
         
-                return {
-                  ...e,
-                  status: e.status === "concluida" ? "" : "concluida",
-                  statusVisual:
-                    e.status === "concluida"
-                      ? ""
-                      : estaAtrasado
-                      ? "atrasada"
-                      : "noprazo",
-                };
-              }
-              return e;
-            })
-          );
+            const prazo = projetoData?.prazoPrevisto;
+        
+            if (!prazo || !/^\d{4}-\d{2}-\d{2}$/.test(prazo)) {
+              console.warn("Data inválida:", prazo);
+              return { ...e, status: "" };
+            }
+        
+            const [ano, mes, dia] = prazo.split("-");
+            const prazoPrevistoDate = new Date(`${ano}-${mes}-${dia}T23:59:59`);
+            const dentroDoPrazo = dataAtual <= prazoPrevistoDate;
+        
+            const novoStatus = e.status === "concluida" || e.status === "atrasada"
+              ? ""
+              : dentroDoPrazo
+              ? "concluida"
+              : "atrasada";
+        
+            return {
+              ...e,
+              status: novoStatus,
+              statusVisual:
+                novoStatus === "concluida"
+                  ? dentroDoPrazo
+                    ? "no_prazo"
+                    : "atrasada"
+                  : "",
+            };
+          });
         
           setEstrategicas(atualizado);
           onUpdate && onUpdate({ estrategicas: atualizado });
