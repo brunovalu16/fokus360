@@ -1,11 +1,11 @@
+  // utils/dataAtual.js
 export const buscarDataAtualUTC = async () => {
-    try {
-      const response = await fetch("http://worldtimeapi.org/api/ip");
-      const data = await response.json();
-      return new Date(data.utc_datetime);
-    } catch (error) {
-      console.error("Erro ao buscar data UTC:", error);
-      return new Date(); // fallback: data do sistema
-    }
-  };
-  
+  try {
+    // Usa o horário local como UTC (sem depender de API externa)
+    const agora = new Date();
+    return agora;
+  } catch (error) {
+    console.error("Erro ao buscar data local:", error);
+    return new Date(); // fallback
+  }
+};
