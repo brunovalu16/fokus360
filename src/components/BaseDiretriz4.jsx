@@ -1459,8 +1459,8 @@ await Promise.all(
         backgroundColor:
         estrategica.status === "concluida"
           ? estrategica.statusVisual === "no_prazo"
-            ? "#22c55e" // verde
-            : "#ef4444" // vermelho
+            ? "#ef4444" // vermelho
+            : "#22c55e" // verde
           : estrategica.status === "andamento"
           ? "#00d2e3"
           : "#9ca3af"
