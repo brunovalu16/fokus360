@@ -26,6 +26,9 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
 //API para buscar data universal
 import { calcularStatusVisual } from "../utils/statusVisual";
 
+//Importando o contador de data
+import { getDataHojeFormatada } from "../utils/formatDate";
+
 
 
 
@@ -35,6 +38,9 @@ import { calcularStatusVisual } from "../utils/statusVisual";
   const [users, setUsers] = useState([]);
 
   const [estrategicas, setEstrategicas] = useState([]);
+
+  const [operacionais, setOperacionais] = useState([]);
+
 
   const [areasResponsaveistaticas, setAreasResponsaveistaticas] = useState([]);
 
@@ -1140,6 +1146,22 @@ await Promise.all(
   }
 };
 
+//exibir a data atual do navegador
+useEffect(() => {
+  const hoje = new Date();
+  const dia = hoje.getDate().toString().padStart(2, '0');
+  const mes = (hoje.getMonth() + 1).toString().padStart(2, '0');
+  const ano = hoje.getFullYear();
+
+  const dataAtual = `${ano}-${mes}-${dia}`;
+  const elemento = document.getElementById('dataAtual');
+
+  if (elemento) {
+    elemento.textContent = `${dia}/${mes}/${ano}`;
+  }
+
+  console.log("📅 Data do navegador:", dataAtual);
+}, []);
 
 
   
@@ -1149,6 +1171,11 @@ await Promise.all(
   // -------------------------------------
   return (
     <Box>
+
+    <Typography variant="body2" sx={{ color: "#f2f0f0", mb: 2 }}>
+      Data atual: {getDataHojeFormatada().split("-").reverse().join("/")}
+    </Typography>
+
       {/* ***************************** */}
       {/* Form para criar EstratÉgica */}
       {/* ***************************** */}
@@ -1354,18 +1381,27 @@ await Promise.all(
 
             
 
-            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mr: 2 }}>
+
+
+
+
+
+
+
+
+
+
+<Box sx={{ display: "flex", justifyContent: "flex-end", gap: 0.5, mr: 0.5 }}>
   {/* Checkbox: Concluída */}
-  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 120 }}>
+  <Box sx={{ display: "flex", alignItems: "center", minWidth: 120 }}>
     <FormControlLabel
       control={
         <Checkbox
           size="small"
           checked={estrategica.status === "concluida"}
-          // Dentro do onChange do checkbox "Concluída"
           onChange={() => {
             const statusVisual = calcularStatusVisual(projetoData.prazoPrevisto);
-          
+
             const atualizado = estrategicas.map((e) =>
               e.id === estrategica.id
                 ? {
@@ -1375,14 +1411,14 @@ await Promise.all(
                   }
                 : e
             );
-          
+
             setEstrategicas(atualizado);
             onUpdate && onUpdate({ estrategicas: atualizado });
-          }}          
+          }}
           sx={{
             width: 20,
             height: 20,
-            marginLeft: 1,
+            marginLeft: 5,
             color: "#fff",
             "&.Mui-checked": {
               color: "#fff",
@@ -1457,14 +1493,13 @@ await Promise.all(
         height: 14,
         borderRadius: "50%",
         backgroundColor:
-        estrategica.status === "concluida"
-          ? estrategica.statusVisual === "no_prazo"
-            ? "#ef4444" // vermelho
-            : "#22c55e" // verde
-          : estrategica.status === "andamento"
-          ? "#00d2e3"
-          : "#9ca3af"
-
+          estrategica.status === "concluida"
+            ? calcularStatusVisual(projetoData.prazoPrevisto) === "no_prazo"
+              ? "#00ff08" // verde
+              : "#ff0000" // vermelho
+            : estrategica.status === "andamento"
+            ? "#2d81ff"
+            : "#9ca3af",
       }}
     />
     <Typography
@@ -1476,13 +1511,40 @@ await Promise.all(
       }}
     >
       {estrategica.status === "concluida"
-        ? "Concluída"
+        ? calcularStatusVisual(projetoData.prazoPrevisto) === "no_prazo"
+          ? "No prazo"
+          : "Em atraso"
         : estrategica.status === "andamento"
-        ? "Em andamento"
+        ? ""
         : "Não iniciada"}
     </Typography>
   </Box>
 </Box>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
             <Button
@@ -1797,6 +1859,168 @@ await Promise.all(
                       {tatica.descricao}
                     </Typography>
                   </Box>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{/* Checkbox: Concluída da TÁTICA */}
+<Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 120 }}>
+  <FormControlLabel
+    control={
+      <Checkbox
+        size="small"
+        checked={tatica.status === "concluida"}
+        onChange={() => {
+          const statusVisual = calcularStatusVisual(projetoData.prazoPrevisto);
+
+          const atualizado = estrategicas.map((estrategica) => ({
+            ...estrategica,
+            taticas: estrategica.taticas.map((t) =>
+              t.id === tatica.id
+                ? {
+                    ...t,
+                    status: t.status === "concluida" ? "" : "concluida",
+                    statusVisual: t.status === "concluida" ? "" : statusVisual,
+                  }
+                : t
+            ),
+          }));
+
+          setEstrategicas(atualizado);
+          onUpdate && onUpdate({ estrategicas: atualizado });
+        }}
+        sx={{
+          width: 20,
+          height: 20,
+          marginLeft: 5,
+          color: "#fff",
+          "&.Mui-checked": {
+            color: "#fff",
+          },
+          padding: 0,
+        }}
+      />
+    }
+    label={
+      <Typography sx={{ color: "#fff", fontSize: "0.8rem", marginTop: "5px" }}>
+        Concluída
+      </Typography>
+    }
+    onClick={(e) => e.stopPropagation()}
+    sx={{ margin: 0, cursor: "pointer" }}
+  />
+</Box>
+
+{/* Checkbox: Em Andamento da TÁTICA */}
+<Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 130 }}>
+  <FormControlLabel
+    control={
+      <Checkbox
+        size="small"
+        checked={tatica.status === "andamento"}
+        onChange={() => {
+          const atualizado = estrategicas.map((estrategica) => ({
+            ...estrategica,
+            taticas: estrategica.taticas.map((t) =>
+              t.id === tatica.id
+                ? {
+                    ...t,
+                    status: t.status === "andamento" ? "" : "andamento",
+                  }
+                : t
+            ),
+          }));
+
+          setEstrategicas(atualizado);
+          onUpdate && onUpdate({ estrategicas: atualizado });
+        }}
+        sx={{
+          width: 20,
+          height: 20,
+          color: "#fff",
+          "&.Mui-checked": {
+            color: "#fff",
+          },
+          padding: 0,
+        }}
+      />
+    }
+    label={
+      <Typography sx={{ color: "#fff", fontSize: "0.8rem", marginTop: "5px" }}>
+        Em Andamento
+      </Typography>
+    }
+    onClick={(e) => e.stopPropagation()}
+    sx={{ margin: 0, cursor: "pointer" }}
+  />
+</Box>
+
+{/* Bolinha de status da TÁTICA */}
+<Box
+  sx={{
+    display: "flex",
+    alignItems: "center",
+    gap: 0.5,
+    minWidth: 120,
+    justifyContent: "flex-start",
+  }}
+>
+  <Box
+    sx={{
+      width: 14,
+      height: 14,
+      borderRadius: "50%",
+      backgroundColor:
+        tatica.status === "concluida"
+          ? calcularStatusVisual(projetoData.prazoPrevisto) === "no_prazo"
+            ? "#00ff08" // ✅ verde
+            : "#ff0000" // ❌ vermelho
+          : tatica.status === "andamento"
+          ? "#2d81ff"
+          : "#9ca3af",
+    }}
+  />
+  <Typography
+    sx={{
+      color: "#fff",
+      fontSize: "0.8rem",
+      whiteSpace: "nowrap",
+      marginTop: "4px",
+    }}
+  >
+    {tatica.status === "concluida"
+      ? calcularStatusVisual(projetoData.prazoPrevisto) === "no_prazo"
+        ? "No prazo"
+        : "Em atraso"
+      : tatica.status === "andamento"
+      ? ""
+      : "Não iniciada"}
+  </Typography>
+</Box>
+
+
+
+
+  
+
+
+
+
+
+
                   <Button
                     disableRipple
                     onClick={(e) => {
@@ -2104,6 +2328,185 @@ await Promise.all(
                             {operacional.descricao}
                           </Typography>
                         </Box>
+
+
+
+
+
+
+
+
+
+
+
+
+
+{/* Checkbox: Concluída da OPERACIONAL */}
+<Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mr: 1  }}>
+  <FormControlLabel
+    control={
+      <Checkbox
+        size="small"
+        checked={operacional.status === "concluida"}
+        onChange={() => {
+          const statusVisual = calcularStatusVisual(projetoData.prazoPrevisto);
+
+          const atualizado = estrategicas.map((estrategica) => ({
+            ...estrategica,
+            taticas: estrategica.taticas.map((tatica) => ({
+              ...tatica,
+              operacionais: tatica.operacionais.map((op) =>
+                op.id === operacional.id
+                  ? {
+                      ...op,
+                      status: op.status === "concluida" ? "" : "concluida",
+                      statusVisual: op.status === "concluida" ? "" : statusVisual,
+                    }
+                  : op
+              ),
+            })),
+          }));
+
+          setEstrategicas(atualizado);
+          onUpdate && onUpdate({ estrategicas: atualizado });
+        }}
+        sx={{
+          width: 20,
+          height: 20,
+          marginLeft: 1,
+          color: "#fff",
+          "&.Mui-checked": {
+            color: "#fff",
+          },
+          padding: 0,
+        }}
+      />
+    }
+    label={
+      <Typography sx={{ color: "#fff", fontSize: "0.8rem", marginTop: "5px" }}>
+        Concluída
+      </Typography>
+    }
+    onClick={(e) => e.stopPropagation()}
+    sx={{ margin: 0, cursor: "pointer" }}
+  />
+</Box>
+
+{/* Checkbox: Em Andamento da OPERACIONAL */}
+<Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 130 }}>
+  <FormControlLabel
+    control={
+      <Checkbox
+        size="small"
+        checked={operacional.status === "andamento"}
+        onChange={() => {
+          const atualizado = estrategicas.map((estrategica) => ({
+            ...estrategica,
+            taticas: estrategica.taticas.map((tatica) => ({
+              ...tatica,
+              operacionais: tatica.operacionais.map((op) =>
+                op.id === operacional.id
+                  ? {
+                      ...op,
+                      status: op.status === "andamento" ? "" : "andamento",
+                    }
+                  : op
+              ),
+            })),
+          }));
+
+          setEstrategicas(atualizado);
+          onUpdate && onUpdate({ estrategicas: atualizado });
+        }}
+        sx={{
+          width: 20,
+          height: 20,
+          color: "#fff",
+          "&.Mui-checked": {
+            color: "#fff",
+          },
+          padding: 0,
+        }}
+      />
+    }
+    label={
+      <Typography sx={{ color: "#fff", fontSize: "0.8rem", marginTop: "5px" }}>
+        Em Andamento
+      </Typography>
+    }
+    onClick={(e) => e.stopPropagation()}
+    sx={{ margin: 0, cursor: "pointer" }}
+  />
+</Box>
+
+{/* Bolinha de status da OPERACIONAL */}
+<Box
+  sx={{
+    display: "flex",
+    alignItems: "center",
+    gap: 0.5,
+    minWidth: 120,
+    justifyContent: "flex-start",
+  }}
+>
+  <Box
+    sx={{
+      width: 14,
+      height: 14,
+      borderRadius: "50%",
+      backgroundColor:
+        operacional.status === "concluida"
+          ? calcularStatusVisual(projetoData.prazoPrevisto) === "no_prazo"
+            ? "#00ff08" // ✅ verde
+            : "#ff1000" // ❌ vermelho
+          : operacional.status === "andamento"
+          ? "#2d81ff"
+          : "#9ca3af",
+    }}
+  />
+  <Typography
+    sx={{
+      color: "#fff",
+      fontSize: "0.8rem",
+      whiteSpace: "nowrap",
+      marginTop: "4px",
+    }}
+  >
+    {operacional.status === "concluida"
+      ? calcularStatusVisual(projetoData.prazoPrevisto) === "no_prazo"
+        ? "No prazo"
+        : "Em atraso"
+      : operacional.status === "andamento"
+      ? ""
+      : "Não iniciada"}
+  </Typography>
+</Box>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                         <Button
                           disableRipple
                           onClick={(e) => {

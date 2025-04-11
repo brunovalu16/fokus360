@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, Typography, Modal, Alert } from "@mui/material";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import { Link } from "react-router-dom";
-import capaplanejamento from "../../../src/assets/images/capaplanejamento.webp"
+import capaSistema from "../../assets/images/capasistema360.webp"; // Importação dinâmica
 import { getDocs, getDoc, doc, collection } from "firebase/firestore";
 import { dbFokus360 } from "../../data/firebase-config"; // Para Fokus360
 
@@ -15,7 +15,7 @@ import Collapse from '@mui/material/Collapse';
 import CloseIcon from '@mui/icons-material/Close';
 import WarningIcon from '@mui/icons-material/Warning';
 
-const Projetos = () => {
+const Projetos2 = () => {
   const [isUserAssociated, setIsUserAssociated] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userId, setUserId] = useState(null);
@@ -288,7 +288,7 @@ const checkUserAssociation = async (userEmail, userId) => {
         {/* Estrutura da Imagem */}
         <div style={{ position: "relative", width: "100%", top: "-40px" }}>
           <img
-            src={capaplanejamento}
+            src={capaSistema}
             style={{
               width: "100%",
               height: "auto",
@@ -301,13 +301,13 @@ const checkUserAssociation = async (userEmail, userId) => {
           <Box
             sx={{
               position: "absolute",
-              top: "63%", // Posição para "Novo Projeto"
+              top: "60%", // Posição para "Novo Projeto"
               left: "10%",
               height: "150px",
             }}
           >
             <Link
-              to="/planejamento"
+              to="/cadastroprojetos"
               style={{
                 backgroundColor: "transparent",
                 color: "transparent",
@@ -357,7 +357,7 @@ const checkUserAssociation = async (userEmail, userId) => {
             }}
           >
             <Link
-              to={hasPermission ? "/listaprojetos" : "#"}
+              to={hasPermission ? "/listaprojetos2" : "#"}
               onClick={handleLinkClick}
               style={{
                 backgroundColor: "transparent",
@@ -400,4 +400,4 @@ const checkUserAssociation = async (userEmail, userId) => {
   );
 };
 
-export default Projetos;
+export default Projetos2;

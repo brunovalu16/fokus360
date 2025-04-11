@@ -104,7 +104,7 @@ useEffect(() => {
 
   const fetchData = async () => {
     try {
-      const docRef = doc(dbFokus360, "projetos", projectId);
+      const docRef = doc(dbFokus360, "projetos2", projectId);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data() || {};
@@ -435,7 +435,7 @@ const saveEstrategicas = async (projectId, novoArray) => {
   }
 
   try {
-    const docRef = doc(dbFokus360, "projetos", projectId);
+    const docRef = doc(dbFokus360, "projetos2", projectId);
     await updateDoc(docRef, { estrategicas: novoArray });
     console.log("✅ Estratégicas atualizadas no Firestore!");
   } catch (err) {

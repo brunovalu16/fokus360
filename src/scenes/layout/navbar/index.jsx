@@ -9,7 +9,8 @@ import { Badge, Popover, List, ListItem, ListItemText } from "@mui/material";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { updateDoc } from "firebase/firestore"; // IMPORTAR updateDoc
 import { NotificationContext } from "../../../context/NotificationContext";
-import TaskIcon from '@mui/icons-material/Task'
+import TaskIcon from '@mui/icons-material/Task';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 
 import { onAuthStateChanged, signOut } from "firebase/auth";
 
@@ -20,6 +21,9 @@ import colibri from "../../../assets/images/colibri.png";
 import fokus360cinza from "../../../assets/images/fokus360cinza.png";
 import { Link } from 'react-router-dom'; // Certifique-se de importar o Link
 import { Avatar } from "@mui/material";
+
+//Importando o contador de data
+import { getDataHojeFormatada } from "../../../utils/formatDate";
 
 const Navbar = () => {
   const theme = useTheme();
@@ -249,9 +253,14 @@ const open = Boolean(anchorEl);
       >
         {/* Conteúdo do Box */}
 
-        {/* Input */}
+        
         <Box display="flex" alignItems="center" gap={2}>
           {/* Campo de Pesquisa */}
+
+
+          {/* 
+
+          //campo pesquisa global
           <Box
             display="flex"
             alignItems="center"
@@ -264,7 +273,6 @@ const open = Boolean(anchorEl);
             <InputBase placeholder="Pesquisar..." sx={{ ml: 2, flex: 1 }} />
           </Box>
 
-          {/* Botão de Pesquisa */}
           <IconButton
             type="button"
             sx={{
@@ -281,6 +289,10 @@ const open = Boolean(anchorEl);
           >
             <SearchOutlined />
           </IconButton>
+          */}
+          
+
+          
         </Box>
 
         {/* Parte direita */}
@@ -363,7 +375,7 @@ const open = Boolean(anchorEl);
         sx={{
           "&.MuiToolbar-root": {
             // &.MUI É A BIBLIOTECA
-            height: "20px", // Define a altura fixa
+            height: "25px", // Define a altura fixa
             minHeight: "20px", // Define a altura mínima
             padding: "0", // Remove o padding
           },
@@ -395,6 +407,21 @@ const open = Boolean(anchorEl);
         >
           GRUPO FOKUS | www.grupofokus.com.br
         </Typography>
+
+        <IconButton size="large" edge="start" color="inherit" aria-label="menu">
+          <CalendarMonthIcon
+            sx={{
+              color: "#00ebf7",
+              marginLeft: "15px",
+              fontSize: "18px",
+              marginLeft: "38px",
+            }}
+          />
+        </IconButton>
+
+        <Typography variant="body2" sx={{ color: "#c8c6c6", flexGrow: 0.05 }}>
+              Data atual: {getDataHojeFormatada().split("-").reverse().join("/")}
+            </Typography>
       </Toolbar>
     </>
   );

@@ -168,7 +168,7 @@ const CadastroProjetos = () => {
       };
   
       // 👉 Salva no Firestore
-      const projetoRef = doc(collection(dbFokus360, "projetos"));
+      const projetoRef = doc(collection(dbFokus360, "projetos2"));
       await setDoc(projetoRef, projetoData);
   
       // 👉 Montar lista de e-mails (colaboradores + responsáveis do plano de ação)
@@ -186,7 +186,12 @@ const CadastroProjetos = () => {
           (tatica.operacionais || []).forEach(op => {
             (op.tarefas || []).forEach(tarefa => {
               if (tarefa.planoDeAcao?.quemEmail) {
-                const responsaveis = tarefa.planoDeAcao.quemEmail.split(/[,;]/).map(e => e.trim());
+                const responsaveis = Array.isArray(tarefa.planoDeAcao.quemEmail)
+                  ? tarefa.planoDeAcao.quemEmail
+                  : String(tarefa.planoDeAcao.quemEmail || "")
+                      .split(/[,;]/)
+                      .map((e) => e.trim());
+
                 emailsToNotify = [...emailsToNotify, ...responsaveis];
               }
             });

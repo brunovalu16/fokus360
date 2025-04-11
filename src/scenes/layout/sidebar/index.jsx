@@ -212,7 +212,7 @@ const SideBar = () => {
       }}
     >
       <MenuItem
-        component={<Link to="/projetos" />}
+        component={<Link to="/projetos2" />}
         style={{
           padding: "5px 10px",
           fontSize: "13px",

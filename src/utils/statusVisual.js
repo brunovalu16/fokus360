@@ -1,15 +1,15 @@
-/**
- * Retorna o statusVisual ("no_prazo" ou "atrasada") com base na data atual local e prazo previsto
- * @param {string} prazoPrevisto - formato esperado: "yyyy-mm-dd"
- * @returns {"no_prazo" | "atrasada"}
- */
 export const calcularStatusVisual = (prazoPrevisto) => {
-    if (!prazoPrevisto) return "no_prazo";
+    if (!prazoPrevisto) return "no_prazo"; // Retorna "no_prazo" caso prazoPrevisto seja nulo ou indefinido
   
-    const agora = new Date();
-    const [ano, mes, dia] = prazoPrevisto.split("-");
-    const dataPrazo = new Date(`${ano}-${mes}-${dia}T23:59:59`);
+    // Usando diretamente a data atual do navegador
+    const dataAtual = new Date();  // A data do navegador
+    const dataPrazo = new Date(prazoPrevisto); // Converte o prazo para data
   
-    return agora <= dataPrazo ? "no_prazo" : "atrasada";
+    // Comparando se a data atual é menor ou igual ao prazo
+    if (dataAtual.getTime() <= dataPrazo.getTime()) {
+      return "no_prazo"; // verde
+    }
+  
+    return "atrasada"; // vermelho
   };
   

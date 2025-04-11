@@ -18,8 +18,10 @@ import Arquivos from "./scenes/arquivos";
 import VendasDevolucao from "./scenes/vendasdevolucao";
 import RelatorioTrade from "./scenes/relatoriotrade";
 import Projetos from "./scenes/projetos";
+import Projetos2 from "./scenes/projetos2";
 import CadastroProjetos from "./scenes/cadastroprojetos";
 import ListaProjetos from "./scenes/listaprojetos";
+import ListaProjetos2 from "./scenes/listaprojetos2";
 import Diretriz from "./scenes/diretrizes";
 import DashboardProjeto from "./scenes/dashboardprojeto";
 import DataProjeto from "./components/DataProjeto";
@@ -70,7 +72,9 @@ const router = createBrowserRouter(
         { path: "/dataprojeto", element: <PrivateRoute><DataProjeto /></PrivateRoute> },
         { path: "/diretriz", element: <PrivateRoute><Diretriz /></PrivateRoute> },
         { path: "/listaprojetos", element: <PrivateRoute><ListaProjetos /></PrivateRoute> },
+        { path: "/listaprojetos2", element: <PrivateRoute><ListaProjetos2 /></PrivateRoute> },
         { path: "/projetos", element: <PrivateRoute><Projetos /></PrivateRoute> },
+        { path: "/projetos2", element: <PrivateRoute><Projetos2 /></PrivateRoute> },
         { path: "/monitoramento", element: <PrivateRoute><Monitoramento /></PrivateRoute> },
         { path: "/relatorios", element: <PrivateRoute><Relatorios /></PrivateRoute> },
         { path: "/roteirizacao", element: <PrivateRoute><Roteirizacao /></PrivateRoute> },
