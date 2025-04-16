@@ -667,19 +667,28 @@ const areaRolesMap = {
       );
       const usuariosEstrategicos = await buscarUsuariosPorRole(rolesEstrategicas);
       // Estratégicas
-const emailsEstrategicas = estrategicasAtualizadas.flatMap((e) => e.emails || []);
 await Promise.all(
-  emailsEstrategicas.map((email) =>
-    fetch("https://fokus360-backend.vercel.app/send-task-email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email,
-        tituloTarefa: "Nova Diretriz Estratégica",
-        assuntoTarefa: "Você foi designado como responsável por uma diretriz Estratégica.",
-        prazoTarefa: "Sem prazo",
+  usuariosEstrategicos.map((user) =>
+    Promise.all([
+      fetch("https://fokus360-backend.vercel.app/send-notification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          mensagem: "Nova Diretriz Estratégica criada para sua área.",
+        }),
       }),
-    })
+      fetch("https://fokus360-backend.vercel.app/send-task-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user.email,
+          tituloTarefa: "Nova Diretriz Estratégica",
+          assuntoTarefa: "Foi criada uma nova diretriz estratégica vinculada à sua área.",
+          prazoTarefa: "Sem prazo",
+        }),
+      }),
+    ])
   )
 );
 
