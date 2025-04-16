@@ -808,38 +808,7 @@ await Promise.all(
         )
       );
   
-      // E-mails por tarefa (quemEstrategicas, quemTaticas, quem)
-      await Promise.all(
-        estrategicasAtualizadas.flatMap((estrategica) =>
-          estrategica.taticas.flatMap((tatica) =>
-            tatica.operacionais.flatMap((op) =>
-              (op.tarefas || []).flatMap((tarefa) => {
-                const listas = [
-                  { emails: tarefa.planoDeAcao?.quemEstrategicas || [], tipo: "Estratégica" },
-                  { emails: tarefa.planoDeAcao?.quemTaticas || [], tipo: "Tática" },
-                  { emails: tarefa.planoDeAcao?.quemEmail || [], tipo: "Operacional" },
-                ];
-  
-                return listas.flatMap(({ emails, tipo }) =>
-                  emails.filter(Boolean).map((email) =>
-                    fetch("https://fokus360-backend.vercel.app/send-task-email", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        email,
-                        tituloTarefa: tarefa.tituloTarefa || "Nova Tarefa",
-                        assuntoTarefa: `Você foi designado como responsável por uma diretriz ${tipo}.`,
-                        prazoTarefa: tarefa.planoDeAcao?.quando || "Sem prazo",
-                      }),
-                    })
-                  )
-                );
-              })
-            )
-          )
-        )
-      );
-
+    
       // E-mails por tarefa - quemEmail (campo novo baseado em e-mails)
 await Promise.all(
   estrategicasAtualizadas.flatMap((estrategica) =>
