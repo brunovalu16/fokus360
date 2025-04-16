@@ -666,30 +666,63 @@ const areaRolesMap = {
         (est.areasResponsaveis || []).flatMap((areaId) => areaRolesMap[areaId] || [])
       );
       const usuariosEstrategicos = await buscarUsuariosPorRole(rolesEstrategicas);
-      await Promise.all(
-        usuariosEstrategicos.map((user) =>
-          Promise.all([
-            fetch("https://fokus360-backend.vercel.app/send-notification", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                userId: user.id,
-                mensagem: "Nova Diretriz Estratégica criada para sua área.",
-              }),
-            }),
-            fetch("https://fokus360-backend.vercel.app/send-task-email", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: user.email,
-                tituloTarefa: "Nova Diretriz Estratégica",
-                assuntoTarefa: "Foi criada uma nova diretriz estratégica vinculada à sua área.",
-                prazoTarefa: "Sem prazo",
-              }),
-            }),
-          ])
-        )
-      );
+      // Estratégicas
+const emailsEstrategicas = estrategicasAtualizadas.flatMap((e) => e.emails || []);
+await Promise.all(
+  emailsEstrategicas.map((email) =>
+    fetch("https://fokus360-backend.vercel.app/send-task-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        tituloTarefa: "Nova Diretriz Estratégica",
+        assuntoTarefa: "Você foi designado como responsável por uma diretriz Estratégica.",
+        prazoTarefa: "Sem prazo",
+      }),
+    })
+  )
+);
+
+// Táticas
+const emailsTaticas = estrategicasAtualizadas.flatMap((e) =>
+  e.taticas.flatMap((t) => t.emails || [])
+);
+await Promise.all(
+  emailsTaticas.map((email) =>
+    fetch("https://fokus360-backend.vercel.app/send-task-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        tituloTarefa: "Nova Diretriz Tática",
+        assuntoTarefa: "Você foi designado como responsável por uma diretriz Tática.",
+        prazoTarefa: "Sem prazo",
+      }),
+    })
+  )
+);
+
+// Operacionais
+const emailsOperacionais = estrategicasAtualizadas.flatMap((e) =>
+  e.taticas.flatMap((t) =>
+    t.operacionais.flatMap((op) => op.emails || [])
+  )
+);
+await Promise.all(
+  emailsOperacionais.map((email) =>
+    fetch("https://fokus360-backend.vercel.app/send-task-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        tituloTarefa: "Nova Diretriz Operacional",
+        assuntoTarefa: "Você foi designado como responsável por uma diretriz Operacional.",
+        prazoTarefa: "Sem prazo",
+      }),
+    })
+  )
+);
+
   
       // Táticas - usuários por área
       const areasTaticasUnificadas = estrategicasAtualizadas.flatMap((est) =>
@@ -784,7 +817,7 @@ const areaRolesMap = {
                 const listas = [
                   { emails: tarefa.planoDeAcao?.quemEstrategicas || [], tipo: "Estratégica" },
                   { emails: tarefa.planoDeAcao?.quemTaticas || [], tipo: "Tática" },
-                  { emails: tarefa.planoDeAcao?.quem || [], tipo: "Operacional" },
+                  { emails: tarefa.planoDeAcao?.quemEmail || [], tipo: "Operacional" },
                 ];
   
                 return listas.flatMap(({ emails, tipo }) =>
@@ -806,6 +839,31 @@ const areaRolesMap = {
           )
         )
       );
+
+      // E-mails por tarefa - quemEmail (campo novo baseado em e-mails)
+await Promise.all(
+  estrategicasAtualizadas.flatMap((estrategica) =>
+    estrategica.taticas.flatMap((tatica) =>
+      tatica.operacionais.flatMap((op) =>
+        (op.tarefas || []).flatMap((tarefa) =>
+          (tarefa.planoDeAcao?.quemEmail || []).map((email) =>
+            fetch("https://fokus360-backend.vercel.app/send-task-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email,
+                tituloTarefa: tarefa.tituloTarefa || "Nova Tarefa",
+                assuntoTarefa: `Você foi designado como responsável por uma tarefa operacional.`,
+                prazoTarefa: tarefa.planoDeAcao?.quando || "Sem prazo",
+              }),
+            })
+          )
+        )
+      )
+    )
+  )
+);
+
   
       alert("✅ Diretrizes Estratégicas salvas e todas as notificações enviadas!");
     } catch (error) {
@@ -2227,54 +2285,59 @@ await Promise.all(
                                         }
                                       />
 
-                                      {/* 🔹 Campo "Quem" com múltipla seleção */}
-                                      <Select
-                                        multiple
-                                        value={tarefa.planoDeAcao.quem ?? []}
-                                        onChange={(event) =>
-                                          handleEditTarefa(
-                                            tarefa.id,
-                                            "quem",
-                                            event.target.value
-                                          )
-                                        }
-                                        displayEmpty
-                                        sx={{
-                                          minWidth: "200px",
-                                          backgroundColor: "#fff",
-                                        }}
-                                        renderValue={(selected) =>
-                                          selected.length === 0
-                                            ? "Quem..."
-                                            : selected
-                                                .map(
-                                                  (id) =>
-                                                    users?.find(
-                                                      (user) => user.id === id
-                                                    )?.username ||
-                                                    "Desconhecido"
-                                                )
-                                                .join(", ")
-                                        }
-                                      >
-                                        {users?.map((user) => (
-                                          <MenuItem
-                                            key={user.id}
-                                            value={user.id}
-                                          >
-                                            <Checkbox
-                                              checked={
-                                                tarefa.planoDeAcao.quem?.includes(
-                                                  user.id
-                                                ) || false
-                                              }
-                                            />
-                                            <ListItemText
-                                              primary={user.username}
-                                            />
-                                          </MenuItem>
-                                        ))}
-                                      </Select>
+ {/* 🔹 Campo "Quem" com múltipla seleção */}
+ {/* Responsáveis pela tarefa (quemOperacionais) */}
+<Box sx={{ flex: 1, minWidth: "300px" }}>
+  <Select
+    multiple
+    displayEmpty
+    value={tarefa.planoDeAcao.quemEmail || []}
+    onChange={(event) => {
+      const selectedEmails = event.target.value;
+
+      // Atualiza o estado das tarefas na estrutura de estratégicas
+      setEstrategicas((prev) =>
+        prev.map((est) => ({
+          ...est,
+          taticas: est.taticas.map((tat) => ({
+            ...tat,
+            operacionais: tat.operacionais.map((op) => ({
+              ...op,
+              tarefas: op.tarefas.map((t) =>
+                t.id === tarefa.id
+                  ? {
+                      ...t,
+                      planoDeAcao: {
+                        ...t.planoDeAcao,
+                        quemEmail: selectedEmails,
+                      },
+                    }
+                  : t
+              ),
+            })),
+          })),
+        }))
+      );
+    }}
+    renderValue={(selected) =>
+      selected.length === 0
+        ? "Selecione os responsáveis pela tarefa"
+        : selected.join(", ")
+    }
+    fullWidth
+    sx={{ backgroundColor: "#fff" }}
+  >
+    {users?.map((user) => (
+      <MenuItem key={user.id} value={user.email}>
+        <Checkbox
+          checked={(tarefa.planoDeAcao.quemEmail || []).includes(user.email)}
+        />
+        <ListItemText primary={`${user.username} (${user.email})`} />
+      </MenuItem>
+    ))}
+  </Select>
+</Box>
+
                                       <TextField
                                         label="E-mail dos responsáveis"
                                         name="quemEmail" // Nome associado ao estado para o e-mail do solicitante
