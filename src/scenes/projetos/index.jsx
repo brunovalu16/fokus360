@@ -332,7 +332,7 @@ const checkUserAssociation = async (userEmail, userId) => {
             }}
           >
             <Link
-              to={hasPermission ? "/dashboard" : "#"}
+              to={hasPermission ? "" : "#"}
               onClick={handleLinkClick}
               style={{
                 padding: "10px 20px",
@@ -380,7 +380,7 @@ const checkUserAssociation = async (userEmail, userId) => {
             }}
           >
             <Link
-              to={hasPermission ? "/Listafluxograma" : "#"}
+              to={hasPermission ? "" : "#"}
               onClick={handleLinkClick}
               style={{
                 backgroundColor: "transparent",

@@ -8,7 +8,7 @@ import { dbFokus360 as db } from "../data/firebase-config";
 
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
-import Lista from "../components/Lista";
+import Lista2 from "../components/Lista2";
 
 function DadosProjetogeral() {
   const theme = useTheme();
@@ -57,7 +57,7 @@ const handleLimparFiltros = () => {
    useEffect(() => {
     const fetchQuemDados = async () => {
       try {
-        const projetosSnapshot = await getDocs(collection(db, "projetos"));
+        const projetosSnapshot = await getDocs(collection(db, "projetos2"));
         const quemMap = new Map(); // Armazena os IDs e a contagem de tarefas
   
         projetosSnapshot.forEach((projetoDoc) => {
@@ -142,7 +142,7 @@ const handleLimparFiltros = () => {
    useEffect(() => {
      const fetchProjetosPorSolicitante = async () => {
        try {
-         const projetosSnapshot = await getDocs(collection(db, "projetos")); // Acessa a coleção "projetos"
+         const projetosSnapshot = await getDocs(collection(db, "projetos2")); // Acessa a coleção "projetos"
          const solicitantesMap = new Map();
    
          projetosSnapshot.forEach((projetoDoc) => {
@@ -206,7 +206,7 @@ const handleLimparFiltros = () => {
    useEffect(() => {
     const fetchColaboradores = async () => {
       try {
-        const projetosSnapshot = await getDocs(collection(db, "projetos")); 
+        const projetosSnapshot = await getDocs(collection(db, "projetos2")); 
         const colaboradoresMap = new Map();
   
         // Itera pelos projetos e mapeia os IDs dos colaboradores
@@ -298,7 +298,7 @@ const [totalTarefas, setTotalTarefas] = useState(0);
 useEffect(() => {
   const fetchDiretrizesETarefas = async () => {
       try {
-          const projetosSnapshot = await getDocs(collection(db, "projetos"));
+          const projetosSnapshot = await getDocs(collection(db, "projetos2"));
           let estrategicasCount = 0;
           let taticasCount = 0;
           let operacionaisCount = 0;
@@ -394,7 +394,7 @@ useEffect(() => {
   useEffect(() => {
     const fetchQuantidadeProjetos = async () => {
       try {
-        const projetosSnapshot = await getDocs(collection(db, "projetos")); // Acesse a coleção "projetos"
+        const projetosSnapshot = await getDocs(collection(db, "projetos2")); // Acesse a coleção "projetos"
         setQuantidadeProjetos(projetosSnapshot.size); // Atualize o estado com o número de documentos
       } catch (error) {
         console.error("Erro ao buscar quantidade de projetos:", error);
@@ -411,7 +411,7 @@ useEffect(() => {
 
   const fetchValor = async () => {
     try {
-      const projetosSnapshot = await getDocs(collection(db, "projetos"));
+      const projetosSnapshot = await getDocs(collection(db, "projetos2"));
       let total = 0;
   
       for (const projetoDoc of projetosSnapshot.docs) {
@@ -466,7 +466,7 @@ useEffect(() => {
   useEffect(() => {
     const fetchOrcamentos = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "projetos"));
+        const querySnapshot = await getDocs(collection(db, "projetos2"));
         let total = 0;
   
         querySnapshot.forEach((doc) => {
@@ -608,7 +608,7 @@ useEffect(() => {
   useEffect(() => {
     const fetchQuemDados = async () => {
       try {
-        const projetosSnapshot = await getDocs(collection(db, "projetos"));
+        const projetosSnapshot = await getDocs(collection(db, "projetos2"));
         const quemMap = new Map();
 
         projetosSnapshot.forEach((projetoDoc) => {
@@ -660,7 +660,7 @@ useEffect(() => {
   useEffect(() => {
     const fetchProjetosPorSolicitante = async () => {
       try {
-        const projetosSnapshot = await getDocs(collection(db, "projetos"));
+        const projetosSnapshot = await getDocs(collection(db, "projetos2"));
         const solicitantesMap = new Map();
 
         projetosSnapshot.forEach((projetoDoc) => {
@@ -700,7 +700,7 @@ useEffect(() => {
   useEffect(() => {
     const fetchColaboradores = async () => {
       try {
-        const projetosSnapshot = await getDocs(collection(db, "projetos"));
+        const projetosSnapshot = await getDocs(collection(db, "projetos2"));
         const colaboradoresMap = new Map();
 
         projetosSnapshot.forEach((projetoDoc) => {
@@ -835,10 +835,10 @@ useEffect(() => {
             },
             
             {
-              id: "projetos",
+              id: "projetos2",
               title: (
                 <Typography variant="h5" sx={{ marginLeft: "-5px", color: "#fff", fontSize: "15px", textAlign: "left", whiteSpace: "pre-line", whiteSpace: "nowrap" }}>
-                  {`Total de projetos: ${quantidadeProjetos.toLocaleString("pt-BR")}`}
+                  {`Total de projetos2: ${quantidadeProjetos.toLocaleString("pt-BR")}`}
                 </Typography>
               ),
               //subtitle: "Total de projetos",  // Removido, pois não há subtitle aqui
@@ -1524,7 +1524,7 @@ useEffect(() => {
         {/** COMPONENTE */}
         <Box marginTop="20px" marginLeft="40px" marginRight="40px">
           {/* Passa o filtro para a Lista */}
-          <Lista
+          <Lista2
             filtroSolicitante={filtroSolicitante}
             filtroColaborador={filtroColaborador}
             filtroQuem={filtroQuem}

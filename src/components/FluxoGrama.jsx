@@ -77,7 +77,7 @@ const FluxoGrama = ({ projectId  }) => {
         }
 
         console.log("🔄 Buscando projeto do Firestore com ID:", projectId);
-        const docRef = doc(db, "projetos", projectId);
+        const docRef = doc(db, "projetos2", projectId);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {

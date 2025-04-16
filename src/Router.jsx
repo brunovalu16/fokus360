@@ -65,7 +65,7 @@ const router = createBrowserRouter(
         { path: "/planejamento", element: <PrivateRoute><Planejamento /></PrivateRoute> },
         { path: "/user", element: <PrivateRoute><User /></PrivateRoute> },
         { path: "/painelindustrias", element: <PrivateRoute><PainelIndustrias /></PrivateRoute> },
-        { path: "/dashboardprojeto", element: <PrivateRoute><DashboardProjeto /></PrivateRoute> },
+        { path: "/dashboardprojeto/:id", element: <PrivateRoute><DashboardProjeto /></PrivateRoute> },
         { path: "/vendasdevolucao", element: <PrivateRoute><VendasDevolucao /></PrivateRoute> },
         { path: "/relatoriotrade", element: <PrivateRoute><RelatorioTrade /></PrivateRoute> },
         { path: "/cadastroprojetos", element: <PrivateRoute><CadastroProjetos /></PrivateRoute> },

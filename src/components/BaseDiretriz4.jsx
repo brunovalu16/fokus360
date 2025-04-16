@@ -1370,6 +1370,41 @@ useEffect(() => {
               boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
             }}
           >
+
+
+
+  {/* Bolinha de status visual da Estratégica */}
+{estrategica.status === "andamento" && (
+  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mr: 2 }}>
+    <Box
+      sx={{
+        width: 14,
+        height: 14,
+        borderRadius: "50%",
+        backgroundColor:
+          new Date() <= new Date(projetoData.prazoPrevisto)
+            ? "#00ff08" // verde
+            : "#ff0000", // vermelho
+      }}
+    />
+    <Typography
+      sx={{
+        color: "#fff",
+        fontSize: "0.7rem",
+        whiteSpace: "nowrap",
+        marginTop: "2px",
+      }}
+    >
+      {new Date() <= new Date(projetoData.prazoPrevisto)
+        ? ""
+        : ""}
+    </Typography>
+  </Box>
+)}
+
+
+
+
             <Box sx={{ flex: 1, textAlign: "left" }}>
               <Typography fontWeight="bold" sx={{ color: "#fff" }}>
                 {estrategica.titulo}
@@ -1567,8 +1602,35 @@ useEffect(() => {
             
           </AccordionSummary>
 
-          {/* Detalhes: Diretriz TÁTICA */}
+          {/* Detalhes: Diretriz estrategicas */}
           <AccordionDetails>
+
+
+
+{/* descrição diretriz estrategicas */}
+<Box sx={{ display: "flex" }}>
+<TextField
+  label="Descrição"
+  value={estrategica.descricao || ""}
+  onChange={(e) => {
+    const value = e.target.value;
+
+    setEstrategicas((prev) =>
+      prev.map((est) =>
+        est.id === estrategica.id
+          ? { ...est, descricao: value }
+          : est
+      )
+    );
+  }}
+  sx={{
+    flex: 1,
+    backgroundColor: "transparent",
+    marginTop: "10px",
+  }}
+/>
+</Box>
+
 
           <Box
           sx={{
@@ -1850,6 +1912,41 @@ useEffect(() => {
                     boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
                   }}
                 >
+
+
+
+                
+ {/* Bolinha de status visual da Tática */}
+{tatica.status === "andamento" && (
+  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mr: 2 }}>
+    <Box
+      sx={{
+        width: 14,
+        height: 14,
+        borderRadius: "50%",
+        backgroundColor:
+          new Date() <= new Date(projetoData.prazoPrevisto)
+            ? "#00ff08"
+            : "#ff0000",
+      }}
+    />
+    <Typography
+      sx={{
+        color: "#fff",
+        fontSize: "0.7rem",
+        whiteSpace: "nowrap",
+        marginTop: "2px",
+      }}
+    >
+      {new Date() <= new Date(projetoData.prazoPrevisto)
+        ? ""
+        : ""}
+    </Typography>
+  </Box>
+)}
+
+
+
                   {/* Cabeçalho da Tática */}
                   <Box sx={{ flex: 1, textAlign: "left" }}>
                     <Typography fontWeight="bold" sx={{ color: "#fff" }}>
@@ -2056,7 +2153,7 @@ useEffect(() => {
               }}
             >
               {/* Áreas */}
-              <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
+              <Box sx={{ display: 'flex', gap: 2, width: '100%', marginTop: "10px" }}>
   {/* Áreas */}
   <Box sx={{ flex: 1 }}>
     <Select
@@ -2317,6 +2414,42 @@ useEffect(() => {
                           boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
                         }}
                       >
+
+
+
+
+ {/* Bolinha de status visual da Operacional */}
+{operacional.status === "andamento" && (
+  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mr: 2 }}>
+    <Box
+      sx={{
+        width: 14,
+        height: 14,
+        borderRadius: "50%",
+        backgroundColor:
+          new Date() <= new Date(projetoData.prazoPrevisto)
+            ? "#00ff08"
+            : "#ff0000",
+      }}
+    />
+    <Typography
+      sx={{
+        color: "#fff",
+        fontSize: "0.7rem",
+        whiteSpace: "nowrap",
+        marginTop: "2px",
+      }}
+    >
+      {new Date() <= new Date(projetoData.prazoPrevisto)
+        ? ""
+        : ""}
+    </Typography>
+  </Box>
+)}
+
+
+
+
                         {/* Cabeçalho da Operacional */}
                         <Box sx={{ flex: 1, textAlign: "left" }}>
                           <Typography fontWeight="bold" sx={{ color: "#fff" }}>

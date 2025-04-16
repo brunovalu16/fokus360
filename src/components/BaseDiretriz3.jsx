@@ -1352,7 +1352,7 @@ const handleSalvarOperacional = async () => {
            
                 <AccordionDetails>
                   {/* Áreas */}
-                  <Box sx={{ display: "flex", width: "100%", gap: 2, flexWrap: "wrap" }}>
+                  <Box sx={{ display: "flex", width: "100%", gap: 2, flexWrap: "wrap", marginTop: "20px"}}>
   {/* Áreas */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
   <Select

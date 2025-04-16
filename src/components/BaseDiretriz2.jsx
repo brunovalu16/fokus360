@@ -106,7 +106,7 @@ useEffect(() => {
 
   const fetchDiretrizes = async () => {
     try {
-      const docRef = doc(dbFokus360, "projetos", projectId);
+      const docRef = doc(dbFokus360, "projetos2", projectId);
 
       const docSnap = await getDoc(docRef);
   
@@ -163,7 +163,7 @@ useEffect(() => {
   
    // 🔥 Atualiza no Firestore *sem apagar os dados existentes*
   if (projectId) {
-    const docRef = doc(db, "projetos", projectId);
+    const docRef = doc(db, "projetos2", projectId);
     updateDoc(docRef, {
       diretrizes: arrayUnion(novaDiretriz) // 🔹 Usa arrayUnion para adicionar, *não* sobrescrever
     })
@@ -274,7 +274,7 @@ const saveEstrategicas = async (projectId, novoArray) => {
   }
 
   try {
-    const docRef = doc(db, "projetos", projectId);
+    const docRef = doc(db, "projetos2", projectId);
     await updateDoc(docRef, { estrategicas: novoArray });
     console.log("✅ Estratégicas atualizadas no Firestore!");
   } catch (err) {
@@ -347,7 +347,7 @@ const salvarDiretrizesNoBanco = async () => {
       return;
     }
 
-    const docRef = doc(db, "projetos", projectId);
+    const docRef = doc(db, "projetos2", projectId);
     await updateDoc(docRef, { diretrizes });
 
     console.log("✅ Diretrizes atualizadas no Firestore!");

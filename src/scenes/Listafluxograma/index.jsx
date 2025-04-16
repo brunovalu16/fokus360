@@ -18,7 +18,7 @@ const Listafluxograma = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const querySnapshot = await getDocs(collection(dbFokus360, "projetos")); // Em vez de db
+        const querySnapshot = await getDocs(collection(dbFokus360, "projetos2")); // Em vez de db
 
         const projectsData = querySnapshot.docs.map((doc) => ({
           id: doc.id,
@@ -26,7 +26,7 @@ const Listafluxograma = () => {
         }));
         setProjects(projectsData);
       } catch (error) {
-        console.error("Erro ao buscar projetos:", error);
+        console.error("Erro ao buscar projetos2:", error);
       }
     };
     fetchProjects();

@@ -1,6 +1,7 @@
 import React from "react";
 import { Box } from "@mui/material";
 
+
 import DataProjeto from "../../components/DataProjeto";
 
 function DashboardProjeto() {

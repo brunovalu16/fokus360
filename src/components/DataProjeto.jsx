@@ -24,6 +24,10 @@ import "dayjs/locale/pt-br"; // define o idioma português para dayjs
 import Header from "../components/Header";
 //import DadosProjeto from "../components/DadosProjeto";
 
+import { useParams } from "react-router-dom";
+
+
+
 // Firestore
 import { getFirestore, getDocs, collection, doc, getDoc, updateDoc } from "firebase/firestore";
 import { dbFokus360  } from "../data/firebase-config";
@@ -80,8 +84,8 @@ const ProgressStatus = ({ tarefaCheckState }) => {
 function DataProjeto() {
   const [users, setUsers] = useState([]);
 
-  const [searchParams] = useSearchParams(); // Hook para acessar os parâmetros da URL
-  const projectId = searchParams.get("id"); // Capturar o ID do projeto da URL
+  const { id: projectId } = useParams();
+
 
   // Estados para as datas
   const [dataInicio, setDataInicio] = useState(""); // Valor puro do banco (ISO)
@@ -112,31 +116,14 @@ function DataProjeto() {
   const [onde, setOnde] = useState("");
   const [diretrizTitulo, setDiretrizTitulo] = useState("");
   const [diretrizDescricao, setDiretrizDescricao] = useState("");
+  
 
   // Armazenar todas as diretrizes
   const [diretrizes, setDiretrizes] = useState([]);
 
-  // Buscar o projectId automaticamente
-// 🔹 Função para buscar o ID do projeto
-const fetchProjectId = async () => {
-  try {
-    const docRef = doc(dbFokus360, "projetos", "seuDocumentoID"); // Altere "seuDocumentoID" para um ID válido
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      setProjectId(docSnap.id);
-      console.log("✅ projectId definido:", docSnap.id);
-    } else {
-      console.warn("⚠️ Nenhum projeto encontrado no Firestore.");
-    }
-  } catch (error) {
-    console.error("❌ Erro ao buscar projectId:", error);
-  }
-};
 
-// 🔹 Buscar projectId quando o componente carregar
-useEffect(() => {
-  fetchProjectId();
-}, []);
+
+
 
   // Função para garantir que cada diretriz possua tarefas como array
   function normalizarDiretrizes(diretrizesDoBanco = []) {
@@ -152,7 +139,7 @@ useEffect(() => {
 
     const fetchProjectData = async () => {
       try {
-        const docRef = doc(dbFokus360, "projetos", projectId);
+        const docRef = doc(dbFokus360, "projetos2", projectId);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
@@ -765,7 +752,10 @@ useEffect(() => {
 
           {/* Seção: DIRETRIZES DO PROJETO */}
           <Box>
+          {projectId && (
             <BaseDiretriz2 projectId={projectId} onDiretrizesUpdate={setDiretrizes} />
+          )}
+
           </Box>
 
           {/* Botão Salvar Alterações */}

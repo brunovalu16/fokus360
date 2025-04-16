@@ -2,7 +2,6 @@ import React from "react";
 import { Box, Typography, CircularProgress } from "@mui/material";
 import PaidIcon from "@mui/icons-material/Paid";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
-import Lista from "../components/Lista";
 
 const DadosProjeto = ({ orcamento, valorGasto, totalDiretrizes, tarefasConcluidas, totalTarefas, diretrizes }) => {
 const totalEstr = countAllDiretrizes(diretrizes || []);
@@ -470,8 +469,7 @@ function countTarefasConcluidas(diretrizes = []) {
           </Box>
         ))}
       </Box>
-      {/* Componente */}
-      <Lista />
+     
     </Box>
   );
 };
