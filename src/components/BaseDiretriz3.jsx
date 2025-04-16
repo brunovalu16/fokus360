@@ -639,7 +639,7 @@ const areaRolesMap = {
           ...estrategica,
           areasResponsaveis: areasPorIdEstrategica[estrategica.id] || [],
           unidades: unidadesPorIdEstrategica[estrategica.id] || [],
-          emails: emailsPorIdEstrategica[estrategica.id] || [], // <-- Agora pega os e-mails da lista de responsáveis
+          emails: emailsPorIdEstrategica[estrategica.id] || [],
           taticas: taticasAtualizadas,
         };
       });
@@ -650,13 +650,17 @@ const areaRolesMap = {
         updatedAt: new Date(),
       });
   
-      // 🔔 Notificações por área
-      const rolesVinculados = areasSelecionadas.flatMap(
+      // 🔔 Estratégicas - usuários por áreas
+      const areasEstrategicas = estrategicas.flatMap(
+        (estrategica) => areasPorIdEstrategica[estrategica.id] || []
+      );
+  
+      const rolesEstrategicas = areasEstrategicas.flatMap(
         (areaId) => areaRolesMap[areaId] || []
       );
   
-      if (rolesVinculados.length > 0) {
-        const usuarios = await buscarUsuariosPorRole(rolesVinculados);
+      if (rolesEstrategicas.length > 0) {
+        const usuarios = await buscarUsuariosPorRole(rolesEstrategicas);
   
         await Promise.all(
           usuarios.map(async (user) => {
@@ -683,7 +687,75 @@ const areaRolesMap = {
         );
       }
   
-      // ✉️ Enviar e-mails para os responsáveis selecionados no campo de responsáveis
+      // 🔔 Táticas - usuários por áreas táticas
+      const rolesTaticas = areasSelecionadasTaticas.flatMap(
+        (areaId) => areaRolesMap[areaId] || []
+      );
+  
+      if (rolesTaticas.length > 0) {
+        const usuarios = await buscarUsuariosPorRole(rolesTaticas);
+  
+        await Promise.all(
+          usuarios.map(async (user) => {
+            await fetch("https://fokus360-backend.vercel.app/send-notification", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                userId: user.id,
+                mensagem: "Nova Diretriz Tática criada para sua área.",
+              }),
+            });
+  
+            await fetch("https://fokus360-backend.vercel.app/send-task-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: user.email,
+                tituloTarefa: "Nova Diretriz Tática",
+                assuntoTarefa: "Foi criada uma nova diretriz tática vinculada à sua área.",
+                prazoTarefa: "Sem prazo",
+              }),
+            });
+          })
+        );
+      }
+  
+      // 🔔 Operacionais - usuários por áreas operacionais
+      const todasAreasOperacionais = Object.values(areasOperacionaisPorId).flat();
+  
+      const rolesOperacionais = todasAreasOperacionais.flatMap(
+        (areaId) => areaRolesMap[areaId] || []
+      );
+  
+      if (rolesOperacionais.length > 0) {
+        const usuarios = await buscarUsuariosPorRole(rolesOperacionais);
+  
+        await Promise.all(
+          usuarios.map(async (user) => {
+            await fetch("https://fokus360-backend.vercel.app/send-notification", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                userId: user.id,
+                mensagem: "Nova Diretriz Operacional criada para sua área.",
+              }),
+            });
+  
+            await fetch("https://fokus360-backend.vercel.app/send-task-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: user.email,
+                tituloTarefa: "Nova Diretriz Operacional",
+                assuntoTarefa: "Foi criada uma nova diretriz operacional vinculada à sua área.",
+                prazoTarefa: "Sem prazo",
+              }),
+            });
+          })
+        );
+      }
+  
+      // ✉️ E-mails diretos dos responsáveis estratégicos
       const emailsSelecionados = estrategicas
         .flatMap((estrategica) => emailsPorIdEstrategica[estrategica.id] || [])
         .filter((email) => email.trim() !== "");
@@ -695,7 +767,7 @@ const areaRolesMap = {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                email: email,
+                email,
                 tituloTarefa: "Nova Diretriz Estratégica",
                 assuntoTarefa: "Você foi designado como responsável por uma diretriz estratégica.",
                 prazoTarefa: "Sem prazo",
@@ -705,12 +777,13 @@ const areaRolesMap = {
         );
       }
   
-      alert("✅ Diretrizes Estratégicas salvas e notificações enviadas!");
+      alert("✅ Diretrizes Estratégicas salvas e todas as notificações enviadas!");
     } catch (error) {
       console.error("Erro ao salvar diretrizes estratégicas:", error);
       alert("Erro ao salvar diretrizes. Tente novamente.");
     }
   };
+  
   
   
   
