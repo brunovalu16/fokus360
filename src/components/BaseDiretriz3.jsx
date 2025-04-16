@@ -783,31 +783,6 @@ await Promise.all(
           ])
         )
       );
-  
-      // Enviar e-mails manuais diretos
-      const emailsDiretos = estrategicasAtualizadas.flatMap((est) => [
-        ...(est.emails || []),
-        ...est.taticas.flatMap((tat) => [
-          ...(tat.emails || []),
-          ...tat.operacionais.flatMap((op) => op.emails || []),
-        ]),
-      ]).filter((email) => email.trim() !== "");
-  
-      await Promise.all(
-        emailsDiretos.map(async (email) =>
-          fetch("https://fokus360-backend.vercel.app/send-task-email", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email,
-              tituloTarefa: "Nova Diretriz",
-              assuntoTarefa: "Você foi designado como responsável por uma diretriz.",
-              prazoTarefa: "Sem prazo",
-            }),
-          })
-        )
-      );
-  
     
       // E-mails por tarefa - quemEmail (campo novo baseado em e-mails)
 await Promise.all(
