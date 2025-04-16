@@ -95,6 +95,7 @@ const [emailsPorIdOperacional, setEmailsPorIdOperacional] = useState({});
       porQue: "",
       quem: [],
       quemEstrategicas: [],
+      quemTaticas: [],
       quando: "",
       quemEmail: [],
       onde: "",
@@ -269,6 +270,7 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       porQue: "",
       quem: [],
       quemEstrategicas: [],
+      quemTaticas: [],
       quando: "",
       quemEmail: [],
       onde: "",
@@ -754,7 +756,6 @@ const areaRolesMap = {
           })
         );
       }
-  
       // ✉️ E-mails diretos dos responsáveis estratégicos
       const emailsSelecionados = estrategicas
         .flatMap((estrategica) => emailsPorIdEstrategica[estrategica.id] || [])
@@ -776,6 +777,48 @@ const areaRolesMap = {
           })
         );
       }
+// ✉️ E-mails diretos dos responsáveis táticos
+const emailsTaticas = Object.values(emailsPorIdTatica || {})
+.flat()
+.filter((email) => email.trim() !== "");
+
+if (emailsTaticas.length > 0) {
+await Promise.all(
+  emailsTaticas.map(async (email) => {
+    await fetch("https://fokus360-backend.vercel.app/send-task-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        tituloTarefa: "Nova Diretriz Tática",
+        assuntoTarefa: "Você foi designado como responsável por uma diretriz tática.",
+        prazoTarefa: "Sem prazo",
+      }),
+    });
+  })
+);
+}
+// ✉️ E-mails diretos dos responsáveis operacionais
+const emailsOperacionais = Object.values(emailsPorIdOperacional || {})
+  .flat()
+  .filter((email) => email.trim() !== "");
+
+if (emailsOperacionais.length > 0) {
+  await Promise.all(
+    emailsOperacionais.map(async (email) => {
+      await fetch("https://fokus360-backend.vercel.app/send-task-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          tituloTarefa: "Nova Diretriz Operacional",
+          assuntoTarefa: "Você foi designado como responsável por uma diretriz operacional.",
+          prazoTarefa: "Sem prazo",
+        }),
+      });
+    })
+  );
+}
   
       alert("✅ Diretrizes Estratégicas salvas e todas as notificações enviadas!");
     } catch (error) {
@@ -1360,7 +1403,7 @@ await Promise.all(
 
 
 
-  {/* responsáveis pela diretriz */}
+  {/* responsáveis pela diretriz estrategica */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
   <Select
     multiple
@@ -1599,49 +1642,51 @@ await Promise.all(
 
   </Box>
 
-  {/* E-mails adicionais */}
-  <Box sx={{ flex: 1, minWidth: "300px" }}>
-  <TextField
-  label="E-mails adicionais (separe por vírgula)"
-  value={emailsPorIdTatica[tatica.id] || ""}
-  onChange={(e) => {
-    const value = e.target.value;
+{/* Responsáveis pela Tática (quemTaticas) */}
+<Box sx={{ flex: 1, minWidth: "300px" }}>
+  <Select
+    multiple
+    displayEmpty
+    value={emailsPorIdTatica[tatica.id] || []}
+    onChange={(event) => {
+      const selectedEmails = event.target.value;
 
-    // Atualiza o estado individual por tática
-    setEmailsPorIdTatica((prev) => ({
-      ...prev,
-      [tatica.id]: value,
-    }));
+      setEmailsPorIdTatica((prev) => ({
+        ...prev,
+        [tatica.id]: selectedEmails,
+      }));
 
-    // Atualiza o campo de e-mails dentro da estrutura de `estrategicas`
-    setEstrategicas((prev) =>
-      prev.map((est) => {
-        if (est.id === estrategica.id) {
-          return {
-            ...est,
-            taticas: est.taticas.map((tat) => {
-              if (tat.id === tatica.id) {
-                return {
-                  ...tat,
-                  emails: value
-                    .split(",")
-                    .map((email) => email.trim())
-                    .filter((email) => email !== ""),
-                };
-              }
-              return tat;
-            }),
-          };
-        }
-        return est;
-      })
-    );
-  }}
-  fullWidth
-  sx={{ backgroundColor: "#fff" }}
-/>
+      // Atualiza campo 'quemTaticas' dentro da estrutura
+      setEstrategicas((prev) =>
+        prev.map((est) => ({
+          ...est,
+          taticas: est.taticas.map((tat) =>
+            tat.id === tatica.id
+              ? { ...tat, quemTaticas: selectedEmails }
+              : tat
+          ),
+        }))
+      );
+    }}
+    renderValue={(selected) =>
+      selected.length === 0
+        ? "Selecione os responsáveis pela tática"
+        : selected.join(", ")
+    }
+    fullWidth
+    sx={{ backgroundColor: "#fff" }}
+  >
+    {users?.map((user) => (
+      <MenuItem key={user.id} value={user.email}>
+        <Checkbox
+          checked={(emailsPorIdTatica[tatica.id] || []).includes(user.email)}
+        />
+        <ListItemText primary={`${user.username} (${user.email})`} />
+      </MenuItem>
+    ))}
+  </Select>
+</Box>
 
-  </Box>
 </Box>
 
 
