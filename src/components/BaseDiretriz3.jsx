@@ -96,6 +96,7 @@ const [emailsPorIdOperacional, setEmailsPorIdOperacional] = useState({});
       quem: [],
       quemEstrategicas: [],
       quemTaticas: [],
+      quemOperacionais: [],
       quando: "",
       quemEmail: [],
       onde: "",
@@ -271,6 +272,7 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       quem: [],
       quemEstrategicas: [],
       quemTaticas: [],
+      quemOperacionais: [],
       quando: "",
       quemEmail: [],
       onde: "",
@@ -659,11 +661,10 @@ const areaRolesMap = {
         updatedAt: new Date(),
       });
   
-      // Estratégicas
-      const rolesEstrategicas = estrategicas.flatMap((est) =>
-        (areasPorIdEstrategica[est.id] || []).flatMap((areaId) => areaRolesMap[areaId] || [])
+      // Estratégicas - usuários por área
+      const rolesEstrategicas = estrategicasAtualizadas.flatMap((est) =>
+        (est.areasResponsaveis || []).flatMap((areaId) => areaRolesMap[areaId] || [])
       );
-  
       const usuariosEstrategicos = await buscarUsuariosPorRole(rolesEstrategicas);
       await Promise.all(
         usuariosEstrategicos.map((user) =>
@@ -690,10 +691,11 @@ const areaRolesMap = {
         )
       );
   
-      // Táticas
-      const rolesTaticas = areasSelecionadasTaticas.flatMap(
-        (areaId) => areaRolesMap[areaId] || []
+      // Táticas - usuários por área
+      const areasTaticasUnificadas = estrategicasAtualizadas.flatMap((est) =>
+        est.taticas.flatMap((tat) => tat.areasResponsaveis || [])
       );
+      const rolesTaticas = areasTaticasUnificadas.flatMap((areaId) => areaRolesMap[areaId] || []);
       const usuariosTaticos = await buscarUsuariosPorRole(rolesTaticas);
       await Promise.all(
         usuariosTaticos.map((user) =>
@@ -720,11 +722,9 @@ const areaRolesMap = {
         )
       );
   
-      // Operacionais
+      // Operacionais - usuários por área
       const todasAreasOperacionais = Object.values(areasOperacionaisPorId).flat();
-      const rolesOperacionais = todasAreasOperacionais.flatMap(
-        (areaId) => areaRolesMap[areaId] || []
-      );
+      const rolesOperacionais = todasAreasOperacionais.flatMap((areaId) => areaRolesMap[areaId] || []);
       const usuariosOperacionais = await buscarUsuariosPorRole(rolesOperacionais);
       await Promise.all(
         usuariosOperacionais.map((user) =>
@@ -751,23 +751,18 @@ const areaRolesMap = {
         )
       );
   
-      // Enviar e-mails diretos
-      const emailsEstrategicos = estrategicasAtualizadas.flatMap((e) => e.emails || []);
-      const emailsTaticos = estrategicasAtualizadas.flatMap((e) =>
-        e.taticas.flatMap((t) => t.emails || [])
-      );
-      const emailsOperacionais = estrategicasAtualizadas.flatMap((e) =>
-        e.taticas.flatMap((t) =>
-          t.operacionais.flatMap((o) => o.emails || [])
-        )
-      );
-  
-      const allEmails = [...emailsEstrategicos, ...emailsTaticos, ...emailsOperacionais]
-        .filter((email) => email.trim() !== "");
+      // Enviar e-mails manuais diretos
+      const emailsDiretos = estrategicasAtualizadas.flatMap((est) => [
+        ...(est.emails || []),
+        ...est.taticas.flatMap((tat) => [
+          ...(tat.emails || []),
+          ...tat.operacionais.flatMap((op) => op.emails || []),
+        ]),
+      ]).filter((email) => email.trim() !== "");
   
       await Promise.all(
-        allEmails.map(async (email) => {
-          await fetch("https://fokus360-backend.vercel.app/send-task-email", {
+        emailsDiretos.map(async (email) =>
+          fetch("https://fokus360-backend.vercel.app/send-task-email", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -776,8 +771,40 @@ const areaRolesMap = {
               assuntoTarefa: "Você foi designado como responsável por uma diretriz.",
               prazoTarefa: "Sem prazo",
             }),
-          });
-        })
+          })
+        )
+      );
+  
+      // E-mails por tarefa (quemEstrategicas, quemTaticas, quem)
+      await Promise.all(
+        estrategicasAtualizadas.flatMap((estrategica) =>
+          estrategica.taticas.flatMap((tatica) =>
+            tatica.operacionais.flatMap((op) =>
+              (op.tarefas || []).flatMap((tarefa) => {
+                const listas = [
+                  { emails: tarefa.planoDeAcao?.quemEstrategicas || [], tipo: "Estratégica" },
+                  { emails: tarefa.planoDeAcao?.quemTaticas || [], tipo: "Tática" },
+                  { emails: tarefa.planoDeAcao?.quem || [], tipo: "Operacional" },
+                ];
+  
+                return listas.flatMap(({ emails, tipo }) =>
+                  emails.filter(Boolean).map((email) =>
+                    fetch("https://fokus360-backend.vercel.app/send-task-email", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        email,
+                        tituloTarefa: tarefa.tituloTarefa || "Nova Tarefa",
+                        assuntoTarefa: `Você foi designado como responsável por uma diretriz ${tipo}.`,
+                        prazoTarefa: tarefa.planoDeAcao?.quando || "Sem prazo",
+                      }),
+                    })
+                  )
+                );
+              })
+            )
+          )
+        )
       );
   
       alert("✅ Diretrizes Estratégicas salvas e todas as notificações enviadas!");
@@ -786,6 +813,7 @@ const areaRolesMap = {
       alert("Erro ao salvar diretrizes. Tente novamente.");
     }
   };
+  
   
   
   
@@ -1525,29 +1553,32 @@ await Promise.all(
 
 
 
-{/* descrição diretriz estrategicas */}
+{/* descrição diretriz táticas */}
 <Box sx={{ display: "flex" }}>
-            <TextField
-              label="Descrição"
-              value={tatica.descricao || ""}
-              onChange={(e) => {
-                const value = e.target.value;
-            
-                setEstrategicas((prev) =>
-                  prev.map((est) =>
-                    est.id === tatica.id
-                      ? { ...est, descricao: value }
-                      : est
-                  )
-                );
-              }}
-              sx={{
-                flex: 1,
-                backgroundColor: "transparent",
-                marginTop: "10px",
-              }}
-            />
-            </Box>
+<TextField
+  label="Descrição"
+  value={tatica.descricao || ""}
+  onChange={(e) => {
+    const value = e.target.value;
+
+    setEstrategicas((prev) =>
+      prev.map((est) => ({
+        ...est,
+        taticas: est.taticas.map((tat) =>
+          tat.id === tatica.id
+            ? { ...tat, descricao: value }
+            : tat
+        ),
+      }))
+    );
+  }}
+  sx={{
+    flex: 1,
+    backgroundColor: "transparent",
+    marginTop: "10px",
+  }}
+/>
+</Box>
 
 
 
@@ -2000,47 +2031,52 @@ await Promise.all(
 </Select>
   </Box>
 
-  {/* E-mails adicionais */}
-  <Box sx={{ flex: 1, minWidth: "300px" }}>
-  <TextField
-  label="E-mails adicionais (separe por vírgula)"
-  value={emailsPorIdOperacional[operacional.id] || ""}
-  onChange={(e) => {
-    const value = e.target.value;
 
-    // Atualiza o estado de e-mails por ID da operacional
-    setEmailsPorIdOperacional((prev) => ({
-      ...prev,
-      [operacional.id]: value,
-    }));
+{/* responsáveis pela tarefa (quemOperacionais) */}
+<Box sx={{ flex: 1, minWidth: "300px" }}>
+  <Select
+    multiple
+    displayEmpty
+    value={operacional.quemOperacionais || []}
+    onChange={(event) => {
+      const selected = event.target.value;
 
-    // Atualiza a estrutura de estratégicas com os e-mails corretos
-    setEstrategicas((prev) =>
-      prev.map((est) => ({
-        ...est,
-        taticas: est.taticas.map((tat) => ({
-          ...tat,
-          operacionais: tat.operacionais.map((op) => {
-            if (op.id === operacional.id) {
-              return {
-                ...op,
-                emails: value
-                  .split(",")
-                  .map((email) => email.trim())
-                  .filter((email) => email !== ""),
-              };
-            }
-            return op;
-          }),
-        })),
-      }))
-    );
-  }}
-  fullWidth
-  sx={{ backgroundColor: "#fff" }}
-/>
+      // Atualiza no estado geral das estratégias
+      setEstrategicas((prev) =>
+        prev.map((est) => ({
+          ...est,
+          taticas: est.taticas.map((tat) => ({
+            ...tat,
+            operacionais: tat.operacionais.map((op) =>
+              op.id === operacional.id
+                ? { ...op, quemOperacionais: selected }
+                : op
+            ),
+          })),
+        }))
+      );
+    }}
+    renderValue={(selected) =>
+      selected.length === 0
+        ? "Selecione os responsáveis pela operacional"
+        : selected.join(", ")
+    }
+    fullWidth
+    sx={{ backgroundColor: "#fff" }}
+  >
+    {users?.map((user) => (
+      <MenuItem key={user.id} value={user.email}>
+        <Checkbox
+          checked={
+            (operacional.quemOperacionais || []).includes(user.email)
+          }
+        />
+        <ListItemText primary={`${user.username} (${user.email})`} />
+      </MenuItem>
+    ))}
+  </Select>
+</Box>
 
-  </Box>
 </Box>
 
 
