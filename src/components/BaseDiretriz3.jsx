@@ -1465,16 +1465,13 @@ await Promise.all(
 
       // Atualiza dentro da estrutura das estratégias também
       setEstrategicas((prev) =>
-        prev.map((est) => {
-          if (est.id === estrategica.id) {
-            return {
-              ...est,
-              emails: selectedEmails,
-            };
-          }
-          return est;
-        })
+        prev.map((est) =>
+          est.id === estrategica.id
+            ? { ...est, emails: selectedEmails }
+            : est
+        )
       );
+      
     }}
     renderValue={(selected) =>
       selected.length === 0
