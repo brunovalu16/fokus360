@@ -94,6 +94,7 @@ const [emailsPorIdOperacional, setEmailsPorIdOperacional] = useState({});
       oQue: "",
       porQue: "",
       quem: [],
+      quemEstrategicas: [],
       quando: "",
       quemEmail: [],
       onde: "",
@@ -128,6 +129,7 @@ const [emailsPorIdOperacional, setEmailsPorIdOperacional] = useState({});
           const usersList = querySnapshot.docs.map((doc) => ({
             id: doc.id,
             username: doc.data().username,
+            email: doc.data().email,
           }));
           setUsers(usersList);
         } catch (error) {
@@ -266,6 +268,7 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
       oQue: "",
       porQue: "",
       quem: [],
+      quemEstrategicas: [],
       quando: "",
       quemEmail: [],
       onde: "",
@@ -596,7 +599,7 @@ const areaRolesMap = {
 
 
 // -------------------------------------
-  // Salvar somente Diretrizes Estrategicas
+  // Salvar Diretrizes Estrategicas  ( ESSA FUNÇÃO SALVA TUDO, TODO O PROJETO  )
   // -------------------------------------
   
   const handleSalvarEstrategicas = async () => {
@@ -636,11 +639,7 @@ const areaRolesMap = {
           ...estrategica,
           areasResponsaveis: areasPorIdEstrategica[estrategica.id] || [],
           unidades: unidadesPorIdEstrategica[estrategica.id] || [],
-          emails:
-            (emailsPorIdEstrategica[estrategica.id] || "")
-              .split(",")
-              .map((e) => e.trim())
-              .filter((e) => e !== "") || [],
+          emails: emailsPorIdEstrategica[estrategica.id] || [], // <-- Agora pega os e-mails da lista de responsáveis
           taticas: taticasAtualizadas,
         };
       });
@@ -650,9 +649,8 @@ const areaRolesMap = {
         estrategicas: estrategicasAtualizadas,
         updatedAt: new Date(),
       });
-    
-      
-      // ✅ Enviar notificações e e-mails para usuários das áreas
+  
+      // 🔔 Notificações por área
       const rolesVinculados = areasSelecionadas.flatMap(
         (areaId) => areaRolesMap[areaId] || []
       );
@@ -685,23 +683,21 @@ const areaRolesMap = {
         );
       }
   
-      // ✅ Enviar e-mail para os e-mails manuais
-      const emailsManuais = estrategicas
-      .flatMap((estrategica) => estrategica.emails || [])
-      .filter((email) => email.trim() !== "");
-
+      // ✉️ Enviar e-mails para os responsáveis selecionados no campo de responsáveis
+      const emailsSelecionados = estrategicas
+        .flatMap((estrategica) => emailsPorIdEstrategica[estrategica.id] || [])
+        .filter((email) => email.trim() !== "");
   
-      if (emailsManuais.length > 0) {
+      if (emailsSelecionados.length > 0) {
         await Promise.all(
-          emailsManuais.map(async (email) => {
+          emailsSelecionados.map(async (email) => {
             await fetch("https://fokus360-backend.vercel.app/send-task-email", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 email: email,
                 tituloTarefa: "Nova Diretriz Estratégica",
-                assuntoTarefa:
-                  "Foi criada uma nova diretriz estratégica vinculada ao seu e-mail.",
+                assuntoTarefa: "Você foi designado como responsável por uma diretriz estratégica.",
                 prazoTarefa: "Sem prazo",
               }),
             });
@@ -715,6 +711,7 @@ const areaRolesMap = {
       alert("Erro ao salvar diretrizes. Tente novamente.");
     }
   };
+  
   
   
   //=============================================================================================================
@@ -945,6 +942,37 @@ const handleSalvarOperacional = async () => {
       )
     );
 
+
+
+    // ✉️ Envia e-mails para os responsáveis definidos em quemEstrategicas
+await Promise.all(
+  estrategicas.flatMap((estrategica) =>
+    estrategica.taticas.flatMap((tatica) =>
+      tatica.operacionais.flatMap((operacional) =>
+        (operacional.tarefas || []).flatMap((tarefa) => {
+          const emails = tarefa.planoDeAcao?.quemEstrategicas || [];
+          const emailList = Array.isArray(emails) ? emails : [emails];
+          return emailList
+            .filter((email) => email.trim() !== "")
+            .map(async (email) => {
+              await fetch("https://fokus360-backend.vercel.app/send-task-email", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  email,
+                  tituloTarefa: tarefa.tituloTarefa || "Nova Tarefa",
+                  assuntoTarefa: "Você foi designado para um plano de ação vinculado à diretriz estratégica.",
+                  prazoTarefa: tarefa.planoDeAcao?.quando || "Sem prazo",
+                }),
+              });
+            });
+        })
+      )
+    )
+  )
+);
+
+
     alert("✅ Operacionais salvas e notificações enviadas!");
   } catch (error) {
     console.error("Erro ao salvar Operacionais:", error);
@@ -1157,6 +1185,37 @@ const handleSalvarOperacional = async () => {
       
           <AccordionDetails>
 
+
+
+
+            {/* descrição diretriz estrategicas */}
+            <Box sx={{ display: "flex" }}>
+            <TextField
+              label="Descrição"
+              value={estrategica.descricao || ""}
+              onChange={(e) => {
+                const value = e.target.value;
+            
+                setEstrategicas((prev) =>
+                  prev.map((est) =>
+                    est.id === estrategica.id
+                      ? { ...est, descricao: value }
+                      : est
+                  )
+                );
+              }}
+              sx={{
+                flex: 1,
+                backgroundColor: "transparent",
+                marginTop: "10px",
+              }}
+            />
+            </Box>
+
+
+
+
+
           <Box sx={{ display: "flex", width: "100%", gap: 2, flexWrap: "wrap", mt: 2 }}>
   {/* Áreas */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
@@ -1226,21 +1285,56 @@ const handleSalvarOperacional = async () => {
     </Select>
   </Box>
 
-  {/* E-mails adicionais */}
+
+
+  {/* responsáveis pela diretriz */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
-    <TextField
-      label="E-mails adicionais (separe por vírgula)"
-      value={emailsPorIdEstrategica[estrategica.id] || ""}
-      onChange={(e) =>
-        setEmailsPorIdEstrategica((prev) => ({
-          ...prev,
-          [estrategica.id]: e.target.value,
-        }))
-      }
-      fullWidth
-      sx={{ backgroundColor: "#fff" }}
-    />
-  </Box>
+  <Select
+    multiple
+    displayEmpty
+    value={emailsPorIdEstrategica[estrategica.id] || []}
+    onChange={(event) => {
+      const selectedEmails = event.target.value;
+
+      setEmailsPorIdEstrategica((prev) => ({
+        ...prev,
+        [estrategica.id]: selectedEmails,
+      }));
+
+      // Atualiza dentro da estrutura das estratégias também
+      setEstrategicas((prev) =>
+        prev.map((est) => {
+          if (est.id === estrategica.id) {
+            return {
+              ...est,
+              emails: selectedEmails,
+            };
+          }
+          return est;
+        })
+      );
+    }}
+    renderValue={(selected) =>
+      selected.length === 0
+        ? "Selecione os responsáveis pela diretriz"
+        : selected.join(", ")
+    }
+    fullWidth
+    sx={{ backgroundColor: "#fff" }}
+  >
+    {users?.map((user) => (
+      <MenuItem key={user.id} value={user.email}>
+        <Checkbox
+          checked={
+            (emailsPorIdEstrategica[estrategica.id] || []).includes(user.email)
+          }
+        />
+        <ListItemText primary={`${user.username} (${user.email})`} />
+      </MenuItem>
+    ))}
+  </Select>
+</Box>
+
 </Box>
 
 
@@ -1351,12 +1445,28 @@ const handleSalvarOperacional = async () => {
 
            
                 <AccordionDetails>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                   {/* Áreas */}
                   <Box sx={{ display: "flex", width: "100%", gap: 2, flexWrap: "wrap", marginTop: "20px"}}>
   {/* Áreas */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
   <Select
   multiple
+  displayEmpty
   value={areasPorIdTatica[tatica.id] || []}
   onChange={(event) =>
     setAreasPorIdTatica((prev) => ({
@@ -1388,6 +1498,7 @@ const handleSalvarOperacional = async () => {
   <Box sx={{ flex: 1, minWidth: "300px" }}>
   <Select
   multiple
+  displayEmpty
   value={unidadesPorIdTatica[tatica.id] || []}
   onChange={(event) =>
     setUnidadesPorIdTatica((prev) => ({
@@ -1671,6 +1782,51 @@ const handleSalvarOperacional = async () => {
 
                       {/* Detalhes (tarefas, 5W2H) */}
                       <AccordionDetails>
+
+
+
+
+
+                        <Box sx={{ display: "flex" }}>
+                         <TextField
+                          label="Descrição da Operacional"
+                          value={operacional.descricao || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                        
+                            setEstrategicas((prev) =>
+                              prev.map((est) =>
+                                est.id === estrategica.id
+                                  ? {
+                                      ...est,
+                                      taticas: est.taticas.map((tat) =>
+                                        tat.id === tatica.id
+                                          ? {
+                                              ...tat,
+                                              operacionais: tat.operacionais.map((op) =>
+                                                op.id === operacional.id
+                                                  ? { ...op, descricao: value }
+                                                  : op
+                                              ),
+                                            }
+                                          : tat
+                                      ),
+                                    }
+                                  : est
+                              )
+                            );
+                          }}
+                          sx={{
+                            flex: 1,
+                            backgroundColor: "transparent",
+                            marginTop: "10px",
+                          }}
+                        />
+                        </Box>
+
+
+
+                        
 
 
                       <Box sx={{ display: "flex", width: "100%", gap: 2, flexWrap: "wrap", mt: 2 }}>

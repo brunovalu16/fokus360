@@ -2140,6 +2140,39 @@ useEffect(() => {
 
                 {/* Detalhes: Diretriz Operacional */}
                 <AccordionDetails>
+
+
+
+{/* descrição diretriz taticas */}
+<Box sx={{ display: "flex" }}>
+<TextField
+  label="Descrição da Tática"
+  value={tatica.descricao || ""}
+  onChange={(e) => {
+    const value = e.target.value;
+
+    setEstrategicas((prev) =>
+      prev.map((est) =>
+        est.id === estrategica.id
+          ? {
+              ...est,
+              taticas: est.taticas.map((tat) =>
+                tat.id === tatica.id
+                  ? { ...tat, descricao: value }
+                  : tat
+              ),
+            }
+          : est
+      )
+    );
+  }}
+  sx={{
+    flex: 1,
+    backgroundColor: "transparent",
+    marginTop: "10px",
+  }}
+/>
+</Box>
                 
             
 
@@ -2669,7 +2702,50 @@ useEffect(() => {
                       {/* Detalhes (tarefas, 5W2H) */}
                       <AccordionDetails>
 
-                      <Box
+<Box sx={{ display: "flex" }}>
+ <TextField
+  label="Descrição da Operacional"
+  value={operacional.descricao || ""}
+  onChange={(e) => {
+    const value = e.target.value;
+
+    setEstrategicas((prev) =>
+      prev.map((est) =>
+        est.id === estrategica.id
+          ? {
+              ...est,
+              taticas: est.taticas.map((tat) =>
+                tat.id === tatica.id
+                  ? {
+                      ...tat,
+                      operacionais: tat.operacionais.map((op) =>
+                        op.id === operacional.id
+                          ? { ...op, descricao: value }
+                          : op
+                      ),
+                    }
+                  : tat
+              ),
+            }
+          : est
+      )
+    );
+  }}
+  sx={{
+    flex: 1,
+    backgroundColor: "transparent",
+    marginTop: "10px",
+  }}
+/>
+</Box>
+
+
+
+
+
+                        
+
+<Box
   sx={{
     display: "flex",
     flexWrap: "wrap",
