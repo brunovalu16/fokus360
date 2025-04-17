@@ -621,11 +621,13 @@ const areaRolesMap = {
             unidades: unidadesPorIdOperacional?.[op.id] || [],
             emails: Array.isArray(emailsPorIdOperacional?.[op.id])
               ? emailsPorIdOperacional[op.id].filter((e) => e.trim() !== "")
-              : String(emailsPorIdOperacional?.[op.id] || "")
-                  .split(",")
-                  .map((e) => e.trim())
-                  .filter((e) => e !== ""),
-          }));
+              : Array.isArray(op.quemOperacionais)
+                ? op.quemOperacionais
+                : String(emailsPorIdOperacional?.[op.id] || "")
+                    .split(",")
+                    .map((e) => e.trim())
+                    .filter((e) => e !== ""),
+          }));          
   
           return {
             ...tatica,
