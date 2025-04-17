@@ -786,7 +786,7 @@ const areaRolesMap = {
 
 
 // -------------------------------------
-  // Salvar somente Diretrizes Estrategicas
+  // Salvar todas as Diretrizes
   // -------------------------------------
   
   const handleSalvarEstrategicas = async () => {
@@ -900,103 +900,7 @@ const areaRolesMap = {
 
   //========================================= Salvar táticas ====================================================
 
-  const handleSalvarTaticas = async () => {
-    try {
-      if (!projectId) {
-        alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
-        return;
-      }
-  
-      const allTaticas = estrategicas.flatMap((est) => est.taticas);
-      if (allTaticas.length === 0) {
-        alert("Adicione ao menos uma Tática.");
-        return;
-      }
-      if (areasSelecionadas.length === 0) {
-        alert("Selecione pelo menos uma área responsável.");
-        return;
-      }
-      if (unidadeSelecionadas.length === 0) {
-        alert("Selecione pelo menos uma unidade.");
-        return;
-      }
-      if (areastaticasSelecionadas.length === 0) {
-        alert("Selecione pelo menos uma área responsável para a Tática.");
-        return;
-      }
-  
-      const projetoRef = doc(db, "projetos", projectId);
-      await updateDoc(projetoRef, {
-        taticas: allTaticas,
-        areasResponsaveis: areasSelecionadas,
-        unidadesRelacionadas: unidadeSelecionadas,
-        updatedAt: new Date(),
-      });
-  
-      // ✅ Enviar notificações para perfis vinculados às áreas
-     // ✅ Enviar notificações para perfis vinculados às áreas da TÁTICA
-const rolesVinculados = areastaticasSelecionadas.flatMap(
-  (areaId) => areaRolesMap[areaId] || []
-);
-
-if (rolesVinculados.length > 0) {
-  const usuarios = await buscarUsuariosPorRole(rolesVinculados);
-
-  await Promise.all(
-    usuarios.map(async (user) => {
-      await fetch("https://fokus360-backend.vercel.app/send-notification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          mensagem: "Nova Diretriz Tática criada para sua área.",
-        }),
-      });
-
-      await fetch("https://fokus360-backend.vercel.app/send-task-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: user.email,
-          tituloTarefa: "Nova Diretriz Tática",
-          assuntoTarefa: "Foi criada uma nova diretriz tática vinculada à sua área.",
-          prazoTarefa: "Sem prazo",
-        }),
-      });
-    })
-  );
-}
-
-      // ✅ Enviar e-mail para os e-mails manuais digitados
-      const emailsManuais = allTaticas
-        .flatMap((tatica) => tatica.emails || [])
-        .filter((email) => email.trim() !== "");
-  
-      if (emailsManuais.length > 0) {
-        await Promise.all(
-          emailsManuais.map(async (email) => {
-            await fetch("https://fokus360-backend.vercel.app/send-task-email", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: email,
-                tituloTarefa: "Nova Diretriz Tática",
-                assuntoTarefa: "Foi criada uma nova diretriz tática vinculada ao seu e-mail.",
-                prazoTarefa: "Sem prazo",
-              }),
-            });
-          })
-        );
-      }
-  
-      alert("✅ Táticas salvas e notificações enviadas!");
-    } catch (error) {
-      console.error("Erro ao salvar táticas:", error);
-      alert("Erro ao salvar táticas. Tente novamente.");
-    }
-  };
-  
-  
+ 
 
   
   
@@ -1007,144 +911,7 @@ if (rolesVinculados.length > 0) {
 
 //========================================= Salvar Operacional ====================================================
 
-const handleSalvarOperacional = async () => {
-  try {
-    if (!projectId) {
-      alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
-      return;
-    }
 
-    const allOperacional = estrategicas.flatMap((est) =>
-      est.taticas.flatMap((tatica) =>
-        tatica.operacionais.map((operacional) => ({
-          id: operacional.id,
-          titulo: operacional.titulo,
-          descricao: operacional.descricao,
-          tarefas: operacional.tarefas || [],
-          emails: operacional.emails || [], 
-        }))
-      )
-    );
-    
-
-    if (allOperacional.length === 0) {
-      alert("Adicione ao menos uma Operacional.");
-      return;
-    }
-    if (areasSelecionadas.length === 0) {
-      alert("Selecione pelo menos uma área responsável.");
-      return;
-    }
-    if (unidadeSelecionadas.length === 0) {
-      alert("Selecione pelo menos uma unidade.");
-      return;
-    }
-    if (areasoperacionalSelecionadas.length === 0) {
-      alert("Selecione pelo menos uma Operacional.");
-      return;
-    }
-
-    const projetoRef = doc(db, "projetos", projectId);
-    await updateDoc(projetoRef, {
-      operacional: allOperacional,
-      areasResponsaveis: areasSelecionadas,
-      unidadesRelacionadas: unidadeSelecionadas,
-      updatedAt: new Date(),
-    });
-
-    const rolesVinculados = areasoperacionalSelecionadas.flatMap(
-      (areaId) => areaRolesMap[areaId] || []
-    );
-
-    if (rolesVinculados.length === 0) {
-      alert("Nenhum perfil vinculado às áreas selecionadas.");
-      return;
-    }
-
-    const usuarios = await buscarUsuariosPorRole(rolesVinculados);
-
-    await Promise.all(
-      usuarios.map(async (user) => {
-        await fetch("https://fokus360-backend.vercel.app/send-notification", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: user.id,
-            mensagem: "Nova Diretriz Operacional criada para sua área.",
-          }),
-        });
-
-        await fetch("https://fokus360-backend.vercel.app/send-task-email", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: user.email,
-            tituloTarefa: "Nova Diretriz Operacional",
-            assuntoTarefa:
-              "Foi criada uma nova diretriz Operacional vinculada à sua área.",
-            prazoTarefa: "Sem prazo",
-          }),
-        });
-      })
-    );
-
-    // ✅ Enviar e-mails para os e-mails manuais digitados
-const emailsManuais = allOperacional
-.flatMap((op) => op.emails || [])
-.filter((email) => email.trim() !== "");
-
-if (emailsManuais.length > 0) {
-await Promise.all(
-  emailsManuais.map(async (email) => {
-    await fetch("https://fokus360-backend.vercel.app/send-task-email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: email,
-        tituloTarefa: "Nova Diretriz Operacional",
-        assuntoTarefa:
-          "Foi criada uma nova diretriz operacional vinculada ao seu e-mail.",
-        prazoTarefa: "Sem prazo",
-      }),
-    });
-  })
-);
-}
-
-
-    await Promise.all(
-      allOperacional.flatMap((operacional) =>
-        (operacional.tarefas || []).flatMap((tarefa) => {
-          const emails = tarefa.planoDeAcao?.quemEmail || [];
-          const emailList = Array.isArray(emails) ? emails : [emails];
-          return emailList
-            .filter((email) => email.trim() !== "")
-            .map(async (email) => {
-              await fetch(
-                "https://fokus360-backend.vercel.app/send-task-email",
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    email,
-                    tituloTarefa: tarefa.tituloTarefa || "Nova Tarefa",
-                    assuntoTarefa:
-                      "Você foi designado para um plano de ação",
-                    prazoTarefa: tarefa.planoDeAcao?.quando || "Sem prazo",
-                  }),
-                }
-              );
-            });
-        })
-      )
-    );
-
-    alert("✅ Operacionais salvas e notificações enviadas!");
-  } catch (error) {
-    console.error("Erro ao salvar Operacionais:", error);
-    alert("Erro ao salvar Operacionais. Tente novamente.");
-  }
-};
 
 //exibir a data atual do navegador
 useEffect(() => {
@@ -1712,40 +1479,48 @@ useEffect(() => {
 </Select>
 
 
-          {/* E-mails adicionais */}
-          <TextField
-  label="E-mails adicionais (separe por vírgula)"
-  value={emailsPorId[estrategica.id] || ""}
-  onChange={(e) => {
-    const value = e.target.value;
+{/* select de resposaveis por estrategicas */}
+<Box sx={{ flex: 1, minWidth: "300px" }}>
+  <Select
+    multiple
+    displayEmpty
+    value={emailsPorIdEstrategica[estrategica.id] || []}
+    onChange={(event) => {
+      const selectedEmails = event.target.value;
 
-    // Atualiza o campo de texto
-    setEmailsPorId((prev) => ({
-      ...prev,
-      [estrategica.id]: value,
-    }));
+      setEmailsPorIdEstrategica((prev) => ({
+        ...prev,
+        [estrategica.id]: selectedEmails,
+      }));
 
-    // Atualiza a estrutura no estado principal
-    setEstrategicas((prev) =>
-      prev.map((est) =>
-        est.id === estrategica.id
-          ? {
-              ...est,
-              emails: value
-                .split(",")
-                .map((email) => email.trim())
-                .filter((email) => email !== ""),
-            }
-          : est
-      )
-    );
-  }}
-  sx={{
-    flex: 1,
-    backgroundColor: "transparent",
-    marginTop: "10px",
-  }}
-/>
+      setEstrategicas((prev) =>
+        prev.map((est) =>
+          est.id === estrategica.id
+            ? { ...est, emails: selectedEmails }
+            : est
+        )
+      );
+    }}
+    renderValue={(selected) =>
+      selected.length === 0
+        ? "Selecione os responsáveis pela diretriz"
+        : selected.join(", ")
+    }
+    fullWidth
+    sx={{ backgroundColor: "#fff", marginTop: "10px" }}
+  >
+    {users?.map((user) => (
+      <MenuItem key={user.id} value={user.email}>
+        <Checkbox
+          checked={
+            (emailsPorIdEstrategica[estrategica.id] || []).includes(user.email)
+          }
+        />
+        <ListItemText primary={`${user.username} (${user.email})`} />
+      </MenuItem>
+    ))}
+  </Select>
+</Box>
 
 
 
@@ -2251,40 +2026,53 @@ useEffect(() => {
     </Select>
   </Box>
 
-  {/* E-mails adicionais */}
-  <Box sx={{ flex: 1 }}>
-    <TextField
-      label="E-mails adicionais (separe por vírgula)"
-      value={emailsTaticasPorId[tatica.id] || ''}
-      onChange={(e) => {
-        const value = e.target.value;
+  {/* responsaveis por diretrizes taticas */}
+  <Box sx={{ flex: 1, minWidth: "300px" }}>
+  <Select
+    multiple
+    displayEmpty
+    value={emailsPorIdTatica[tatica.id] || []}
+    onChange={(event) => {
+      const selectedEmails = event.target.value;
 
-        setEmailsTaticasPorId((prev) => ({
-          ...prev,
-          [tatica.id]: value,
-        }));
+      setEmailsPorIdTatica((prev) => ({
+        ...prev,
+        [tatica.id]: selectedEmails,
+      }));
 
-        setEstrategicas((prev) =>
-          prev.map((est) => ({
-            ...est,
-            taticas: est.taticas.map((t) =>
-              t.id === tatica.id
-                ? {
-                    ...t,
-                    emails: value
-                      .split(',')
-                      .map((email) => email.trim())
-                      .filter((email) => email !== ''),
-                  }
-                : t
-            ),
-          }))
-        );
-      }}
-      fullWidth
-      sx={{ backgroundColor: 'transparent' }}
-    />
-  </Box>
+      setEstrategicas((prev) =>
+        prev.map((est) => ({
+          ...est,
+          taticas: est.taticas.map((t) =>
+            t.id === tatica.id
+              ? { ...t, emails: selectedEmails }
+              : t
+          ),
+        }))
+      );
+    }}
+    renderValue={(selected) =>
+      selected.length === 0
+        ? "Selecione os responsáveis pela diretriz"
+        : selected.join(", ")
+    }
+    fullWidth
+    sx={{ backgroundColor: "#fff", marginTop: "10px" }}
+  >
+    {users?.map((user) => (
+      <MenuItem key={user.id} value={user.email}>
+        <Checkbox
+          checked={
+            (emailsPorIdTatica[tatica.id] || []).includes(user.email)
+          }
+        />
+        <ListItemText primary={`${user.username} (${user.email})`} />
+      </MenuItem>
+    ))}
+  </Select>
+</Box>
+
+ 
 </Box>
 
             </Box>
@@ -2848,41 +2636,51 @@ useEffect(() => {
     </Select>
   </Box>
 
-  {/* E-mails adicionais */}
-  <Box sx={{ flex: 2, minWidth: "200px" }}>
-    <TextField
-      label="E-mails adicionais (separe por vírgula)"
-      value={emailsPorIdOperacional[operacional.id] || ""}
-      onChange={(e) => {
-        const value = e.target.value;
-        setEmailsPorIdOperacional((prev) => ({
-          ...prev,
-          [operacional.id]: value,
-        }));
-        setEstrategicas((prev) =>
-          prev.map((est) => ({
-            ...est,
-            taticas: est.taticas.map((tatica) => ({
-              ...tatica,
-              operacionais: tatica.operacionais.map((op) =>
-                op.id === operacional.id
-                  ? {
-                      ...op,
-                      emails: value
-                        .split(",")
-                        .map((email) => email.trim())
-                        .filter((email) => email !== ""),
-                    }
-                  : op
-              ),
-            })),
-          }))
-        );
-      }}
-      fullWidth
-      sx={{ backgroundColor: "transparent", marginTop: "10px" }}
-    />
-  </Box>
+  {/* resposaveis por diretrizes operacionais */}
+  <Box sx={{ flex: 1, minWidth: "300px" }}>
+  <Select
+    multiple
+    displayEmpty
+    value={emailsPorIdEstrategica[estrategica.id] || []}
+    onChange={(event) => {
+      const selectedEmails = event.target.value;
+
+      setEmailsPorIdEstrategica((prev) => ({
+        ...prev,
+        [estrategica.id]: selectedEmails,
+      }));
+
+      setEstrategicas((prev) =>
+        prev.map((est) =>
+          est.id === estrategica.id
+            ? { ...est, emails: selectedEmails }
+            : est
+        )
+      );
+    }}
+    renderValue={(selected) => {
+      if (!Array.isArray(selected)) return "";
+      return selected.length === 0
+        ? "Selecione os responsáveis pela diretriz"
+        : selected.join(", ");
+    }}
+    fullWidth
+    sx={{ backgroundColor: "#fff", marginTop: "10px" }}
+  >
+    {users?.map((user) => (
+      <MenuItem key={user.id} value={user.email}>
+        <Checkbox
+          checked={
+            (emailsPorIdEstrategica[estrategica.id] || []).includes(user.email)
+          }
+        />
+        <ListItemText primary={`${user.username} (${user.email})`} />
+      </MenuItem>
+    ))}
+  </Select>
+</Box>
+
+
 </Box>
 
                         <Box>
