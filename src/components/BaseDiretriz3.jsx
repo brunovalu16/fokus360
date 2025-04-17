@@ -733,9 +733,14 @@ const areaRolesMap = {
       // Operacionais
       const emailsOperacionais = estrategicasAtualizadas.flatMap((e) =>
         e.taticas.flatMap((t) =>
-          t.operacionais.flatMap((op) => op.emails || [])
+          t.operacionais.flatMap((op) => {
+            const manualEmails = Array.isArray(op.emails) ? op.emails : [];
+            const responsaveisEmails = Array.isArray(op.quemOperacionais) ? op.quemOperacionais : [];
+            return [...manualEmails, ...responsaveisEmails];
+          })
         )
       );
+            
       await Promise.all(
         emailsOperacionais.map((email) =>
           fetch("https://fokus360-backend.vercel.app/send-task-email", {
