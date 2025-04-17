@@ -615,19 +615,24 @@ const areaRolesMap = {
   
       const estrategicasAtualizadas = estrategicas.map((estrategica) => {
         const taticasAtualizadas = estrategica.taticas.map((tatica) => {
-          const operacionaisAtualizadas = tatica.operacionais.map((op) => ({
-            ...op,
-            areasResponsaveis: areasOperacionaisPorId[op.id] || [],
-            unidades: unidadesPorIdOperacional?.[op.id] || [],
-            emails: Array.isArray(emailsPorIdOperacional?.[op.id])
-              ? emailsPorIdOperacional[op.id].filter((e) => e.trim() !== "")
-              : Array.isArray(op.quemOperacionais)
-                ? op.quemOperacionais
-                : String(emailsPorIdOperacional?.[op.id] || "")
-                    .split(",")
-                    .map((e) => e.trim())
-                    .filter((e) => e !== ""),
-          }));          
+          const operacionaisAtualizadas = tatica.operacionais.map((op) => {
+            const manualEmails = Array.isArray(emailsPorIdOperacional?.[op.id])
+              ? emailsPorIdOperacional[op.id]
+              : String(emailsPorIdOperacional?.[op.id] || "")
+                  .split(",")
+                  .map((e) => e.trim());
+  
+            const responsaveisEmails = Array.isArray(op.quemOperacionais)
+              ? op.quemOperacionais
+              : [];
+  
+            return {
+              ...op,
+              areasResponsaveis: areasOperacionaisPorId[op.id] || [],
+              unidades: unidadesPorIdOperacional?.[op.id] || [],
+              emails: [...manualEmails, ...responsaveisEmails].filter((e) => e.trim() !== ""),
+            };
+          });
   
           return {
             ...tatica,
@@ -694,7 +699,7 @@ const areaRolesMap = {
         )
       );
   
-      // ✅ E-mails manuais (responsáveis selecionados diretamente na Estratégica)
+      // Estratégicas - responsáveis manuais
       const emailsManuaisEstrategicas = estrategicasAtualizadas.flatMap((e) => e.emails || []);
       await Promise.all(
         emailsManuaisEstrategicas.map((email) =>
@@ -711,7 +716,7 @@ const areaRolesMap = {
         )
       );
   
-      // Táticas
+      // Táticas - responsáveis manuais
       const emailsTaticas = estrategicasAtualizadas.flatMap((e) =>
         e.taticas.flatMap((t) => t.emails || [])
       );
@@ -730,17 +735,17 @@ const areaRolesMap = {
         )
       );
   
-      // Operacionais
+      // Operacionais - responsáveis (manuais e quemOperacionais)
       const emailsOperacionais = estrategicasAtualizadas.flatMap((e) =>
         e.taticas.flatMap((t) =>
           t.operacionais.flatMap((op) => {
-            const manualEmails = Array.isArray(op.emails) ? op.emails : [];
-            const responsaveisEmails = Array.isArray(op.quemOperacionais) ? op.quemOperacionais : [];
-            return [...manualEmails, ...responsaveisEmails];
+            const manual = Array.isArray(op.emails) ? op.emails : [];
+            const extras = Array.isArray(op.quemOperacionais) ? op.quemOperacionais : [];
+            return [...manual, ...extras];
           })
         )
       );
-            
+  
       await Promise.all(
         emailsOperacionais.map((email) =>
           fetch("https://fokus360-backend.vercel.app/send-task-email", {
@@ -849,276 +854,6 @@ const areaRolesMap = {
     }
   };
   
-  
-  
-  
-  
-  
-  //=============================================================================================================
-
-
-
-  //========================================= Salvar táticas ====================================================
-
-  const handleSalvarTaticas = async () => {
-    try {
-      if (!projectId) {
-        alert("ID do projeto não encontrado.");
-        return;
-      }
-  
-      const allTaticas = estrategicas.flatMap((est) => est.taticas);
-      if (allTaticas.length === 0) {
-        alert("Adicione ao menos uma Tática.");
-        return;
-      }
-    
-    if (areasSelecionadas.length === 0) {
-      alert("Selecione pelo menos uma área responsável.");
-      return;
-    }
-  
-    const projetoRef = doc(db, "projetos", projectId); // ✅ ESSENCIAL!
-
-    console.log("🟡 Salvando TÁTICAS:", areasSelecionadasTaticas);
-    await updateDoc(projetoRef, {
-      estrategicas, // 👈 sempre salva a estrutura inteira
-      areasResponsaveistaticas: areasSelecionadasTaticas,
-      unidadesRelacionadas: unidadeSelecionadas,
-      updatedAt: new Date(),
-    });
-    
-    
-      
-  
-      // 🔔 Notificação para perfis vinculados às áreas táticas
-      const rolesVinculados = areasSelecionadasTaticas.flatMap(
-        (areaId) => areaRolesMap[areaId] || []
-      );
-  
-      if (rolesVinculados.length > 0) {
-        const usuarios = await buscarUsuariosPorRole(rolesVinculados);
-  
-        await Promise.all(
-          usuarios.map(async (user) => {
-            await fetch("https://fokus360-backend.vercel.app/send-notification", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                userId: user.id,
-                mensagem: "Nova Diretriz Tática criada para sua área.",
-              }),
-            });
-  
-            await fetch("https://fokus360-backend.vercel.app/send-task-email", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: user.email,
-                tituloTarefa: "Nova Diretriz Tática",
-                assuntoTarefa: "Foi criada uma nova diretriz tática vinculada à sua área.",
-                prazoTarefa: "Sem prazo",
-              }),
-            });
-          })
-        );
-      }
-  
-      // ✉️ E-mails manuais nas táticas
-      const emailsManuais = allTaticas
-        .flatMap((tatica) => tatica.emails || [])
-        .filter((email) => email.trim() !== "");
-  
-      if (emailsManuais.length > 0) {
-        await Promise.all(
-          emailsManuais.map(async (email) => {
-            await fetch("https://fokus360-backend.vercel.app/send-task-email", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: email,
-                tituloTarefa: "Nova Diretriz Tática",
-                assuntoTarefa: "Foi criada uma nova diretriz tática vinculada ao seu e-mail.",
-                prazoTarefa: "Sem prazo",
-              }),
-            });
-          })
-        );
-      }
-  
-      alert("✅ Táticas salvas e notificações enviadas!");
-    } catch (error) {
-      console.error("Erro ao salvar táticas:", error);
-      alert("Erro ao salvar táticas. Tente novamente.");
-    }
-  };
-  
-  
-  
-
-  
-  
-
-//=========================================================================================================================================== 
-
-
-
-//========================================= Salvar Operacional ====================================================
-
-const handleSalvarOperacional = async () => {
-  try {
-    if (!projectId) {
-      alert("ID do projeto não encontrado.");
-      return;
-    }
-
-    const allOperacional = estrategicas.flatMap((est) =>
-      est.taticas.flatMap((tatica) =>
-        tatica.operacionais.map((op) => ({
-          id: op.id,
-          titulo: op.titulo,
-          descricao: op.descricao,
-          tarefas: op.tarefas || [],
-          emails: op.emails || [],
-        }))
-      )
-    );
-
-    if (allOperacional.length === 0) {
-      alert("Adicione ao menos uma Operacional.");
-      return;
-    }
-
-    // ✅ Coleta todas as áreas selecionadas nas operacionais
-    const todasAreasOperacionais = Object.values(areasOperacionaisPorId).flat();
-
-    if (todasAreasOperacionais.length === 0) {
-      alert("Selecione ao menos uma área responsável para a Operacional.");
-      return;
-    }
-
-    const projetoRef = doc(db, "projetos", projectId);
-    await updateDoc(projetoRef, {
-      estrategicas,
-      areasResponsaveis: todasAreasOperacionais,
-      areasResponsaveisoperacional: todasAreasOperacionais,
-      updatedAt: new Date(),
-    });
-
-    // 🔔 Busca usuários pelas áreas operacionais e envia notificações
-    const rolesVinculados = todasAreasOperacionais.flatMap(
-      (areaId) => areaRolesMap[areaId] || []
-    );
-
-    const usuarios = await buscarUsuariosPorRole(rolesVinculados);
-
-    await Promise.all(
-      usuarios.map(async (user) => {
-        await fetch("https://fokus360-backend.vercel.app/send-notification", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: user.id,
-            mensagem: "Nova Diretriz Operacional criada para sua área.",
-          }),
-        });
-
-        await fetch("https://fokus360-backend.vercel.app/send-task-email", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: user.email,
-            tituloTarefa: "Nova Diretriz Operacional",
-            assuntoTarefa: "Foi criada uma nova diretriz operacional vinculada à sua área.",
-            prazoTarefa: "Sem prazo",
-          }),
-        });
-      })
-    );
-
-    // ✉️ Envia e-mails manuais adicionados nas operacionais
-    const emailsManuais = allOperacional
-      .flatMap((op) => op.emails || [])
-      .filter((email) => email.trim() !== "");
-
-    if (emailsManuais.length > 0) {
-      await Promise.all(
-        emailsManuais.map(async (email) => {
-          await fetch("https://fokus360-backend.vercel.app/send-task-email", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: email,
-              tituloTarefa: "Nova Diretriz Operacional",
-              assuntoTarefa: "Foi criada uma nova diretriz operacional vinculada ao seu e-mail.",
-              prazoTarefa: "Sem prazo",
-            }),
-          });
-        })
-      );
-    }
-
-    // ✉️ Envia e-mails para os responsáveis das tarefas (quemEmail)
-    await Promise.all(
-      allOperacional.flatMap((operacional) =>
-        (operacional.tarefas || []).flatMap((tarefa) => {
-          const emails = tarefa.planoDeAcao?.quemEmail || [];
-          const emailList = Array.isArray(emails) ? emails : [emails];
-          return emailList
-            .filter((email) => email.trim() !== "")
-            .map(async (email) => {
-              await fetch("https://fokus360-backend.vercel.app/send-task-email", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  email,
-                  tituloTarefa: tarefa.tituloTarefa || "Nova Tarefa",
-                  assuntoTarefa: "Você foi designado para um plano de ação",
-                  prazoTarefa: tarefa.planoDeAcao?.quando || "Sem prazo",
-                }),
-              });
-            });
-        })
-      )
-    );
-
-
-
-    // ✉️ Envia e-mails para os responsáveis definidos em quemEstrategicas
-await Promise.all(
-  estrategicas.flatMap((estrategica) =>
-    estrategica.taticas.flatMap((tatica) =>
-      tatica.operacionais.flatMap((operacional) =>
-        (operacional.tarefas || []).flatMap((tarefa) => {
-          const emails = tarefa.planoDeAcao?.quemEstrategicas || [];
-          const emailList = Array.isArray(emails) ? emails : [emails];
-          return emailList
-            .filter((email) => email.trim() !== "")
-            .map(async (email) => {
-              await fetch("https://fokus360-backend.vercel.app/send-task-email", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  email,
-                  tituloTarefa: tarefa.tituloTarefa || "Nova Tarefa",
-                  assuntoTarefa: "Você foi designado para um plano de ação vinculado à diretriz estratégica.",
-                  prazoTarefa: tarefa.planoDeAcao?.quando || "Sem prazo",
-                }),
-              });
-            });
-        })
-      )
-    )
-  )
-);
-
-
-    alert("✅ Operacionais salvas e notificações enviadas!");
-  } catch (error) {
-    console.error("Erro ao salvar Operacionais:", error);
-    alert("Erro ao salvar Operacionais. Tente novamente.");
-  }
-};
 
 
 
