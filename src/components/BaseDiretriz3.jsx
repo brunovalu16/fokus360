@@ -668,11 +668,17 @@ const areaRolesMap = {
         updatedAt: new Date(),
       });
   
+    
       // Estratégicas - usuários por área
-      const rolesEstrategicas = estrategicasAtualizadas.flatMap((est) =>
-        (est.areasResponsaveis || []).flatMap((areaId) => areaRolesMap[areaId] || [])
-      );
+      const areasEstrategicasTodas = estrategicasAtualizadas.flatMap(est => est.areasResponsaveis || []);
+      const rolesEstrategicas = areasEstrategicasTodas.flatMap((areaId) => areaRolesMap[areaId] || []);
       const usuariosEstrategicos = await buscarUsuariosPorRole(rolesEstrategicas);
+
+      // DEBUG opcional:
+      console.log("📌 Áreas estratégicas:", areasEstrategicasTodas);
+      console.log("📌 Roles estratégicas:", rolesEstrategicas);
+      console.log("📌 Usuários encontrados (estratégico):", usuariosEstrategicos.map(u => u.email));
+
   
       await Promise.all(
         usuariosEstrategicos.map((user) =>
