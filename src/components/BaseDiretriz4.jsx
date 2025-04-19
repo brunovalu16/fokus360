@@ -876,12 +876,14 @@ const areaRolesMap = {
         };
       });
   
+      // Atualiza no Firestore
       const projetoRef = doc(db, "projetos", projectId);
       await updateDoc(projetoRef, {
         estrategicas: estrategicasAtualizadas,
         updatedAt: new Date(),
       });
   
+      // Verifica alterações por nível e envia e-mails apenas para novos responsáveis
       for (const est of estrategicasAtualizadas) {
         const novasAreas = getNovosItens(est.areasResponsaveis, areasOriginaisPorId?.[est.id] || []);
         const novosEmails = getNovosItens(est.emails, emailsOriginaisPorIdEstrategica?.[est.id] || []);
@@ -896,7 +898,7 @@ const areaRolesMap = {
                 email: user.email,
                 tituloTarefa: "Nova Diretriz Estratégica",
                 assuntoTarefa: "Foi criada uma nova diretriz estratégica vinculada à sua área.",
-                prazoTarefa: "Sem prazo"
+                prazoTarefa: "Sem prazo",
               }),
             })
           ));
@@ -911,7 +913,7 @@ const areaRolesMap = {
                 email,
                 tituloTarefa: "Nova Diretriz Estratégica",
                 assuntoTarefa: "Você foi designado como responsável por uma diretriz Estratégica.",
-                prazoTarefa: "Sem prazo"
+                prazoTarefa: "Sem prazo",
               }),
             })
           ));
@@ -931,7 +933,7 @@ const areaRolesMap = {
                   email: user.email,
                   tituloTarefa: "Nova Diretriz Tática",
                   assuntoTarefa: "Foi criada uma nova diretriz tática vinculada à sua área.",
-                  prazoTarefa: "Sem prazo"
+                  prazoTarefa: "Sem prazo",
                 }),
               })
             ));
@@ -946,7 +948,7 @@ const areaRolesMap = {
                   email,
                   tituloTarefa: "Nova Diretriz Tática",
                   assuntoTarefa: "Você foi designado como responsável por uma diretriz Tática.",
-                  prazoTarefa: "Sem prazo"
+                  prazoTarefa: "Sem prazo",
                 }),
               })
             ));
@@ -954,7 +956,9 @@ const areaRolesMap = {
   
           for (const op of tat.operacionais) {
             const novasAreasOp = getNovosItens(op.areasResponsaveis, areasOriginaisOperacionaisPorId?.[op.id] || []);
-            const novosEmailsOp = getNovosItens(op.emails, emailsOriginaisPorIdOperacional?.[op.id] || []);
+            const emailsAtuaisOp = op.emails || [];
+            const emailsOriginaisOp = emailsOriginaisPorIdOperacional?.[op.id] || [];
+            const novosEmailsOp = getNovosItens(emailsAtuaisOp, emailsOriginaisOp);
   
             if (novasAreasOp.length > 0) {
               const usuariosOp = await buscarUsuariosPorRole(novasAreasOp.flatMap((a) => areaRolesMap[a] || []));
@@ -966,7 +970,7 @@ const areaRolesMap = {
                     email: user.email,
                     tituloTarefa: "Nova Diretriz Operacional",
                     assuntoTarefa: "Foi criada uma nova diretriz operacional vinculada à sua área.",
-                    prazoTarefa: "Sem prazo"
+                    prazoTarefa: "Sem prazo",
                   }),
                 })
               ));
@@ -981,7 +985,7 @@ const areaRolesMap = {
                     email,
                     tituloTarefa: "Nova Diretriz Operacional",
                     assuntoTarefa: "Você foi designado como responsável por uma diretriz Operacional.",
-                    prazoTarefa: "Sem prazo"
+                    prazoTarefa: "Sem prazo",
                   }),
                 })
               ));
@@ -990,7 +994,7 @@ const areaRolesMap = {
         }
       }
   
-      // Tarefas → envio para quemEmail
+      // Envio para quemEmail nas tarefas
       await Promise.all(
         estrategicasAtualizadas.flatMap((est) =>
           est.taticas.flatMap((tat) =>
@@ -1021,6 +1025,7 @@ const areaRolesMap = {
       alert("Erro ao salvar diretrizes. Tente novamente.");
     }
   };
+  
   
   
   
