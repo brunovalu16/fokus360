@@ -996,28 +996,33 @@ const areaRolesMap = {
       }
   
       // Envio dos e-mails para responsáveis de tarefas (quemEmail)
-      await Promise.all(
-        estrategicasAtualizadas.flatMap(est =>
-          est.taticas.flatMap(tat =>
-            tat.operacionais.flatMap(op =>
-              (op.tarefas || []).flatMap(tarefa =>
-                (tarefa.planoDeAcao?.quemEmail || []).map(email =>
-                  fetch("https://fokus360-backend.vercel.app/send-task-email", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      email,
-                      tituloTarefa: tarefa.tituloTarefa || "Nova Tarefa",
-                      assuntoTarefa: "Você foi designado como responsável por uma tarefa operacional.",
-                      prazoTarefa: tarefa.planoDeAcao?.quando || "Sem prazo",
-                    }),
-                  })
-                )
-              )
-            )
-          )
-        )
-      );
+      // Tarefas - Envia para quemEmail
+await Promise.all(
+  estrategicasAtualizadas.flatMap((est) =>
+    est.taticas.flatMap((tat) =>
+      tat.operacionais.flatMap((op) =>
+        (op.tarefas || []).flatMap((tarefa) => {
+          const emailsTarefa = tarefa.planoDeAcao?.quemEmail || [];
+          return emailsTarefa.map((email) => {
+            console.log("🔔 Enviando tarefa para:", email, " | tarefa:", tarefa.tituloTarefa);
+
+            return fetch("https://fokus360-backend.vercel.app/send-task-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email,
+                tituloTarefa: tarefa.tituloTarefa || "Nova Tarefa",
+                assuntoTarefa: "Você foi designado como responsável por uma tarefa operacional.",
+                prazoTarefa: tarefa.planoDeAcao?.quando || "Sem prazo",
+              }),
+            });
+          });
+        })
+      )
+    )
+  )
+);
+
   
       setEstrategicas(estrategicasAtualizadas);
       alert("✅ Diretrizes salvas com sucesso e e-mails enviados!");
