@@ -876,16 +876,13 @@ const areaRolesMap = {
         };
       });
   
-      // Atualiza o Firestore
       const projetoRef = doc(db, "projetos", projectId);
       await updateDoc(projetoRef, {
         estrategicas: estrategicasAtualizadas,
         updatedAt: new Date(),
       });
   
-      // Verificação de alterações e envio de e-mails por nível corretamente
       for (const est of estrategicasAtualizadas) {
-        // ESTRATÉGICAS
         const novasAreas = getNovosItens(est.areasResponsaveis, areasOriginaisPorId?.[est.id] || []);
         const novosEmails = getNovosItens(est.emails, emailsOriginaisPorIdEstrategica?.[est.id] || []);
   
@@ -921,7 +918,6 @@ const areaRolesMap = {
         }
   
         for (const tat of est.taticas) {
-          // TÁTICAS
           const novasAreasTat = getNovosItens(tat.areasResponsaveis, areasOriginaisTaticasPorId?.[tat.id] || []);
           const novosEmailsTat = getNovosItens(tat.emails, emailsOriginaisPorIdTatica?.[tat.id] || []);
   
@@ -957,7 +953,6 @@ const areaRolesMap = {
           }
   
           for (const op of tat.operacionais) {
-            // OPERACIONAIS
             const novasAreasOp = getNovosItens(op.areasResponsaveis, areasOriginaisOperacionaisPorId?.[op.id] || []);
             const novosEmailsOp = getNovosItens(op.emails, emailsOriginaisPorIdOperacional?.[op.id] || []);
   
@@ -995,34 +990,29 @@ const areaRolesMap = {
         }
       }
   
-      // Envio dos e-mails para responsáveis de tarefas (quemEmail)
-      // Tarefas - Envia para quemEmail
-await Promise.all(
-  estrategicasAtualizadas.flatMap((est) =>
-    est.taticas.flatMap((tat) =>
-      tat.operacionais.flatMap((op) =>
-        (op.tarefas || []).flatMap((tarefa) => {
-          const emailsTarefa = tarefa.planoDeAcao?.quemEmail || [];
-          return emailsTarefa.map((email) => {
-            console.log("🔔 Enviando tarefa para:", email, " | tarefa:", tarefa.tituloTarefa);
-
-            return fetch("https://fokus360-backend.vercel.app/send-task-email", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email,
-                tituloTarefa: tarefa.tituloTarefa || "Nova Tarefa",
-                assuntoTarefa: "Você foi designado como responsável por uma tarefa operacional.",
-                prazoTarefa: tarefa.planoDeAcao?.quando || "Sem prazo",
-              }),
-            });
-          });
-        })
-      )
-    )
-  )
-);
-
+      // Tarefas → envio para quemEmail
+      await Promise.all(
+        estrategicasAtualizadas.flatMap((est) =>
+          est.taticas.flatMap((tat) =>
+            tat.operacionais.flatMap((op) =>
+              (op.tarefas || []).flatMap((tarefa) =>
+                (tarefa.planoDeAcao?.quemEmail || []).map((email) =>
+                  fetch("https://fokus360-backend.vercel.app/send-task-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      email,
+                      tituloTarefa: tarefa.tituloTarefa || "Nova Tarefa",
+                      assuntoTarefa: "Você foi designado como responsável por uma tarefa operacional.",
+                      prazoTarefa: tarefa.planoDeAcao?.quando || "Sem prazo",
+                    }),
+                  })
+                )
+              )
+            )
+          )
+        )
+      );
   
       setEstrategicas(estrategicasAtualizadas);
       alert("✅ Diretrizes salvas com sucesso e e-mails enviados!");
@@ -1031,6 +1021,7 @@ await Promise.all(
       alert("Erro ao salvar diretrizes. Tente novamente.");
     }
   };
+  
   
   
   
