@@ -1002,7 +1002,7 @@ const areaRolesMap = {
           est.taticas.flatMap((tat) =>
             tat.operacionais.flatMap((op) =>
               (op.tarefas || []).flatMap((tarefa) =>
-                (tarefa.planoDeAcao?.quemEmail || []).map((email) =>
+                (Array.isArray(tarefa.planoDeAcao?.quemEmail) ? tarefa.planoDeAcao?.quemEmail : []).map((email) => 
                   fetch("https://fokus360-backend.vercel.app/send-task-email", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
