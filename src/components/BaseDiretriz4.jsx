@@ -63,6 +63,12 @@ const [unidadesOperacionaisPorId, setUnidadesOperacionaisPorId] = useState({});
 const [emailsOperacionaisPorId, setEmailsOperacionaisPorId] = useState({});
 
   
+const [areasOriginaisPorId, setAreasOriginaisPorId] = useState({});
+const [emailsOriginaisPorIdEstrategica, setEmailsOriginaisPorIdEstrategica] = useState({});
+const [areasOriginaisTaticasPorId, setAreasOriginaisTaticasPorId] = useState({});
+const [emailsOriginaisPorIdTatica, setEmailsOriginaisPorIdTatica] = useState({});
+const [areasOriginaisOperacionaisPorId, setAreasOriginaisOperacionaisPorId] = useState({});
+const [emailsOriginaisPorIdOperacional, setEmailsOriginaisPorIdOperacional] = useState({});
 
 
 
@@ -222,6 +228,17 @@ const [emailsPorIdOperacional, setEmailsPorIdOperacional] = useState({});
   
       setAreasOriginaisOperacionaisPorId(novaAreasOperacionaisPorId);
       setEmailsOriginaisPorIdOperacional(novosEmailsPorIdOperacional);
+
+      // Após carregar todos os selects e estados normais:
+      setAreasOriginaisPorId(novaAreasPorId);
+      setEmailsOriginaisPorIdEstrategica(novosEmailsPorIdEstrategica);
+
+      setAreasOriginaisTaticasPorId(novaAreasTaticasPorId);
+      setEmailsOriginaisPorIdTatica(novosEmailsPorIdTatica);
+
+      setAreasOriginaisOperacionaisPorId(novaAreasOperacionaisPorId);
+      setEmailsOriginaisPorIdOperacional(novosEmailsPorIdOperacional);
+
     })();
   }, [projetoData]);
   
