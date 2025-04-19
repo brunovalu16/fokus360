@@ -978,8 +978,9 @@ const areaRolesMap = {
             }
   
             if (novosEmailsOp.length > 0) {
-              await Promise.all(novosEmailsOp.map((email) =>
-                fetch("https://fokus360-backend.vercel.app/send-task-email", {
+              await Promise.all(novosEmailsOp.map((email) => {
+                console.log("📩 Enviando e-mail de RESPONSÁVEL OPERACIONAL para:", email);
+                return fetch("https://fokus360-backend.vercel.app/send-task-email", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
@@ -988,8 +989,8 @@ const areaRolesMap = {
                     assuntoTarefa: "Você foi designado como responsável por uma diretriz Operacional.",
                     prazoTarefa: "Sem prazo"
                   }),
-                })
-              ));
+                });
+              }));
             }
           }
         }
