@@ -81,7 +81,14 @@ function DashboardPlanejamento() {
       position: "relative",
     }}
   >
-    <DadosProjeto2 />
+    <DadosProjeto2
+      orcamento={projetoData?.orcamento}
+      estrategicas={projetoData?.estrategicas}
+      diretrizes={projetoData?.estrategicas}
+    />
+
+
+
 
     
 

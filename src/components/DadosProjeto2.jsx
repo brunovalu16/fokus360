@@ -4,26 +4,34 @@ import PaidIcon from "@mui/icons-material/Paid";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 
 
-const DadosProjeto2 = ({ orcamento, valorGasto, totalDiretrizes, tarefasConcluidas, totalTarefas, diretrizes }) => {
+
+
+// IMPORTS
+import { PieChart } from '@mui/x-charts/PieChart'; // ✅ importante! precisa ter esse pacote instalado
+
+
+
+
+
+
+const DadosProjeto2 = ({ orcamento, valorGasto, estrategicas, totalDiretrizes, tarefasConcluidas, totalTarefas, diretrizes }) => {
   // 1) Função para calcular progresso de Valor Gasto vs. Orçamento
   const calcularProgressoValorGasto = () => {
-    // Garante que o orçamento seja uma string válida antes de substituir caracteres
     const orcamentoNum = orcamento
       ? parseFloat(orcamento.replace("R$", "").replace(/\./g, "").replace(",", "."))
       : 0;
   
-    // Soma todos os valores das tarefas dentro das diretrizes (novo caminho do Firestore)
     let gastoNum = 0;
   
-    if (diretrizes && Array.isArray(diretrizes)) {
-      diretrizes.forEach((diretriz) => {
-        diretriz.taticas?.forEach((tatica) => {
+    if (Array.isArray(estrategicas)) {
+      estrategicas.forEach((estrategica) => {
+        estrategica.taticas?.forEach((tatica) => {
           tatica.operacionais?.forEach((operacional) => {
             operacional.tarefas?.forEach((tarefa) => {
-              // Garante que valor existe e converte corretamente
-              const valorTarefa = tarefa?.planoDeAcao?.valor
-                ? parseFloat(tarefa.planoDeAcao.valor.replace("R$", "").replace(/\./g, "").replace(",", "."))
-                : 0;
+              const valorRaw = tarefa?.planoDeAcao?.valor || "R$ 0,00";
+              const valorTarefa = parseFloat(
+                valorRaw.replace("R$", "").replace(/\./g, "").replace(",", ".")
+              );
               gastoNum += valorTarefa;
             });
           });
@@ -31,12 +39,10 @@ const DadosProjeto2 = ({ orcamento, valorGasto, totalDiretrizes, tarefasConcluid
       });
     }
   
-    // Evita divisão por zero
     if (orcamentoNum === 0) return 0;
-  
-    // Retorna o progresso em porcentagem
     return (gastoNum / orcamentoNum) * 100;
   };
+  
 
   const totalEstr = countAllDiretrizes(diretrizes);
   const totalTat = countAllTaticas(diretrizes);
@@ -48,6 +54,31 @@ const DadosProjeto2 = ({ orcamento, valorGasto, totalDiretrizes, tarefasConcluid
   const conclOp = countOperacionaisConcluidos(diretrizes);
   const conclTar = countTarefasConcluidas(diretrizes);
 
+
+  const calcularValorGastoTotal = () => {
+    let total = 0;
+  
+    estrategicas?.forEach((estrategica) => {
+      estrategica.taticas?.forEach((tatica) => {
+        tatica.operacionais?.forEach((operacional) => {
+          operacional.tarefas?.forEach((tarefa) => {
+            const valor = tarefa?.planoDeAcao?.valor || "";
+            if (typeof valor === "string") {
+              const valorNum = parseFloat(
+                valor.replace("R$", "").replace(/\./g, "").replace(",", ".")
+              );
+              if (!isNaN(valorNum)) {
+                total += valorNum;
+              }
+            }
+          });
+        });
+      });
+    });
+  
+    return total;
+  };
+  
   
   
   // 2) Define cor dinâmica para “Valor Gasto”
@@ -114,8 +145,11 @@ const DadosProjeto2 = ({ orcamento, valorGasto, totalDiretrizes, tarefasConcluid
     },
     // 2) Valor Gasto (cor dinâmica)
     {
-      title: valorGasto,
-      subtitle: "Valor gasto",
+      title: new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      }).format(calcularValorGastoTotal()),
+      subtitle: "Valor gasto",    
       icon: <PaidIcon sx={{ color: "#fff", fontSize: "50px" }} />,
       progressColor: definirCorValorGasto(),
       customIndicator: (
@@ -129,32 +163,12 @@ const DadosProjeto2 = ({ orcamento, valorGasto, totalDiretrizes, tarefasConcluid
         />
       ),
     },
-    {
-      title: (
-        <Typography variant="body2" sx={{ color: "#fff", fontSize: "12px", textAlign: "left" }}>
-          {`Total de Diretrizes: ${totalEstr}`} <br/>
-          {`Total de Táticas: ${totalTat}`} <br/>
-          {`Total de Operacionais: ${totalOp}`} <br/>
-          {`Total de Tarefas: ${totalTar}`} <br/>
-          
-        </Typography>
-      ),
-      icon: <AssignmentTurnedInIcon sx={{ color: "#fff", fontSize: "50px" }} />,
-    },
-    {
-      title: (
-        <Typography variant="body2" sx={{ color: "#fff", fontSize: "12px", textAlign: "left" }}>
-          
-          {`Diretrizes Concluídas: ${conclEstr}`} <br/>
-          {`Táticas Concluídas: ${conclTat}`} <br/>
-          {`Operacionais Concluídos: ${conclOp}`} <br/>
-          {`Tarefas Concluídas: ${conclTar}`}
-        </Typography>
-      ),
-      icon: <AssignmentTurnedInIcon sx={{ color: "#fff", fontSize: "50px" }} />,
-    },
-       
+  
   ];
+
+ 
+
+
 
 
 
@@ -306,11 +320,91 @@ function countTarefasConcluidas(diretrizes = []) {
 }
 
 
+function countConcluidas(estrategicas = [], nivel) {
+  let count = 0;
+
+  estrategicas.forEach(est => {
+    if (nivel === "estrategica" && est.status === "concluida") count++;
+
+    est.taticas?.forEach(tat => {
+      if (nivel === "tatica" && tat.status === "concluida") count++;
+
+      tat.operacionais?.forEach(op => {
+        if (nivel === "operacional" && op.status === "concluida") count++;
+
+        op.tarefas?.forEach(tarefa => {
+          if (nivel === "tarefa" && tarefa.status === "concluida") count++;
+        });
+      });
+    });
+  });
+
+  return count;
+}
 
 
 
 
 
+
+// COMPONENTE FORA DA FUNÇÃO PRINCIPAL (COMPONENTE DOS GRAFICOS)
+const GraficoStatusDonut = ({ tipo, diretrizes, estrategicas }) => {
+  let data = [];
+
+  if (tipo === "total") {
+    data = [
+      { label: "Estratégicas", value: diretrizes?.length || 0 },
+      { label: "Táticas", value: countAllTaticas(diretrizes), color: "#4caf50" },
+      { label: "Operacionais", value: countAllOperacionais(diretrizes) },
+      { label: "Tarefas", value: countAllTarefas(diretrizes), color: "#f28e2b" },
+    ];
+  } else if (tipo === "concluidas") {
+    data = [
+      { label: "Estratégicas", value: countConcluidas(estrategicas, "estrategica") },
+      { label: "Táticas", value: countConcluidas(estrategicas, "tatica"), color: "#4caf50" },
+      { label: "Operacionais", value: countConcluidas(estrategicas, "operacional") },
+      { label: "Tarefas", value: countConcluidas(estrategicas, "tarefa"), color: "#f28e2b" },
+    ];
+  }
+
+  return (
+    <Box
+      display="flex"
+      alignItems="center"
+      justifyContent="flex-start"
+       >
+
+      {/* Lista ao lado do gráfico */}
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.3 }}>
+        {data.map((item, index) => (
+          <Typography
+            key={index}
+            sx={{
+              color: "#000",
+              fontSize: "10px",
+              whiteSpace: "nowrap", // impede quebra de linha
+            }}
+          >
+            {tipo === "total"
+              ? `Total de ${item.label}: ${item.value}`
+              : `${item.label} concluídas: ${item.value}`}
+          </Typography>
+        ))}
+      </Box>
+
+      {/* Donut Chart */}
+      <PieChart
+        series={[{ data, innerRadius: 50 }]}
+        width={200}
+        height={200}
+        legend={{
+          direction: "row",
+          position: { vertical: "bottom", horizontal: "middle" },
+        }}
+      />
+    </Box>
+  );
+};
 
 
 
@@ -338,9 +432,7 @@ function countTarefasConcluidas(diretrizes = []) {
 
 
   return (
-    <Box
-      
-    >
+    <Box>
       <Box
         display="grid"
         gridTemplateColumns="repeat(auto-fit, minmax(200px, 1fr))"
@@ -390,6 +482,8 @@ function countTarefasConcluidas(diretrizes = []) {
               {item.icon}
             </Box>
 
+            
+
             <Box
               sx={{
                 width: "2px",
@@ -414,7 +508,7 @@ function countTarefasConcluidas(diretrizes = []) {
                 variant="h6"
                 sx={{
                   color: "#fff",
-                  fontSize: "13px",
+                  fontSize: "15px",
                   whiteSpace: "pre-line",
                   textJustify: "inter-word",
                   textAlign: "left",
@@ -437,9 +531,52 @@ function countTarefasConcluidas(diretrizes = []) {
           </Box>
         ))}
       </Box>
-      {/* Componente */}
-     
-    </Box>
+
+
+      {/* GRÁFICO 1 - Totais */}
+      <Box
+  sx={{
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    flexWrap: "wrap", // quebra em telas pequenas
+    marginTop: 4,
+    width: "100%",
+  }}
+>
+  {/* GRÁFICO 1 - Total */}
+  <Box
+    sx={{
+      flex: 1,
+      minWidth: "300px",
+      maxWidth: "48%",
+      padding: 2,
+      borderRadius: "20px",
+      marginBottom: "30px",
+      //backgroundColor: "#fff", // opcional: manter um fundo visível
+    }}
+  >
+    <GraficoStatusDonut tipo="total" diretrizes={diretrizes} />
+  </Box>
+
+  {/* GRÁFICO 2 - Concluídos */}
+  <Box
+    sx={{
+      flex: 1,
+      minWidth: "300px",
+      maxWidth: "48%",
+      padding: 2,
+      borderRadius: "20px",
+      marginBottom: "30px",
+      //backgroundColor: "#fff",
+    }}
+  >
+    <GraficoStatusDonut tipo="concluidas" estrategicas={estrategicas} />
+  </Box>
+</Box>
+
+</Box>
   );
 };
 

@@ -10,6 +10,8 @@ import {
   AccordionDetails,
   Button,
 } from "@mui/material";
+import { FormControl, InputLabel, ListItemAvatar, Avatar  } from "@mui/material";
+
 import { dbFokus360 } from "../data/firebase-config"; // ✅ Usa a instância correta
 import { getDocs, collection, addDoc, doc, setDoc, getDoc } from "firebase/firestore";
 import { getApps } from "firebase/app";
@@ -299,53 +301,64 @@ useEffect(() => {
 
 
               {/* Unidade */}
-              <Select
-                name="unidade"
-                value={formValues.unidade}
-                onChange={handleChange}
-                displayEmpty
-                sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}
-              >
-                <MenuItem value="" disabled>
-                  Selecione a unidade do projeto
-                </MenuItem>
-                <MenuItem value="BRASÍLIA">BRASÍLIA</MenuItem>
-                <MenuItem value="GOIÁS">GOIÁS</MenuItem>
-                <MenuItem value="MATOGROSSO">MATO GROSSO</MenuItem>
-                <MenuItem value="MATOGROSSODOSUL">MATO GROSSO DO SUL</MenuItem>
-                <MenuItem value="PARA">PARÁ</MenuItem>
-                <MenuItem value="TOCANTINS">TOCANTINS</MenuItem>
-              </Select>
+              <FormControl fullWidth sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}>
+                <InputLabel shrink id="label-unidade">Unidade</InputLabel>
+                <Select
+                  labelId="label-unidade"
+                  name="unidade"
+                  value={formValues.unidade}
+                  onChange={handleChange}
+                  displayEmpty
+                  notched
+                  label="Unidade"
+                >
+                  <MenuItem value="" disabled>
+                    Selecione a unidade do projeto
+                  </MenuItem>
+                  <MenuItem value="BRASÍLIA">BRASÍLIA</MenuItem>
+                  <MenuItem value="GOIÁS">GOIÁS</MenuItem>
+                  <MenuItem value="MATOGROSSO">MATO GROSSO</MenuItem>
+                  <MenuItem value="MATOGROSSODOSUL">MATO GROSSO DO SUL</MenuItem>
+                  <MenuItem value="PARA">PARÁ</MenuItem>
+                  <MenuItem value="TOCANTINS">TOCANTINS</MenuItem>
+                </Select>
+              </FormControl>
 
               {/* Solicitante */}
-              <Select
-                name="solicitante"
-                value={formValues.solicitante}
-                onChange={handleChange}
-                displayEmpty
-                sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}
-              >
-                <MenuItem value="" disabled>
-                  Selecione o solicitante
-                </MenuItem>
-                {users.map((user) => (
-                  <MenuItem key={user.id} value={user.username}>
-                    {user.username}
+              <FormControl fullWidth sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}>
+                <InputLabel shrink id="label-solicitante">Solicitante</InputLabel>
+                <Select
+                  labelId="label-solicitante"
+                  name="solicitante"
+                  value={formValues.solicitante}
+                  onChange={handleChange}
+                  displayEmpty
+                  notched
+                  label="Solicitante"
+                >
+                  <MenuItem value="" disabled>
+                    Selecione o solicitante
                   </MenuItem>
-                ))}
-              </Select>
+                  {users.map((user) => (
+                    <MenuItem key={user.id} value={user.username}>
+                      {user.username}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
 
               {/* Categoria */}
-              <Select
-                name="categoria"
-                value={formValues.categoria}
-                onChange={handleChange}
-                displayEmpty
-                sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}
-              >
-                <MenuItem value="" disabled>
-                  Selecione uma categoria
-                </MenuItem>
+              <FormControl fullWidth sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}>
+                <InputLabel shrink id="label-categoria">Categoria</InputLabel>
+                <Select
+                  labelId="label-categoria"
+                  name="categoria"
+                  value={formValues.categoria}
+                  onChange={handleChange}
+                  displayEmpty
+                  notched
+                  label="Categoria"
+                >
                 <MenuItem value="ADMINISTRATIVO">ADMINISTRATIVO</MenuItem>
                 <MenuItem value="COMERCIAL">COMERCIAL</MenuItem>
                 <MenuItem value="CONTABILIDADE">CONTABILIDADE</MenuItem>
@@ -360,37 +373,60 @@ useEffect(() => {
                 <MenuItem value="FINANCEIRO">FINANCEIRO</MenuItem>
                 <MenuItem value="RECURSOSHUMANOS">RECURSOS HUMANOS</MenuItem>
                 <MenuItem value="LOGISTICA">LOGÍSTICA</MenuItem>
-              </Select>
+                </Select>
+              </FormControl>
+
 
               {/* Colaboradores (múltipla seleção) */}
-              <Select
-                multiple
-                name="colaboradores"
-                value={formValues.colaboradores}
-                onChange={handleSelectChange}
-                displayEmpty
-                sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}
-                renderValue={(selected) =>
-                  selected.length === 0
-                    ? "Selecione colaboradores"
-                    : selected
-                        .map(
-                          (id) =>
-                            users.find((user) => user.id === id)?.username ||
-                            "Desconhecido"
-                        )
-                        .join(", ")
-                }
-              >
-                {users.map((user) => (
-                  <MenuItem key={user.id} value={user.id}>
-                    <Checkbox
-                      checked={formValues.colaboradores.includes(user.id)}
-                    />
-                    <ListItemText primary={user.username} />
-                  </MenuItem>
-                ))}
-              </Select>
+              <FormControl fullWidth sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}>
+  <InputLabel shrink id="label-colaboradores">Colaboradores</InputLabel>
+  <Select
+    labelId="label-colaboradores"
+    multiple
+    name="colaboradores"
+    value={formValues.colaboradores}
+    onChange={handleSelectChange}
+    displayEmpty
+    notched
+    label="Colaboradores"
+    renderValue={(selected) =>
+      selected.length === 0
+        ? "Selecione colaboradores"
+        : selected
+            .map(
+              (id) => users.find((user) => user.id === id)?.username || "Desconhecido"
+            )
+            .join(", ")
+    }
+  >
+    <MenuItem value="" disabled>
+      Selecione colaboradores
+    </MenuItem>
+
+    {users.map((user) => (
+      <MenuItem key={user.id} value={user.id}>
+        <Checkbox checked={formValues.colaboradores.includes(user.id)} />
+        <Avatar
+          src={user.photoURL || "/default-avatar.png"}
+          alt={user.username}
+          sx={{
+            width: 30,
+            height: 30,
+            fontSize: "14px",
+            marginRight: 1,
+            bgcolor: user.photoURL ? "transparent" : "#9e9e9e",
+          }}
+          imgProps={{ referrerPolicy: "no-referrer" }}
+        >
+          {!user.photoURL && (user.username?.charAt(0).toUpperCase() || "?")}
+        </Avatar>
+        <ListItemText primary={user.username} />
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
+
+
 
               {/* Descrição do projeto */}
               <TextField

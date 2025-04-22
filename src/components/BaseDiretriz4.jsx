@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo  } from "react";
 import {
   Box,
   TextField,
@@ -28,6 +28,20 @@ import { calcularStatusVisual } from "../utils/statusVisual";
 
 //Importando o contador de data
 import { getDataHojeFormatada } from "../utils/formatDate";
+
+import StatusProgresso from "./StatusProgresso";
+
+
+
+//Componente da logica de calculos
+import StatusProgressoEstrategica from "./StatusProgressoEstrategica";
+import {
+  calcularProgressoEstrategica,
+  calcularProgressoTatica,
+  calcularProgressoOperacional,
+} from "../utils/progressoUtils";
+
+
 
 
 
@@ -1044,9 +1058,12 @@ const areaRolesMap = {
 
 
 
-  //========================================= Salvar táticas ====================================================
+  //========================================= LOGICA DE CALCULOS DE PROGRESSO ====================================================
 
- 
+  
+
+  
+  
 
   
   
@@ -1271,6 +1288,8 @@ useEffect(() => {
             marginBottom: "10px",
           }}
         >
+
+          
           {/* Cabeçalho da Estratégica */}
           <AccordionSummary
             expandIcon={<ExpandMoreIcon sx={{ color: "#b7b7b7" }} />}
@@ -1283,6 +1302,7 @@ useEffect(() => {
               boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
             }}
           >
+
 
 
 
@@ -1316,6 +1336,7 @@ useEffect(() => {
 )}
 
 
+<StatusProgresso progresso={calcularProgressoEstrategica(estrategica)} />
 
 
             <Box sx={{ flex: 1, textAlign: "left" }}>
@@ -1329,6 +1350,7 @@ useEffect(() => {
 
             
 
+          
 
 
 
@@ -1866,6 +1888,7 @@ useEffect(() => {
   </Box>
 )}
 
+<StatusProgresso progresso={calcularProgressoTatica(tatica)} />
 
 
                   {/* Cabeçalho da Tática */}
@@ -2415,6 +2438,15 @@ useEffect(() => {
 )}
 
 
+                        <StatusProgresso
+                          progresso={calcularProgressoOperacional(
+                            estrategicas
+                              .flatMap((est) => est.taticas)
+                              .flatMap((tat) => tat.operacionais)
+                              .find((op) => op.id === operacional.id) || operacional
+                          )}
+                        />
+
 
 
                         {/* Cabeçalho da Operacional */}
@@ -2435,9 +2467,7 @@ useEffect(() => {
 
 
 
-
-
-
+                        
 
 
 
@@ -2952,6 +2982,63 @@ useEffect(() => {
                                         Plano de Ação (5W2H)
                                       </Typography>
                                     </Box>
+
+
+{/**checkbox de marcar como concluida */}
+<Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 5, justifyContent: "flex-end" }}>
+  <Checkbox
+    checked={tarefa.status === "concluida"}
+    onChange={async () => {
+      const novaEstrutura = estrategicas.map((est) => ({
+        ...est,
+        taticas: est.taticas.map((tat) => ({
+          ...tat,
+          operacionais: tat.operacionais.map((op) => ({
+            ...op,
+            tarefas: op.tarefas.map((t) =>
+              t.id === tarefa.id
+                ? {
+                    ...t,
+                    status: t.status === "concluida" ? "" : "concluida",
+                    checkboxState: {
+                      ...t.checkboxState,
+                      concluida: !(t.checkboxState?.concluida ?? false),
+                    },
+                  }
+                : t
+            ),
+          })),
+        })),
+      }));
+
+      setEstrategicas(novaEstrutura);
+      onUpdate && onUpdate({ estrategicas: novaEstrutura });
+
+      // 🔄 Atualiza no Firestore
+      if (!projectId) {
+        console.warn("❌ ID do projeto não encontrado.");
+        return;
+      }
+
+      try {
+        const projetoRef = doc(db, "projetos", projectId);
+        await updateDoc(projetoRef, {
+          estrategicas: novaEstrutura,
+          updatedAt: new Date(),
+        });
+        console.log("✅ Status da tarefa salvo no Firestore.");
+      } catch (error) {
+        console.error("❌ Erro ao salvar tarefa no Firestore:", error);
+      }
+    }}
+    sx={{ padding: 0 }}
+  />
+  <Typography variant="body2">
+    Marcar como concluída
+  </Typography>
+</Box>
+
+
 
                                     {/* 🔹 Campos do 5W2H */}
 
