@@ -7,6 +7,9 @@ import {
   Select,
   MenuItem,
   Accordion,
+  Typography,
+  Card,
+  CardMedia,
   AccordionDetails,
   Button,
 } from "@mui/material";
@@ -14,6 +17,10 @@ import { dbFokus360 } from "../data/firebase-config"; // ✅ Usa a instância co
 import { getDocs, collection, addDoc } from "firebase/firestore";
 import { getApps } from "firebase/app";
 console.log("Apps Inicializados:", getApps()); // ✅ Deve exibir os apps carregados
+
+import { storageFokus360 } from "../data/firebase-config"; 
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
 
 
 
@@ -23,7 +30,7 @@ console.log("Apps Inicializados:", getApps()); // ✅ Deve exibir os apps carreg
  *  Recebe:
  *    - onUpdate( (prev) => ({ ...prev, ... }) ) => para atualizar no pai
  */
-const InformacoesPlanejamento = ({ projetoData, onUpdate, onSaveProjectId   }) => {
+const InformacoesPlanejamento = ({ projetoData, onUpdate, onSaveProjectId, onChangeFormValues }) => {
   const [users, setUsers] = useState([]);
   const [categoria, setCategoria] = useState("");
   const [colaboradorEmail, setColaboradorEmail] = useState("");
@@ -43,6 +50,8 @@ const InformacoesPlanejamento = ({ projetoData, onUpdate, onSaveProjectId   }) =
     colaboradores: [],
     responsavel: "",
     orcamento: "",
+    bannerPreview: "",  // 👉 preview da imagem
+    bannerFile: null, 
   });
 
 
@@ -105,9 +114,22 @@ useEffect(() => {
   // Atualiza local e já dispara onUpdate para o pai
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setFormValues((prev) => ({ ...prev, [name]: value }));
+  
+    setFormValues((prev) => {
+      const updated = { ...prev, [name]: value };
+  
+      // 🔄 Envia os dados atualizados para o componente pai
+      if (onChangeFormValues) {
+        onChangeFormValues(updated);
+      }
+  
+      return updated;
+    });
+  
+    // Continua chamando o onUpdate se quiser
     onUpdate((prev) => ({ ...prev, [name]: value }));
   };
+  
 
   const handleSelectChange = (event) => {
     const { name, value } = event.target;
@@ -145,6 +167,18 @@ useEffect(() => {
         return;
       }
   
+      let bannerUrl = "";
+  
+      if (formValues.bannerFile) {
+        console.log("📤 Enviando imagem para o Storage:", formValues.bannerFile);
+        const storageRef = ref(
+          storageFokus360,
+          `banners/${Date.now()}_${formValues.bannerFile.name}`
+        );
+        const snapshot = await uploadBytes(storageRef, formValues.bannerFile);
+        bannerUrl = await getDownloadURL(snapshot.ref);
+      }
+  
       const formatarDataParaISO = (data) => {
         if (!data) return "";
         const [ano, mes, dia] = data.split("-");
@@ -158,24 +192,26 @@ useEffect(() => {
         ...formValues,
         dataInicio: dataInicioISO,
         prazoPrevisto: prazoPrevistoISO,
+        bannerUrl: bannerUrl || "",
       };
+  
+      delete projetoFormatado.bannerFile;
+      delete projetoFormatado.bannerPreview;
+  
+      console.log("🔥 Dados salvos no projeto:", projetoFormatado);
   
       const docRef = await addDoc(collection(dbFokus360, "projetos"), projetoFormatado);
   
       alert("Projeto salvo com sucesso!");
-  
-      // 👉 Envia o ID para o componente pai
       if (onSaveProjectId) {
         onSaveProjectId(docRef.id);
       }
-  
-      // ❗️ NÃO limpa os campos aqui, para poder continuar criando diretrizes
-  
     } catch (error) {
       console.error("Erro ao salvar o projeto:", error);
       alert("Erro ao salvar o projeto. Tente novamente.");
     }
   };
+  
   
 
   return (
@@ -188,6 +224,103 @@ useEffect(() => {
       >
         <AccordionDetails>
           <Box display="flex" flexDirection="column" gap={2}>
+
+
+
+
+
+
+            {/* Upload de Banner */}
+<Box width="100%" position="relative" mb={2}>
+  {formValues.bannerPreview ? (
+    <Card sx={{ width: "100%" }}>
+      <CardMedia
+        component="img"
+        height="200"
+        image={formValues.bannerPreview}
+        alt="Banner do Projeto"
+      />
+    </Card>
+  ) : (
+    <Box
+      sx={{
+        width: "100%",
+        height: 200,
+        backgroundColor: "#f0f0f0",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        border: "2px dashed #ccc",
+      }}
+    >
+      <Typography variant="body1" color="textSecondary">
+        Nenhum banner selecionado
+      </Typography>
+    </Box>
+  )}
+
+<input
+  type="file"
+  accept="image/*"
+  id="upload-banner"
+  style={{ display: "none" }}
+  onChange={(e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onloadend = () => {
+      const imageDataUrl = reader.result;
+
+      setFormValues((prev) => {
+        const updated = {
+          ...prev,
+          bannerPreview: imageDataUrl,
+          bannerFile: file,
+        };
+
+        // ✅ Atualiza o estado no componente pai
+        onChangeFormValues?.(updated);
+
+        return updated;
+      });
+
+      // ✅ Atualiza preview local se necessário
+      onUpdate?.((prev) => ({
+        ...prev,
+        bannerPreview: imageDataUrl,
+      }));
+    };
+
+    reader.readAsDataURL(file);
+  }}
+/>
+
+
+  <Box textAlign="center" mt={1}>
+    <label htmlFor="upload-banner">
+      <Button
+        variant="outlined"
+        component="span"
+        sx={{ mt: 1 }}
+      >
+        Selecionar Banner
+      </Button>
+    </label>
+  </Box>
+</Box>
+
+
+
+
+
+
+
+
+
+
+
             {/* Nome do Projeto */}
             <TextField
               label="Nome do projeto"

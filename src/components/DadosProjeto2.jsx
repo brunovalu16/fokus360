@@ -8,8 +8,11 @@ import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import DoubleArrowIcon from '@mui/icons-material/DoubleArrow';
 
-import { getDocs, collection } from "firebase/firestore";
-import { dbFokus360 } from "../data/firebase-config"; // ajuste conforme seu path
+import { getDocs, collection, doc, updateDoc  } from "firebase/firestore";
+import { dbFokus360, storageFokus360  } from "../data/firebase-config"; // ajuste conforme seu path
+
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
 
 
 import Tabs from '@mui/material/Tabs';
@@ -427,6 +430,7 @@ const GraficoStatusDonut = ({ tipo, diretrizes, estrategicas }) => {
   }
 
   return (
+    
     <Box
       display="flex"
       alignItems="center"
@@ -517,7 +521,34 @@ useEffect(() => {
 
 
 
+//Função para trocar o banner
+const handleTrocarBanner = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
 
+  try {
+    // 1) Enviar para Storage
+    const storageRef = ref(storageFokus360, `banners/${Date.now()}_${file.name}`);
+    const snapshot = await uploadBytes(storageRef, file);
+    const downloadUrl = await getDownloadURL(snapshot.ref);
+
+    // 2) Atualizar Firestore (projeto)
+    const projetoId = projetoData?.id; // 🔥 Importante: você precisa passar o ID do projeto no `projetoData`
+    if (!projetoId) {
+      alert("ID do projeto não encontrado!");
+      return;
+    }
+
+    const projetoRef = doc(dbFokus360, "projetos", projetoId);
+    await updateDoc(projetoRef, { bannerUrl: downloadUrl });
+
+    alert("Banner atualizado com sucesso! Atualize a página para ver a mudança.");
+  } catch (error) {
+    console.error("❌ Erro ao trocar banner:", error.message);
+    alert(`Erro ao trocar banner: ${error.message}`);
+  }
+  
+};
 
 
 
@@ -536,6 +567,84 @@ useEffect(() => {
 
 
   return (
+    <>
+
+
+    {/* Header mostrando o Banner do Projeto */}
+    <Box
+  sx={{
+    marginTop: "10px",
+    width: "100%",
+    maxWidth: "1200px",
+    marginX: "auto",
+    overflow: "hidden",
+    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+    position: "relative", // 👈 importante para posicionar botão
+  }}
+>
+  {projetoData?.bannerUrl ? (
+    <img
+      src={projetoData.bannerUrl}
+      alt="Banner do Projeto"
+      style={{
+        width: "100%",
+        height: "auto",
+        display: "block",
+        objectFit: "cover",
+      }}
+    />
+  ) : (
+    <Box
+      sx={{
+        width: "100%",
+        height: "200px",
+        backgroundColor: "#e0e0e0",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Typography variant="h6" color="text.secondary">
+        Nenhum Banner Disponível
+      </Typography>
+    </Box>
+  )}
+
+  {/* Botão de trocar banner */}
+  <label htmlFor="upload-new-banner">
+    <Box
+      sx={{
+        position: "absolute",
+        top: 10,
+        right: 10,
+        backgroundColor: "transparent",
+        color: "#fff",
+        padding: "2px 6px",
+        borderRadius: "4px",
+        border: "1px solid #fff",
+        cursor: "pointer",
+        fontSize: "10px",
+        minHeight: "22px",
+        "&:hover": {
+          backgroundColor: "rgba(255, 255, 255, 0.1)",
+        },
+      }}  
+    >
+      Trocar Banner
+    </Box>
+  </label>
+  <input
+    type="file"
+    accept="image/*"
+    id="upload-new-banner"
+    style={{ display: "none" }}
+    onChange={handleTrocarBanner}
+  />
+</Box>
+
+
+
+
     <Box>
       <Box
         display="grid"
@@ -1774,71 +1883,11 @@ useEffect(() => {
         Estratégicas
       </Typography>
     </Box>
-    {estrategicas?.filter(e => e.statusVisual === "atrasada").map((estrategica, i) => (
-      <Box
-        key={`est-atrasada-${i}`}
-        sx={{
-          backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
-          px: 2,
-          py: 1,
-          borderBottom: "1px solid #e0e0e0",
-          display: "flex",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 1,
-        }}
-      >
-        <Typography variant="body2" sx={{ flex: 1 }}>
-          {estrategica.titulo}
-        </Typography>
-
-        <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
-
-        <Typography variant="body2" sx={{ flex: 2 }}>
-          <strong>Responsáveis:</strong>{" "}
-          <span style={{ fontStyle: "italic", color: "#555" }}>
-            {(estrategica.emails || []).join(", ")}
-          </span>
-        </Typography>
-
-        <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
-
-        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-          <TextField
-            label="Data início"
-            type="date"
-            size="small"
-            value={projetoData?.dataInicio || ""}
-            InputLabelProps={{ shrink: true }}
-            disabled
-            sx={{ minWidth: "100px", maxWidth: "120px" }}
-          />
-          <TextField
-            label="Prazo previsto"
-            type="date"
-            size="small"
-            value={projetoData?.prazoPrevisto || ""}
-            InputLabelProps={{ shrink: true }}
-            disabled
-            sx={{ minWidth: "100px", maxWidth: "120px" }}
-          />
-        </Box>
-      </Box>
-    ))}
-  </Box>
-
-  {/* Táticas Atrasadas */}
-  <Box sx={{ mb: 2 }}>
-    <Box display="flex" alignItems="center" mb={1}>
-      <DoubleArrowIcon sx={{ color: "#00796b", mr: 1 }} />
-      <Typography variant="h6" sx={{ color: "#00796b" }}>
-        Táticas
-      </Typography>
-    </Box>
-    {estrategicas?.flatMap((estrategica, estIndex) =>
-      estrategica.taticas?.filter(t => t.statusVisual === "atrasada").map((tatica, i) => (
+    {estrategicas
+      ?.filter(e => e.time === "atrasada" && e.status !== "concluida")
+      .map((estrategica, i) => (
         <Box
-          key={`tat-atrasada-${estIndex}-${i}`}
+          key={`est-atrasada-${i}`}
           sx={{
             backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
             px: 2,
@@ -1851,7 +1900,7 @@ useEffect(() => {
           }}
         >
           <Typography variant="body2" sx={{ flex: 1 }}>
-            {tatica.titulo}
+            {estrategica.titulo}
           </Typography>
 
           <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
@@ -1859,7 +1908,7 @@ useEffect(() => {
           <Typography variant="body2" sx={{ flex: 2 }}>
             <strong>Responsáveis:</strong>{" "}
             <span style={{ fontStyle: "italic", color: "#555" }}>
-              {(tatica.emails || []).join(", ")}
+              {(estrategica.emails || []).join(", ")}
             </span>
           </Typography>
 
@@ -1886,23 +1935,23 @@ useEffect(() => {
             />
           </Box>
         </Box>
-      ))
-    )}
+      ))}
   </Box>
 
-  {/* Operacionais Atrasadas */}
-  <Box>
+  {/* Táticas Atrasadas */}
+  <Box sx={{ mb: 2 }}>
     <Box display="flex" alignItems="center" mb={1}>
-      <DoubleArrowIcon sx={{ color: "#ff9800", mr: 1 }} />
-      <Typography variant="h6" sx={{ color: "#ff9800" }}>
-        Operacionais
+      <DoubleArrowIcon sx={{ color: "#00796b", mr: 1 }} />
+      <Typography variant="h6" sx={{ color: "#00796b" }}>
+        Táticas
       </Typography>
     </Box>
     {estrategicas?.flatMap((estrategica, estIndex) =>
-      estrategica.taticas?.flatMap((tatica, tatIndex) =>
-        tatica.operacionais?.filter(op => op.statusVisual === "atrasada").map((op, i) => (
+      estrategica.taticas
+        ?.filter(t => t.time === "atrasada" && t.status !== "concluida")
+        .map((tatica, i) => (
           <Box
-            key={`op-atrasada-${estIndex}-${tatIndex}-${i}`}
+            key={`tat-atrasada-${estIndex}-${i}`}
             sx={{
               backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
               px: 2,
@@ -1915,7 +1964,7 @@ useEffect(() => {
             }}
           >
             <Typography variant="body2" sx={{ flex: 1 }}>
-              {op.titulo}
+              {tatica.titulo}
             </Typography>
 
             <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
@@ -1923,7 +1972,7 @@ useEffect(() => {
             <Typography variant="body2" sx={{ flex: 2 }}>
               <strong>Responsáveis:</strong>{" "}
               <span style={{ fontStyle: "italic", color: "#555" }}>
-                {(op.emails || []).join(", ")}
+                {(tatica.emails || []).join(", ")}
               </span>
             </Typography>
 
@@ -1951,18 +2000,82 @@ useEffect(() => {
             </Box>
           </Box>
         ))
+    )}
+  </Box>
+
+  {/* Operacionais Atrasadas */}
+  <Box>
+    <Box display="flex" alignItems="center" mb={1}>
+      <DoubleArrowIcon sx={{ color: "#ff9800", mr: 1 }} />
+      <Typography variant="h6" sx={{ color: "#ff9800" }}>
+        Operacionais
+      </Typography>
+    </Box>
+    {estrategicas?.flatMap((estrategica, estIndex) =>
+      estrategica.taticas?.flatMap((tatica, tatIndex) =>
+        tatica.operacionais
+          ?.filter(op => op.time === "atrasada" && op.status !== "concluida")
+          .map((op, i) => (
+            <Box
+              key={`op-atrasada-${estIndex}-${tatIndex}-${i}`}
+              sx={{
+                backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+                px: 2,
+                py: 1,
+                borderBottom: "1px solid #e0e0e0",
+                display: "flex",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 1,
+              }}
+            >
+              <Typography variant="body2" sx={{ flex: 1 }}>
+                {op.titulo}
+              </Typography>
+
+              <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+              <Typography variant="body2" sx={{ flex: 2 }}>
+                <strong>Responsáveis:</strong>{" "}
+                <span style={{ fontStyle: "italic", color: "#555" }}>
+                  {(op.emails || []).join(", ")}
+                </span>
+              </Typography>
+
+              <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                <TextField
+                  label="Data início"
+                  type="date"
+                  size="small"
+                  value={projetoData?.dataInicio || ""}
+                  InputLabelProps={{ shrink: true }}
+                  disabled
+                  sx={{ minWidth: "100px", maxWidth: "120px" }}
+                />
+                <TextField
+                  label="Prazo previsto"
+                  type="date"
+                  size="small"
+                  value={projetoData?.prazoPrevisto || ""}
+                  InputLabelProps={{ shrink: true }}
+                  disabled
+                  sx={{ minWidth: "100px", maxWidth: "120px" }}
+                />
+              </Box>
+            </Box>
+          ))
       )
     )}
   </Box>
 </TabPanel>
 
-        </TabContext>
-      </Box>
 
-
-
-
+</TabContext>
 </Box>
+</Box>
+</>
   );
 };
 

@@ -23,6 +23,9 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { doc, updateDoc, getFirestore, collection, getDocs, setDoc, onSnapshot   } from "firebase/firestore";
 import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para Fokus360
 
+import { calcularStatusVisualPorStatus } from "../utils/calcularStatusVisualPorStatus";
+
+
 //API para buscar data universal
 import { calcularStatusVisual } from "../utils/statusVisual";
 
@@ -905,7 +908,7 @@ const areaRolesMap = {
             return {
               ...op,
               status: op.status ?? "",
-              statusVisual: calcularStatusVisual(projetoData.prazoPrevisto, op.createdAt, op.status),
+              statusVisual: calcularStatusVisualPorStatus(op.status, projetoData.prazoPrevisto),
               areasResponsaveis: areasPorIdOperacional[op.id] || [],
               unidades: unidadesPorIdOperacional?.[op.id] || [],
               emails: [...manualEmails, ...responsaveisEmails].filter((e) => e.trim() !== ""),
@@ -915,7 +918,7 @@ const areaRolesMap = {
           return {
             ...tatica,
             status: tatica.status ?? "",
-            statusVisual: calcularStatusVisual(projetoData.prazoPrevisto, tatica.createdAt, tatica.status),
+            statusVisual: calcularStatusVisualPorStatus(tatica.status, projetoData.prazoPrevisto),
             areasResponsaveis: areasTaticasPorId[tatica.id] || [],
             unidades: unidadesTaticasPorId[tatica.id] || [],
             emails: Array.isArray(emailsPorIdTatica[tatica.id])
@@ -931,7 +934,7 @@ const areaRolesMap = {
         return {
           ...est,
           status: est.status ?? "", // usa undefined/null como sinal de reset
-          statusVisual: calcularStatusVisual(projetoData.prazoPrevisto, est.createdAt, est.status),
+          statusVisual: calcularStatusVisualPorStatus(est.status, projetoData.prazoPrevisto),
           areasResponsaveis: areasPorId[est.id] || [],
           unidades: unidadesPorId[est.id] || [],
           emails: Array.isArray(emailsPorIdEstrategica[est.id])

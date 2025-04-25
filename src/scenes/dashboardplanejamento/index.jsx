@@ -51,19 +51,9 @@ function DashboardPlanejamento() {
       paddingTop: "50px",
     }}
   >
-    <Header
-      title={
-        <Box display="flex" alignItems="center" gap={1}>
-          <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
-          <Typography sx={{ fontSize: "20px", marginTop: "20px", marginBottom: "20px" }}>
-            {" "}
-            <Box component="span" fontWeight="bold" color="#312783">
-              {projetoData?.nome}
-            </Box>
-          </Typography>
-        </Box>
-      }
-    />
+    
+
+
   </Box>
 
   <Box

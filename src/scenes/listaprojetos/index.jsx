@@ -41,7 +41,7 @@ const Projetos = () => {
         <Box>
           <Button
             component={Link} // Define que o botão será um Link do React Router
-            to="/cadastroprojetos"
+            to="/planejamento"
             variant="contained"
             sx={{
               marginTop: "10px",

@@ -19,15 +19,21 @@ import { Header } from "../../components";
 import BaseDiretriz3 from "../../components/BaseDiretriz3";
 import InformacoesPlanejamento from "../../components/InformacoesPlanejamento";
 
+
 // IMPORTS DO FIREBASE
 import { dbFokus360 } from "../../data/firebase-config"; // ✅ Usa a instância correta
 import { collection, doc, setDoc } from "firebase/firestore";
+
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storageFokus360 } from "../../data/firebase-config"; // Seu Storage Fokus360
+
 
 
 const Planejamento = () => {
   const [mensagem, setMensagem] = useState(false);
   const [projectId, setProjectId] = useState(null);
   const [showAlert, setShowAlert] = useState(false);
+  const [formValuesCompletos, setFormValuesCompletos] = useState(null);
   const [informacoesPlanejamento, setInformacoesPlanejamento] = useState({
     nome: "",
     descricao: "",
@@ -177,13 +183,27 @@ const Planejamento = () => {
   //Função para adicionar projetos
   const handleAdicionarProjeto = async () => {
     try {
-      if (!informacoesPlanejamento.nome.trim()) {
+      if (!formValuesCompletos || !formValuesCompletos.nome?.trim()) {
         alert("O nome do projeto é obrigatório!");
         return;
       }
   
+      // ✅ Upload do banner, se existir
+      let bannerUrl = "";
+      if (formValuesCompletos.bannerFile) {
+        const storageRef = ref(
+          storageFokus360,
+          `banners/${Date.now()}_${formValuesCompletos.bannerFile.name}`
+        );
+        const snapshot = await uploadBytes(storageRef, formValuesCompletos.bannerFile);
+        bannerUrl = await getDownloadURL(snapshot.ref);
+        console.log("✅ Banner enviado para o Storage:", bannerUrl);
+      }
+  
       // Montar estrutura em ÁRVORE
       const projetoData = {
+        ...formValuesCompletos,
+        bannerUrl, // 👈 Agora será salvo
         nome: informacoesPlanejamento.nome,
         descricao: informacoesPlanejamento.descricao,
         dataInicio: informacoesPlanejamento.dataInicio,
@@ -235,12 +255,20 @@ const Planejamento = () => {
           })),
         })),
       };
+
+      // Remove campos que o Firestore não suporta
+      delete projetoData.bannerFile;
+      delete projetoData.bannerPreview;
   
       // Salvar no Firestore
       const projetoRef = doc(collection(dbFokus360, "projetos"));
       await setDoc(projetoRef, projetoData);
       setProjectId(projetoRef.id);
   
+
+      setShowAlert(true);
+      setMensagem(true);
+      console.log("✅ Projeto adicionado no Firestore com banner.");
       // ---------------------------
       // Enviar E-MAILS + NOTIFICAÇÕES
       // ---------------------------
@@ -356,8 +384,10 @@ const Planejamento = () => {
 
           <InformacoesPlanejamento
             onUpdate={(prev) => setInformacoesPlanejamento(prev)}
-            onSaveProjectId={(id) => setProjectId(id)} 
+            onSaveProjectId={(id) => setProjectId(id)}
+            onChangeFormValues={(values) => setFormValuesCompletos(values)} // 👈 ESSE!
           />
+
 
 
 
