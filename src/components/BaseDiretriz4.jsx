@@ -20,7 +20,7 @@ import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRig
 import ArrowDropDownCircleIcon from '@mui/icons-material/ArrowDropDownCircle';
 import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { doc, updateDoc, getFirestore, collection, getDocs, setDoc  } from "firebase/firestore";
+import { doc, updateDoc, getFirestore, collection, getDocs, setDoc, onSnapshot   } from "firebase/firestore";
 import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para Fokus360
 
 //API para buscar data universal
@@ -31,7 +31,8 @@ import { getDataHojeFormatada } from "../utils/formatDate";
 
 import StatusProgresso from "./StatusProgresso";
 
-
+//Importação para o campo "time" no firestore
+import { atualizarCampoTimeDiretrizes } from "../utils/atualizarTimeDiretrizes";
 
 //Componente da logica de calculos
 import StatusProgressoEstrategica from "./StatusProgressoEstrategica";
@@ -40,6 +41,8 @@ import {
   calcularProgressoTatica,
   calcularProgressoOperacional,
 } from "../utils/progressoUtils";
+
+
 
 
 
@@ -142,6 +145,31 @@ const [emailsPorIdOperacional, setEmailsPorIdOperacional] = useState({});
       valor: "",
     },
   });
+
+
+
+  //Função que atualiza "time" toda vez que a pagina por atualizada e tambem de 60 em 60 segundos
+  useEffect(() => {
+    if (!projetoData?.id) return;
+  
+    const projetoRef = doc(db, "projetos", projetoData.id);
+  
+    const unsubscribe = onSnapshot(projetoRef, (snapshot) => {
+      const data = snapshot.data();
+      if (data) {
+        console.log("📡 Mudança detectada no projeto! Atualizando campo time...");
+        atualizarCampoTimeDiretrizes({ ...projetoData, ...data });
+      }
+    });
+  
+    return () => unsubscribe(); // Cleanup ao desmontar
+  }, [projetoData?.id]);
+  
+  
+  
+
+
+
 
 
   
@@ -509,6 +537,11 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
       .split(",")
       .map((email) => email.trim())
       .filter((email) => email !== "");
+
+      //Essa parte para para o "time"
+      const prazo = new Date(projetoData.prazoPrevisto);
+      const agora = new Date();
+      const time = agora > prazo ? "atrasada" : "no prazo";
   
       const item = {
         id: Date.now().toString(),
@@ -517,6 +550,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
         emails,
         taticas: [],
         status: "",
+        time,
         statusVisual: calcularStatusVisual(projetoData.prazoPrevisto, new Date().toISOString(), ""),
         createdAt: new Date().toISOString(), // 👈 ADICIONADO
       };
@@ -1328,40 +1362,21 @@ useEffect(() => {
 
   {/* Bolinha de status visual da Estratégica */}
   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mr: 2 }}>
-    <Box
-      sx={{
-        width: 14,
-        height: 14,
-        borderRadius: "50%",
-        backgroundColor:
-        estrategica.statusVisual === "no_prazo"
-          ? "#00ff08"
-          : estrategica.statusVisual === "atrasada"
-          ? "#ff0000"
-          : "#9ca3af"
-      
-      }}
-    />
-<Typography
-  sx={{
-    color: "#fff",
-    fontSize: "0.8rem",
-    whiteSpace: "nowrap",
-    marginTop: "4px",
-  }}
->
-  {
-    estrategica.statusVisual === "no_prazo"
-      ? "No prazo"
-      : estrategica.statusVisual === "atrasada"
-      ? "Em atraso"
-      : "Não iniciada"
-  }
-</Typography>
+  <Box
+    sx={{
+      width: 14,
+      height: 14,
+      borderRadius: "50%",
+      backgroundColor:
+        estrategica.time === "no prazo"
+          ? "#00ff08" // Verde
+          : estrategica.time === "atrasada"
+          ? "#ff0000" // Vermelha
+          : "#9ca3af", // Cinza (sem time definido)
+    }}
+  />
+</Box>
 
-
-
-  </Box>
 
 
 
@@ -1644,34 +1659,37 @@ useEffect(() => {
         >
           {/* Áreas */}
           <Select
-            multiple
-            value={areasPorId[estrategica.id] || []}
-            onChange={(event) => {
-              const value = event.target.value;
-              setAreasPorId((prev) => ({
-                ...prev,
-                [estrategica.id]: value,
-              }));
-            }}
-            displayEmpty
-            sx={{
-              flex: 1,
-              backgroundColor: "transparent",
-              marginTop: "10px",
-            }}
-            renderValue={(selected) =>
-              selected
-                .map((id) => areas.find((area) => area.id === id)?.nome)
-                .join(", ")
-            }
-          >
-            {areas.map((area) => (
-              <MenuItem key={area.id} value={area.id}>
-                <Checkbox checked={(areasPorId[estrategica.id] || []).includes(area.id)} />
-                <ListItemText primary={area.nome} />
-              </MenuItem>
-            ))}
-          </Select>
+  multiple
+  displayEmpty
+  value={areasPorId[estrategica.id] || []}
+  onChange={(event) => {
+    const value = event.target.value;
+    setAreasPorId((prev) => ({
+      ...prev,
+      [estrategica.id]: value,
+    }));
+  }}
+  sx={{
+    flex: 1,
+    backgroundColor: "transparent",
+    marginTop: "10px",
+  }}
+  renderValue={(selected) =>
+    selected.length === 0
+      ? <span style={{ color: "#000" }}>Selecione as áreas responsáveis</span>
+      : selected
+          .map((id) => areas.find((area) => area.id === id)?.nome || "Desconhecida")
+          .join(", ")
+  }
+>
+  {areas.map((area) => (
+    <MenuItem key={area.id} value={area.id}>
+      <Checkbox checked={(areasPorId[estrategica.id] || []).includes(area.id)} />
+      <ListItemText primary={area.nome} />
+    </MenuItem>
+  ))}
+</Select>
+
 
 
           {/* Unidades */}
@@ -1927,38 +1945,21 @@ useEffect(() => {
                 
  {/* Bolinha de status visual da Tática */}
  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mr: 2 }}>
- <Box
-   sx={{
-     width: 14,
-     height: 14,
-     borderRadius: "50%",
-     backgroundColor:
-     tatica.statusVisual === "no_prazo"
-     ? "#00ff08"
-     : tatica.statusVisual === "atrasada"
-     ? "#ff0000"
-     : "#9ca3af",
-   }}
- />
-<Typography
-  sx={{
-    color: "#fff",
-    fontSize: "0.8rem",
-    whiteSpace: "nowrap",
-    marginTop: "4px",
-  }}
->
-{tatica.statusVisual === "no_prazo"
-    ? "No prazo"
-    : tatica.statusVisual === "atrasada"
-    ? "Em atraso"
-    : "Não iniciada"}
-
-</Typography>
-
-
-
+  <Box
+    sx={{
+      width: 14,
+      height: 14,
+      borderRadius: "50%",
+      backgroundColor:
+        tatica.time === "no prazo"
+          ? "#00ff08"
+          : tatica.time === "atrasada"
+          ? "#ff0000"
+          : "#9ca3af",
+    }}
+  />
 </Box>
+
 
 
 <StatusProgresso progresso={calcularProgressoTatica(tatica)} />
@@ -2521,37 +2522,22 @@ useEffect(() => {
 
 
  {/* Bolinha de status visual da Operacional */}
-  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mr: 2 }}>
-    <Box
-      sx={{
-        width: 14,
-        height: 14,
-        borderRadius: "50%",
-        backgroundColor: !operacional.status
-          ? "#9ca3af" // cinza - não iniciada
-          : new Date() > new Date(projetoData.prazoPrevisto)
-          ? "#ff0000" // vermelha - em atraso
-          : "#00ff08", // verde - no prazo
-      }}
-    />
-<Typography
-  sx={{
-    color: "#fff",
-    fontSize: "0.8rem",
-    whiteSpace: "nowrap",
-    marginTop: "4px",
-  }}
->
-  {!operacional.status
-    ? "Não iniciada"
-    : new Date() > new Date(projetoData.prazoPrevisto)
-    ? "Em atraso"
-    : "No prazo"}
-</Typography>
+ <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mr: 2 }}>
+  <Box
+    sx={{
+      width: 14,
+      height: 14,
+      borderRadius: "50%",
+      backgroundColor:
+        operacional.time === "no prazo"
+          ? "#00ff08"
+          : operacional.time === "atrasada"
+          ? "#ff0000"
+          : "#9ca3af",
+    }}
+  />
+</Box>
 
-
-
-  </Box>
 
 
 
@@ -2869,15 +2855,17 @@ useEffect(() => {
   sx={{
     display: "flex",
     flexWrap: "wrap",
-    gap: 2,
+    gap: 1,
     width: "100%",
     marginBottom: "10px",
   }}
 >
   {/* Áreas */}
-  <Box sx={{ flex: 1, minWidth: "200px" }}>
+  <Box sx={{ flex: 1 }}>
     <Select
       multiple
+      fullWidth
+      displayEmpty 
       value={areasPorIdOperacional[operacional.id] || []}
       onChange={() => {
         const atualizado = estrategicas.map((estrategica) => ({
