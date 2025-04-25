@@ -1,20 +1,94 @@
-import React from "react";
-import { Box, Typography, CircularProgress } from "@mui/material";
+import React, { useRef, useState, useEffect  } from "react";
+import { Box, Typography, CircularProgress, TextField  } from "@mui/material";
 import PaidIcon from "@mui/icons-material/Paid";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 
+import FlagIcon from '@mui/icons-material/Flag';
+import TrackChangesIcon from '@mui/icons-material/TrackChanges';
+import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
+import DoubleArrowIcon from '@mui/icons-material/DoubleArrow';
 
+import { getDocs, collection } from "firebase/firestore";
+import { dbFokus360 } from "../data/firebase-config"; // ajuste conforme seu path
+
+
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
 
 
 // IMPORTS
 import { PieChart } from '@mui/x-charts/PieChart'; // ✅ importante! precisa ter esse pacote instalado
 
 
+import TabContext from '@mui/lab/TabContext';
+import TabList from '@mui/lab/TabList';
+import TabPanel from '@mui/lab/TabPanel';
 
 
 
 
-const DadosProjeto2 = ({ orcamento, valorGasto, estrategicas, totalDiretrizes, tarefasConcluidas, totalTarefas, diretrizes }) => {
+const DadosProjeto2 = ({
+  orcamento,
+  valorGasto,
+  estrategicas,
+  totalDiretrizes,
+  tarefasConcluidas,
+  totalTarefas,
+  diretrizes,
+  dataInicio,
+  prazoPrevisto,
+  projetoData
+}) => {
+
+
+  const [titulosDiretrizes, setTitulosDiretrizes] = React.useState({
+    estrategicas: [],
+    taticas: [],
+    operacionais: [],
+  });
+
+  //para os campos de datas
+  const [formValues, setFormValues] = useState({
+    dataInicio: "",
+    prazoPrevisto: "",
+  });
+  
+  
+  
+  //Essa parte pertence ao painel de filtros 
+  const [value, setValue] = React.useState("");
+  const scrollRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
+
+
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 1; // ajuste a velocidade aqui
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+  // FIM Essa parte pertence ao painel de filtros 
+
+
+
+
   // 1) Função para calcular progresso de Valor Gasto vs. Orçamento
   const calcularProgressoValorGasto = () => {
     const orcamentoNum = orcamento
@@ -167,21 +241,6 @@ const DadosProjeto2 = ({ orcamento, valorGasto, estrategicas, totalDiretrizes, t
   ];
 
  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -408,8 +467,53 @@ const GraficoStatusDonut = ({ tipo, diretrizes, estrategicas }) => {
 
 
 
+//Função para buscar dados do Firestore
+const buscarTitulosDasDiretrizes = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(dbFokus360, "projetos"));
+    const projetos = querySnapshot.docs.map((doc) => doc.data());
+
+    const estrategicas = [];
+    const taticas = [];
+    const operacionais = [];
+
+    projetos.forEach((projeto) => {
+      projeto.estrategicas?.forEach((estrategica) => {
+        if (estrategica.titulo) estrategicas.push(estrategica.titulo);
+
+        estrategica.taticas?.forEach((tatica) => {
+          if (tatica.titulo) taticas.push(tatica.titulo);
+
+          tatica.operacionais?.forEach((operacional) => {
+            if (operacional.titulo) operacionais.push(operacional.titulo);
+          });
+        });
+      });
+    });
+
+    setTitulosDiretrizes({ estrategicas, taticas, operacionais });
+  } catch (error) {
+    console.error("Erro ao buscar diretrizes:", error);
+  }
+};
 
 
+React.useEffect(() => {
+  buscarTitulosDasDiretrizes();
+}, []);
+
+
+
+//preenche as datas
+useEffect(() => {
+  if (projetoData) {
+    setFormValues((prev) => ({
+      ...prev,
+      dataInicio: projetoData.dataInicio || "",
+      prazoPrevisto: projetoData.prazoPrevisto || "",
+    }));
+  }
+}, [projetoData]);
 
 
 
@@ -575,6 +679,1288 @@ const GraficoStatusDonut = ({ tipo, diretrizes, estrategicas }) => {
     <GraficoStatusDonut tipo="concluidas" estrategicas={estrategicas} />
   </Box>
 </Box>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{/**FILTROS */}
+
+<Box
+      sx={{
+        border: "1px solid #9b9b9b",
+        borderRadius: "10px",
+        backgroundColor: "transparent",
+        padding: 2,
+        marginBottom: "30px",
+      }}
+    >
+      <TabContext value={value}>
+        <Box
+          sx={{
+            borderBottom: 1,
+            borderColor: "divider",
+            scrollBehavior: "smooth",
+            "& .MuiTabs-scroller": {
+              scrollBehavior: "smooth",
+            },
+            "& .MuiTabs-indicator": {
+              backgroundColor: "#312783",
+              height: "3px",
+            },
+            "& .MuiTab-root": {
+              color: "#505050",
+              textTransform: "none",
+              fontWeight: 600,
+              fontSize: "12px",
+              "&:hover": {
+                color: "#312783",
+              },
+            },
+            "& .Mui-selected": {
+              color: "#312783 !important",
+            },
+            "& .MuiTabs-scrollButtons": {
+              width: 50,
+              height: 50,
+              fontSize: "3rem",
+              color: "#312783",
+            },
+            "& .Mui-disabled": {
+              opacity: 0.3,
+            },
+            "& .MuiTabPanel-root": {
+              border: "1px solid #ccc",
+              borderRadius: "8px",
+              padding: 2,
+              marginTop: 2,
+            },
+          }}
+        >
+          <TabList
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
+            aria-label="lab API tabs example"
+          >
+            <Tab value="1" label="Diretrizes"  onClick={() => setValue(value === "1" ? "" : "1")} />
+            <Tab value="2" label="Tarefas" onClick={() => setValue(value === "2" ? "" : "2")} />
+            <Tab value="3" label="Não iniciadas" onClick={() => setValue(value === "3" ? "" : "3")} />
+            <Tab value="4" label="Em andamento" onClick={() => setValue(value === "4" ? "" : "4")} />
+            <Tab value="5" label="Concluídas" onClick={() => setValue(value === "5" ? "" : "5")} />
+            <Tab value="6" label="Em atraso" onClick={() => setValue(value === "6" ? "" : "6")} />
+          </TabList>
+        </Box>
+
+        <TabPanel value="1">
+          {/* Estratégicas */}
+          <Box sx={{ mb: 2 }}>
+            <Box display="flex" alignItems="center" mb={1}>
+              <DoubleArrowIcon sx={{ color: "#312783", mr: 1 }} />
+              <Typography variant="h6" sx={{ color: "#312783" }}>
+                Estratégicas
+              </Typography>
+            </Box>
+            {estrategicas?.map((estrategica, i) => (
+              <Box
+                key={`est-${i}`}
+                sx={{
+                  backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+                  px: 2,
+                  py: 1,
+                  borderBottom: "1px solid #e0e0e0",
+                  display: "flex",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 1,
+                }}
+              >
+                <Typography variant="body2" sx={{ flex: 1 }}>
+                  {estrategica.titulo}
+                </Typography>
+
+                <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+                <Typography variant="body2" sx={{ flex: 2 }}>
+                  <strong>Responsáveis:</strong>{" "}
+                  <span style={{ fontStyle: "italic", color: "#555" }}>
+                    {(estrategica.emails || []).join(", ")}
+                  </span>
+                </Typography>
+
+                <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                  <TextField
+                    label="Data início"
+                    type="date"
+                    size="small"
+                    value={projetoData?.dataInicio || ""}
+                    InputLabelProps={{ shrink: true }}
+                    disabled
+                    sx={{ minWidth: "100px", maxWidth: "120px" }}
+                  />
+                  <TextField
+                    label="Prazo previsto"
+                    type="date"
+                    size="small"
+                    value={projetoData?.prazoPrevisto || ""}
+                    InputLabelProps={{ shrink: true }}
+                    disabled
+                    sx={{ minWidth: "100px", maxWidth: "120px" }}
+                  />
+                </Box>
+              </Box>
+            ))}
+          </Box>
+
+          {/* Táticas */}
+          <Box sx={{ mb: 2 }}>
+            <Box display="flex" alignItems="center" mb={1}>
+              <DoubleArrowIcon sx={{ color: "#00796b", mr: 1 }} />
+              <Typography variant="h6" sx={{ color: "#00796b" }}>
+                Táticas
+              </Typography>
+            </Box>
+            {estrategicas?.flatMap((estrategica, estIndex) =>
+              estrategica.taticas?.map((tatica, i) => (
+                <Box
+                  key={`tat-${estIndex}-${i}`}
+                  sx={{
+                    backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+                    px: 2,
+                    py: 1,
+                    borderBottom: "1px solid #e0e0e0",
+                    display: "flex",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: 1,
+                  }}
+                >
+                  <Typography variant="body2" sx={{ flex: 1 }}>
+                    {tatica.titulo}
+                  </Typography>
+
+                  <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+                  <Typography variant="body2" sx={{ flex: 2 }}>
+                    <strong>Responsáveis:</strong>{" "}
+                    <span style={{ fontStyle: "italic", color: "#555" }}>
+                      {(tatica.emails || []).join(", ")}
+                    </span>
+                  </Typography>
+
+                  <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+                  <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                    <TextField
+                      label="Data início"
+                      type="date"
+                      size="small"
+                      value={projetoData?.dataInicio || ""}
+                      InputLabelProps={{ shrink: true }}
+                      disabled
+                      sx={{ minWidth: "100px", maxWidth: "120px" }}
+                    />
+                    <TextField
+                      label="Prazo previsto"
+                      type="date"
+                      size="small"
+                      value={projetoData?.prazoPrevisto || ""}
+                      InputLabelProps={{ shrink: true }}
+                      disabled
+                      sx={{ minWidth: "100px", maxWidth: "120px" }}
+                    />
+                  </Box>
+                </Box>
+              ))
+            )}
+          </Box>
+
+          {/* Operacionais */}
+          <Box>
+            <Box display="flex" alignItems="center" mb={1}>
+              <DoubleArrowIcon sx={{ color: "#ff9800", mr: 1 }} />
+              <Typography variant="h6" sx={{ color: "#ff9800" }}>
+                Operacionais
+              </Typography>
+            </Box>
+            {estrategicas?.flatMap((estrategica, estIndex) =>
+              estrategica.taticas?.flatMap((tatica, tatIndex) =>
+                tatica.operacionais?.map((op, i) => (
+                  <Box
+                    key={`op-${estIndex}-${tatIndex}-${i}`}
+                    sx={{
+                      backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+                      px: 2,
+                      py: 1,
+                      borderBottom: "1px solid #e0e0e0",
+                      display: "flex",
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      gap: 1,
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ flex: 1 }}>
+                      {op.titulo}
+                    </Typography>
+
+                    <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+                    <Typography variant="body2" sx={{ flex: 2 }}>
+                      <strong>Responsáveis:</strong>{" "}
+                      <span style={{ fontStyle: "italic", color: "#555" }}>
+                        {(op.emails || []).join(", ")}
+                      </span>
+                    </Typography>
+
+                    <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+                    <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                    <TextField
+                      label="Data início"
+                      type="date"
+                      size="small"
+                      value={projetoData?.dataInicio || ""}
+                      InputLabelProps={{ shrink: true }}
+                      disabled
+                      sx={{ minWidth: "100px", maxWidth: "120px" }}
+                    />
+                    <TextField
+                      label="Prazo previsto"
+                      type="date"
+                      size="small"
+                      value={projetoData?.prazoPrevisto || ""}
+                      InputLabelProps={{ shrink: true }}
+                      disabled
+                      sx={{ minWidth: "100px", maxWidth: "120px" }}
+                    />
+
+                    </Box>
+                  </Box>
+                ))
+              )
+            )}
+          </Box>
+        </TabPanel>
+          
+
+
+        <TabPanel value="2">
+  {/* Tarefas */}
+  <Box sx={{ mb: 2 }}>
+    <Box display="flex" alignItems="center" mb={1}>
+      <DoubleArrowIcon sx={{ color: "#6a1b9a", mr: 1 }} />
+      <Typography variant="h6" sx={{ color: "#6a1b9a" }}>
+        Tarefas
+      </Typography>
+    </Box>
+
+    {projetoData?.estrategicas?.flatMap((estrategica, estIndex) =>
+      estrategica.taticas?.flatMap((tatica, tatIndex) =>
+        tatica.operacionais?.flatMap((operacional, opIndex) =>
+          operacional.tarefas?.map((tarefa, i) => {
+            const responsaveis = tarefa?.planoDeAcao?.quemEmail
+              ? Array.isArray(tarefa.planoDeAcao.quemEmail)
+                ? tarefa.planoDeAcao.quemEmail.join(", ")
+                : tarefa.planoDeAcao.quemEmail
+              : "Nenhum responsável";
+
+
+
+            return (
+              <Box
+                key={`tarefa-${estIndex}-${tatIndex}-${opIndex}-${i}`}
+                sx={{
+                  backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+                  px: 2,
+                  py: 1,
+                  borderBottom: "1px solid #e0e0e0",
+                  display: "flex",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 1,
+                }}
+              >
+                <Typography variant="body2" sx={{ flex: 1 }}>
+                  {tarefa.tituloTarefa || "-"}
+                </Typography>
+
+                <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+                <Typography variant="body2" sx={{ flex: 2 }}>
+                  <strong>Responsáveis:</strong>{" "}
+                  <span style={{ fontStyle: "italic", color: "#555" }}>
+                    {responsaveis}
+                  </span>
+                </Typography>
+
+
+                <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                  <TextField
+                    label="Data início"
+                    type="date"
+                    size="small"
+                    value={projetoData?.dataInicio || ""}
+                    InputLabelProps={{ shrink: true }}
+                    disabled
+                    sx={{ minWidth: "100px", maxWidth: "120px" }}
+                  />
+                  <TextField
+                    label="Prazo previsto"
+                    type="date"
+                    size="small"
+                    value={projetoData?.prazoPrevisto || ""}
+                    InputLabelProps={{ shrink: true }}
+                    disabled
+                    sx={{ minWidth: "100px", maxWidth: "120px" }}
+                  />
+                </Box>
+              </Box>
+            );
+          })
+        )
+      )
+    )}
+  </Box>
+</TabPanel>
+
+
+
+
+<TabPanel value="3">
+  {/* Não Iniciadas */}
+  <Box sx={{ mb: 2 }}>
+    {/* Estratégicas */}
+    <Box sx={{ mb: 2 }}>
+      <Box display="flex" alignItems="center" mb={1}>
+        <DoubleArrowIcon sx={{ color: "#312783", mr: 1 }} />
+        <Typography variant="h6" sx={{ color: "#312783" }}>
+          Estratégicas
+        </Typography>
+      </Box>
+      {projetoData?.estrategicas
+        ?.filter((e) => e.statusVisual === "nao_iniciada")
+        .map((estrategica, i) => (
+          <Box
+            key={`nao-est-${i}`}
+            sx={{
+              backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+              px: 2,
+              py: 1,
+              borderBottom: "1px solid #e0e0e0",
+              display: "flex",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 1,
+            }}
+          >
+            <Typography variant="body2" sx={{ flex: 1 }}>
+              {estrategica.titulo || "-"}
+            </Typography>
+            <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+            <Typography variant="body2" sx={{ flex: 2 }}>
+              <strong>Responsáveis:</strong>{" "}
+              <span style={{ fontStyle: "italic", color: "#555" }}>
+                {(estrategica.emails || []).join(", ") || "Nenhum responsável"}
+              </span>
+            </Typography>
+            <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+              <TextField
+                label="Data início"
+                type="date"
+                size="small"
+                value={projetoData?.dataInicio || ""}
+                InputLabelProps={{ shrink: true }}
+                disabled
+                sx={{ minWidth: "100px", maxWidth: "120px" }}
+              />
+              <TextField
+                label="Prazo previsto"
+                type="date"
+                size="small"
+                value={projetoData?.prazoPrevisto || ""}
+                InputLabelProps={{ shrink: true }}
+                disabled
+                sx={{ minWidth: "100px", maxWidth: "120px" }}
+              />
+            </Box>
+          </Box>
+        ))}
+    </Box>
+
+    {/* Táticas */}
+    <Box sx={{ mb: 2 }}>
+      <Box display="flex" alignItems="center" mb={1}>
+        <DoubleArrowIcon sx={{ color: "#00796b", mr: 1 }} />
+        <Typography variant="h6" sx={{ color: "#00796b" }}>
+          Táticas
+        </Typography>
+      </Box>
+      {projetoData?.estrategicas?.flatMap((estrategica, estIndex) =>
+        estrategica.taticas
+          ?.filter((tatica) => tatica.statusVisual === "nao_iniciada")
+          .map((tatica, i) => (
+            <Box
+              key={`nao-tat-${estIndex}-${i}`}
+              sx={{
+                backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+                px: 2,
+                py: 1,
+                borderBottom: "1px solid #e0e0e0",
+                display: "flex",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 1,
+              }}
+            >
+              <Typography variant="body2" sx={{ flex: 1 }}>
+                {tatica.titulo || "-"}
+              </Typography>
+              <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+              <Typography variant="body2" sx={{ flex: 2 }}>
+                <strong>Responsáveis:</strong>{" "}
+                <span style={{ fontStyle: "italic", color: "#555" }}>
+                  {(tatica.emails || []).join(", ") || "Nenhum responsável"}
+                </span>
+              </Typography>
+              <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                <TextField
+                  label="Data início"
+                  type="date"
+                  size="small"
+                  value={projetoData?.dataInicio || ""}
+                  InputLabelProps={{ shrink: true }}
+                  disabled
+                  sx={{ minWidth: "100px", maxWidth: "120px" }}
+                />
+                <TextField
+                  label="Prazo previsto"
+                  type="date"
+                  size="small"
+                  value={projetoData?.prazoPrevisto || ""}
+                  InputLabelProps={{ shrink: true }}
+                  disabled
+                  sx={{ minWidth: "100px", maxWidth: "120px" }}
+                />
+              </Box>
+            </Box>
+          ))
+      )}
+    </Box>
+
+    {/* Operacionais */}
+    <Box sx={{ mb: 2 }}>
+      <Box display="flex" alignItems="center" mb={1}>
+        <DoubleArrowIcon sx={{ color: "#ff9800", mr: 1 }} />
+        <Typography variant="h6" sx={{ color: "#ff9800" }}>
+          Operacionais
+        </Typography>
+      </Box>
+      {projetoData?.estrategicas?.flatMap((estrategica, estIndex) =>
+        estrategica.taticas?.flatMap((tatica, tatIndex) =>
+          tatica.operacionais
+            ?.filter((op) => op.statusVisual === "nao_iniciada")
+            .map((op, i) => (
+              <Box
+                key={`nao-op-${estIndex}-${tatIndex}-${i}`}
+                sx={{
+                  backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+                  px: 2,
+                  py: 1,
+                  borderBottom: "1px solid #e0e0e0",
+                  display: "flex",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 1,
+                }}
+              >
+                <Typography variant="body2" sx={{ flex: 1 }}>
+                  {op.titulo || "-"}
+                </Typography>
+                <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+                <Typography variant="body2" sx={{ flex: 2 }}>
+                  <strong>Responsáveis:</strong>{" "}
+                  <span style={{ fontStyle: "italic", color: "#555" }}>
+                    {(op.emails || []).join(", ") || "Nenhum responsável"}
+                  </span>
+                </Typography>
+                <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                  <TextField
+                    label="Data início"
+                    type="date"
+                    size="small"
+                    value={projetoData?.dataInicio || ""}
+                    InputLabelProps={{ shrink: true }}
+                    disabled
+                    sx={{ minWidth: "100px", maxWidth: "120px" }}
+                  />
+                  <TextField
+                    label="Prazo previsto"
+                    type="date"
+                    size="small"
+                    value={projetoData?.prazoPrevisto || ""}
+                    InputLabelProps={{ shrink: true }}
+                    disabled
+                    sx={{ minWidth: "100px", maxWidth: "120px" }}
+                  />
+                </Box>
+              </Box>
+            ))
+        )
+      )}
+    </Box>
+
+    {/* Tarefas */}
+    <Box>
+      <Box display="flex" alignItems="center" mb={1}>
+        <DoubleArrowIcon sx={{ color: "#6a1b9a", mr: 1 }} />
+        <Typography variant="h6" sx={{ color: "#6a1b9a" }}>
+          Tarefas
+        </Typography>
+      </Box>
+      {projetoData?.estrategicas?.flatMap((estrategica, estIndex) =>
+        estrategica.taticas?.flatMap((tatica, tatIndex) =>
+          tatica.operacionais?.flatMap((op, opIndex) =>
+            op.tarefas
+              ?.filter((tarefa) => tarefa.statusVisual === "nao_iniciada")
+              .map((tarefa, i) => {
+                const responsaveis = tarefa?.planoDeAcao?.quemEmail
+                  ? Array.isArray(tarefa.planoDeAcao.quemEmail)
+                    ? tarefa.planoDeAcao.quemEmail.join(", ")
+                    : tarefa.planoDeAcao.quemEmail
+                  : "Nenhum responsável";
+
+                return (
+                  <Box
+                    key={`nao-tarefa-${estIndex}-${tatIndex}-${opIndex}-${i}`}
+                    sx={{
+                      backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+                      px: 2,
+                      py: 1,
+                      borderBottom: "1px solid #e0e0e0",
+                      display: "flex",
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      gap: 1,
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ flex: 1 }}>
+                      {tarefa.tituloTarefa || "-"}
+                    </Typography>
+                    <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+                    <Typography variant="body2" sx={{ flex: 2 }}>
+                      <strong>Responsáveis:</strong>{" "}
+                      <span style={{ fontStyle: "italic", color: "#555" }}>
+                        {responsaveis}
+                      </span>
+                    </Typography>
+                    <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+                    <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                      <TextField
+                        label="Data início"
+                        type="date"
+                        size="small"
+                        value={projetoData?.dataInicio || ""}
+                        InputLabelProps={{ shrink: true }}
+                        disabled
+                        sx={{ minWidth: "100px", maxWidth: "120px" }}
+                      />
+                      <TextField
+                        label="Prazo previsto"
+                        type="date"
+                        size="small"
+                        value={projetoData?.prazoPrevisto || ""}
+                        InputLabelProps={{ shrink: true }}
+                        disabled
+                        sx={{ minWidth: "100px", maxWidth: "120px" }}
+                      />
+                    </Box>
+                  </Box>
+                );
+              })
+          )
+        )
+      )}
+    </Box>
+  </Box>
+</TabPanel>
+
+
+
+
+
+<TabPanel value="4">
+  <Box sx={{ mb: 2 }}>
+
+    {/* Estratégicas */}
+    <Box sx={{ mb: 2 }}>
+      <Box display="flex" alignItems="center" mb={1}>
+        <DoubleArrowIcon sx={{ color: "#312783", mr: 1 }} />
+        <Typography variant="h6" sx={{ color: "#312783" }}>
+          Estratégicas
+        </Typography>
+      </Box>
+      {projetoData?.estrategicas
+        ?.filter((e) => e.status === "andamento")
+        .map((estrategica, i) => (
+          <Box
+            key={`and-est-${i}`}
+            sx={{
+              backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+              px: 2,
+              py: 1,
+              borderBottom: "1px solid #e0e0e0",
+              display: "flex",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 1,
+            }}
+          >
+            <Typography variant="body2" sx={{ flex: 1 }}>
+              {estrategica.titulo || "-"}
+            </Typography>
+            <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+            <Typography variant="body2" sx={{ flex: 2 }}>
+              <strong>Responsáveis:</strong>{" "}
+              <span style={{ fontStyle: "italic", color: "#555" }}>
+                {(estrategica.emails || []).join(", ") || "Nenhum responsável"}
+              </span>
+            </Typography>
+            <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+              <TextField label="Data início" type="date" size="small"
+                value={projetoData?.dataInicio || ""} InputLabelProps={{ shrink: true }}
+                disabled sx={{ minWidth: "100px", maxWidth: "120px" }} />
+              <TextField label="Prazo previsto" type="date" size="small"
+                value={projetoData?.prazoPrevisto || ""} InputLabelProps={{ shrink: true }}
+                disabled sx={{ minWidth: "100px", maxWidth: "120px" }} />
+            </Box>
+          </Box>
+        ))}
+    </Box>
+
+    {/* Táticas */}
+    <Box sx={{ mb: 2 }}>
+      <Box display="flex" alignItems="center" mb={1}>
+        <DoubleArrowIcon sx={{ color: "#00796b", mr: 1 }} />
+        <Typography variant="h6" sx={{ color: "#00796b" }}>
+          Táticas
+        </Typography>
+      </Box>
+      {projetoData?.estrategicas?.flatMap((estrategica, estIndex) =>
+        estrategica.taticas
+          ?.filter((tatica) => tatica.status === "andamento")
+          .map((tatica, i) => (
+            <Box
+              key={`and-tat-${estIndex}-${i}`}
+              sx={{
+                backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+                px: 2,
+                py: 1,
+                borderBottom: "1px solid #e0e0e0",
+                display: "flex",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 1,
+              }}
+            >
+              <Typography variant="body2" sx={{ flex: 1 }}>
+                {tatica.titulo || "-"}
+              </Typography>
+              <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+              <Typography variant="body2" sx={{ flex: 2 }}>
+                <strong>Responsáveis:</strong>{" "}
+                <span style={{ fontStyle: "italic", color: "#555" }}>
+                  {(tatica.emails || []).join(", ") || "Nenhum responsável"}
+                </span>
+              </Typography>
+              <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                <TextField label="Data início" type="date" size="small"
+                  value={projetoData?.dataInicio || ""} InputLabelProps={{ shrink: true }}
+                  disabled sx={{ minWidth: "100px", maxWidth: "120px" }} />
+                <TextField label="Prazo previsto" type="date" size="small"
+                  value={projetoData?.prazoPrevisto || ""} InputLabelProps={{ shrink: true }}
+                  disabled sx={{ minWidth: "100px", maxWidth: "120px" }} />
+              </Box>
+            </Box>
+          ))
+      )}
+    </Box>
+
+    {/* Operacionais */}
+    <Box sx={{ mb: 2 }}>
+      <Box display="flex" alignItems="center" mb={1}>
+        <DoubleArrowIcon sx={{ color: "#ff9800", mr: 1 }} />
+        <Typography variant="h6" sx={{ color: "#ff9800" }}>
+          Operacionais
+        </Typography>
+      </Box>
+      {projetoData?.estrategicas?.flatMap((estrategica, estIndex) =>
+        estrategica.taticas?.flatMap((tatica, tatIndex) =>
+          tatica.operacionais
+            ?.filter((op) => op.status === "andamento")
+            .map((op, i) => (
+              <Box
+                key={`and-op-${estIndex}-${tatIndex}-${i}`}
+                sx={{
+                  backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+                  px: 2,
+                  py: 1,
+                  borderBottom: "1px solid #e0e0e0",
+                  display: "flex",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 1,
+                }}
+              >
+                <Typography variant="body2" sx={{ flex: 1 }}>
+                  {op.titulo || "-"}
+                </Typography>
+                <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+                <Typography variant="body2" sx={{ flex: 2 }}>
+                  <strong>Responsáveis:</strong>{" "}
+                  <span style={{ fontStyle: "italic", color: "#555" }}>
+                    {(op.emails || []).join(", ") || "Nenhum responsável"}
+                  </span>
+                </Typography>
+                <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                  <TextField label="Data início" type="date" size="small"
+                    value={projetoData?.dataInicio || ""} InputLabelProps={{ shrink: true }}
+                    disabled sx={{ minWidth: "100px", maxWidth: "120px" }} />
+                  <TextField label="Prazo previsto" type="date" size="small"
+                    value={projetoData?.prazoPrevisto || ""} InputLabelProps={{ shrink: true }}
+                    disabled sx={{ minWidth: "100px", maxWidth: "120px" }} />
+                </Box>
+              </Box>
+            ))
+        )
+      )}
+    </Box>
+
+    {/* Tarefas */}
+    <Box>
+      <Box display="flex" alignItems="center" mb={1}>
+        <DoubleArrowIcon sx={{ color: "#6a1b9a", mr: 1 }} />
+        <Typography variant="h6" sx={{ color: "#6a1b9a" }}>
+          Tarefas
+        </Typography>
+      </Box>
+      {projetoData?.estrategicas?.flatMap((estrategica, estIndex) =>
+        estrategica.taticas?.flatMap((tatica, tatIndex) =>
+          tatica.operacionais?.flatMap((op, opIndex) =>
+            op.tarefas
+              ?.filter((tarefa) => tarefa.status === "andamento")
+              .map((tarefa, i) => {
+                const responsaveis = tarefa?.planoDeAcao?.quemEmail
+                  ? Array.isArray(tarefa.planoDeAcao.quemEmail)
+                    ? tarefa.planoDeAcao.quemEmail.join(", ")
+                    : tarefa.planoDeAcao.quemEmail
+                  : "Nenhum responsável";
+
+                return (
+                  <Box
+                    key={`and-tarefa-${estIndex}-${tatIndex}-${opIndex}-${i}`}
+                    sx={{
+                      backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+                      px: 2,
+                      py: 1,
+                      borderBottom: "1px solid #e0e0e0",
+                      display: "flex",
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      gap: 1,
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ flex: 1 }}>
+                      {tarefa.tituloTarefa || "-"}
+                    </Typography>
+                    <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+                    <Typography variant="body2" sx={{ flex: 2 }}>
+                      <strong>Responsáveis:</strong>{" "}
+                      <span style={{ fontStyle: "italic", color: "#555" }}>
+                        {responsaveis}
+                      </span>
+                    </Typography>
+                    <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+                    <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                      <TextField label="Data início" type="date" size="small"
+                        value={projetoData?.dataInicio || ""} InputLabelProps={{ shrink: true }}
+                        disabled sx={{ minWidth: "100px", maxWidth: "120px" }} />
+                      <TextField label="Prazo previsto" type="date" size="small"
+                        value={projetoData?.prazoPrevisto || ""} InputLabelProps={{ shrink: true }}
+                        disabled sx={{ minWidth: "100px", maxWidth: "120px" }} />
+                    </Box>
+                  </Box>
+                );
+              })
+          )
+        )
+      )}
+    </Box>
+  </Box>
+</TabPanel>
+
+
+<TabPanel value="5">
+  {/* Estratégicas Concluídas */}
+  <Box sx={{ mb: 2 }}>
+    <Box display="flex" alignItems="center" mb={1}>
+      <DoubleArrowIcon sx={{ color: "#312783", mr: 1 }} />
+      <Typography variant="h6" sx={{ color: "#312783" }}>
+        Estratégicas
+      </Typography>
+    </Box>
+    {estrategicas?.filter(e => e.status === "concluida").map((estrategica, i) => (
+      <Box
+        key={`est-conc-${i}`}
+        sx={{
+          backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+          px: 2,
+          py: 1,
+          borderBottom: "1px solid #e0e0e0",
+          display: "flex",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 1,
+        }}
+      >
+        <Typography variant="body2" sx={{ flex: 1 }}>{estrategica.titulo}</Typography>
+        <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+        <Typography variant="body2" sx={{ flex: 2 }}>
+          <strong>Responsáveis:</strong>{" "}
+          <span style={{ fontStyle: "italic", color: "#555" }}>
+            {(estrategica.emails || []).join(", ") || "Nenhum responsável"}
+          </span>
+        </Typography>
+        <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+          <TextField
+            label="Data início"
+            type="date"
+            size="small"
+            value={projetoData?.dataInicio || ""}
+            InputLabelProps={{ shrink: true }}
+            disabled
+            sx={{ minWidth: "100px", maxWidth: "120px" }}
+          />
+          <TextField
+            label="Prazo previsto"
+            type="date"
+            size="small"
+            value={projetoData?.prazoPrevisto || ""}
+            InputLabelProps={{ shrink: true }}
+            disabled
+            sx={{ minWidth: "100px", maxWidth: "120px" }}
+          />
+        </Box>
+      </Box>
+    ))}
+  </Box>
+
+  {/* Táticas Concluídas */}
+  <Box sx={{ mb: 2 }}>
+    <Box display="flex" alignItems="center" mb={1}>
+      <DoubleArrowIcon sx={{ color: "#00796b", mr: 1 }} />
+      <Typography variant="h6" sx={{ color: "#00796b" }}>
+        Táticas
+      </Typography>
+    </Box>
+    {estrategicas?.flatMap((estrategica, estIndex) =>
+      estrategica.taticas?.filter(t => t.status === "concluida").map((tatica, i) => (
+        <Box
+          key={`tat-conc-${estIndex}-${i}`}
+          sx={{
+            backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+            px: 2,
+            py: 1,
+            borderBottom: "1px solid #e0e0e0",
+            display: "flex",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 1,
+          }}
+        >
+          <Typography variant="body2" sx={{ flex: 1 }}>{tatica.titulo}</Typography>
+          <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+          <Typography variant="body2" sx={{ flex: 2 }}>
+            <strong>Responsáveis:</strong>{" "}
+            <span style={{ fontStyle: "italic", color: "#555" }}>
+              {(tatica.emails || []).join(", ") || "Nenhum responsável"}
+            </span>
+          </Typography>
+          <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+            <TextField
+              label="Data início"
+              type="date"
+              size="small"
+              value={projetoData?.dataInicio || ""}
+              InputLabelProps={{ shrink: true }}
+              disabled
+              sx={{ minWidth: "100px", maxWidth: "120px" }}
+            />
+            <TextField
+              label="Prazo previsto"
+              type="date"
+              size="small"
+              value={projetoData?.prazoPrevisto || ""}
+              InputLabelProps={{ shrink: true }}
+              disabled
+              sx={{ minWidth: "100px", maxWidth: "120px" }}
+            />
+          </Box>
+        </Box>
+      ))
+    )}
+  </Box>
+
+  {/* Operacionais Concluídas */}
+  <Box sx={{ mb: 2 }}>
+    <Box display="flex" alignItems="center" mb={1}>
+      <DoubleArrowIcon sx={{ color: "#ff9800", mr: 1 }} />
+      <Typography variant="h6" sx={{ color: "#ff9800" }}>
+        Operacionais
+      </Typography>
+    </Box>
+    {estrategicas?.flatMap((estrategica, estIndex) =>
+      estrategica.taticas?.flatMap((tatica, tatIndex) =>
+        tatica.operacionais?.filter(op => op.status === "concluida").map((op, i) => (
+          <Box
+            key={`op-conc-${estIndex}-${tatIndex}-${i}`}
+            sx={{
+              backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+              px: 2,
+              py: 1,
+              borderBottom: "1px solid #e0e0e0",
+              display: "flex",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 1,
+            }}
+          >
+            <Typography variant="body2" sx={{ flex: 1 }}>{op.titulo}</Typography>
+            <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+            <Typography variant="body2" sx={{ flex: 2 }}>
+              <strong>Responsáveis:</strong>{" "}
+              <span style={{ fontStyle: "italic", color: "#555" }}>
+                {(op.emails || []).join(", ") || "Nenhum responsável"}
+              </span>
+            </Typography>
+            <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+              <TextField
+                label="Data início"
+                type="date"
+                size="small"
+                value={projetoData?.dataInicio || ""}
+                InputLabelProps={{ shrink: true }}
+                disabled
+                sx={{ minWidth: "100px", maxWidth: "120px" }}
+              />
+              <TextField
+                label="Prazo previsto"
+                type="date"
+                size="small"
+                value={projetoData?.prazoPrevisto || ""}
+                InputLabelProps={{ shrink: true }}
+                disabled
+                sx={{ minWidth: "100px", maxWidth: "120px" }}
+              />
+            </Box>
+          </Box>
+        ))
+      )
+    )}
+  </Box>
+
+  {/* Tarefas Concluídas */}
+  <Box sx={{ mt: 2 }}>
+    <Box display="flex" alignItems="center" mb={1}>
+      <DoubleArrowIcon sx={{ color: "#6a1b9a", mr: 1 }} />
+      <Typography variant="h6" sx={{ color: "#6a1b9a" }}>
+        Tarefas
+      </Typography>
+    </Box>
+    {estrategicas?.flatMap((estrategica, estIndex) =>
+      estrategica.taticas?.flatMap((tatica, tatIndex) =>
+        tatica.operacionais?.flatMap((op, opIndex) =>
+          op.tarefas?.filter(t => t.status === "concluida").map((tarefa, i) => {
+            const responsaveis = Array.isArray(tarefa?.planoDeAcao?.quemEmail)
+              ? tarefa.planoDeAcao.quemEmail.join(", ")
+              : tarefa?.planoDeAcao?.quemEmail || "Nenhum responsável";
+
+            return (
+              <Box
+                key={`tarefa-conc-${estIndex}-${tatIndex}-${opIndex}-${i}`}
+                sx={{
+                  backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+                  px: 2,
+                  py: 1,
+                  borderBottom: "1px solid #e0e0e0",
+                  display: "flex",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 1,
+                }}
+              >
+                <Typography variant="body2" sx={{ flex: 1 }}>
+                  {tarefa.tituloTarefa || "-"}
+                </Typography>
+                <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+                <Typography variant="body2" sx={{ flex: 2 }}>
+                  <strong>Responsáveis:</strong>{" "}
+                  <span style={{ fontStyle: "italic", color: "#555" }}>
+                    {responsaveis}
+                  </span>
+                </Typography>
+                <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                  <TextField
+                    label="Data início"
+                    type="date"
+                    size="small"
+                    value={projetoData?.dataInicio || ""}
+                    InputLabelProps={{ shrink: true }}
+                    disabled
+                    sx={{ minWidth: "100px", maxWidth: "120px" }}
+                  />
+                  <TextField
+                    label="Prazo previsto"
+                    type="date"
+                    size="small"
+                    value={projetoData?.prazoPrevisto || ""}
+                    InputLabelProps={{ shrink: true }}
+                    disabled
+                    sx={{ minWidth: "100px", maxWidth: "120px" }}
+                  />
+                </Box>
+              </Box>
+            );
+          })
+        )
+      )
+    )}
+  </Box>
+</TabPanel>
+
+
+
+
+
+<TabPanel value="6">
+  {/* Estratégicas Atrasadas */}
+  <Box sx={{ mb: 2 }}>
+    <Box display="flex" alignItems="center" mb={1}>
+      <DoubleArrowIcon sx={{ color: "#312783", mr: 1 }} />
+      <Typography variant="h6" sx={{ color: "#312783" }}>
+        Estratégicas
+      </Typography>
+    </Box>
+    {estrategicas?.filter(e => e.statusVisual === "atrasada").map((estrategica, i) => (
+      <Box
+        key={`est-atrasada-${i}`}
+        sx={{
+          backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+          px: 2,
+          py: 1,
+          borderBottom: "1px solid #e0e0e0",
+          display: "flex",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 1,
+        }}
+      >
+        <Typography variant="body2" sx={{ flex: 1 }}>
+          {estrategica.titulo}
+        </Typography>
+
+        <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+        <Typography variant="body2" sx={{ flex: 2 }}>
+          <strong>Responsáveis:</strong>{" "}
+          <span style={{ fontStyle: "italic", color: "#555" }}>
+            {(estrategica.emails || []).join(", ")}
+          </span>
+        </Typography>
+
+        <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+          <TextField
+            label="Data início"
+            type="date"
+            size="small"
+            value={projetoData?.dataInicio || ""}
+            InputLabelProps={{ shrink: true }}
+            disabled
+            sx={{ minWidth: "100px", maxWidth: "120px" }}
+          />
+          <TextField
+            label="Prazo previsto"
+            type="date"
+            size="small"
+            value={projetoData?.prazoPrevisto || ""}
+            InputLabelProps={{ shrink: true }}
+            disabled
+            sx={{ minWidth: "100px", maxWidth: "120px" }}
+          />
+        </Box>
+      </Box>
+    ))}
+  </Box>
+
+  {/* Táticas Atrasadas */}
+  <Box sx={{ mb: 2 }}>
+    <Box display="flex" alignItems="center" mb={1}>
+      <DoubleArrowIcon sx={{ color: "#00796b", mr: 1 }} />
+      <Typography variant="h6" sx={{ color: "#00796b" }}>
+        Táticas
+      </Typography>
+    </Box>
+    {estrategicas?.flatMap((estrategica, estIndex) =>
+      estrategica.taticas?.filter(t => t.statusVisual === "atrasada").map((tatica, i) => (
+        <Box
+          key={`tat-atrasada-${estIndex}-${i}`}
+          sx={{
+            backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+            px: 2,
+            py: 1,
+            borderBottom: "1px solid #e0e0e0",
+            display: "flex",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 1,
+          }}
+        >
+          <Typography variant="body2" sx={{ flex: 1 }}>
+            {tatica.titulo}
+          </Typography>
+
+          <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+          <Typography variant="body2" sx={{ flex: 2 }}>
+            <strong>Responsáveis:</strong>{" "}
+            <span style={{ fontStyle: "italic", color: "#555" }}>
+              {(tatica.emails || []).join(", ")}
+            </span>
+          </Typography>
+
+          <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+            <TextField
+              label="Data início"
+              type="date"
+              size="small"
+              value={projetoData?.dataInicio || ""}
+              InputLabelProps={{ shrink: true }}
+              disabled
+              sx={{ minWidth: "100px", maxWidth: "120px" }}
+            />
+            <TextField
+              label="Prazo previsto"
+              type="date"
+              size="small"
+              value={projetoData?.prazoPrevisto || ""}
+              InputLabelProps={{ shrink: true }}
+              disabled
+              sx={{ minWidth: "100px", maxWidth: "120px" }}
+            />
+          </Box>
+        </Box>
+      ))
+    )}
+  </Box>
+
+  {/* Operacionais Atrasadas */}
+  <Box>
+    <Box display="flex" alignItems="center" mb={1}>
+      <DoubleArrowIcon sx={{ color: "#ff9800", mr: 1 }} />
+      <Typography variant="h6" sx={{ color: "#ff9800" }}>
+        Operacionais
+      </Typography>
+    </Box>
+    {estrategicas?.flatMap((estrategica, estIndex) =>
+      estrategica.taticas?.flatMap((tatica, tatIndex) =>
+        tatica.operacionais?.filter(op => op.statusVisual === "atrasada").map((op, i) => (
+          <Box
+            key={`op-atrasada-${estIndex}-${tatIndex}-${i}`}
+            sx={{
+              backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+              px: 2,
+              py: 1,
+              borderBottom: "1px solid #e0e0e0",
+              display: "flex",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 1,
+            }}
+          >
+            <Typography variant="body2" sx={{ flex: 1 }}>
+              {op.titulo}
+            </Typography>
+
+            <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+            <Typography variant="body2" sx={{ flex: 2 }}>
+              <strong>Responsáveis:</strong>{" "}
+              <span style={{ fontStyle: "italic", color: "#555" }}>
+                {(op.emails || []).join(", ")}
+              </span>
+            </Typography>
+
+            <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+              <TextField
+                label="Data início"
+                type="date"
+                size="small"
+                value={projetoData?.dataInicio || ""}
+                InputLabelProps={{ shrink: true }}
+                disabled
+                sx={{ minWidth: "100px", maxWidth: "120px" }}
+              />
+              <TextField
+                label="Prazo previsto"
+                type="date"
+                size="small"
+                value={projetoData?.prazoPrevisto || ""}
+                InputLabelProps={{ shrink: true }}
+                disabled
+                sx={{ minWidth: "100px", maxWidth: "120px" }}
+              />
+            </Box>
+          </Box>
+        ))
+      )
+    )}
+  </Box>
+</TabPanel>
+
+        </TabContext>
+      </Box>
+
+
+
 
 </Box>
   );

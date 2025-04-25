@@ -432,6 +432,8 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
   const novaTarefaObj = {
     id: Date.now(),
     tituloTarefa: novaTarefa,
+    status: "nao_iniciada",
+    statusVisual: "nao_iniciada",
     planoDeAcao: {
       oQue: "",
       porQue: "",
@@ -508,13 +510,17 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
       .map((email) => email.trim())
       .filter((email) => email !== "");
   
-    const item = {
-      id: Date.now().toString(),
-      titulo: novaEstrategica,
-      descricao: descEstrategica,
-      emails,
-      taticas: [], // ✅ ESSENCIAL para evitar o erro
-    };
+      const item = {
+        id: Date.now().toString(),
+        titulo: novaEstrategica,
+        descricao: descEstrategica,
+        emails,
+        taticas: [],
+        status: "",
+        statusVisual: calcularStatusVisual(projetoData.prazoPrevisto, new Date().toISOString(), ""),
+        createdAt: new Date().toISOString(), // 👈 ADICIONADO
+      };
+      
   
     const atualizado = [...estrategicas, item];
     setEstrategicas(atualizado);
@@ -569,13 +575,17 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
         .map((email) => email.trim())
         .filter((email) => email !== "");
   
-    const novaTatica = {
-      id: Date.now().toString(),
-      titulo,
-      descricao,
-      emails,
-      operacionais: [], // ✅ Já inicializa
-    };
+        const novaTatica = {
+          id: Date.now().toString(),
+          titulo,
+          descricao,
+          emails,
+          operacionais: [],
+          status: "nao_iniciada",
+          statusVisual: calcularStatusVisual(projetoData.prazoPrevisto, new Date().toISOString(), ""),
+          createdAt: new Date().toISOString(),
+        };
+        
   
     const atualizado = estrategicas.map((est) => {
       if (est.id === idEstrategica) {
@@ -654,13 +664,17 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
         .map((email) => email.trim())
         .filter((email) => email !== "");
   
-    const novaOperacional = {
-      id: Date.now().toString(),
-      titulo,
-      descricao,
-      tarefas: [],
-      emails,
-    };
+        const novaOperacional = {
+          id: Date.now().toString(),
+          titulo,
+          descricao,
+          tarefas: [],
+          emails,
+          status: "",
+          statusVisual: calcularStatusVisual(projetoData.prazoPrevisto, new Date().toISOString(), ""),
+          createdAt: new Date().toISOString(),
+        };
+        
   
     const atualizado = estrategicas.map((estrategica) => {
       if (estrategica.id !== idEstrategica) return estrategica;
@@ -856,6 +870,8 @@ const areaRolesMap = {
   
             return {
               ...op,
+              status: op.status ?? "",
+              statusVisual: calcularStatusVisual(projetoData.prazoPrevisto, op.createdAt, op.status),
               areasResponsaveis: areasPorIdOperacional[op.id] || [],
               unidades: unidadesPorIdOperacional?.[op.id] || [],
               emails: [...manualEmails, ...responsaveisEmails].filter((e) => e.trim() !== ""),
@@ -864,6 +880,8 @@ const areaRolesMap = {
   
           return {
             ...tatica,
+            status: tatica.status ?? "",
+            statusVisual: calcularStatusVisual(projetoData.prazoPrevisto, tatica.createdAt, tatica.status),
             areasResponsaveis: areasTaticasPorId[tatica.id] || [],
             unidades: unidadesTaticasPorId[tatica.id] || [],
             emails: Array.isArray(emailsPorIdTatica[tatica.id])
@@ -878,6 +896,8 @@ const areaRolesMap = {
   
         return {
           ...est,
+          status: est.status ?? "", // usa undefined/null como sinal de reset
+          statusVisual: calcularStatusVisual(projetoData.prazoPrevisto, est.createdAt, est.status),
           areasResponsaveis: areasPorId[est.id] || [],
           unidades: unidadesPorId[est.id] || [],
           emails: Array.isArray(emailsPorIdEstrategica[est.id])
@@ -1307,7 +1327,6 @@ useEffect(() => {
 
 
   {/* Bolinha de status visual da Estratégica */}
-{estrategica.status === "andamento" && (
   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mr: 2 }}>
     <Box
       sx={{
@@ -1315,25 +1334,35 @@ useEffect(() => {
         height: 14,
         borderRadius: "50%",
         backgroundColor:
-          new Date() <= new Date(projetoData.prazoPrevisto)
-            ? "#00ff08" // verde
-            : "#ff0000", // vermelho
+        estrategica.statusVisual === "no_prazo"
+          ? "#00ff08"
+          : estrategica.statusVisual === "atrasada"
+          ? "#ff0000"
+          : "#9ca3af"
+      
       }}
     />
-    <Typography
-      sx={{
-        color: "#fff",
-        fontSize: "0.7rem",
-        whiteSpace: "nowrap",
-        marginTop: "2px",
-      }}
-    >
-      {new Date() <= new Date(projetoData.prazoPrevisto)
-        ? ""
-        : ""}
-    </Typography>
+<Typography
+  sx={{
+    color: "#fff",
+    fontSize: "0.8rem",
+    whiteSpace: "nowrap",
+    marginTop: "4px",
+  }}
+>
+  {
+    estrategica.statusVisual === "no_prazo"
+      ? "No prazo"
+      : estrategica.statusVisual === "atrasada"
+      ? "Em atraso"
+      : "Não iniciada"
+  }
+</Typography>
+
+
+
   </Box>
-)}
+
 
 
 <StatusProgresso progresso={calcularProgressoEstrategica(estrategica)} />
@@ -1370,21 +1399,37 @@ useEffect(() => {
           size="small"
           checked={estrategica.status === "concluida"}
           onChange={() => {
-            const statusVisual = calcularStatusVisual(projetoData.prazoPrevisto);
-
-            const atualizado = estrategicas.map((e) =>
-              e.id === estrategica.id
-                ? {
-                    ...e,
-                    status: e.status === "concluida" ? "" : "concluida",
-                    statusVisual: e.status === "concluida" ? "" : statusVisual,
-                  }
-                : e
-            );
-
+            const atualizado = estrategicas.map((e) => {
+              if (e.id !== estrategica.id) return e;
+          
+              const novoStatus = e.status === "concluida" ? "" : "concluida";
+          
+              const hoje = new Date();
+              const dataAtual = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+          
+              const prazoBruto = projetoData?.prazoPrevisto;
+              const prazoObj = new Date(prazoBruto);
+              const prazo = new Date(prazoObj.getFullYear(), prazoObj.getMonth(), prazoObj.getDate());
+          
+              const statusVisual =
+                novoStatus === "concluida"
+                  ? prazo >= dataAtual
+                    ? "no_prazo"
+                    : "atrasada"
+                  : "";
+          
+              return {
+                ...e,
+                status: novoStatus,
+                statusVisual,
+              };
+            });
+          
             setEstrategicas(atualizado);
             onUpdate && onUpdate({ estrategicas: atualizado });
           }}
+                  
+                
           sx={{
             width: 20,
             height: 20,
@@ -1415,17 +1460,38 @@ useEffect(() => {
           size="small"
           checked={estrategica.status === "andamento"}
           onChange={() => {
-            const atualizado = estrategicas.map((e) =>
-              e.id === estrategica.id
-                ? {
-                    ...e,
-                    status: e.status === "andamento" ? "" : "andamento",
-                  }
-                : e
-            );
+            const atualizado = estrategicas.map((e) => {
+              if (e.id !== estrategica.id) return e;
+          
+              const novoStatus = e.status === "andamento" ? "" : "andamento";
+          
+              const hoje = new Date();
+              const dataAtual = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+          
+              const prazoBruto = projetoData?.prazoPrevisto;
+              const prazoObj = new Date(prazoBruto);
+              const prazo = new Date(prazoObj.getFullYear(), prazoObj.getMonth(), prazoObj.getDate());
+          
+              const statusVisual =
+                novoStatus === "andamento"
+                  ? prazo >= dataAtual
+                    ? "no_prazo"
+                    : "atrasada"
+                  : "";
+          
+              return {
+                ...e,
+                status: novoStatus,
+                statusVisual,
+              };
+            });
+          
             setEstrategicas(atualizado);
             onUpdate && onUpdate({ estrategicas: atualizado });
           }}
+          
+                 
+          
           sx={{
             width: 20,
             height: 20,
@@ -1463,31 +1529,31 @@ useEffect(() => {
         height: 14,
         borderRadius: "50%",
         backgroundColor:
-          estrategica.status === "concluida"
-            ? calcularStatusVisual(projetoData.prazoPrevisto) === "no_prazo"
-              ? "#00ff08" // verde
-              : "#ff0000" // vermelho
-            : estrategica.status === "andamento"
-            ? "#2d81ff"
-            : "#9ca3af",
+        estrategica.statusVisual === "no_prazo"
+          ? "#00ff08"
+          : estrategica.statusVisual === "atrasada"
+          ? "#ff0000"
+          : "#9ca3af",
+
       }}
     />
-    <Typography
-      sx={{
-        color: "#fff",
-        fontSize: "0.8rem",
-        whiteSpace: "nowrap",
-        marginTop: "4px",
-      }}
-    >
-      {estrategica.status === "concluida"
-        ? calcularStatusVisual(projetoData.prazoPrevisto) === "no_prazo"
-          ? "No prazo"
-          : "Em atraso"
-        : estrategica.status === "andamento"
-        ? ""
-        : "Não iniciada"}
-    </Typography>
+  <Typography
+  sx={{
+    color: "#fff",
+    fontSize: "0.8rem",
+    whiteSpace: "nowrap",
+    marginTop: "4px",
+  }}
+>
+{estrategica.statusVisual === "no_prazo"
+    ? "No prazo"
+    : estrategica.statusVisual === "atrasada"
+    ? "Em atraso"
+    : "Não iniciada"}
+</Typography>
+
+
+
   </Box>
 </Box>
 
@@ -1860,33 +1926,40 @@ useEffect(() => {
 
                 
  {/* Bolinha de status visual da Tática */}
-{tatica.status === "andamento" && (
-  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mr: 2 }}>
-    <Box
-      sx={{
-        width: 14,
-        height: 14,
-        borderRadius: "50%",
-        backgroundColor:
-          new Date() <= new Date(projetoData.prazoPrevisto)
-            ? "#00ff08"
-            : "#ff0000",
-      }}
-    />
-    <Typography
-      sx={{
-        color: "#fff",
-        fontSize: "0.7rem",
-        whiteSpace: "nowrap",
-        marginTop: "2px",
-      }}
-    >
-      {new Date() <= new Date(projetoData.prazoPrevisto)
-        ? ""
-        : ""}
-    </Typography>
-  </Box>
-)}
+ <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mr: 2 }}>
+ <Box
+   sx={{
+     width: 14,
+     height: 14,
+     borderRadius: "50%",
+     backgroundColor:
+     tatica.statusVisual === "no_prazo"
+     ? "#00ff08"
+     : tatica.statusVisual === "atrasada"
+     ? "#ff0000"
+     : "#9ca3af",
+   }}
+ />
+<Typography
+  sx={{
+    color: "#fff",
+    fontSize: "0.8rem",
+    whiteSpace: "nowrap",
+    marginTop: "4px",
+  }}
+>
+{tatica.statusVisual === "no_prazo"
+    ? "No prazo"
+    : tatica.statusVisual === "atrasada"
+    ? "Em atraso"
+    : "Não iniciada"}
+
+</Typography>
+
+
+
+</Box>
+
 
 <StatusProgresso progresso={calcularProgressoTatica(tatica)} />
 
@@ -1921,28 +1994,48 @@ useEffect(() => {
 <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 120 }}>
   <FormControlLabel
     control={
-      <Checkbox
-        size="small"
-        checked={tatica.status === "concluida"}
-        onChange={() => {
-          const statusVisual = calcularStatusVisual(projetoData.prazoPrevisto);
-
-          const atualizado = estrategicas.map((estrategica) => ({
-            ...estrategica,
-            taticas: estrategica.taticas.map((t) =>
-              t.id === tatica.id
-                ? {
-                    ...t,
-                    status: t.status === "concluida" ? "" : "concluida",
-                    statusVisual: t.status === "concluida" ? "" : statusVisual,
-                  }
-                : t
-            ),
-          }));
-
-          setEstrategicas(atualizado);
-          onUpdate && onUpdate({ estrategicas: atualizado });
-        }}
+<Checkbox
+  size="small"
+  checked={tatica.status === "concluida"}
+  onChange={() => {
+    const atualizado = estrategicas.map((est) => ({
+      ...est,
+      taticas: est.taticas.map((t) => {
+        if (t.id !== tatica.id) return t;
+  
+        const novoStatus = t.status === "concluida" ? "" : "concluida";
+  
+        const hoje = new Date();
+        const dataAtual = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+  
+        const prazoBruto = projetoData?.prazoPrevisto;
+        const prazoObj = new Date(prazoBruto);
+        const prazo = new Date(prazoObj.getFullYear(), prazoObj.getMonth(), prazoObj.getDate());
+  
+        const statusVisual =
+          novoStatus === "concluida"
+            ? prazo >= dataAtual
+              ? "no_prazo"
+              : "atrasada"
+            : "";
+  
+        return {
+          ...t,
+          status: novoStatus,
+          statusVisual,
+        };
+      }),
+    }));
+  
+    setEstrategicas(atualizado);
+    onUpdate && onUpdate({ estrategicas: atualizado });
+  }}
+  
+  
+  
+  
+  
+  
         sx={{
           width: 20,
           height: 20,
@@ -1970,24 +2063,46 @@ useEffect(() => {
   <FormControlLabel
     control={
       <Checkbox
-        size="small"
-        checked={tatica.status === "andamento"}
-        onChange={() => {
-          const atualizado = estrategicas.map((estrategica) => ({
-            ...estrategica,
-            taticas: estrategica.taticas.map((t) =>
-              t.id === tatica.id
-                ? {
-                    ...t,
-                    status: t.status === "andamento" ? "" : "andamento",
-                  }
-                : t
-            ),
-          }));
-
-          setEstrategicas(atualizado);
-          onUpdate && onUpdate({ estrategicas: atualizado });
-        }}
+  size="small"
+  checked={tatica.status === "andamento"}
+  onChange={() => {
+    const atualizado = estrategicas.map((est) => ({
+      ...est,
+      taticas: est.taticas.map((t) => {
+        if (t.id !== tatica.id) return t;
+  
+        const novoStatus = t.status === "andamento" ? "" : "andamento";
+  
+        const hoje = new Date();
+        const dataAtual = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+  
+        const prazoBruto = projetoData?.prazoPrevisto;
+        const prazoObj = new Date(prazoBruto);
+        const prazo = new Date(prazoObj.getFullYear(), prazoObj.getMonth(), prazoObj.getDate());
+  
+        const statusVisual =
+          novoStatus === "andamento"
+            ? prazo >= dataAtual
+              ? "no_prazo"
+              : "atrasada"
+            : "";
+  
+        return {
+          ...t,
+          status: novoStatus,
+          statusVisual,
+        };
+      }),
+    }));
+  
+    setEstrategicas(atualizado);
+    onUpdate && onUpdate({ estrategicas: atualizado });
+  }}
+  
+  
+  
+  
+  
         sx={{
           width: 20,
           height: 20,
@@ -2025,13 +2140,11 @@ useEffect(() => {
       height: 14,
       borderRadius: "50%",
       backgroundColor:
-        tatica.status === "concluida"
-          ? calcularStatusVisual(projetoData.prazoPrevisto) === "no_prazo"
-            ? "#00ff08" // ✅ verde
-            : "#ff0000" // ❌ vermelho
-          : tatica.status === "andamento"
-          ? "#2d81ff"
-          : "#9ca3af",
+      tatica.statusVisual === "no_prazo"
+        ? "#00ff08"
+        : tatica.statusVisual === "atrasada"
+        ? "#ff0000"
+        : "#9ca3af",
     }}
   />
   <Typography
@@ -2042,13 +2155,12 @@ useEffect(() => {
       marginTop: "4px",
     }}
   >
-    {tatica.status === "concluida"
-      ? calcularStatusVisual(projetoData.prazoPrevisto) === "no_prazo"
-        ? "No prazo"
-        : "Em atraso"
-      : tatica.status === "andamento"
-      ? ""
+    {tatica.statusVisual === "no_prazo"
+      ? "No prazo"
+      : tatica.statusVisual === "atrasada"
+      ? "Em atraso"
       : "Não iniciada"}
+
   </Typography>
 </Box>
 
@@ -2409,33 +2521,38 @@ useEffect(() => {
 
 
  {/* Bolinha de status visual da Operacional */}
-{operacional.status === "andamento" && (
   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mr: 2 }}>
     <Box
       sx={{
         width: 14,
         height: 14,
         borderRadius: "50%",
-        backgroundColor:
-          new Date() <= new Date(projetoData.prazoPrevisto)
-            ? "#00ff08"
-            : "#ff0000",
+        backgroundColor: !operacional.status
+          ? "#9ca3af" // cinza - não iniciada
+          : new Date() > new Date(projetoData.prazoPrevisto)
+          ? "#ff0000" // vermelha - em atraso
+          : "#00ff08", // verde - no prazo
       }}
     />
-    <Typography
-      sx={{
-        color: "#fff",
-        fontSize: "0.7rem",
-        whiteSpace: "nowrap",
-        marginTop: "2px",
-      }}
-    >
-      {new Date() <= new Date(projetoData.prazoPrevisto)
-        ? ""
-        : ""}
-    </Typography>
+<Typography
+  sx={{
+    color: "#fff",
+    fontSize: "0.8rem",
+    whiteSpace: "nowrap",
+    marginTop: "4px",
+  }}
+>
+  {!operacional.status
+    ? "Não iniciada"
+    : new Date() > new Date(projetoData.prazoPrevisto)
+    ? "Em atraso"
+    : "No prazo"}
+</Typography>
+
+
+
   </Box>
-)}
+
 
 
                         <StatusProgresso
@@ -2475,31 +2592,47 @@ useEffect(() => {
 <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mr: 1  }}>
   <FormControlLabel
     control={
-      <Checkbox
-        size="small"
-        checked={operacional.status === "concluida"}
-        onChange={() => {
-          const statusVisual = calcularStatusVisual(projetoData.prazoPrevisto);
-
-          const atualizado = estrategicas.map((estrategica) => ({
-            ...estrategica,
-            taticas: estrategica.taticas.map((tatica) => ({
-              ...tatica,
-              operacionais: tatica.operacionais.map((op) =>
-                op.id === operacional.id
-                  ? {
-                      ...op,
-                      status: op.status === "concluida" ? "" : "concluida",
-                      statusVisual: op.status === "concluida" ? "" : statusVisual,
-                    }
-                  : op
-              ),
-            })),
-          }));
-
-          setEstrategicas(atualizado);
-          onUpdate && onUpdate({ estrategicas: atualizado });
-        }}
+<Checkbox
+  size="small"
+  checked={operacional.status === "concluida"}
+  onChange={() => {
+    const atualizado = estrategicas.map((estrategica) => ({
+      ...estrategica,
+      taticas: estrategica.taticas.map((tatica) => ({
+        ...tatica,
+        operacionais: tatica.operacionais.map((op) => {
+          if (op.id !== operacional.id) return op;
+  
+          const novoStatus = op.status === "concluida" ? "" : "concluida";
+  
+          const hoje = new Date();
+          const dataAtual = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+  
+          const prazoBruto = projetoData?.prazoPrevisto;
+          const prazoObj = new Date(prazoBruto);
+          const prazo = new Date(prazoObj.getFullYear(), prazoObj.getMonth(), prazoObj.getDate());
+  
+          const statusVisual =
+            novoStatus === "concluida"
+              ? prazo >= dataAtual
+                ? "no_prazo"
+                : "atrasada"
+              : "";
+  
+          return {
+            ...op,
+            status: novoStatus,
+            statusVisual,
+          };
+        }),
+      })),
+    }));
+  
+    setEstrategicas(atualizado);
+    onUpdate && onUpdate({ estrategicas: atualizado });
+  }}
+  
+  
         sx={{
           width: 20,
           height: 20,
@@ -2534,20 +2667,39 @@ useEffect(() => {
             ...estrategica,
             taticas: estrategica.taticas.map((tatica) => ({
               ...tatica,
-              operacionais: tatica.operacionais.map((op) =>
-                op.id === operacional.id
-                  ? {
-                      ...op,
-                      status: op.status === "andamento" ? "" : "andamento",
-                    }
-                  : op
-              ),
+              operacionais: tatica.operacionais.map((op) => {
+                if (op.id !== operacional.id) return op;
+        
+                const novoStatus = op.status === "andamento" ? "" : "andamento";
+        
+                const hoje = new Date();
+                const dataAtual = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+        
+                const prazoBruto = projetoData?.prazoPrevisto;
+                const prazoObj = new Date(prazoBruto);
+                const prazo = new Date(prazoObj.getFullYear(), prazoObj.getMonth(), prazoObj.getDate());
+        
+                const statusVisual =
+                  novoStatus === "andamento"
+                    ? prazo >= dataAtual
+                      ? "no_prazo"
+                      : "atrasada"
+                    : "";
+        
+                return {
+                  ...op,
+                  status: novoStatus,
+                  statusVisual,
+                };
+              }),
             })),
           }));
-
+        
           setEstrategicas(atualizado);
           onUpdate && onUpdate({ estrategicas: atualizado });
         }}
+              
+        
         sx={{
           width: 20,
           height: 20,
@@ -2585,13 +2737,11 @@ useEffect(() => {
       height: 14,
       borderRadius: "50%",
       backgroundColor:
-        operacional.status === "concluida"
-          ? calcularStatusVisual(projetoData.prazoPrevisto) === "no_prazo"
-            ? "#00ff08" // ✅ verde
-            : "#ff1000" // ❌ vermelho
-          : operacional.status === "andamento"
-          ? "#2d81ff"
-          : "#9ca3af",
+      operacional.statusVisual === "no_prazo"
+        ? "#00ff08"
+        : operacional.statusVisual === "atrasada"
+        ? "#ff1000"
+        : "#9ca3af",    
     }}
   />
   <Typography
@@ -2602,13 +2752,12 @@ useEffect(() => {
       marginTop: "4px",
     }}
   >
-    {operacional.status === "concluida"
-      ? calcularStatusVisual(projetoData.prazoPrevisto) === "no_prazo"
-        ? "No prazo"
-        : "Em atraso"
-      : operacional.status === "andamento"
-      ? ""
+    {operacional.statusVisual === "no_prazo"
+      ? "No prazo"
+      : operacional.statusVisual === "atrasada"
+      ? "Em atraso"
       : "Não iniciada"}
+
   </Typography>
 </Box>
 
@@ -2670,31 +2819,38 @@ useEffect(() => {
  <TextField
   label="Descrição da Operacional"
   value={operacional.descricao || ""}
-  onChange={(e) => {
-    const value = e.target.value;
-
-    setEstrategicas((prev) =>
-      prev.map((est) =>
-        est.id === estrategica.id
-          ? {
-              ...est,
-              taticas: est.taticas.map((tat) =>
-                tat.id === tatica.id
-                  ? {
-                      ...tat,
-                      operacionais: tat.operacionais.map((op) =>
-                        op.id === operacional.id
-                          ? { ...op, descricao: value }
-                          : op
-                      ),
-                    }
-                  : tat
-              ),
-            }
-          : est
-      )
-    );
+  onChange={() => {
+    const atualizado = estrategicas.map((est) => ({
+      ...est,
+      taticas: est.taticas.map((tat) => ({
+        ...tat,
+        operacionais: tat.operacionais.map((op) => {
+          if (op.id !== operacional.id) return op;
+  
+          const novoStatus = op.status === "concluida" ? "" : "concluida";
+          const dataAgora = new Date();
+          const dataPrazo = new Date(projetoData.prazoPrevisto);
+  
+          return {
+            ...op,
+            status: novoStatus,
+            statusVisual:
+              novoStatus === "concluida"
+                ? dataAgora > dataPrazo
+                  ? "atrasada"
+                  : "no_prazo"
+                : "",
+          };
+        }),
+      })),
+    }));
+  
+    setEstrategicas(atualizado);
+    onUpdate && onUpdate({ estrategicas: atualizado });
   }}
+  
+  
+  
   sx={{
     flex: 1,
     backgroundColor: "transparent",
@@ -2723,28 +2879,42 @@ useEffect(() => {
     <Select
       multiple
       value={areasPorIdOperacional[operacional.id] || []}
-      onChange={(event) => {
-        const value = event.target.value;
-        setAreasPorIdOperacional((prev) => ({
-          ...prev,
-          [operacional.id]: value,
+      onChange={() => {
+        const atualizado = estrategicas.map((estrategica) => ({
+          ...estrategica,
+          taticas: estrategica.taticas.map((tatica) => ({
+            ...tatica,
+            operacionais: tatica.operacionais.map((op) => {
+              if (op.id === operacional.id) {
+                const novoStatus = op.status === "concluida" ? "" : "concluida";
+      
+                // 📅 Captura a data atual no momento do clique
+                const dataAgora = new Date();
+                const dataPrazo = new Date(projetoData.prazoPrevisto);
+      
+                const novoStatusVisual =
+                  novoStatus === "concluida"
+                    ? dataAgora > dataPrazo
+                      ? "atrasada"
+                      : "no_prazo"
+                    : "";
+      
+                return {
+                  ...op,
+                  status: novoStatus,
+                  statusVisual: novoStatusVisual,
+                };
+              }
+              return op;
+            }),
+          })),
         }));
-        setEstrategicas((prev) =>
-          prev.map((est) => ({
-            ...est,
-            taticas: est.taticas.map((tatica) => ({
-              ...tatica,
-              operacionais: tatica.operacionais.map((op) =>
-                op.id === operacional.id
-                  ? { ...op, areasResponsaveis: value }
-                  : op
-              ),
-            })),
-          }))
-        );
+      
+        setEstrategicas(atualizado);
+        onUpdate && onUpdate({ estrategicas: atualizado });
       }}
-      displayEmpty
-      fullWidth
+      
+     
       sx={{ backgroundColor: "transparent", marginTop: "10px" }}
       renderValue={(selected) =>
         selected.length === 0
@@ -2985,51 +3155,29 @@ useEffect(() => {
 
 
 {/**checkbox de marcar como concluida */}
-<Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 5, justifyContent: "flex-end" }}>
+ <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 5, justifyContent: "flex-end" }}>
   <Checkbox
     checked={tarefa.status === "concluida"}
-    onChange={async () => {
-      const novaEstrutura = estrategicas.map((est) => ({
-        ...est,
-        taticas: est.taticas.map((tat) => ({
-          ...tat,
-          operacionais: tat.operacionais.map((op) => ({
-            ...op,
-            tarefas: op.tarefas.map((t) =>
-              t.id === tarefa.id
-                ? {
-                    ...t,
-                    status: t.status === "concluida" ? "" : "concluida",
-                    checkboxState: {
-                      ...t.checkboxState,
-                      concluida: !(t.checkboxState?.concluida ?? false),
-                    },
-                  }
-                : t
-            ),
+    onChange={() => {
+      setEstrategicas((prev) =>
+        prev.map((est) => ({
+          ...est,
+          taticas: est.taticas.map((tat) => ({
+            ...tat,
+            operacionais: tat.operacionais.map((op) => ({
+              ...op,
+              tarefas: op.tarefas.map((t) =>
+                t.id === tarefa.id
+                  ? {
+                      ...t,
+                      status: t.status === "concluida" ? "" : "concluida",
+                    }
+                  : t
+              ),
+            })),
           })),
-        })),
-      }));
-
-      setEstrategicas(novaEstrutura);
-      onUpdate && onUpdate({ estrategicas: novaEstrutura });
-
-      // 🔄 Atualiza no Firestore
-      if (!projectId) {
-        console.warn("❌ ID do projeto não encontrado.");
-        return;
-      }
-
-      try {
-        const projetoRef = doc(db, "projetos", projectId);
-        await updateDoc(projetoRef, {
-          estrategicas: novaEstrutura,
-          updatedAt: new Date(),
-        });
-        console.log("✅ Status da tarefa salvo no Firestore.");
-      } catch (error) {
-        console.error("❌ Erro ao salvar tarefa no Firestore:", error);
-      }
+        }))
+      );
     }}
     sx={{ padding: 0 }}
   />
@@ -3037,7 +3185,6 @@ useEffect(() => {
     Marcar como concluída
   </Typography>
 </Box>
-
 
 
                                     {/* 🔹 Campos do 5W2H */}

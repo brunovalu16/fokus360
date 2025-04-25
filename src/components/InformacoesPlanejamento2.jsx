@@ -6,6 +6,7 @@ import {
   ListItemText,
   Select,
   MenuItem,
+  Typography,
   Accordion,
   AccordionDetails,
   Button,
@@ -161,6 +162,7 @@ useEffect(() => {
       const listaUsuarios = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         username: doc.data().username,
+        photoURL: doc.data().photoURL,
       }));  
       setUsers(listaUsuarios);
     } catch (error) {
@@ -389,15 +391,21 @@ useEffect(() => {
     displayEmpty
     notched
     label="Colaboradores"
-    renderValue={(selected) =>
-      selected.length === 0
-        ? "Selecione colaboradores"
-        : selected
-            .map(
-              (id) => users.find((user) => user.id === id)?.username || "Desconhecido"
-            )
-            .join(", ")
-    }
+    renderValue={(selected) => (
+      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+        {selected.map((id) => {
+          const user = users.find((u) => u.id === id);
+          return (
+            <Avatar
+              key={id}
+              src={user?.photoURL}
+              alt={user?.username}
+              sx={{ width: 30, height: 30, border: "2px solid #312783" }}
+            />
+          );
+        })}
+      </Box>
+    )}
   >
     <MenuItem value="" disabled>
       Selecione colaboradores
@@ -406,25 +414,30 @@ useEffect(() => {
     {users.map((user) => (
       <MenuItem key={user.id} value={user.id}>
         <Checkbox checked={formValues.colaboradores.includes(user.id)} />
-        <Avatar
-          src={user.photoURL || "/default-avatar.png"}
-          alt={user.username}
-          sx={{
-            width: 30,
-            height: 30,
-            fontSize: "14px",
-            marginRight: 1,
-            bgcolor: user.photoURL ? "transparent" : "#9e9e9e",
-          }}
-          imgProps={{ referrerPolicy: "no-referrer" }}
-        >
-          {!user.photoURL && (user.username?.charAt(0).toUpperCase() || "?")}
-        </Avatar>
-        <ListItemText primary={user.username} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Avatar
+            src={user.photoURL}
+            alt={user.username}
+            sx={{
+              bgcolor: user.photoURL ? "transparent" : "#9e9e9e",
+              width: 32,
+              height: 32,
+              fontSize: "14px",
+              border: "2px solid #312783",
+            }}
+            imgProps={{ referrerPolicy: "no-referrer" }}
+          >
+            {!user.photoURL && user.username?.charAt(0).toUpperCase()}
+          </Avatar>
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            {user.username}
+          </Typography>
+        </Box>
       </MenuItem>
     ))}
   </Select>
 </FormControl>
+
 
 
 

@@ -82,9 +82,12 @@ function DashboardPlanejamento() {
     }}
   >
     <DadosProjeto2
-      orcamento={projetoData?.orcamento}
       estrategicas={projetoData?.estrategicas}
       diretrizes={projetoData?.estrategicas}
+      orcamento={projetoData?.orcamento}
+      dataInicio={projetoData?.dataInicio}
+      prazoPrevisto={projetoData?.prazoPrevisto}
+      projetoData={projetoData}
     />
 
 

@@ -1,15 +1,20 @@
-export const calcularStatusVisual = (prazoPrevisto) => {
-    if (!prazoPrevisto) return "no_prazo"; // Retorna "no_prazo" caso prazoPrevisto seja nulo ou indefinido
-  
-    // Usando diretamente a data atual do navegador
-    const dataAtual = new Date();  // A data do navegador
-    const dataPrazo = new Date(prazoPrevisto); // Converte o prazo para data
-  
-    // Comparando se a data atual é menor ou igual ao prazo
-    if (dataAtual.getTime() <= dataPrazo.getTime()) {
-      return "no_prazo"; // verde
-    }
-  
-    return "atrasada"; // vermelho
-  };
-  
+export const calcularStatusVisual = (prazoPrevisto, createdAt, status) => {
+  const hoje = new Date();
+  const prazo = new Date(prazoPrevisto);
+  const criado = createdAt ? new Date(createdAt) : hoje;
+
+  if (status === "concluida") {
+    return "no_prazo"; // ✅ sempre verde
+  }
+
+  if (status === "andamento") {
+    return hoje <= prazo ? "no_prazo" : "atrasada"; // ✅ ok
+  }
+
+  if (!status || status === "nao_iniciada" || status === "") {
+    return "nao_iniciada"; // ✅ devolve exatamente o status, sem inventar
+  }
+
+  // Fallback
+  return "nao_iniciada";
+};
