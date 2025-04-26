@@ -1371,11 +1371,13 @@ useEffect(() => {
       height: 14,
       borderRadius: "50%",
       backgroundColor:
-        estrategica.time === "no prazo"
-          ? "#00ff08" // Verde
-          : estrategica.time === "atrasada"
-          ? "#ff0000" // Vermelha
-          : "#9ca3af", // Cinza (sem time definido)
+        estrategica.status === "concluida"
+        ? (estrategica.statusVisual === "no_prazo" ? "#00ff08" : "#ff0000")
+        : estrategica.time === "no prazo"
+        ? "#00ff08"
+        : estrategica.time === "atrasada"
+        ? "#ff0000"
+        : "#9ca3af",
     }}
   />
 </Box>
