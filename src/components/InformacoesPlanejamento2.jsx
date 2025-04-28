@@ -80,6 +80,13 @@ useEffect(() => {
 
 
 
+
+
+
+
+
+
+
 //Função para atualizar no banco as modificações do usuarios nos campos
 const handleUpdate = async () => {
   if (!projetoData?.id) {

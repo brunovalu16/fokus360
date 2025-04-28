@@ -4,9 +4,14 @@ import { dbFokus360 as db } from "../data/firebase-config";
 export const atualizarCampoTimeDiretrizes = async (projetoData) => {
   if (!projetoData?.id || !projetoData?.estrategicas || !projetoData?.prazoPrevisto) return;
 
-  const prazo = new Date(projetoData.prazoPrevisto);
-  const agora = new Date();
-  const novaTime = agora > prazo ? "atrasada" : "no prazo";
+  // 🔥 Extrair manualmente ano, mês e dia da string "2025-04-28"
+  const [ano, mes, dia] = projetoData.prazoPrevisto.split("-").map(Number);
+  const prazo = new Date(ano, mes - 1, dia); // mês -1 porque no JS Janeiro = 0
+
+  const hoje = new Date();
+  const dataAtual = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+
+  const novaTime = dataAtual <= prazo ? "no prazo" : "atrasada";
 
   let houveAlteracao = false;
 
@@ -34,7 +39,7 @@ export const atualizarCampoTimeDiretrizes = async (projetoData) => {
     const projetoRef = doc(db, "projetos", projetoData.id);
     await updateDoc(projetoRef, {
       estrategicas: estrategicasAtualizadas,
-      updatedAt: new Date(), // Isso continua atualizando, mas agora só se o time mudar
+      updatedAt: new Date(), // Atualiza timestamp
     });
     console.log("⏱️ Campo 'time' atualizado com sucesso!");
   } catch (error) {

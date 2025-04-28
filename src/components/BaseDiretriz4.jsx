@@ -7,9 +7,11 @@ import {
   Accordion,
   List,
   Select,
+  Avatar,
   MenuItem,
   Checkbox,
   ListItemText,
+  ListItemAvatar,
   AccordionSummary,
   AccordionDetails,
 } from "@mui/material";
@@ -329,6 +331,7 @@ const [emailsPorIdOperacional, setEmailsPorIdOperacional] = useState({});
             id: doc.id,
             username: doc.data().username,
             email: doc.data().email,
+            photoURL: doc.data().photoURL || "",
           }));
           setUsers(usersList);
         } catch (error) {
@@ -708,6 +711,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
           tarefas: [],
           emails,
           status: "",
+          time: new Date() <= new Date(projetoData.prazoPrevisto) ? "no prazo" : "atrasada",
           statusVisual: calcularStatusVisual(projetoData.prazoPrevisto, new Date().toISOString(), ""),
           createdAt: new Date().toISOString(),
         };
@@ -908,7 +912,9 @@ const areaRolesMap = {
             return {
               ...op,
               status: op.status ?? "",
-              statusVisual: calcularStatusVisualPorStatus(op.status, projetoData.prazoPrevisto),
+              statusVisual: op.status === "concluida"
+              ? op.statusVisual
+              : calcularStatusVisualPorStatus(op.status, projetoData.prazoPrevisto),
               areasResponsaveis: areasPorIdOperacional[op.id] || [],
               unidades: unidadesPorIdOperacional?.[op.id] || [],
               emails: [...manualEmails, ...responsaveisEmails].filter((e) => e.trim() !== ""),
@@ -918,7 +924,9 @@ const areaRolesMap = {
           return {
             ...tatica,
             status: tatica.status ?? "",
-            statusVisual: calcularStatusVisualPorStatus(tatica.status, projetoData.prazoPrevisto),
+            statusVisual: tatica.status === "concluida"
+            ? tatica.statusVisual
+            : calcularStatusVisualPorStatus(tatica.status, projetoData.prazoPrevisto),
             areasResponsaveis: areasTaticasPorId[tatica.id] || [],
             unidades: unidadesTaticasPorId[tatica.id] || [],
             emails: Array.isArray(emailsPorIdTatica[tatica.id])
@@ -934,7 +942,9 @@ const areaRolesMap = {
         return {
           ...est,
           status: est.status ?? "", // usa undefined/null como sinal de reset
-          statusVisual: calcularStatusVisualPorStatus(est.status, projetoData.prazoPrevisto),
+          statusVisual: est.status === "concluida"
+          ? est.statusVisual // 🔥 mantém o que já estava
+          : calcularStatusVisualPorStatus(est.status, projetoData.prazoPrevisto),
           areasResponsaveis: areasPorId[est.id] || [],
           unidades: unidadesPorId[est.id] || [],
           emails: Array.isArray(emailsPorIdEstrategica[est.id])
@@ -1372,12 +1382,13 @@ useEffect(() => {
       borderRadius: "50%",
       backgroundColor:
         estrategica.status === "concluida"
-        ? (estrategica.statusVisual === "no_prazo" ? "#00ff08" : "#ff0000")
-        : estrategica.time === "no prazo"
-        ? "#00ff08"
-        : estrategica.time === "atrasada"
-        ? "#ff0000"
-        : "#9ca3af",
+          ? (estrategica.statusVisual === "no_prazo" ? "#00ff08" : "#ff0000")
+          : estrategica.time === "no prazo"
+          ? "#00ff08"
+          : estrategica.time === "atrasada"
+          ? "#ff0000"
+          : "#9ca3af",
+
     }}
   />
 </Box>
@@ -1425,18 +1436,19 @@ useEffect(() => {
               const novoStatus = e.status === "concluida" ? "" : "concluida";
           
               const hoje = new Date();
-              const dataAtual = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-          
-              const prazoBruto = projetoData?.prazoPrevisto;
-              const prazoObj = new Date(prazoBruto);
-              const prazo = new Date(prazoObj.getFullYear(), prazoObj.getMonth(), prazoObj.getDate());
-          
+              const dataAtual = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()); // 🔵 Só dia/mês/ano
+
+              const [ano, mes, dia] = projetoData?.prazoPrevisto?.split("-") || [];
+              const prazo = new Date(Number(ano), Number(mes) - 1, Number(dia)); // 🔥 monta manualmente: ano, mês (zero-based), dia
+
               const statusVisual =
-                novoStatus === "concluida"
-                  ? prazo >= dataAtual
+                novoStatus === "concluida" || novoStatus === "andamento"
+                  ? dataAtual.getTime() <= prazo.getTime()
                     ? "no_prazo"
                     : "atrasada"
                   : "";
+
+
           
               return {
                 ...e,
@@ -1486,18 +1498,18 @@ useEffect(() => {
               const novoStatus = e.status === "andamento" ? "" : "andamento";
           
               const hoje = new Date();
-              const dataAtual = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-          
-              const prazoBruto = projetoData?.prazoPrevisto;
-              const prazoObj = new Date(prazoBruto);
-              const prazo = new Date(prazoObj.getFullYear(), prazoObj.getMonth(), prazoObj.getDate());
-          
+              const dataAtual = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()); // 🔵 Data atual só com dia/mês/ano
+
+              const [ano, mes, dia] = projetoData?.prazoPrevisto?.split("-") || [];
+              const prazo = new Date(Number(ano), Number(mes) - 1, Number(dia)); // 🔥 monta a data manualmente
+
               const statusVisual =
-                novoStatus === "andamento"
-                  ? prazo >= dataAtual
+                novoStatus === "andamento" || novoStatus === "concluida"
+                  ? dataAtual.getTime() <= prazo.getTime()
                     ? "no_prazo"
                     : "atrasada"
                   : "";
+
           
               return {
                 ...e,
@@ -1662,122 +1674,217 @@ useEffect(() => {
             marginBottom:"20px"
           }}
         >
-          {/* Áreas */}
-          <Select
-  multiple
-  displayEmpty
-  value={areasPorId[estrategica.id] || []}
-  onChange={(event) => {
-    const value = event.target.value;
-    setAreasPorId((prev) => ({
-      ...prev,
-      [estrategica.id]: value,
-    }));
-  }}
-  sx={{
-    flex: 1,
-    backgroundColor: "transparent",
-    marginTop: "10px",
-  }}
-  renderValue={(selected) =>
-    selected.length === 0
-      ? <span style={{ color: "#000" }}>Selecione as áreas responsáveis</span>
-      : selected
-          .map((id) => areas.find((area) => area.id === id)?.nome || "Desconhecida")
-          .join(", ")
-  }
->
-  {areas.map((area) => (
-    <MenuItem key={area.id} value={area.id}>
-      <Checkbox checked={(areasPorId[estrategica.id] || []).includes(area.id)} />
-      <ListItemText primary={area.nome} />
-    </MenuItem>
-  ))}
-</Select>
+{/* Áreas */}
+<Box sx={{ flex: 1, minWidth: "300px", marginTop: "10px" }}>
+  <fieldset style={{ 
+    borderRadius: "8px", 
+    borderColor: "#c4c4c4", 
+    borderWidth: "1px",
+    padding: "33px 8px",
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+    height: "48px"
+  }}>
+    <legend style={{ 
+      color: "#757575", 
+      fontSize: "0.75rem", 
+      padding: "0 4px",
+    }}>
+      Áreas Responsáveis
+    </legend>
+
+    <Select
+      multiple
+      displayEmpty
+      value={areasPorId[estrategica.id] || []}
+      onChange={(event) => {
+        const value = event.target.value;
+        setAreasPorId((prev) => ({
+          ...prev,
+          [estrategica.id]: value,
+        }));
+      }}
+      renderValue={(selected) =>
+        selected.length === 0
+          ? <span style={{ color: "#757575", fontSize: "0.85rem" }}>Selecione as áreas responsáveis</span>
+          : selected
+              .map((id) => areas.find((area) => area.id === id)?.nome || "Desconhecida")
+              .join(", ")
+      }
+      fullWidth
+      sx={{ 
+        backgroundColor: "transparent", 
+        border: "none",
+        height: "100%",
+        '& .MuiOutlinedInput-notchedOutline': {
+          border: 'none'
+        },
+        '& .MuiSelect-select': {
+          padding: "4px",
+          display: "flex",
+          alignItems: "center",
+        }
+      }}
+    >
+      {areas.map((area) => (
+        <MenuItem key={area.id} value={area.id}>
+          <Checkbox checked={(areasPorId[estrategica.id] || []).includes(area.id)} />
+          <ListItemText primary={area.nome} />
+        </MenuItem>
+      ))}
+    </Select>
+  </fieldset>
+</Box>
 
 
 
-          {/* Unidades */}
-          <Select
-  multiple
-  value={unidadesPorId[estrategica.id] || []}
-  onChange={(event) => {
-    const value = event.target.value;
-    setUnidadesPorId((prev) => ({
-      ...prev,
-      [estrategica.id]: value,
-    }));
-  }}
-  displayEmpty
-  sx={{
-    flex: 1,
-    backgroundColor: "transparent",
-    marginTop: "10px",
-  }}
-  renderValue={(selected) =>
-    selected.length === 0
-      ? "Selecione a Unidade"
-      : selected
-          .map(
-            (id) =>
-              unidades.find((uni) => uni.id === id)?.nome || "Desconhecida"
-          )
-          .join(", ")
-  }
->
-  {unidades.map((uni) => (
-    <MenuItem key={uni.id} value={uni.id}>
-      <Checkbox
-        checked={(unidadesPorId[estrategica.id] || []).includes(uni.id)}
-      />
-      <ListItemText primary={uni.nome} />
-    </MenuItem>
-  ))}
-</Select>
+
+{/* Unidades */}
+<Box sx={{ flex: 1, minWidth: "300px", marginTop: "10px" }}>
+  <fieldset style={{ 
+    borderRadius: "8px", 
+    borderColor: "#c4c4c4", 
+    borderWidth: "1px",
+    padding: "33px 8px",
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+    height: "48px"
+  }}>
+    <legend style={{ 
+      color: "#757575", 
+      fontSize: "0.75rem", 
+      padding: "0 4px",
+    }}>
+      Unidades
+    </legend>
+
+    <Select
+      multiple
+      displayEmpty
+      value={unidadesPorId[estrategica.id] || []}
+      onChange={(event) => {
+        const value = event.target.value;
+        setUnidadesPorId((prev) => ({
+          ...prev,
+          [estrategica.id]: value,
+        }));
+      }}
+      renderValue={(selected) =>
+        selected.length === 0
+          ? "Selecione a Unidade"
+          : selected
+              .map((id) => unidades.find((uni) => uni.id === id)?.nome || "Desconhecida")
+              .join(", ")
+      }
+      fullWidth
+      sx={{ 
+        backgroundColor: "transparent", 
+        border: "none",
+        height: "100%",
+        '& .MuiOutlinedInput-notchedOutline': {
+          border: 'none'
+        },
+        '& .MuiSelect-select': {
+          padding: "4px",
+          display: "flex",
+          alignItems: "center",
+        }
+      }}
+    >
+      {unidades.map((uni) => (
+        <MenuItem key={uni.id} value={uni.id}>
+          <Checkbox checked={(unidadesPorId[estrategica.id] || []).includes(uni.id)} />
+          <ListItemText primary={uni.nome} />
+        </MenuItem>
+      ))}
+    </Select>
+  </fieldset>
+</Box>
+
 
 
 {/* select de resposaveis por estrategicas */}
-<Box sx={{ flex: 1, minWidth: "300px" }}>
-  <Select
-    multiple
-    displayEmpty
-    value={emailsPorIdEstrategica[estrategica.id] || []}
-    onChange={(event) => {
-      const selectedEmails = event.target.value;
+<Box sx={{ flex: 1, minWidth: "300px", marginTop: "10px" }}>
+  <fieldset style={{ 
+    borderRadius: "8px", 
+    borderColor: "#c4c4c4", 
+    borderWidth: "1px",
+    position: "relative"
+  }}>
+    <legend style={{ 
+      color: "#757575", 
+      fontSize: "0.75rem", 
+      padding: "2 6px",
+    }}>
+      Responsáveis
+    </legend>
 
-      setEmailsPorIdEstrategica((prev) => ({
-        ...prev,
-        [estrategica.id]: selectedEmails,
-      }));
+    <Select
+      multiple
+      displayEmpty
+      value={emailsPorIdEstrategica[estrategica.id] || []}
+      onChange={(event) => {
+        const selectedEmails = event.target.value;
+        setEmailsPorIdEstrategica((prev) => ({
+          ...prev,
+          [estrategica.id]: selectedEmails,
+        }));
 
-      setEstrategicas((prev) =>
-        prev.map((est) =>
-          est.id === estrategica.id
-            ? { ...est, emails: selectedEmails }
-            : est
-        )
-      );
-    }}
-    renderValue={(selected) =>
-      selected.length === 0
-        ? "Selecione os responsáveis pela diretriz"
-        : selected.join(", ")
-    }
-    fullWidth
-    sx={{ backgroundColor: "transparent", marginTop: "10px" }}
-  >
-    {users?.map((user) => (
-      <MenuItem key={user.id} value={user.email}>
-        <Checkbox
-          checked={
-            (emailsPorIdEstrategica[estrategica.id] || []).includes(user.email)
-          }
-        />
-        <ListItemText primary={`${user.username} (${user.email})`} />
-      </MenuItem>
-    ))}
-  </Select>
+        setEstrategicas((prev) =>
+          prev.map((est) =>
+            est.id === estrategica.id ? { ...est, emails: selectedEmails } : est
+          )
+        );
+      }}
+      renderValue={(selected) => (
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+          {selected.map((email) => {
+            const user = users.find((u) => u.email === email);
+            return (
+              <Avatar
+                key={email}
+                src={user?.photoURL}
+                alt={user?.username}
+                sx={{ width: 30, height: 30, border: "2px solid #312783" }}
+                imgProps={{ referrerPolicy: "no-referrer" }}
+              >
+                {!user?.photoURL && user?.username?.charAt(0).toUpperCase()}
+              </Avatar>
+            );
+          })}
+        </Box>
+      )}
+      fullWidth
+      sx={{ 
+        backgroundColor: "transparent", 
+        border: "none",
+        '& .MuiOutlinedInput-notchedOutline': {
+          border: 'none'
+        }
+      }}
+    >
+      {users?.map((user) => (
+        <MenuItem key={user.id} value={user.email}>
+          <Checkbox checked={(emailsPorIdEstrategica[estrategica.id] || []).includes(user.email)} />
+          <ListItemAvatar>
+            <Avatar
+              src={user.photoURL}
+              alt={user.username}
+              sx={{ width: 32, height: 32, border: "2px solid #312783" }}
+              imgProps={{ referrerPolicy: "no-referrer" }}
+            >
+              {!user.photoURL && user.username.charAt(0).toUpperCase()}
+            </Avatar>
+          </ListItemAvatar>
+          <ListItemText primary={`${user.username} (${user.email})`} />
+        </MenuItem>
+      ))}
+    </Select>
+  </fieldset>
 </Box>
+
 
 
 
@@ -2012,18 +2119,18 @@ useEffect(() => {
         const novoStatus = t.status === "concluida" ? "" : "concluida";
   
         const hoje = new Date();
-        const dataAtual = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-  
-        const prazoBruto = projetoData?.prazoPrevisto;
-        const prazoObj = new Date(prazoBruto);
-        const prazo = new Date(prazoObj.getFullYear(), prazoObj.getMonth(), prazoObj.getDate());
-  
+        const dataAtual = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()); // 🔵 Data atual limpa (00:00:00)
+
+        const [ano, mes, dia] = projetoData?.prazoPrevisto?.split("-") || [];
+        const prazo = new Date(Number(ano), Number(mes) - 1, Number(dia)); // 🔥 Corrigido também para montar a data manualmente
+
         const statusVisual =
-          novoStatus === "concluida"
-            ? prazo >= dataAtual
+          novoStatus === "concluida" || novoStatus === "andamento"
+            ? dataAtual.getTime() <= prazo.getTime()
               ? "no_prazo"
               : "atrasada"
             : "";
+
   
         return {
           ...t,
@@ -2081,17 +2188,17 @@ useEffect(() => {
   
         const hoje = new Date();
         const dataAtual = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-  
-        const prazoBruto = projetoData?.prazoPrevisto;
-        const prazoObj = new Date(prazoBruto);
-        const prazo = new Date(prazoObj.getFullYear(), prazoObj.getMonth(), prazoObj.getDate());
-  
+
+        const [ano, mes, dia] = projetoData?.prazoPrevisto?.split("-") || [];
+        const prazo = new Date(Number(ano), Number(mes) - 1, Number(dia));
+
         const statusVisual =
           novoStatus === "andamento"
-            ? prazo >= dataAtual
+            ? dataAtual.getTime() <= prazo.getTime()
               ? "no_prazo"
               : "atrasada"
             : "";
+
   
         return {
           ...t,
@@ -2247,10 +2354,28 @@ useEffect(() => {
                 flexWrap: "wrap", // Mantém quebrando no mobile
               }}
             >
-              {/* Áreas */}
-              <Box sx={{ display: 'flex', gap: 2, width: '100%', marginTop: "10px" }}>
+{/* Áreas */}
+<Box sx={{ display: 'flex', gap: 2, width: '100%', marginTop: "10px" }}>
   {/* Áreas */}
-  <Box sx={{ flex: 1 }}>
+  <Box sx={{ flex: 1, minWidth: "300px" }}>
+  <fieldset style={{ 
+    borderRadius: "8px", 
+    borderColor: "#c4c4c4", 
+    borderWidth: "1px",
+    padding: "33px 8px",
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+    height: "48px"
+  }}>
+    <legend style={{ 
+      color: "#757575", 
+      fontSize: "0.75rem", 
+      padding: "0 4px",
+    }}>
+      Áreas Responsáveis
+    </legend>
+
     <Select
       multiple
       value={areasTaticasPorId[tatica.id] || []}
@@ -2263,10 +2388,22 @@ useEffect(() => {
       }}
       displayEmpty
       fullWidth
-      sx={{ backgroundColor: 'transparent' }}
+      sx={{ 
+        backgroundColor: "transparent", 
+        border: "none",
+        height: "100%",
+        '& .MuiOutlinedInput-notchedOutline': {
+          border: 'none'
+        },
+        '& .MuiSelect-select': {
+          padding: "4px",
+          display: "flex",
+          alignItems: "center",
+        }
+      }}
       renderValue={(selected) =>
         selected.length === 0
-          ? 'Selecione as áreas responsáveis'
+          ? <span style={{ color: "#757575", fontSize: "0.85rem" }}>Selecione as áreas responsáveis</span>
           : selected
               .map((id) => areas.find((area) => area.id === id)?.nome || 'Desconhecida')
               .join(', ')
@@ -2279,10 +2416,30 @@ useEffect(() => {
         </MenuItem>
       ))}
     </Select>
-  </Box>
+  </fieldset>
+</Box>
+
 
   {/* Unidades */}
-  <Box sx={{ flex: 1 }}>
+  <Box sx={{ flex: 1, minWidth: "300px" }}>
+  <fieldset style={{ 
+    borderRadius: "8px", 
+    borderColor: "#c4c4c4", 
+    borderWidth: "1px",
+    padding: "33px 8px",
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+    height: "48px"
+  }}>
+    <legend style={{ 
+      color: "#757575", 
+      fontSize: "0.75rem", 
+      padding: "0 4px",
+    }}>
+      Unidades
+    </legend>
+
     <Select
       multiple
       value={unidadesTaticasPorId[tatica.id] || []}
@@ -2295,10 +2452,22 @@ useEffect(() => {
       }}
       displayEmpty
       fullWidth
-      sx={{ backgroundColor: 'transparent' }}
+      sx={{ 
+        backgroundColor: "transparent", 
+        border: "none",
+        height: "100%",
+        '& .MuiOutlinedInput-notchedOutline': {
+          border: 'none'
+        },
+        '& .MuiSelect-select': {
+          padding: "4px",
+          display: "flex",
+          alignItems: "center",
+        }
+      }}
       renderValue={(selected) =>
         selected.length === 0
-          ? 'Selecione a Unidade'
+          ? <span style={{ color: "#757575", fontSize: "0.85rem" }}>Selecione a Unidade</span>
           : selected
               .map((id) => unidades.find((uni) => uni.id === id)?.nome || 'Desconhecida')
               .join(', ')
@@ -2311,55 +2480,116 @@ useEffect(() => {
         </MenuItem>
       ))}
     </Select>
-  </Box>
-
-  {/* responsaveis por diretrizes taticas */}
-  <Box sx={{ flex: 1, minWidth: "300px", marginTop: "-10px" }}>
-  <Select
-    multiple
-    displayEmpty
-    value={emailsPorIdTatica[tatica.id] || []}
-    onChange={(event) => {
-      const selectedEmails = event.target.value;
-
-      setEmailsPorIdTatica((prev) => ({
-        ...prev,
-        [tatica.id]: selectedEmails,
-      }));
-
-      setEstrategicas((prev) =>
-        prev.map((est) => ({
-          ...est,
-          taticas: est.taticas.map((t) =>
-            t.id === tatica.id
-              ? { ...t, emails: selectedEmails }
-              : t
-          ),
-        }))
-      );
-    }}
-    renderValue={(selected) =>
-      selected.length === 0
-        ? "Selecione os responsáveis pela diretriz"
-        : selected.join(", ")
-    }
-    fullWidth
-    sx={{ backgroundColor: "transparent", marginTop: "10px" }}
-  >
-    {users?.map((user) => (
-      <MenuItem key={user.id} value={user.email}>
-        <Checkbox
-          checked={
-            (emailsPorIdTatica[tatica.id] || []).includes(user.email)
-          }
-        />
-        <ListItemText primary={`${user.username} (${user.email})`} />
-      </MenuItem>
-    ))}
-  </Select>
+  </fieldset>
 </Box>
 
- 
+
+  {/* responsaveis por diretrizes taticas */}
+  <Box sx={{ flex: 1, minWidth: "200px" }}>
+  <fieldset style={{ 
+    borderRadius: "8px", 
+    borderColor: "#c4c4c4", 
+    borderWidth: "1px",
+    padding: "33px 8px",
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+    height: "48px"
+  }}>
+    <legend style={{ 
+      color: "#757575", 
+      fontSize: "0.75rem", 
+      padding: "0 4px"
+    }}>
+      Responsáveis
+    </legend>
+
+    <Select
+      multiple
+      displayEmpty
+      value={emailsPorIdTatica[tatica.id] || []}
+      onChange={(event) => {
+        const selectedEmails = event.target.value;
+
+        setEmailsPorIdTatica((prev) => ({
+          ...prev,
+          [tatica.id]: selectedEmails,
+        }));
+
+        setEstrategicas((prev) =>
+          prev.map((est) => ({
+            ...est,
+            taticas: est.taticas.map((t) =>
+              t.id === tatica.id
+                ? { ...t, emails: selectedEmails }
+                : t
+            ),
+          }))
+        );
+      }}
+      fullWidth
+      sx={{
+        backgroundColor: "transparent",
+        border: "none",
+        height: "100%",
+        '& .MuiOutlinedInput-notchedOutline': {
+          border: 'none'
+        },
+        '& .MuiSelect-select': {
+          padding: "4px",
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+          flexWrap: "wrap",
+        }
+      }}
+      renderValue={(selected) => (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+          {selected.length === 0 ? (
+            <span style={{ color: "#757575", fontSize: "0.85rem" }}>
+              Selecione os responsáveis
+            </span>
+          ) : (
+            selected.map((email) => {
+              const user = users.find((u) => u.email === email);
+              return (
+                <Avatar
+                  key={email}
+                  src={user?.photoURL}
+                  alt={user?.username}
+                  sx={{ width: 30, height: 30, border: "2px solid #312783" }}
+                  imgProps={{ referrerPolicy: "no-referrer" }}
+                >
+                  {!user?.photoURL && user?.username?.charAt(0).toUpperCase()}
+                </Avatar>
+              );
+            })
+          )}
+        </Box>
+      )}
+    >
+      {users?.map((user) => (
+        <MenuItem key={user.id} value={user.email}>
+          <Checkbox
+            checked={(emailsPorIdTatica[tatica.id] || []).includes(user.email)}
+          />
+          <ListItemAvatar>
+            <Avatar
+              src={user.photoURL}
+              alt={user.username}
+              sx={{ width: 32, height: 32, border: "2px solid #312783" }}
+              imgProps={{ referrerPolicy: "no-referrer" }}
+            >
+              {!user.photoURL && user.username.charAt(0).toUpperCase()}
+            </Avatar>
+          </ListItemAvatar>
+          <ListItemText primary={`${user.username} (${user.email})`} />
+        </MenuItem>
+      ))}
+    </Select>
+  </fieldset>
+</Box>
+
 </Box>
 
             </Box>
@@ -2598,17 +2828,17 @@ useEffect(() => {
   
           const hoje = new Date();
           const dataAtual = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-  
-          const prazoBruto = projetoData?.prazoPrevisto;
-          const prazoObj = new Date(prazoBruto);
-          const prazo = new Date(prazoObj.getFullYear(), prazoObj.getMonth(), prazoObj.getDate());
-  
+
+          const [ano, mes, dia] = projetoData?.prazoPrevisto?.split("-") || [];
+          const prazo = new Date(Number(ano), Number(mes) - 1, Number(dia));
+
           const statusVisual =
             novoStatus === "concluida"
-              ? prazo >= dataAtual
+              ? dataAtual.getTime() <= prazo.getTime()
                 ? "no_prazo"
                 : "atrasada"
               : "";
+
   
           return {
             ...op,
@@ -2665,17 +2895,17 @@ useEffect(() => {
         
                 const hoje = new Date();
                 const dataAtual = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-        
-                const prazoBruto = projetoData?.prazoPrevisto;
-                const prazoObj = new Date(prazoBruto);
-                const prazo = new Date(prazoObj.getFullYear(), prazoObj.getMonth(), prazoObj.getDate());
-        
+
+                const [ano, mes, dia] = projetoData?.prazoPrevisto?.split("-") || [];
+                const prazo = new Date(Number(ano), Number(mes) - 1, Number(dia));
+
                 const statusVisual =
                   novoStatus === "andamento"
-                    ? prazo >= dataAtual
+                    ? dataAtual.getTime() <= prazo.getTime()
                       ? "no_prazo"
                       : "atrasada"
                     : "";
+
         
                 return {
                   ...op,
@@ -2859,180 +3089,230 @@ useEffect(() => {
 <Box
   sx={{
     display: "flex",
-    flexWrap: "wrap",
-    gap: 1,
     width: "100%",
+    marginTop: "10px",
+    gap: 2,
     marginBottom: "10px",
   }}
 >
-  {/* Áreas */}
-  <Box sx={{ flex: 1 }}>
-    <Select
-      multiple
-      fullWidth
-      displayEmpty 
-      value={areasPorIdOperacional[operacional.id] || []}
-      onChange={() => {
-        const atualizado = estrategicas.map((estrategica) => ({
-          ...estrategica,
-          taticas: estrategica.taticas.map((tatica) => ({
-            ...tatica,
-            operacionais: tatica.operacionais.map((op) => {
-              if (op.id === operacional.id) {
-                const novoStatus = op.status === "concluida" ? "" : "concluida";
-      
-                // 📅 Captura a data atual no momento do clique
-                const dataAgora = new Date();
-                const dataPrazo = new Date(projetoData.prazoPrevisto);
-      
-                const novoStatusVisual =
-                  novoStatus === "concluida"
-                    ? dataAgora > dataPrazo
-                      ? "atrasada"
-                      : "no_prazo"
-                    : "";
-      
-                return {
-                  ...op,
-                  status: novoStatus,
-                  statusVisual: novoStatusVisual,
-                };
-              }
-              return op;
-            }),
-          })),
-        }));
-      
-        setEstrategicas(atualizado);
-        onUpdate && onUpdate({ estrategicas: atualizado });
-      }}
-      
-     
-      sx={{ backgroundColor: "transparent", marginTop: "10px" }}
-      renderValue={(selected) =>
-        selected.length === 0
-          ? "Selecione as áreas responsáveis"
-          : selected
-              .map((id) => areas.find((area) => area.id === id)?.nome || "Desconhecida")
-              .join(", ")
-      }
-    >
-      {areas.map((area) => (
-        <MenuItem key={area.id} value={area.id}>
-          <Checkbox
-            checked={(areasPorIdOperacional[operacional.id] || []).includes(area.id)}
-          />
-          <ListItemText primary={area.nome} />
-        </MenuItem>
-      ))}
-    </Select>
+  {/* Áreas Responsáveis */}
+  <Box sx={{ flex: 1, minWidth: "200px" }}>
+    <fieldset style={{
+      borderRadius: "8px",
+      borderColor: "#c4c4c4",
+      borderWidth: "1px",
+      padding: "33px 8px",
+      position: "relative",
+      display: "flex",
+      alignItems: "center",
+      height: "48px",
+      width: "100%",
+    }}>
+      <legend style={{
+        color: "#757575",
+        fontSize: "0.75rem",
+        padding: "0 4px"
+      }}>
+        Áreas Responsáveis
+      </legend>
+
+      <Select
+        multiple
+        fullWidth
+        displayEmpty
+        value={areasPorIdOperacional[operacional.id] || []}
+        onChange={(event) => {
+          const value = event.target.value;
+          setAreasPorIdOperacional((prev) => ({
+            ...prev,
+            [operacional.id]: value,
+          }));
+        }}
+        sx={{
+          backgroundColor: "transparent",
+          border: "none",
+          height: "100%",
+          '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+          '& .MuiSelect-select': {
+            padding: "4px",
+            display: "flex",
+            alignItems: "center",
+          }
+        }}
+        renderValue={(selected) =>
+          selected.length === 0
+            ? <span style={{ color: "#757575", fontSize: "0.85rem" }}>Selecione as áreas responsáveis</span>
+            : selected.map((id) => areas.find((area) => area.id === id)?.nome || 'Desconhecida').join(', ')
+        }
+      >
+        {areas.map((area) => (
+          <MenuItem key={area.id} value={area.id}>
+            <Checkbox checked={(areasPorIdOperacional[operacional.id] || []).includes(area.id)} />
+            <ListItemText primary={area.nome} />
+          </MenuItem>
+        ))}
+      </Select>
+    </fieldset>
   </Box>
 
   {/* Unidades */}
   <Box sx={{ flex: 1, minWidth: "200px" }}>
-    <Select
-      multiple
-      value={unidadesPorIdOperacional[operacional.id] || []}
-      onChange={(event) => {
-        const value = event.target.value;
-        setUnidadesPorIdOperacional((prev) => ({
-          ...prev,
-          [operacional.id]: value,
-        }));
-        setEstrategicas((prev) =>
-          prev.map((est) => ({
-            ...est,
-            taticas: est.taticas.map((tatica) => ({
-              ...tatica,
-              operacionais: tatica.operacionais.map((op) =>
-                op.id === operacional.id
-                  ? { ...op, unidades: value }
-                  : op
-              ),
-            })),
-          }))
-        );
-      }}
-      displayEmpty
-      fullWidth
-      sx={{ backgroundColor: "transparent", marginTop: "10px" }}
-      renderValue={(selected) =>
-        selected.length === 0
-          ? "Selecione a Unidade"
-          : selected
-              .map((id) => unidades.find((uni) => uni.id === id)?.nome || "Desconhecida")
-              .join(", ")
-      }
-    >
-      {unidades.map((uni) => (
-        <MenuItem key={uni.id} value={uni.id}>
-          <Checkbox
-            checked={(unidadesPorIdOperacional[operacional.id] || []).includes(uni.id)}
-          />
-          <ListItemText primary={uni.nome} />
-        </MenuItem>
-      ))}
-    </Select>
+    <fieldset style={{
+      borderRadius: "8px",
+      borderColor: "#c4c4c4",
+      borderWidth: "1px",
+      padding: "33px 8px",
+      position: "relative",
+      display: "flex",
+      alignItems: "center",
+      height: "48px",
+      width: "100%",
+    }}>
+      <legend style={{
+        color: "#757575",
+        fontSize: "0.75rem",
+        padding: "0 4px"
+      }}>
+        Unidades
+      </legend>
+
+      <Select
+        multiple
+        fullWidth
+        displayEmpty
+        value={unidadesPorIdOperacional[operacional.id] || []}
+        onChange={(event) => {
+          const value = event.target.value;
+          setUnidadesPorIdOperacional((prev) => ({
+            ...prev,
+            [operacional.id]: value,
+          }));
+        }}
+        sx={{
+          backgroundColor: "transparent",
+          border: "none",
+          height: "100%",
+          '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+          '& .MuiSelect-select': {
+            padding: "4px",
+            display: "flex",
+            alignItems: "center",
+          }
+        }}
+        renderValue={(selected) =>
+          selected.length === 0
+            ? <span style={{ color: "#757575", fontSize: "0.85rem" }}>Selecione a Unidade</span>
+            : selected.map((id) => unidades.find((uni) => uni.id === id)?.nome || 'Desconhecida').join(', ')
+        }
+      >
+        {unidades.map((uni) => (
+          <MenuItem key={uni.id} value={uni.id}>
+            <Checkbox checked={(unidadesPorIdOperacional[operacional.id] || []).includes(uni.id)} />
+            <ListItemText primary={uni.nome} />
+          </MenuItem>
+        ))}
+      </Select>
+    </fieldset>
   </Box>
 
-  {/* resposaveis por diretrizes operacionais */}
-  <Box sx={{ flex: 1, minWidth: "300px" }}>
-  <Select
-  multiple
-  displayEmpty
-  value={
-    Array.isArray(emailsPorIdOperacional[operacional.id])
-      ? emailsPorIdOperacional[operacional.id]
-      : typeof emailsPorIdOperacional[operacional.id] === "string"
-      ? emailsPorIdOperacional[operacional.id].split(",").map(e => e.trim()).filter(Boolean)
-      : []
-  }
-  onChange={(event) => {
-    const selectedEmails = event.target.value;
+  {/* Responsáveis */}
+  <Box sx={{ flex: 1, minWidth: "200px" }}>
+    <fieldset style={{
+      borderRadius: "8px",
+      borderColor: "#c4c4c4",
+      borderWidth: "1px",
+      padding: "33px 8px",
+      position: "relative",
+      display: "flex",
+      alignItems: "center",
+      height: "48px",
+      width: "100%",
+    }}>
+      <legend style={{
+        color: "#757575",
+        fontSize: "0.75rem",
+        padding: "0 4px"
+      }}>
+        Responsáveis
+      </legend>
 
-    setEmailsPorIdOperacional((prev) => ({
-      ...prev,
-      [operacional.id]: selectedEmails,
-    }));
-
-    setEstrategicas((prev) =>
-      prev.map((est) => ({
-        ...est,
-        taticas: est.taticas.map((tatica) => ({
-          ...tatica,
-          operacionais: tatica.operacionais.map((op) =>
-            op.id === operacional.id
-              ? { ...op, emails: selectedEmails }
-              : op
-          ),
-        })),
-      }))
-    );
-  }}
-  renderValue={(selected) =>
-    Array.isArray(selected) && selected.length > 0
-      ? selected.join(", ")
-      : "Selecione os responsáveis pela diretriz"
-  }
-  fullWidth
-  sx={{ backgroundColor: "transparent", marginTop: "10px" }}
->
-  {users?.map((user) => (
-    <MenuItem key={user.id} value={user.email}>
-      <Checkbox
-        checked={
-          (emailsPorIdOperacional[operacional.id] || []).includes(user.email)
+      <Select
+        multiple
+        fullWidth
+        displayEmpty
+        value={
+          Array.isArray(emailsPorIdOperacional[operacional.id])
+            ? emailsPorIdOperacional[operacional.id]
+            : typeof emailsPorIdOperacional[operacional.id] === "string"
+            ? emailsPorIdOperacional[operacional.id].split(",").map(e => e.trim()).filter(Boolean)
+            : []
         }
-      />
-      <ListItemText primary={`${user.username} (${user.email})`} />
-    </MenuItem>
-  ))}
-</Select>
-
+        onChange={(event) => {
+          const selectedEmails = event.target.value;
+          setEmailsPorIdOperacional((prev) => ({
+            ...prev,
+            [operacional.id]: selectedEmails,
+          }));
+        }}
+        sx={{
+          backgroundColor: "transparent",
+          border: "none",
+          height: "100%",
+          '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+          '& .MuiSelect-select': {
+            padding: "4px",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            flexWrap: "wrap",
+          }
+        }}
+        renderValue={(selected) => (
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+            {selected.length === 0 ? (
+              <span style={{ color: "#757575", fontSize: "0.85rem" }}>
+                Selecione os responsáveis
+              </span>
+            ) : (
+              selected.map((email) => {
+                const user = users.find((u) => u.email === email);
+                return (
+                  <Avatar
+                    key={email}
+                    src={user?.photoURL}
+                    alt={user?.username}
+                    sx={{ width: 30, height: 30, border: "2px solid #312783" }}
+                    imgProps={{ referrerPolicy: "no-referrer" }}
+                  >
+                    {!user?.photoURL && user?.username?.charAt(0).toUpperCase()}
+                  </Avatar>
+                );
+              })
+            )}
+          </Box>
+        )}
+      >
+        {users?.map((user) => (
+          <MenuItem key={user.id} value={user.email}>
+            <Checkbox checked={(emailsPorIdOperacional[operacional.id] || []).includes(user.email)} />
+            <ListItemAvatar>
+              <Avatar
+                src={user.photoURL}
+                alt={user.username}
+                sx={{ width: 32, height: 32, border: "2px solid #312783" }}
+                imgProps={{ referrerPolicy: "no-referrer" }}
+              >
+                {!user.photoURL && user.username.charAt(0).toUpperCase()}
+              </Avatar>
+            </ListItemAvatar>
+            <ListItemText primary={`${user.username} (${user.email})`} />
+          </MenuItem>
+        ))}
+      </Select>
+    </fieldset>
+  </Box>
 </Box>
 
-
-</Box>
 
                         <Box>
                           {/* 🔹 Campo para adicionar nova tarefa */}

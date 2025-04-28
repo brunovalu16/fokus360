@@ -18,6 +18,8 @@ function DashboardPlanejamento() {
 
   const { id } = useParams();
   const [projetoData, setProjetoData] = useState(null);
+  const [users, setUsers] = useState([]);
+
 
 
   //busca os dados do projeto
@@ -28,7 +30,15 @@ function DashboardPlanejamento() {
         const docRef = doc(dbFokus360, "projetos", id); // O ID que vem pela rota
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setProjetoData({ id: docSnap.id, ...docSnap.data() });
+          const data = docSnap.data();
+          setProjetoData({ id: docSnap.id, ...data });
+  
+          // 🔥 Atualizado: se tiver colaboradores ou usuários no projeto, define o estado de users
+          if (data?.colaboradores) {
+            setUsers(data.colaboradores); // 👈 Se os usuários estão dentro de `colaboradores`
+          } else {
+            setUsers([]); // 👈 Se não tiver nada, evita erro
+          }
         } else {
           console.log("Projeto não encontrado");
         }
@@ -39,6 +49,39 @@ function DashboardPlanejamento() {
   
     fetchProjeto();
   }, [id]);
+
+
+//busca os usuarios
+  useEffect(() => {
+    const fetchProjetoEUsuarios = async () => {
+      if (!id) return;
+      try {
+        // buscar projeto
+        const docRef = doc(dbFokus360, "projetos", id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setProjetoData({ id: docSnap.id, ...docSnap.data() });
+        } else {
+          console.log("Projeto não encontrado");
+        }
+
+        // buscar usuários
+        const querySnapshot = await getDocs(collection(dbFokus360, "user"));
+        const listaUsuarios = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          username: doc.data().username,
+          photoURL: doc.data().photoURL,
+        }));
+        setUsers(listaUsuarios);
+
+      } catch (error) {
+        console.error("❌ Erro ao buscar projeto ou usuários:", error);
+      }
+    };
+
+    fetchProjetoEUsuarios();
+  }, [id]);
+  
 
 
 
@@ -78,6 +121,7 @@ function DashboardPlanejamento() {
       dataInicio={projetoData?.dataInicio}
       prazoPrevisto={projetoData?.prazoPrevisto}
       projetoData={projetoData}
+      users={users}
     />
 
 

@@ -148,7 +148,9 @@ const UserDetalhe = () => {
     setUploading(true);
   
     // 🔹 Usa diretamente a instância correta do Storage
-    const storageRef = ref(storageFokus360, `users/${userId}/${file.name}`);
+    const nomeSeguro = file.name.replace(/\//g, "-"); 
+    const storageRef = ref(storageFokus360, `users/${Date.now()}_${nomeSeguro}`);
+
   
     const uploadTask = uploadBytesResumable(storageRef, file);
   
@@ -230,32 +232,40 @@ const UserDetalhe = () => {
           Unidade: {formValues.unidade}
         </Typography>
         <Button
-          variant="text"
-          component="label"
-          disabled={uploading}
-          sx={{
-            borderRadius: "10px",
-            textTransform: "none",
-            fontWeight: "bold",
-            border: "1px solid",
-            width: "90%",
-            mt: 2,
-            color: "#fff",
-            backgroundColor: "#312783",
-            "&:hover": {
-              backgroundColor: "#312783",
-              color: "#fff",
-            },
-          }}
-        >
-          {uploading ? "Carregando..." : "Carregar Foto"}
-          <input
-            type="file"
-            hidden
-            accept="image/*"
-            onChange={handleUploadPhoto}
-          />
-        </Button>
+  variant="text"
+  component="label"
+  disabled={uploading}
+  sx={{
+    borderRadius: "10px",
+    textTransform: "none",
+    fontWeight: "bold",
+    width: "90%",
+    mt: 2,
+    backgroundColor: "#312783",
+    "&:hover": {
+      backgroundColor: "#312783",
+    },
+  }}
+>
+  <span
+    style={{
+      color: uploading ? "#FFD700" : "#FFFFFF", // amarelo ou branco
+      fontWeight: "bold",
+    }}
+  >
+    {uploading ? "Carregando..." : "Carregar Foto"}
+  </span>
+
+  <input
+    type="file"
+    hidden
+    accept="image/*"
+    onChange={handleUploadPhoto}
+  />
+</Button>
+
+
+
       </Box>
 
       {/* Formulário de Cadastro */}
