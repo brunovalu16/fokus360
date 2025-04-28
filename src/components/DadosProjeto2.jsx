@@ -49,6 +49,7 @@ const DadosProjeto2 = ({
 }) => {
   console.log("🚀 users recebidos:", users);
 
+  const [avatarUrls, setAvatarUrls] = useState({});
 
   const [titulosDiretrizes, setTitulosDiretrizes] = React.useState({
     estrategicas: [],
@@ -97,35 +98,61 @@ const DadosProjeto2 = ({
   // FIM Essa parte pertence ao painel de filtros 
 
 
-// função para carregar avatar
-  useEffect(() => {
-    const carregarAvatares = async () => {
-      console.log("Usuários:", users);
-      const urls = {};
-  
-      for (const user of users || []) {
-        if (user?.photoURL) {
-          if (user.photoURL.startsWith("http")) {
-            // 👉 Já é URL completa, usa direto
-            urls[user.email] = user.photoURL;
-          } else {
-            // 👉 Se não for URL completa, busca no storage
-            const url = await buscarFotoDoUsuario(user.photoURL);
-            urls[user.email] = url;
-          }
-        }
-      }
-  
-      setAvatarUrls(urls);
-    };
-  
-    if (users?.length) {
-      carregarAvatares();
+
+
+
+//busca os avatares em photoUrl:
+// Função que busca o photoURL no Firestore
+const buscarAvatarPorEmail = async (email) => {
+  try {
+    const q = query(collection(dbFokus360, "user"), where("email", "==", email));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const userDoc = querySnapshot.docs[0];
+      const userData = userDoc.data();
+      return userData.photoURL || null;
     }
-  }, [users]);
-  
+    return null;
+  } catch (error) {
+    console.error("Erro ao buscar avatar por email:", error);
+    return null;
+  }
+};
 
+// Carrega todos os avatares necessários
+useEffect(() => {
+  const carregarAvatares = async () => {
+    if (!estrategicas) return;
 
+    const emailsUnicos = new Set();
+
+    estrategicas.forEach(estrategica => {
+      (estrategica.emails || []).forEach(email => emailsUnicos.add(email));
+      (estrategica.taticas || []).forEach(tatica => {
+        (tatica.emails || []).forEach(email => emailsUnicos.add(email));
+        (tatica.operacionais || []).forEach(operacional => {
+          (operacional.emails || []).forEach(email => emailsUnicos.add(email));
+        });
+      });
+    });
+
+    const emails = Array.from(emailsUnicos);
+
+    const novosAvatarUrls = {};
+
+    for (const email of emails) {
+      const url = await buscarAvatarPorEmail(email);
+      if (url) {
+        novosAvatarUrls[email] = url;
+      }
+    }
+
+    setAvatarUrls(novosAvatarUrls);
+  };
+
+  carregarAvatares();
+}, [estrategicas]);
 
 
 
@@ -969,17 +996,17 @@ const handleTrocarBanner = async (event) => {
         <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
 
         <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 0.5, flex: 2 }}>
-          {(estrategica.emails || []).map((email, idx) => {
+        {(estrategica.emails || []).map((email, idx) => {
             const user = users?.find(u => u.email === email);
             return (
               <Avatar
                 key={idx}
-                src={user?.photoURL || undefined}
-                alt={user?.username}
+                src={user?.photoURL || ""}
+                alt={user?.username || email}
                 sx={{ width: 30, height: 30, border: "2px solid #312783" }}
                 imgProps={{ referrerPolicy: "no-referrer" }}
               >
-                {!user?.photoURL && user?.username?.charAt(0).toUpperCase()}
+                {!user?.photoURL && (user?.username?.charAt(0).toUpperCase() || email.charAt(0).toUpperCase())}
               </Avatar>
             );
           })}
