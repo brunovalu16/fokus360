@@ -3,7 +3,6 @@ import { Box, Typography, CircularProgress, TextField  } from "@mui/material";
 import PaidIcon from "@mui/icons-material/Paid";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 
-
 import FlagIcon from '@mui/icons-material/Flag';
 import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
@@ -12,15 +11,12 @@ import DoubleArrowIcon from '@mui/icons-material/DoubleArrow';
 import { getDocs, collection, doc, updateDoc  } from "firebase/firestore";
 import { dbFokus360, storageFokus360  } from "../data/firebase-config"; // ajuste conforme seu path
 
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
-
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 
 
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-import { Avatar, ListItemAvatar } from "@mui/material";
-
 
 
 // IMPORTS
@@ -44,12 +40,9 @@ const DadosProjeto2 = ({
   diretrizes,
   dataInicio,
   prazoPrevisto,
-  projetoData,
-  users,
+  projetoData
 }) => {
-  console.log("🚀 users recebidos:", users);
 
-  const [avatarUrls, setAvatarUrls] = useState({});
 
   const [titulosDiretrizes, setTitulosDiretrizes] = React.useState({
     estrategicas: [],
@@ -71,7 +64,6 @@ const DadosProjeto2 = ({
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
-  
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -97,62 +89,6 @@ const DadosProjeto2 = ({
   };
   // FIM Essa parte pertence ao painel de filtros 
 
-
-
-
-
-//busca os avatares em photoUrl:
-// Função que busca o photoURL no Firestore
-const buscarAvatarPorEmail = async (email) => {
-  try {
-    const q = query(collection(dbFokus360, "user"), where("email", "==", email));
-    const querySnapshot = await getDocs(q);
-
-    if (!querySnapshot.empty) {
-      const userDoc = querySnapshot.docs[0];
-      const userData = userDoc.data();
-      return userData.photoURL || null;
-    }
-    return null;
-  } catch (error) {
-    console.error("Erro ao buscar avatar por email:", error);
-    return null;
-  }
-};
-
-// Carrega todos os avatares necessários
-useEffect(() => {
-  const carregarAvatares = async () => {
-    if (!estrategicas) return;
-
-    const emailsUnicos = new Set();
-
-    estrategicas.forEach(estrategica => {
-      (estrategica.emails || []).forEach(email => emailsUnicos.add(email));
-      (estrategica.taticas || []).forEach(tatica => {
-        (tatica.emails || []).forEach(email => emailsUnicos.add(email));
-        (tatica.operacionais || []).forEach(operacional => {
-          (operacional.emails || []).forEach(email => emailsUnicos.add(email));
-        });
-      });
-    });
-
-    const emails = Array.from(emailsUnicos);
-
-    const novosAvatarUrls = {};
-
-    for (const email of emails) {
-      const url = await buscarAvatarPorEmail(email);
-      if (url) {
-        novosAvatarUrls[email] = url;
-      }
-    }
-
-    setAvatarUrls(novosAvatarUrls);
-  };
-
-  carregarAvatares();
-}, [estrategicas]);
 
 
 
@@ -936,284 +872,198 @@ const handleTrocarBanner = async (event) => {
           </TabList>
         </Box>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         <TabPanel value="1">
-  {/* Estratégicas */}
-  <Box sx={{ mb: 2 }}>
-    <Box display="flex" alignItems="center" mb={1}>
-      <DoubleArrowIcon sx={{ color: "#312783", mr: 1 }} />
-      <Typography variant="h6" sx={{ color: "#312783" }}>
-        Estratégicas
-      </Typography>
-    </Box>
-    {estrategicas?.map((estrategica, i) => (
-      <Box
-        key={`est-${i}`}
-        sx={{
-          backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
-          px: 2,
-          py: 1,
-          borderBottom: "1px solid #e0e0e0",
-          display: "flex",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 1,
-        }}
-      >
-        <Typography variant="body2" sx={{ flex: 1 }}>
-          {estrategica.titulo}
-        </Typography>
-
-        <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
-
-        <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 0.5, flex: 2 }}>
-        {(estrategica.emails || []).map((email, idx) => {
-            const user = users?.find(u => u.email === email);
-            return (
-              <Avatar
-                key={idx}
-                src={user?.photoURL || ""}
-                alt={user?.username || email}
-                sx={{ width: 30, height: 30, border: "2px solid #312783" }}
-                imgProps={{ referrerPolicy: "no-referrer" }}
+          {/* Estratégicas */}
+          <Box sx={{ mb: 2 }}>
+            <Box display="flex" alignItems="center" mb={1}>
+              <DoubleArrowIcon sx={{ color: "#312783", mr: 1 }} />
+              <Typography variant="h6" sx={{ color: "#312783" }}>
+                Estratégicas
+              </Typography>
+            </Box>
+            {estrategicas?.map((estrategica, i) => (
+              <Box
+                key={`est-${i}`}
+                sx={{
+                  backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+                  px: 2,
+                  py: 1,
+                  borderBottom: "1px solid #e0e0e0",
+                  display: "flex",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 1,
+                }}
               >
-                {!user?.photoURL && (user?.username?.charAt(0).toUpperCase() || email.charAt(0).toUpperCase())}
-              </Avatar>
-            );
-          })}
-        </Box>
+                <Typography variant="body2" sx={{ flex: 1 }}>
+                  {estrategica.titulo}
+                </Typography>
 
+                <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
 
+                <Typography variant="body2" sx={{ flex: 2 }}>
+                  <strong>Responsáveis:</strong>{" "}
+                  <span style={{ fontStyle: "italic", color: "#555" }}>
+                    {(estrategica.emails || []).join(", ")}
+                  </span>
+                </Typography>
 
-        <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+                <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
 
-        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-          <TextField
-            label="Data início"
-            type="date"
-            size="small"
-            value={projetoData?.dataInicio || ""}
-            InputLabelProps={{ shrink: true }}
-            disabled
-            sx={{ minWidth: "100px", maxWidth: "120px" }}
-          />
-          <TextField
-            label="Prazo previsto"
-            type="date"
-            size="small"
-            value={projetoData?.prazoPrevisto || ""}
-            InputLabelProps={{ shrink: true }}
-            disabled
-            sx={{ minWidth: "100px", maxWidth: "120px" }}
-          />
-        </Box>
-      </Box>
-    ))}
-  </Box>
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                  <TextField
+                    label="Data início"
+                    type="date"
+                    size="small"
+                    value={projetoData?.dataInicio || ""}
+                    InputLabelProps={{ shrink: true }}
+                    disabled
+                    sx={{ minWidth: "100px", maxWidth: "120px" }}
+                  />
+                  <TextField
+                    label="Prazo previsto"
+                    type="date"
+                    size="small"
+                    value={projetoData?.prazoPrevisto || ""}
+                    InputLabelProps={{ shrink: true }}
+                    disabled
+                    sx={{ minWidth: "100px", maxWidth: "120px" }}
+                  />
+                </Box>
+              </Box>
+            ))}
+          </Box>
 
-  {/* Táticas */}
-  <Box sx={{ mb: 2 }}>
-    <Box display="flex" alignItems="center" mb={1}>
-      <DoubleArrowIcon sx={{ color: "#00796b", mr: 1 }} />
-      <Typography variant="h6" sx={{ color: "#00796b" }}>
-        Táticas
-      </Typography>
-    </Box>
-    {estrategicas?.flatMap((estrategica, estIndex) =>
-      estrategica.taticas?.map((tatica, i) => (
-        <Box
-          key={`tat-${estIndex}-${i}`}
-          sx={{
-            backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
-            px: 2,
-            py: 1,
-            borderBottom: "1px solid #e0e0e0",
-            display: "flex",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: 1,
-          }}
-        >
-          <Typography variant="body2" sx={{ flex: 1 }}>
-            {tatica.titulo}
-          </Typography>
-
-          <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
-
-          <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 0.5, flex: 2 }}>
-            {(tatica.emails || []).map((email, idx) => {
-              const user = users?.find(u => u.email === email);
-              return (
-                <Avatar
-                  key={idx}
-                  src={user?.photoURL || ""}
-                  alt={user?.username}
-                  sx={{ width: 30, height: 30, border: "2px solid #00796b" }}
-                  imgProps={{ referrerPolicy: "no-referrer" }}
+          {/* Táticas */}
+          <Box sx={{ mb: 2 }}>
+            <Box display="flex" alignItems="center" mb={1}>
+              <DoubleArrowIcon sx={{ color: "#00796b", mr: 1 }} />
+              <Typography variant="h6" sx={{ color: "#00796b" }}>
+                Táticas
+              </Typography>
+            </Box>
+            {estrategicas?.flatMap((estrategica, estIndex) =>
+              estrategica.taticas?.map((tatica, i) => (
+                <Box
+                  key={`tat-${estIndex}-${i}`}
+                  sx={{
+                    backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+                    px: 2,
+                    py: 1,
+                    borderBottom: "1px solid #e0e0e0",
+                    display: "flex",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: 1,
+                  }}
                 >
-                  {!user?.photoURL && user?.username?.charAt(0).toUpperCase()}
-                </Avatar>
-              );
-            })}
+                  <Typography variant="body2" sx={{ flex: 1 }}>
+                    {tatica.titulo}
+                  </Typography>
+
+                  <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+                  <Typography variant="body2" sx={{ flex: 2 }}>
+                    <strong>Responsáveis:</strong>{" "}
+                    <span style={{ fontStyle: "italic", color: "#555" }}>
+                      {(tatica.emails || []).join(", ")}
+                    </span>
+                  </Typography>
+
+                  <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+                  <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                    <TextField
+                      label="Data início"
+                      type="date"
+                      size="small"
+                      value={projetoData?.dataInicio || ""}
+                      InputLabelProps={{ shrink: true }}
+                      disabled
+                      sx={{ minWidth: "100px", maxWidth: "120px" }}
+                    />
+                    <TextField
+                      label="Prazo previsto"
+                      type="date"
+                      size="small"
+                      value={projetoData?.prazoPrevisto || ""}
+                      InputLabelProps={{ shrink: true }}
+                      disabled
+                      sx={{ minWidth: "100px", maxWidth: "120px" }}
+                    />
+                  </Box>
+                </Box>
+              ))
+            )}
           </Box>
 
-          <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
-
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-            <TextField
-              label="Data início"
-              type="date"
-              size="small"
-              value={projetoData?.dataInicio || ""}
-              InputLabelProps={{ shrink: true }}
-              disabled
-              sx={{ minWidth: "100px", maxWidth: "120px" }}
-            />
-            <TextField
-              label="Prazo previsto"
-              type="date"
-              size="small"
-              value={projetoData?.prazoPrevisto || ""}
-              InputLabelProps={{ shrink: true }}
-              disabled
-              sx={{ minWidth: "100px", maxWidth: "120px" }}
-            />
-          </Box>
-        </Box>
-      ))
-    )}
-  </Box>
-
-  {/* Operacionais */}
-  <Box>
-    <Box display="flex" alignItems="center" mb={1}>
-      <DoubleArrowIcon sx={{ color: "#ff9800", mr: 1 }} />
-      <Typography variant="h6" sx={{ color: "#ff9800" }}>
-        Operacionais
-      </Typography>
-    </Box>
-    {estrategicas?.flatMap((estrategica, estIndex) =>
-      estrategica.taticas?.flatMap((tatica, tatIndex) =>
-        tatica.operacionais?.map((op, i) => (
-          <Box
-            key={`op-${estIndex}-${tatIndex}-${i}`}
-            sx={{
-              backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
-              px: 2,
-              py: 1,
-              borderBottom: "1px solid #e0e0e0",
-              display: "flex",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: 1,
-            }}
-          >
-            <Typography variant="body2" sx={{ flex: 1 }}>
-              {op.titulo}
-            </Typography>
-
-            <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
-
-            <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 0.5, flex: 2 }}>
-              {(op.emails || []).map((email, idx) => {
-                const user = users?.find(u => u.email === email);
-                return (
-                  <Avatar
-                    key={idx}
-                    src={user?.photoURL}
-                    alt={user?.username}
-                    sx={{ width: 30, height: 30, border: "2px solid #ff9800" }}
-                    imgProps={{ referrerPolicy: "no-referrer" }}
+          {/* Operacionais */}
+          <Box>
+            <Box display="flex" alignItems="center" mb={1}>
+              <DoubleArrowIcon sx={{ color: "#ff9800", mr: 1 }} />
+              <Typography variant="h6" sx={{ color: "#ff9800" }}>
+                Operacionais
+              </Typography>
+            </Box>
+            {estrategicas?.flatMap((estrategica, estIndex) =>
+              estrategica.taticas?.flatMap((tatica, tatIndex) =>
+                tatica.operacionais?.map((op, i) => (
+                  <Box
+                    key={`op-${estIndex}-${tatIndex}-${i}`}
+                    sx={{
+                      backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+                      px: 2,
+                      py: 1,
+                      borderBottom: "1px solid #e0e0e0",
+                      display: "flex",
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      gap: 1,
+                    }}
                   >
-                    {!user?.photoURL && user?.username?.charAt(0).toUpperCase()}
-                  </Avatar>
-                );
-              })}
-            </Box>
+                    <Typography variant="body2" sx={{ flex: 1 }}>
+                      {op.titulo}
+                    </Typography>
 
-            <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+                    <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
 
-            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-              <TextField
-                label="Data início"
-                type="date"
-                size="small"
-                value={projetoData?.dataInicio || ""}
-                InputLabelProps={{ shrink: true }}
-                disabled
-                sx={{ minWidth: "100px", maxWidth: "120px" }}
-              />
-              <TextField
-                label="Prazo previsto"
-                type="date"
-                size="small"
-                value={projetoData?.prazoPrevisto || ""}
-                InputLabelProps={{ shrink: true }}
-                disabled
-                sx={{ minWidth: "100px", maxWidth: "120px" }}
-              />
-            </Box>
+                    <Typography variant="body2" sx={{ flex: 2 }}>
+                      <strong>Responsáveis:</strong>{" "}
+                      <span style={{ fontStyle: "italic", color: "#555" }}>
+                        {(op.emails || []).join(", ")}
+                      </span>
+                    </Typography>
+
+                    <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+                    <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                    <TextField
+                      label="Data início"
+                      type="date"
+                      size="small"
+                      value={projetoData?.dataInicio || ""}
+                      InputLabelProps={{ shrink: true }}
+                      disabled
+                      sx={{ minWidth: "100px", maxWidth: "120px" }}
+                    />
+                    <TextField
+                      label="Prazo previsto"
+                      type="date"
+                      size="small"
+                      value={projetoData?.prazoPrevisto || ""}
+                      InputLabelProps={{ shrink: true }}
+                      disabled
+                      sx={{ minWidth: "100px", maxWidth: "120px" }}
+                    />
+
+                    </Box>
+                  </Box>
+                ))
+              )
+            )}
           </Box>
-        ))
-      )
-    )}
-  </Box>
-</TabPanel>
-
+        </TabPanel>
           
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
         <TabPanel value="2">
@@ -2292,7 +2142,7 @@ const handleTrocarBanner = async (event) => {
               sx={{ minWidth: "100px", maxWidth: "120px" }}
             />
           </Box>
-        */}
+    */}
         </Box>
       ))}
   </Box>
