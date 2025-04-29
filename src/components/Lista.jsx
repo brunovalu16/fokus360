@@ -188,17 +188,17 @@ useEffect(() => {
     {
       field: "nome",
       headerName: "Nome do projeto",
-      flex: 1.1,
+      flex: 0.8,
     },
     {
       field: "solicitante",
       headerName: "Solicitante",
-      flex: 1,
+      flex: 0.5,
     },
     {
       field: "dataInicio",
       headerName: "Data Início",
-      flex: 0.8,
+      flex: 0.6,
       renderCell: (params) => {
         const parseDate = (dateString) => {
           if (!dateString || typeof dateString !== "string") return null;
@@ -338,27 +338,43 @@ useEffect(() => {
     {
       field: "valor",
       headerName: "Gasto atual",
-      flex: 0.9,
+      flex: 0.7,
       renderCell: (params) => {
-        const rawValor = params.row.valor || "R$ 0,00"; // Pegando do banco
-        const rawOrcamento = params.row.orcamento || "R$ 0,00"; // Pegando orçamento
+        const calcularValorTotal = (projeto) => {
+          let total = 0;
+          
+          if (projeto?.estrategicas?.length) {
+            projeto.estrategicas.forEach((estrategica) => {
+              estrategica.taticas?.forEach((tatica) => {
+                tatica.operacionais?.forEach((operacional) => {
+                  operacional.tarefas?.forEach((tarefa) => {
+                    const rawValor = tarefa.planoDeAcao?.valor || "R$ 0,00";
+                    const somenteNumero = parseFloat(
+                      rawValor.replace("R$", "").replace(/\./g, "").replace(",", ".")
+                    ) || 0;
+                    total += somenteNumero;
+                  });
+                });
+              });
+            });
+          }
     
-        // Converte para número removendo caracteres desnecessários
-        const valor = parseFloat(
-          rawValor.replace("R$", "").replace(/\./g, "").replace(",", ".")
-        ) || 0;
+          return total;
+        };
     
+        const totalGasto = calcularValorTotal(params.row);
+    
+        const rawOrcamento = params.row.orcamento || "R$ 0,00";
         const orcamento = parseFloat(
           rawOrcamento.replace("R$", "").replace(/\./g, "").replace(",", ".")
         ) || 0;
     
-        // Define cor de fundo com base no orçamento
-        let backgroundColor = "#4CAF50"; // Verde por padrão
-        if (valor === orcamento) {
+        let backgroundColor = "#4CAF50"; // Verde
+        if (totalGasto === orcamento) {
           backgroundColor = "#0048ff"; // Azul
-        } else if (valor > orcamento) {
+        } else if (totalGasto > orcamento) {
           backgroundColor = "#f44336"; // Vermelho
-        } else if (valor >= orcamento * 0.8) {
+        } else if (totalGasto >= orcamento * 0.8) {
           backgroundColor = "#FFC107"; // Amarelo
         }
     
@@ -379,7 +395,7 @@ useEffect(() => {
                 backgroundColor,
               }}
             />
-            {valor.toLocaleString("pt-BR", {
+            {totalGasto.toLocaleString("pt-BR", {
               style: "currency",
               currency: "BRL",
             })}
@@ -388,11 +404,12 @@ useEffect(() => {
       },
     },
     
+    
 
     {
       field: "orcamento",
       headerName: "Orçamento",
-      flex: 0.7,
+      flex: 0.5,
       renderCell: (params) => {
         let orcamento = 0;
     
@@ -959,7 +976,7 @@ useEffect(() => {
   components={{ Toolbar: CustomToolbar }}
   localeText={localeText}
   initialState={{ pagination: { paginationModel: { pageSize: 5 } } }}
-  pageSizeOptions={[5, 10, 20, 50]} // Adicione as opções aqui
+  pageSizeOptions={[5, 10, 20, 50]}
   sx={{
     marginLeft: "-13px",
     marginTop: "5px",
@@ -970,14 +987,24 @@ useEffect(() => {
     borderRadius: "20px",
     boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
     bgcolor: "#f2f0f0",
-    overflowX: "hidden",
+    overflowX: "auto",
     "& .MuiDataGrid-columnHeaders": {
       backgroundColor: "#312783",
       color: "#bcbcbc",
       fontSize: "13px",
+      whiteSpace: "nowrap", 
+      textOverflow: "unset",
+      overflow: "visible",
+    },
+    "& .MuiDataGrid-columnHeaderTitle": {
+      overflow: "visible",
+      whiteSpace: "nowrap",
+      textOverflow: "unset",
     },
   }}
+  
 />
+
 
     </>
   );

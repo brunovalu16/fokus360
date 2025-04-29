@@ -32,6 +32,7 @@ const InformacoesPlanejamento2 = ({ projetoData, onUpdate, onSaveProjectId   }) 
   const [colaboradorEmail, setColaboradorEmail] = useState("");
   const [areas, setAreas] = useState([]);
   const [unidade, setUnidade] = useState([]);
+  const [dataFim, setDataFim] = useState("");
   
   //Estado para gerenciar perfil de usuario para poder alterar os campos de datas
   const [perfilUsuario, setPerfilUsuario] = useState(""); // Guarda o perfil do usuário logado
@@ -75,11 +76,24 @@ useEffect(() => {
     }));
     setAreas(projetoData.areasResponsaveis || []);
     setUnidade(projetoData.unidade || []);
+    setDataFim(projetoData.dataFim || "");
   }
 }, [projetoData]);
 
 
 
+//função para formatar a data quando o usuario digita no input finalização do projeto
+const formatarData = (value) => {
+  let digits = value.replace(/\D/g, ""); // Remove tudo que não é número
+
+  if (digits.length > 2 && digits.length <= 4) {
+    digits = digits.replace(/(\d{2})(\d{1,2})/, "$1/$2");
+  } else if (digits.length > 4) {
+    digits = digits.replace(/(\d{2})(\d{2})(\d{1,4})/, "$1/$2/$3");
+  }
+
+  setDataFim(digits);
+};
 
 
 
@@ -108,6 +122,7 @@ const handleUpdate = async () => {
       ...formValues,
       dataInicio: dataInicioISO,
       prazoPrevisto: prazoPrevistoISO,
+      dataFim: dataFim, 
       updatedAt: new Date(),
     };
 
@@ -240,6 +255,7 @@ useEffect(() => {
         ...formValues,
         dataInicio: dataInicioISO,
         prazoPrevisto: prazoPrevistoISO,
+        dataFim: dataFim,
       };
   
       const docRef = await addDoc(collection(dbFokus360, "projetos"), projetoFormatado);
@@ -480,6 +496,16 @@ useEffect(() => {
                 onChange={handleCurrencyChangeOrcamento}
                 fullWidth
               />
+
+                          {/* Data FInalização projeto*/}
+                              <TextField
+                                fullWidth
+                                label="Data de finalização do projeto"
+                                placeholder="dd/mm/aaaa"
+                                value={dataFim}
+                                onChange={(e) => formatarData(e.target.value)}
+                                inputProps={{ maxLength: 10 }}
+                              />
             </Box>
 
             <Box display="flex" justifyContent="flex-end" marginTop="20px">

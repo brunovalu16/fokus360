@@ -650,8 +650,8 @@ const handleTrocarBanner = async (event) => {
         display="grid"
         gridTemplateColumns="repeat(auto-fit, minmax(200px, 1fr))"
         gap="8px"
+        paddingTop="50px"
         paddingBottom="20px"
-        paddingTop="20px"
         borderRadius="20px"
         sx={{
           overflowX: "hidden",
@@ -664,11 +664,12 @@ const handleTrocarBanner = async (event) => {
             borderRadius="20px"
             bgcolor={
               item.subtitle === "Orçamento"
-                ? item.bgColor
+                ? "#9c9c9c" // ✅ Agora fundo cinza para "Orçamento"
                 : item.subtitle === "Valor gasto"
                 ? definirCorValorGasto()
-                : "#312783"
+                : "transparent" // ✅ Se quiser neutro no caso de outros
             }
+            
             display="flex"
             flexDirection="row"
             alignItems="center"
@@ -678,7 +679,7 @@ const handleTrocarBanner = async (event) => {
             sx={{
               textAlign: "center",
               overflow: "hidden",
-              minHeight: "140px",
+              minHeight: "80px",
               flexShrink: 0,
               maxWidth: "100%",
             }}
