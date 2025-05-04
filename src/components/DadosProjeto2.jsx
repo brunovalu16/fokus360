@@ -7,6 +7,8 @@ import FlagIcon from '@mui/icons-material/Flag';
 import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import DoubleArrowIcon from '@mui/icons-material/DoubleArrow';
+import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+
 
 import { getDocs, collection, doc, updateDoc  } from "firebase/firestore";
 import { dbFokus360, storageFokus360  } from "../data/firebase-config"; // ajuste conforme seu path
@@ -65,6 +67,26 @@ const DadosProjeto2 = ({
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
 
+  const [areaSelecionada, setAreaSelecionada] = useState("");
+
+
+  const [areas, setAreas] = useState([]);
+
+useEffect(() => {
+  const fetchAreas = async () => {
+    const querySnapshot = await getDocs(collection(dbFokus360, "areas"));
+    const lista = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    setAreas(lista);
+  };
+
+  fetchAreas();
+}, []);
+
+
+
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -90,6 +112,24 @@ const DadosProjeto2 = ({
   // FIM Essa parte pertence ao painel de filtros 
 
 
+
+  const [unidades, setUnidades] = useState([]);
+  const [unidadeSelecionada, setUnidadeSelecionada] = useState("");
+  
+  useEffect(() => {
+    const fetchUnidades = async () => {
+      const querySnapshot = await getDocs(collection(dbFokus360, "unidade"));
+      const lista = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setUnidades(lista);
+    };
+  
+    fetchUnidades();
+  }, []);
+  
+  
 
 
   // 1) Função para calcular progresso de Valor Gasto vs. Orçamento
@@ -571,7 +611,7 @@ const handleTrocarBanner = async (event) => {
 
 
     {/* Header mostrando o Banner do Projeto */}
-    <Box
+    <Box 
   sx={{
     marginTop: "10px",
     width: "100%",
@@ -654,7 +694,10 @@ const handleTrocarBanner = async (event) => {
         paddingBottom="20px"
         borderRadius="20px"
         sx={{
-          overflowX: "hidden",
+          width: "100%",
+          overflowX: "auto", // muda de hidden para auto
+          maxWidth: "100vw", // impede estouro
+          boxSizing: "border-box",
         }}
       >
         {items.map((item, index) => (
@@ -664,7 +707,7 @@ const handleTrocarBanner = async (event) => {
             borderRadius="20px"
             bgcolor={
               item.subtitle === "Orçamento"
-                ? "#9c9c9c" // ✅ Agora fundo cinza para "Orçamento"
+                ? "#98998e" // ✅ Agora fundo cinza para "Orçamento"
                 : item.subtitle === "Valor gasto"
                 ? definirCorValorGasto()
                 : "transparent" // ✅ Se quiser neutro no caso de outros
@@ -813,50 +856,69 @@ const handleTrocarBanner = async (event) => {
         backgroundColor: "transparent",
         padding: 2,
         marginBottom: "30px",
+        maxWidth: "1000px"
       }}
     >
+
+                        <Box
+                          sx={{
+                            top: "20px", // distância do topo
+                            paddingX: "6px",
+                            fontSize: "15px",
+                            marginBottom: "10px",
+                            fontWeight: "bold",
+                            color: "#312783",
+                            zIndex: 1,
+                          }}
+                        >
+                          Variáveis do projetos:
+                        </Box>
       <TabContext value={value}>
-        <Box
-          sx={{
-            borderBottom: 1,
-            borderColor: "divider",
-            scrollBehavior: "smooth",
-            "& .MuiTabs-scroller": {
-              scrollBehavior: "smooth",
-            },
-            "& .MuiTabs-indicator": {
-              backgroundColor: "#312783",
-              height: "3px",
-            },
-            "& .MuiTab-root": {
-              color: "#505050",
-              textTransform: "none",
-              fontWeight: 600,
-              fontSize: "12px",
-              "&:hover": {
-                color: "#312783",
-              },
-            },
-            "& .Mui-selected": {
-              color: "#312783 !important",
-            },
-            "& .MuiTabs-scrollButtons": {
-              width: 50,
-              height: 50,
-              fontSize: "3rem",
-              color: "#312783",
-            },
-            "& .Mui-disabled": {
-              opacity: 0.3,
-            },
-            "& .MuiTabPanel-root": {
-              border: "1px solid #ccc",
-              borderRadius: "8px",
-              padding: 2,
-              marginTop: 2,
-            },
-          }}
-        >
+      <Box
+  sx={{
+    borderBottom: 1,
+    borderColor: "divider",
+    overflowX: "auto", // ✅ Adicionado para permitir scroll sem quebrar layout
+    whiteSpace: "nowrap", // ✅ Impede quebra de linha forçada dos Tabs
+    "&::-webkit-scrollbar": { height: "6px" },
+    "&::-webkit-scrollbar-thumb": { backgroundColor: "#ccc", borderRadius: 3 },
+    "& .MuiTabs-scroller": {
+      scrollBehavior: "smooth",
+    },
+    "& .MuiTabs-indicator": {
+      backgroundColor: "#312783",
+      height: "3px",
+    },
+    "& .MuiTab-root": {
+      color: "#505050",
+      textTransform: "none",
+      fontWeight: 600,
+      fontSize: "12px",
+      "&:hover": {
+        color: "#312783",
+      },
+    },
+    "& .Mui-selected": {
+      color: "#312783 !important",
+    },
+    "& .MuiTabs-scrollButtons": {
+      width: 50,
+      height: 50,
+      fontSize: "3rem",
+      color: "#312783",
+    },
+    "& .Mui-disabled": {
+      opacity: 0.3,
+    },
+    "& .MuiTabPanel-root": {
+      border: "1px solid #ccc",
+      borderRadius: "8px",
+      padding: 2,
+      marginTop: 2,
+    },
+  }}
+>
+
           <TabList
             variant="scrollable"
             scrollButtons="auto"
@@ -870,6 +932,9 @@ const handleTrocarBanner = async (event) => {
             <Tab value="5" label="Concluídas" onClick={() => setValue(value === "5" ? "" : "5")} />
             <Tab value="6" label="Em atraso" onClick={() => setValue(value === "6" ? "" : "6")} />
             <Tab value="7" label="Concluídas em atraso" onClick={() => setValue(value === "7" ? "" : "7")} />
+            <Tab value="8" label="Por áreas" onClick={() => setValue(value === "8" ? "" : "8")} />
+            <Tab value="9" label="Por unidades" onClick={() => setValue(value === "9" ? "" : "9")} />
+            <Tab value="10" label="Responsáveis" onClick={() => setValue(value === "10" ? "" : "10")} />
           </TabList>
         </Box>
 
@@ -1876,6 +1941,17 @@ const handleTrocarBanner = async (event) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 <TabPanel value="6">
   {/* Estratégicas Atrasadas */}
   <Box sx={{ mb: 2 }}>
@@ -2354,6 +2430,282 @@ const handleTrocarBanner = async (event) => {
     )}
   </Box>
 </TabPanel>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<TabPanel value="8">
+  <Box sx={{ mb: 3 }}>
+  <FormControl fullWidth size="small" variant="outlined">
+  <InputLabel id="select-area-label" shrink>
+    Filtrar por Área
+  </InputLabel>
+  <Select
+    labelId="select-area-label"
+    id="select-area"
+    value={areaSelecionada}
+    onChange={(e) => setAreaSelecionada(e.target.value)}
+    label="Filtrar por Área"
+    displayEmpty
+    renderValue={(selected) => {
+      if (selected === "") {
+        return <em>Selecione uma área:</em>;
+      }
+      const area = areas.find((a) => a.id === selected);
+      return area?.nome || "";
+    }}
+    inputProps={{ notched: true }}
+  >
+    <MenuItem value="">
+      <em>Todas as Áreas</em>
+    </MenuItem>
+    {areas.map((area) => (
+      <MenuItem key={area.id} value={area.id}>
+        {area.nome}
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
+
+  </Box>
+
+  {/* Estratégicas */}
+  <Box sx={{ mb: 2 }}>
+    <Typography variant="h6" sx={{ color: "#312783", mb: 1 }}>
+      Estratégicas
+    </Typography>
+    {estrategicas
+      ?.filter(e =>
+        areaSelecionada !== "" && (e.areasResponsaveis || []).includes(areaSelecionada)
+      )
+      .map((e, i) => (
+        <Box key={`estrat-${i}`} sx={{ px: 2, py: 1, bgcolor: i % 2 === 0 ? "#ededed" : "#e5e5e5" }}>
+          <Typography><strong>{e.titulo}</strong></Typography>
+        </Box>
+      ))}
+  </Box>
+
+  {/* Táticas */}
+  <Box sx={{ mb: 2 }}>
+    <Typography variant="h6" sx={{ color: "#00796b", mb: 1 }}>
+      Táticas
+    </Typography>
+    {estrategicas?.flatMap((est, i) =>
+      est.taticas
+        ?.filter(t =>
+          areaSelecionada !== "" && (t.areasResponsaveis || []).includes(areaSelecionada)
+        )
+        .map((t, j) => (
+          <Box key={`tat-${i}-${j}`} sx={{ px: 2, py: 1, bgcolor: j % 2 === 0 ? "#ededed" : "#e5e5e5" }}>
+            <Typography><strong>{t.titulo}</strong></Typography>
+          </Box>
+        ))
+    )}
+  </Box>
+
+  {/* Operacionais */}
+  <Box sx={{ mb: 2 }}>
+    <Typography variant="h6" sx={{ color: "#ff9800", mb: 1 }}>
+      Operacionais
+    </Typography>
+    {estrategicas?.flatMap((est, i) =>
+      est.taticas?.flatMap((tat, j) =>
+        tat.operacionais
+          ?.filter(op =>
+            areaSelecionada !== "" && (op.areasResponsaveis || []).includes(areaSelecionada)
+          )
+          .map((op, k) => (
+            <Box key={`op-${i}-${j}-${k}`} sx={{ px: 2, py: 1, bgcolor: k % 2 === 0 ? "#ededed" : "#e5e5e5" }}>
+              <Typography><strong>{op.titulo}</strong></Typography>
+            </Box>
+          ))
+      )
+    )}
+  </Box>
+
+  {/* Tarefas */}
+  <Box sx={{ mb: 2 }}>
+    <Typography variant="h6" sx={{ color: "#6a1b9a", mb: 1 }}>
+      Tarefas
+    </Typography>
+    {estrategicas?.flatMap((est, i) =>
+      est.taticas?.flatMap((tat, j) =>
+        tat.operacionais?.flatMap((op, k) =>
+          op.tarefas
+            ?.filter(t =>
+              areaSelecionada !== "" && (t.areasResponsaveis || []).includes(areaSelecionada)
+            )
+            .map((t, l) => (
+              <Box key={`tarefa-${i}-${j}-${k}-${l}`} sx={{ px: 2, py: 1, bgcolor: l % 2 === 0 ? "#ededed" : "#e5e5e5" }}>
+                <Typography><strong>{t.tituloTarefa}</strong></Typography>
+              </Box>
+            ))
+        )
+      )
+    )}
+  </Box>
+</TabPanel>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<TabPanel value="9">
+  <Box sx={{ mb: 3 }}>
+  <FormControl fullWidth size="small" variant="outlined">
+  <InputLabel id="select-unidade-label" shrink>
+    Filtrar por Unidade
+  </InputLabel>
+  <Select
+    labelId="select-unidade-label"
+    id="select-unidade"
+    value={unidadeSelecionada}
+    onChange={(e) => setUnidadeSelecionada(e.target.value)}
+    label="Filtrar por Unidade"
+    displayEmpty
+    renderValue={(selected) => {
+      if (selected === "") {
+        return <em>Selecione uma unidade:</em>;
+      }
+      const unidade = unidades.find((u) => u.id === selected);
+      return unidade?.nome || "";
+    }}
+    inputProps={{ notched: true }}
+  >
+    <MenuItem value="">
+      <em>Todas as Unidades</em>
+    </MenuItem>
+    {unidades.map((unidade) => (
+      <MenuItem key={unidade.id} value={unidade.id}>
+        {unidade.nome}
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
+</Box>
+
+  {/* Estratégicas */}
+  <Box sx={{ mb: 2 }}>
+    <Typography variant="h6" sx={{ color: "#312783", mb: 1 }}>
+      Estratégicas
+    </Typography>
+    {estrategicas
+      ?.filter(e =>
+        unidadeSelecionada !== "" && (e.unidades || []).includes(unidadeSelecionada)
+      )
+      .map((e, i) => (
+        <Box key={`estrat-unid-${i}`} sx={{ px: 2, py: 1, bgcolor: i % 2 === 0 ? "#ededed" : "#e5e5e5" }}>
+          <Typography><strong>{e.titulo}</strong></Typography>
+        </Box>
+      ))}
+  </Box>
+
+  {/* Táticas */}
+  <Box sx={{ mb: 2 }}>
+    <Typography variant="h6" sx={{ color: "#00796b", mb: 1 }}>
+      Táticas
+    </Typography>
+    {estrategicas?.flatMap((est, i) =>
+      est.taticas
+        ?.filter(t =>
+          unidadeSelecionada !== "" && (t.unidades || []).includes(unidadeSelecionada)
+        )
+        .map((t, j) => (
+          <Box key={`tat-unid-${i}-${j}`} sx={{ px: 2, py: 1, bgcolor: j % 2 === 0 ? "#ededed" : "#e5e5e5" }}>
+            <Typography><strong>{t.titulo}</strong></Typography>
+          </Box>
+        ))
+    )}
+  </Box>
+
+  {/* Operacionais */}
+  <Box sx={{ mb: 2 }}>
+    <Typography variant="h6" sx={{ color: "#ff9800", mb: 1 }}>
+      Operacionais
+    </Typography>
+    {estrategicas?.flatMap((est, i) =>
+      est.taticas?.flatMap((tat, j) =>
+        tat.operacionais
+          ?.filter(op =>
+            unidadeSelecionada !== "" && (op.unidades || []).includes(unidadeSelecionada)
+          )
+          .map((op, k) => (
+            <Box key={`op-unid-${i}-${j}-${k}`} sx={{ px: 2, py: 1, bgcolor: k % 2 === 0 ? "#ededed" : "#e5e5e5" }}>
+              <Typography><strong>{op.titulo}</strong></Typography>
+            </Box>
+          ))
+      )
+    )}
+  </Box>
+
+  {/* Tarefas */}
+  <Box sx={{ mb: 2 }}>
+    <Typography variant="h6" sx={{ color: "#6a1b9a", mb: 1 }}>
+      Tarefas
+    </Typography>
+    {estrategicas?.flatMap((est, i) =>
+      est.taticas?.flatMap((tat, j) =>
+        tat.operacionais?.flatMap((op, k) =>
+          op.tarefas
+            ?.filter(t =>
+              unidadeSelecionada !== "" && (t.unidades || []).includes(unidadeSelecionada)
+            )
+            .map((t, l) => (
+              <Box key={`tarefa-unid-${i}-${j}-${k}-${l}`} sx={{ px: 2, py: 1, bgcolor: l % 2 === 0 ? "#ededed" : "#e5e5e5" }}>
+                <Typography><strong>{t.tituloTarefa}</strong></Typography>
+              </Box>
+            ))
+        )
+      )
+    )}
+  </Box>
+</TabPanel>
+
+
+
+
+
+
+
+
+
+
+
+
 
 </TabContext>
 </Box>

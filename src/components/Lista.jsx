@@ -95,41 +95,16 @@ const handleLimparFiltros = () => {
 // Atualiza os projetos exibidos com base nos filtros
 useEffect(() => {
   if (!projetos.length) {
-    // Se não houver projetos, não tente filtrar
     setProjetosExibidos([]);
     return;
   }
 
   let exibidos = [...projetos];
 
-  if (filtroColaborador && filtroSolicitante && filtroQuem) {
-    exibidos = exibidos.filter(
-      (proj) =>
-        Array.isArray(proj.colaboradores) &&
-        proj.colaboradores.includes(filtroColaborador) &&
-        proj.solicitante === filtroSolicitante &&
-        Array.isArray(proj.quem) &&
-        proj.quem.includes(filtroQuem)
-    );
-  } else if (filtroColaborador && filtroSolicitante) {
-    exibidos = exibidos.filter(
-      (proj) =>
-        Array.isArray(proj.colaboradores) &&
-        proj.colaboradores.includes(filtroColaborador) &&
-        proj.solicitante === filtroSolicitante
-    );
-  } else if (filtroColaborador) {
-    exibidos = exibidos.filter(
-      (proj) =>
-        Array.isArray(proj.colaboradores) &&
-        proj.colaboradores.includes(filtroColaborador)
-    );
-  } else if (filtroSolicitante) {
-    exibidos = exibidos.filter((proj) => proj.solicitante === filtroSolicitante);
-  } else if (filtroQuem) {
+  if (filtroQuem) {
     exibidos = exibidos.filter((proj) =>
-      proj.diretrizes?.some((diretriz) =>
-        diretriz.taticas?.some((tatica) =>
+      proj.estrategicas?.some((estrategica) =>
+        estrategica.taticas?.some((tatica) =>
           tatica.operacionais?.some((operacional) =>
             operacional.tarefas?.some((tarefa) =>
               tarefa.planoDeAcao?.quem?.includes(filtroQuem)
@@ -139,10 +114,23 @@ useEffect(() => {
       )
     );
   }
-  
+
+  if (filtroColaborador) {
+    exibidos = exibidos.filter((proj) =>
+      Array.isArray(proj.colaboradores) &&
+      proj.colaboradores.includes(filtroColaborador)
+    );
+  }
+
+  if (filtroSolicitante) {
+    exibidos = exibidos.filter((proj) =>
+      proj.solicitante === filtroSolicitante
+    );
+  }
 
   setProjetosExibidos(exibidos);
-}, [filtroColaborador, filtroSolicitante, filtroQuem, projetos]);
+}, [projetos, filtroQuem, filtroColaborador, filtroSolicitante]);
+
 
 
 
@@ -580,45 +568,40 @@ useEffect(() => {
 
 
  
+//função para os filtros solicitantes, colaboradores, responsaveis tarefas
+useEffect(() => {
+  let exibidos = [...projetos];
 
-  useEffect(() => {
-    //console.log("Aplicando filtros: filtroQuem:", filtroQuem, "filtroColaborador:", filtroColaborador, "filtroSolicitante:", filtroSolicitante);
-  
-    let exibidos = [...projetos];
-  
-    if (filtroQuem) {
-      exibidos = exibidos.filter((proj) => {
-        return proj.diretrizes?.some((diretriz) =>
-          diretriz.taticas?.some((tatica) =>
-            tatica.operacionais?.some((operacional) =>
-              operacional.tarefas?.some((tarefa) => {
-                console.log(
-                  `🧐 Verificando projeto: ${proj.nome || "Sem Nome"}`,
-                  "Tarefa:",
-                  tarefa.descricao || "Sem Descrição",
-                  "Quem:",
-                  tarefa.planoDeAcao?.quem
-                );
-                return tarefa.planoDeAcao?.quem?.includes(filtroQuem);
-              })
+  if (filtroQuem) {
+    exibidos = exibidos.filter((proj) =>
+      proj.estrategicas?.some((estrategica) =>
+        estrategica.taticas?.some((tatica) =>
+          tatica.operacionais?.some((operacional) =>
+            operacional.tarefas?.some((tarefa) =>
+              tarefa.planoDeAcao?.quem?.includes(filtroQuem)
             )
           )
-        );
-      });
-    }
-    if (filtroColaborador) {
-      exibidos = exibidos.filter((proj) =>
-        Array.isArray(proj.colaboradores) &&
-        proj.colaboradores.includes(filtroColaborador)
-      );
-    }
-    if (filtroSolicitante) {
-      exibidos = exibidos.filter((proj) => proj.solicitante === filtroSolicitante);
-    }
+        )
+      )
+    );
+  }
   
-    //console.log("Projetos exibidos após filtro:", exibidos);
-    setProjetosExibidos(exibidos);
-  }, [filtroQuem, filtroColaborador, filtroSolicitante, projetos]);
+  if (filtroColaborador) {
+    exibidos = exibidos.filter((proj) =>
+      Array.isArray(proj.colaboradores) &&
+      proj.colaboradores.includes(filtroColaborador)
+    );
+  }
+
+  if (filtroSolicitante) {
+    exibidos = exibidos.filter((proj) =>
+      proj.solicitante === filtroSolicitante
+    );
+  }
+
+  setProjetosExibidos(exibidos);
+}, [filtroQuem, filtroColaborador, filtroSolicitante, projetos]);
+
   
 
 
@@ -737,41 +720,6 @@ useEffect(() => {
 
 
 
-// Filtro de projetos por responsável
-useEffect(() => {
-  console.log("🎯 Aplicando filtro por quem:", filtroQuem);
-
-  if (filtroQuem) {
-    const filtrados = projetos.filter((proj) => {
-      console.log("🔍 Analisando projeto:", proj.nome);
-
-      const diretrizes = proj.diretrizes || [];
-      return diretrizes.some((diretriz) => {
-        const taticas = diretriz.taticas || [];
-        return taticas.some((tatica) => {
-          const operacionais = tatica.operacionais || [];
-          return operacionais.some((operacional) => {
-            const tarefas = operacional.tarefas || [];
-            return tarefas.some((tarefa) => {
-              const planoDeAcao = tarefa.planoDeAcao || {};
-              const responsaveis = planoDeAcao.quem || []; // Sempre garantir que seja array válido
-
-              console.log(`🧐 Projeto: ${proj.nome} | Tarefa: ${tarefa.tituloTarefa || "Sem Descrição"} | Quem:`, responsaveis);
-
-              return Array.isArray(responsaveis) && responsaveis.includes(filtroQuem);
-            });
-          });
-        });
-      });
-    });
-
-    console.log("✅ Projetos filtrados por filtroQuem:", filtrados);
-    setProjetosExibidos(filtrados);
-  } else {
-    console.log("🔄 Sem filtroQuem, exibindo todos os projetos.");
-    setProjetosExibidos(projetos);
-  }
-}, [filtroQuem, projetos]);
 
 
 

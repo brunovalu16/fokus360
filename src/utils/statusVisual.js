@@ -1,20 +1,19 @@
-export const calcularStatusVisual = (prazoPrevisto, createdAt, status) => {
+export const calcularStatusVisual = (finalizacao, createdAt, status) => {
   const hoje = new Date();
-  const prazo = new Date(prazoPrevisto);
+  const prazo = new Date(finalizacao); // ⬅️ compara com a data da própria diretriz ou tarefa
   const criado = createdAt ? new Date(createdAt) : hoje;
 
   if (status === "concluida") {
-    return "no_prazo"; // ✅ sempre verde
+    return "no_prazo"; // ✅ concluída sempre fica verde
   }
 
   if (status === "andamento") {
-    return hoje <= prazo ? "no_prazo" : "atrasada"; // ✅ ok
+    return hoje <= prazo ? "no_prazo" : "atrasada"; // ✅ compara com finalizacao local
   }
 
   if (!status || status === "nao_iniciada" || status === "") {
-    return "nao_iniciada"; // ✅ devolve exatamente o status, sem inventar
+    return "nao_iniciada"; // ✅ mantém status original
   }
 
-  // Fallback
-  return "nao_iniciada";
+  return "nao_iniciada"; // fallback
 };

@@ -87,75 +87,73 @@ function DashboardPlanejamento() {
 
   return (
     <>
-  {/* Header */}
-  <Box
-    sx={{
-      marginLeft: "40px",
-      paddingTop: "50px",
-    }}
-  >
-    
-
-
-  </Box>
-
-  <Box
-    sx={{
-      marginLeft: "40px",
-      marginTop: "-15px",
-      width: "calc(100% - 80px)",
-      minHeight: "50vh",
-      padding: "15px",
-      paddingLeft: "30px",
-      borderRadius: "20px",
-      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-      bgcolor: "#f2f0f0",
-      overflowX: "hidden",
-      position: "relative",
-    }}
-  >
-    <DadosProjeto2
-      estrategicas={projetoData?.estrategicas}
-      diretrizes={projetoData?.estrategicas}
-      orcamento={projetoData?.orcamento}
-      dataInicio={projetoData?.dataInicio}
-      prazoPrevisto={projetoData?.prazoPrevisto}
-      projetoData={projetoData}
-      users={users}
-    />
-
-
-
-
-    
-
-
-    {projetoData ? (
-      <>
-        <InformacoesPlanejamento2 projetoData={projetoData} onUpdate={() => {}} />
-
-        <Box display="flex" alignItems="center" gap={1} sx={{ marginTop: "50px", marginBottom: "50px" }}>
-          <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
-          <Typography>DIRETRIZES DO PROJETO</Typography>
-        </Box>
-
-        <BaseDiretriz4
-          projetoData={projetoData}
-          dataInicio={projetoData.dataInicio}
-          prazoPrevisto={projetoData.prazoPrevisto}
-          onUpdate={(prev) => setProjetoData((antigo) => ({ ...antigo, ...prev }))}
-        />
-
-
-      </>
-    ) : (
-      <Typography>Carregando dados do projeto...</Typography>
-    )}
-  </Box>
-</>
+    <Box sx={{ width: "100%", overflowX: "hidden" }}>
+      {/* Header */}
+      <Box
+        sx={{
+          marginLeft: "40px",
+          paddingTop: "50px",
+        }}
+      >
+        {/* conteúdo opcional */}
+      </Box>
   
-  );
-};
+      <Box
+        sx={{
+          marginLeft: "40px",
+          marginTop: "-15px",
+          width: "calc(100% - 80px)",
+          minHeight: "50vh",
+          padding: "15px",
+          paddingLeft: "30px",
+          borderRadius: "20px",
+          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+          bgcolor: "#f2f0f0",
+          overflowX: "hidden",
+          position: "relative",
+        }}
+      >
+        <DadosProjeto2
+          estrategicas={projetoData?.estrategicas}
+          diretrizes={projetoData?.estrategicas}
+          orcamento={projetoData?.orcamento}
+          dataInicio={projetoData?.dataInicio}
+          prazoPrevisto={projetoData?.prazoPrevisto}
+          projetoData={projetoData}
+          users={users}
+        />
+  
+        {projetoData ? (
+          <>
+            <InformacoesPlanejamento2 projetoData={projetoData} onUpdate={() => {}} />
+  
+            <Box
+              display="flex"
+              alignItems="center"
+              gap={1}
+              sx={{ marginTop: "50px", marginBottom: "50px" }}
+            >
+              <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
+              <Typography>DIRETRIZES DO PROJETO</Typography>
+            </Box>
+  
+            <BaseDiretriz4
+              projetoData={projetoData}
+              dataInicio={projetoData.dataInicio}
+              prazoPrevisto={projetoData.prazoPrevisto}
+              onUpdate={(prev) => setProjetoData((antigo) => ({ ...antigo, ...prev }))}
+            />
+          </>
+        ) : (
+          <Typography>Carregando dados do projeto...</Typography>
+        )}
+      </Box>
+    </Box>
+  </>
+  
+    
+    );
+  };
 
 
 

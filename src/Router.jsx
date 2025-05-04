@@ -34,6 +34,7 @@ import CadastroAreas from "./scenes/cadastroAreas";
 import Planejamento from "./scenes/planejamento";
 import DashboardPlanejamento from "./scenes/dashboardplanejamento";
 import DataPlanejamento from "./components/DataPlanejamento";
+import PlanejamentoGeral from "./scenes/planejamentoGeral";
 import {
   Team,
   Invoices,
@@ -59,6 +60,7 @@ const router = createBrowserRouter(
       children: [
         { path: "/cadastro", element: <PrivateRoute><Cadastro /></PrivateRoute> },
         { path: "/home", element: <PrivateRoute><Home /></PrivateRoute> },
+        { path: "/planejamentogeral", element: <PrivateRoute><PlanejamentoGeral /></PrivateRoute> },
         { path: "/dataplanejamento", element: <PrivateRoute><DataPlanejamento /></PrivateRoute> },
         { path: "/dashboardplanejamento/:id", element: <PrivateRoute><DashboardPlanejamento /></PrivateRoute> },
         { path: "/dashboard", element: <PrivateRoute><Dashboard /></PrivateRoute> },

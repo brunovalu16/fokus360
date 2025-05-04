@@ -7,9 +7,9 @@ import { tokens } from "../../theme";
 import { mockTransactions } from "../../data/mockData";
 import { Link } from 'react-router-dom';
 
-import DadosProjetogeral from "../../components/DadosProjetogeral";
+import DadosProjetogeral2 from "../../components/DadosProjetogeral2";
 
-function Dashboard() {
+function PlanejamentoGeral() {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const isXlDevices = useMediaQuery("(min-width: 1260px)");
@@ -70,7 +70,7 @@ function Dashboard() {
 
 
         {/* GRID & CHARTS */}
-        <DadosProjetogeral
+        <DadosProjetogeral2
           solicitanteFiltrado={solicitanteFiltrado}
           setSolicitanteFiltrado={setSolicitanteFiltrado}
         />
@@ -83,4 +83,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default PlanejamentoGeral;

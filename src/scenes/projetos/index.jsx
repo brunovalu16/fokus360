@@ -332,7 +332,7 @@ const checkUserAssociation = async (userEmail, userId) => {
             }}
           >
             <Link
-              to={hasPermission ? "" : "#"}
+              to={hasPermission ? "/planejamentogeral" : ""}
               onClick={handleLinkClick}
               style={{
                 padding: "10px 20px",
