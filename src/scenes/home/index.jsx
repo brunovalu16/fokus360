@@ -96,7 +96,7 @@ const Home = () => {
             }}
           >
             <a
-              href="/dashboard"
+              href="#"
               style={{
                 padding: "10px 20px",
                 backgroundColor: "transparent",
@@ -121,7 +121,7 @@ const Home = () => {
             }}
           >
             <a
-              href="/listaprojetos"
+              href="#"
               style={{
                 backgroundColor: "transparent",
                 color: "transparent",

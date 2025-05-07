@@ -35,6 +35,10 @@ import Planejamento from "./scenes/planejamento";
 import DashboardPlanejamento from "./scenes/dashboardplanejamento";
 import DataPlanejamento from "./components/DataPlanejamento";
 import PlanejamentoGeral from "./scenes/planejamentoGeral";
+import Capacontabilidade from "./scenes/capacontabilidade";
+import Eapplanejamento from "./scenes/eapplanejamento";
+import ManuaisCSC from "./scenes/ManuaisCSC";
+import Manuais from "./scenes/Manuais";
 import {
   Team,
   Invoices,
@@ -61,6 +65,10 @@ const router = createBrowserRouter(
         { path: "/cadastro", element: <PrivateRoute><Cadastro /></PrivateRoute> },
         { path: "/home", element: <PrivateRoute><Home /></PrivateRoute> },
         { path: "/planejamentogeral", element: <PrivateRoute><PlanejamentoGeral /></PrivateRoute> },
+        { path: "/capacontabilidade", element: <PrivateRoute><Capacontabilidade /></PrivateRoute> },
+        { path: "/manuaisCSC", element: <PrivateRoute><ManuaisCSC /></PrivateRoute> },
+        { path: "/manuais", element: <PrivateRoute><Manuais /></PrivateRoute> },
+        { path: "/eapplanejamento", element: <PrivateRoute><Eapplanejamento /></PrivateRoute> },
         { path: "/dataplanejamento", element: <PrivateRoute><DataPlanejamento /></PrivateRoute> },
         { path: "/dashboardplanejamento/:id", element: <PrivateRoute><DashboardPlanejamento /></PrivateRoute> },
         { path: "/dashboard", element: <PrivateRoute><Dashboard /></PrivateRoute> },

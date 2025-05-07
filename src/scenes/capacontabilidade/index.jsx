@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, Typography, Modal, Alert } from "@mui/material";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import { Link } from "react-router-dom";
-import capaplanejamento from "../../../src/assets/images/capaplanejamento.webp"
+import capacontabilidade from "../../../src/assets/images/capacontabilidade.webp"
 import { getDocs, getDoc, doc, collection } from "firebase/firestore";
 import { dbFokus360 } from "../../data/firebase-config"; // Para Fokus360
 
@@ -15,7 +15,7 @@ import Collapse from '@mui/material/Collapse';
 import CloseIcon from '@mui/icons-material/Close';
 import WarningIcon from '@mui/icons-material/Warning';
 
-const Projetos = () => {
+const Capacontabilidade = () => {
   const [isUserAssociated, setIsUserAssociated] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userId, setUserId] = useState(null);
@@ -269,7 +269,7 @@ const checkUserAssociation = async (userEmail, userId) => {
         }}
       >
         <Box display="flex" alignItems="center" gap={1}>
-          <PlayCircleFilledIcon sx={{ color: "#0069f7", fontSize: 25 }} />
+          <PlayCircleFilledIcon sx={{ color: "#082c53", fontSize: 25 }} />
           <Typography color="#858585">FOKUS 360 | PROJETOS</Typography>
         </Box>
 
@@ -288,7 +288,7 @@ const checkUserAssociation = async (userEmail, userId) => {
         {/* Estrutura da Imagem */}
         <div style={{ position: "relative", width: "100%", top: "-40px" }}>
           <img
-            src={capaplanejamento}
+            src={capacontabilidade}
             style={{
               width: "100%",
               height: "auto",
@@ -307,13 +307,13 @@ const checkUserAssociation = async (userEmail, userId) => {
             }}
           >
             <Link
-              to="/planejamento"
+              to="#"
               style={{
                 backgroundColor: "transparent",
                 color: "transparent",
                 textDecoration: "none",
                 fontWeight: "bold",
-                marginLeft: "5px",
+                marginLeft: "8px",
                 alignContent: "center",
                 paddingRight: "300px",
                 paddingBottom: "80px",
@@ -326,13 +326,13 @@ const checkUserAssociation = async (userEmail, userId) => {
           <Box
             sx={{
               position: "absolute",
-              top: "30%", // Posição para "Resumo Geral"
-              right: "5%",
+              top: "53%", // Posição para "Resumo Geral"
+              right: "29%",
               height: "150px",
             }}
           >
             <Link
-              to={hasPermission ? "/planejamentogeral" : ""}
+              to={hasPermission ? "/manuais" : ""}
               onClick={handleLinkClick}
               style={{
                 padding: "10px 20px",
@@ -341,8 +341,8 @@ const checkUserAssociation = async (userEmail, userId) => {
                 borderRadius: "8px",
                 textDecoration: "none",
                 fontWeight: "bold",
-                paddingRight: "250px",
-                paddingBottom: "20px",
+                paddingRight: "70px",
+                paddingBottom: "30px",
               }}
             >
               Resumo Geral
@@ -352,19 +352,22 @@ const checkUserAssociation = async (userEmail, userId) => {
           <Box
             sx={{
               position: "absolute",
-              top: "42%", // Posição para "Projetos"
-              right: "6%",
+              top: "53%", // Posição para "Resumo Geral"
+              right: "9%",
+              height: "150px",
             }}
           >
             <Link
-              to={hasPermission ? "/listaprojetos" : "#"}
+              to={hasPermission ? "/manuaisCSC" : "#"}
               onClick={handleLinkClick}
               style={{
+                padding: "10px 20px",
                 backgroundColor: "transparent",
                 color: "transparent",
+                borderRadius: "8px",
                 textDecoration: "none",
                 fontWeight: "bold",
-                paddingRight: "280px",
+                paddingRight: "120px",
                 paddingBottom: "30px",
               }}
             >
@@ -380,7 +383,7 @@ const checkUserAssociation = async (userEmail, userId) => {
             }}
           >
             <Link
-              to={hasPermission ? "/eapplanejamento" : "#"}
+              to={hasPermission ? "" : "#"}
               onClick={handleLinkClick}
               style={{
                 backgroundColor: "transparent",
@@ -400,4 +403,4 @@ const checkUserAssociation = async (userEmail, userId) => {
   );
 };
 
-export default Projetos;
+export default Capacontabilidade;

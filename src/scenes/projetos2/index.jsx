@@ -316,7 +316,7 @@ const checkUserAssociation = async (userEmail, userId) => {
                 marginLeft: "8px",
                 alignContent: "center",
                 paddingRight: "300px",
-                paddingBottom: "80px",
+                paddingBottom: "110px",
               }}
             >
               Novo Projeto
@@ -326,7 +326,7 @@ const checkUserAssociation = async (userEmail, userId) => {
           <Box
             sx={{
               position: "absolute",
-              top: "38%", // Posição para "Resumo Geral"
+              top: "25%", // Posição para "Resumo Geral"
               right: "5%",
               height: "150px",
             }}
@@ -352,7 +352,7 @@ const checkUserAssociation = async (userEmail, userId) => {
           <Box
             sx={{
               position: "absolute",
-              top: "48%", // Posição para "Projetos"
+              top: "40%", // Posição para "Projetos"
               right: "6%",
             }}
           >
