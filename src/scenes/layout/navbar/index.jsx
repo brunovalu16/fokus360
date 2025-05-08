@@ -17,7 +17,6 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 
 import { doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
-import colibri from "../../../assets/images/colibri.png";
 import fokus360cinza from "../../../assets/images/fokus360cinza.png";
 import { Link } from 'react-router-dom'; // Certifique-se de importar o Link
 import { Avatar } from "@mui/material";
