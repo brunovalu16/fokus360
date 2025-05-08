@@ -677,7 +677,7 @@ const scrollToMatch = () => {
           }));
 
           setFormularios(formulariosConvertidos);
-          setExpandedAccordion(`panel-1`);
+          setExpandedAccordion(null);
         }}
         sx={{
           backgroundColor: "#f5f5f5",
