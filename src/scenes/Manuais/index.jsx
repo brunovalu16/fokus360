@@ -691,7 +691,7 @@ const scrollToMatch = () => {
         }}
       >
         <MenuItem value="" disabled>
-          Selecione um projeto:
+          Selecione um departamento:
         </MenuItem>
 
         {projects.map((projeto) => (
