@@ -13,8 +13,9 @@ import { Box, Typography,
   ListItemButton,
   Divider, } from "@mui/material";
 
-import { getDocs, collection, addDoc, getDoc, doc } from "firebase/firestore";
+import { getDocs, collection, addDoc, getDoc, doc, updateDoc } from "firebase/firestore";
 import { dbFokus360 } from "../../data/firebase-config";
+
 
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import FilterListIcon from "@mui/icons-material/FilterList"; // Ícone para o Select
@@ -402,28 +403,34 @@ const adicionarSubItem = (formId, posicao) => {
   //Salvar formulario no banco
   const salvarFormularios = async () => {
     if (!nomeProjeto.trim()) {
-      alert("Informe o nome do projeto antes de salvar.");
+      alert("Informe o nome do departamento antes de salvar.");
       return;
     }
   
     try {
-      const doc = {
+      const docData = {
         nome: nomeProjeto.trim(),
-        itens: formularios.map(form => ({
+        itens: formularios.map((form) => ({
           titulo: form.titulo.trim(),
           descricao: form.descricao.trim(),
           subItens: Array.isArray(form.subItens)
-            ? form.subItens.map(sub => ({
+            ? form.subItens.map((sub) => ({
                 titulo: sub.titulo.trim(),
                 descricao: sub.descricao.trim(),
               }))
-            : []
+            : [],
         })),
-        criadoEm: new Date(),
       };
   
-      await addDoc(collection(dbFokus360, "csc"), doc);
-      alert("Projeto salvo com sucesso!");
+      if (selectedFilter) {
+        // 🔁 Atualiza projeto existente
+        const docRef = doc(dbFokus360, "csc", selectedFilter);
+        await updateDoc(docRef, docData);
+        alert("Projeto atualizado com sucesso!");
+      } else {
+        // 🆕 Apenas se quiser permitir salvar como novo (pode remover isso se quiser impedir)
+        alert("Nenhum projeto selecionado para salvar. Por favor, selecione um projeto.");
+      }
     } catch (error) {
       console.error("Erro ao salvar no Firestore:", error);
       alert("Erro ao salvar dados. Verifique o console.");
@@ -1042,6 +1049,40 @@ const scrollToMatch = () => {
   </div>
 ))}
 
+<Box display="flex" justifyContent="space-between" mt={4} gap={2}>
+  <Button
+    variant="outlined"
+    onClick={adicionarFormulario}
+    startIcon={<AddIcon />}
+    sx={{
+      textTransform: "none",
+      color: "#d32f2f",
+      borderColor: "#d32f2f",
+      "&:hover": {
+        borderColor: "#d32f2f",
+      },
+    }}
+  >
+    Adicionar Item
+  </Button>
+
+  <Box display="flex" gap={2}>
+    <Button
+      variant="contained"
+      onClick={salvarFormularios}
+      sx={{
+        textTransform: "none",
+        backgroundColor: "#d32f2f",
+        color: "#fff",
+        "&:hover": {
+          backgroundColor: "#b71c1c",
+        },
+      }}
+    >
+      Salvar todos
+    </Button>
+  </Box>
+</Box>
 
 
 
