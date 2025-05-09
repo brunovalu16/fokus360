@@ -531,20 +531,20 @@ const removerSubItem = (formId, index) => {
 
 <Box display="flex" justifyContent="flex-end" mt={2} gap={2}>
 <Button
-  variant="outlined"
-  onClick={salvarFormularios}
-  sx={{
-    textTransform: "none",
-    color: "#d32f2f",
-    borderColor: "#d32f2f",
-    "&:hover": {
-      backgroundColor: "#f1f1f1",
+    variant="outlined"
+    onClick={adicionarFormulario}
+    startIcon={<AddIcon />}
+    sx={{
+      textTransform: "none",
+      color: "#d32f2f",
       borderColor: "#d32f2f",
-    },
-  }}
->
-  Salvar todos
-</Button>
+      "&:hover": {
+        borderColor: "#d32f2f",
+      },
+    }}
+  >
+    Adicionar Item
+  </Button>
 
 
   <Button

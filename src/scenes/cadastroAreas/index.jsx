@@ -41,7 +41,8 @@ const CadastroAreas = () => {
     { id: "MARKETING", nome: "MARKETING" },
     { id: "TRADE", nome: "TRADE" },
     { id: "RECURSOSHUMANOS", nome: "RECURSOS HUMANOS" },
-    { id: "TI", nome: "TI" }
+    { id: "TI", nome: "TI" },
+    { id: "COMERCIAL", nome: "COMERCIAL" }
   ];
 
   // Função para atualizar o preview do avatar
@@ -170,7 +171,8 @@ const CadastroAreas = () => {
                 "MATO GROSSO",
                 "MATO GROSSO DO SUL",
                 "PARÁ",
-                "TOCANTINS"
+                "TOCANTINS",
+                "COMERCIAL"
               ].map((nome) => (
                 <MenuItem key={nome} value={nome}>
                   <Checkbox checked={unidadesSelecionadas.includes(nome)} />

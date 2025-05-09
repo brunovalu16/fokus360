@@ -17,6 +17,9 @@ import { getDocs, collection, addDoc, getDoc, doc, updateDoc } from "firebase/fi
 import { dbFokus360 } from "../../data/firebase-config";
 
 
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import ManualPDF from "../../components/ManualPDF"; // ajuste o caminho se necessário
+
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import FilterListIcon from "@mui/icons-material/FilterList"; // Ícone para o Select
 import ClearAllIcon from "@mui/icons-material/ClearAll"; // Ícone para limpar filtro
@@ -841,7 +844,7 @@ const scrollToMatch = () => {
             <Box display="flex" alignItems="center" gap={1} sx={{ marginTop: "50px", marginBottom: "20px" }}>
               <PlayCircleFilledIcon sx={{ color: "#f44336", fontSize: 25 }} />
               <Typography color="#858585">
-                Visualize ou adicione informações do manual do seu departamento: 
+                Visualize ou adicione informações ao manual do seu departamento: 
               </Typography>
             </Box>
 
@@ -1060,6 +1063,7 @@ const scrollToMatch = () => {
       borderColor: "#d32f2f",
       "&:hover": {
         borderColor: "#d32f2f",
+        backgroundColor: "transparent"
       },
     }}
   >
@@ -1067,21 +1071,51 @@ const scrollToMatch = () => {
   </Button>
 
   <Box display="flex" gap={2}>
-    <Button
-      variant="contained"
-      onClick={salvarFormularios}
-      sx={{
-        textTransform: "none",
-        backgroundColor: "#d32f2f",
-        color: "#fff",
-        "&:hover": {
-          backgroundColor: "#b71c1c",
-        },
-      }}
-    >
-      Salvar todos
-    </Button>
-  </Box>
+  <Button
+    variant="contained"
+    onClick={salvarFormularios}
+    sx={{
+      textTransform: "none",
+      backgroundColor: "#d32f2f",
+      color: "#fff",
+      "&:hover": {
+        backgroundColor: "#b71c1c",
+      },
+    }}
+  >
+    Salvar todos
+  </Button>
+
+  <PDFDownloadLink
+    document={<ManualPDF nomeProjeto={nomeProjeto} formularios={formularios} />}
+    fileName={`${nomeProjeto || "manual"}.pdf`}
+    style={{ textDecoration: "none" }}
+  >
+    {({ loading }) =>
+      loading ? (
+        <Button variant="outlined" disabled>
+          Gerando PDF...
+        </Button>
+      ) : (
+        <Button
+          variant="outlined"
+          sx={{
+            textTransform: "none",
+            color: "#d71936",
+            borderColor: "#d71936",
+            "&:hover": {
+              borderColor: "#d71936",
+              backgroundColor: "transparent"
+            },
+          }}
+        >
+          Baixar PDF
+        </Button>
+      )
+    }
+  </PDFDownloadLink>
+</Box>
+
 </Box>
 
 

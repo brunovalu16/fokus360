@@ -176,56 +176,77 @@ const FiltrosPlanejamento2 = ({ estrategicas, projetoSelecionado   }) => {
       }, []);
 
 
-useEffect(() => {
-  const buscarAtrasadas = async () => {
-    try {
-      const snapshot = await getDocs(collection(db, "projetos"));
 
-      const est = [];
-      const tat = [];
-      const op = [];
-      const tar = [];
-
-      snapshot.forEach((docSnap) => {
-        const projeto = docSnap.data();
-        const estrategicas = projeto.estrategicas || [];
-
-        estrategicas.forEach((estrategica) => {
-          if (estrategica.statusVisual === "atrasada" && estrategica.status !== "concluida") {
-            est.push(estrategica);
-          }
-
-          (estrategica.taticas || []).forEach((tatica) => {
-            if (tatica.statusVisual === "atrasada" && tatica.status !== "concluida") {
-              tat.push(tatica);
-            }
-
-            (tatica.operacionais || []).forEach((opItem) => {
-              if (opItem.statusVisual === "atrasada" && opItem.status !== "concluida") {
-                op.push(opItem);
-              }
-
-              (opItem.tarefas || []).forEach((tarefa) => {
-                if (tarefa.statusVisual === "atrasada" && tarefa.status !== "concluida") {
-                  tar.push(tarefa);
+      //função buscar tarefas atrasadas
+      useEffect(() => {
+        const buscarAtrasadas = async () => {
+          try {
+            const snapshot = await getDocs(collection(db, "projetos"));
+      
+            const est = [], tat = [], op = [], tar = [];
+      
+            snapshot.forEach((docSnap) => {
+              const projeto = docSnap.data();
+              const estrategicas = projeto.estrategicas || [];
+      
+              estrategicas.forEach((estrategica) => {
+                const { status = "", statusVisual = "", time = "" } = estrategica;
+      
+                if (
+                  (status === "andamento" && statusVisual === "atrasada" && time === "atrasada") ||
+                  (status === "" && statusVisual === "" && time === "atrasada")
+                ) {
+                  est.push(estrategica);
                 }
+      
+                (estrategica.taticas || []).forEach((tatica) => {
+                  const { status = "", statusVisual = "", time = "" } = tatica;
+      
+                  if (
+                    (status === "andamento" && statusVisual === "atrasada" && time === "atrasada") ||
+                    (status === "" && statusVisual === "" && time === "atrasada")
+                  ) {
+                    tat.push(tatica);
+                  }
+      
+                  (tatica.operacionais || []).forEach((opItem) => {
+                    const { status = "", statusVisual = "", time = "" } = opItem;
+      
+                    if (
+                      (status === "andamento" && statusVisual === "atrasada" && time === "atrasada") ||
+                      (status === "" && statusVisual === "" && time === "atrasada")
+                    ) {
+                      op.push(opItem);
+                    }
+      
+                    (opItem.tarefas || []).forEach((tarefa) => {
+                      const { status = "", statusVisual = "", time = "" } = tarefa;
+      
+                      if (
+                        (status === "andamento" && statusVisual === "atrasada" && time === "atrasada") ||
+                        (status === "" && statusVisual === "" && time === "atrasada")
+                      ) {
+                        tar.push(tarefa);
+                      }
+                    });
+                  });
+                });
               });
             });
-          });
-        });
-      });
-
-      setEstrategicasAtrasadas(est);
-      setTaticasAtrasadas(tat);
-      setOperacionaisAtrasadas(op);
-      setTarefasAtrasadas(tar);
-    } catch (error) {
-      console.error("❌ Erro ao buscar diretrizes atrasadas:", error);
-    }
-  };
-
-  buscarAtrasadas();
-}, []);
+      
+            setEstrategicasAtrasadas(est);
+            setTaticasAtrasadas(tat);
+            setOperacionaisAtrasadas(op);
+            setTarefasAtrasadas(tar);
+          } catch (error) {
+            console.error("❌ Erro ao buscar diretrizes atrasadas:", error);
+          }
+        };
+      
+        buscarAtrasadas();
+      }, []);
+      
+      
 
 
 
@@ -288,11 +309,13 @@ useEffect(() => {
             
             <Box
                   sx={{
-                    border: "1px solid #9b9b9b",
+                    //border: "1px solid #9b9b9b",
                     borderRadius: "10px",
                     backgroundColor: "transparent",
-                    padding: 2,
+                    paddingTop: "10px",
+                    paddingBottom: "10px",
                     marginBottom: "30px",
+                    marginLeft: "-25px",
                   }}
                 >
                   <Box
@@ -325,7 +348,7 @@ useEffect(() => {
                           height: "3px",
                         },
                         "& .MuiTab-root": {
-                          color: "#505050",
+                          //color: "#505050",
                           textTransform: "none",
                           fontWeight: 600,
                           fontSize: "12px",
@@ -1925,79 +1948,105 @@ useEffect(() => {
     const projeto = todosProjetos.find(p => p.id === projetoSelecionado);
     if (!projeto) return null;
 
+    const renderBloco = (titulo, cor, dados, tituloCampo, getResponsaveis) => (
+      <Box sx={{ mb: 2 }}>
+        <Box display="flex" alignItems="center" mb={1}>
+          <DoubleArrowIcon sx={{ color: cor, mr: 1 }} />
+          <Typography variant="h6" sx={{ color: cor }}>
+            {titulo}
+          </Typography>
+        </Box>
+        {dados.map((item, i) => (
+          <Box
+            key={`${titulo}-${i}`}
+            sx={{
+              backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+              px: 2,
+              py: 1,
+              borderBottom: "1px solid #e0e0e0",
+              display: "flex",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 1,
+            }}
+          >
+            <Typography variant="body2" sx={{ flex: 1 }}>
+              {item[tituloCampo] || "-"}
+            </Typography>
+            <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+            <Typography variant="body2" sx={{ flex: 2 }}>
+              <strong>Responsáveis:</strong>{" "}
+              <span style={{ fontStyle: "italic", color: "#555" }}>
+                {getResponsaveis(item)}
+              </span>
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+    );
+
+    const estrategicasFiltradas =
+      projeto.estrategicas?.filter(e => (e.areasResponsaveis || []).includes(areaSelecionada)) || [];
+
+    const taticasFiltradas =
+      projeto.estrategicas?.flatMap(e =>
+        e.taticas?.filter(t => (t.areasResponsaveis || []).includes(areaSelecionada)) || []
+      ) || [];
+
+    const operacionaisFiltradas =
+      projeto.estrategicas?.flatMap(e =>
+        e.taticas?.flatMap(t =>
+          t.operacionais?.filter(op => (op.areasResponsaveis || []).includes(areaSelecionada)) || []
+        ) || []
+      ) || [];
+
+    const tarefasFiltradas =
+      projeto.estrategicas?.flatMap(e =>
+        e.taticas?.flatMap(t =>
+          t.operacionais?.flatMap(op =>
+            op.tarefas?.filter(tar => (tar.areasResponsaveis || []).includes(areaSelecionada)) || []
+          ) || []
+        ) || []
+      ) || [];
+
     return (
       <>
-        {/* Estratégicas */}
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="h6" sx={{ color: "#312783", mb: 1 }}>
-            Estratégicas
-          </Typography>
-          {projeto.estrategicas
-            ?.filter((e) => (e.areasResponsaveis || []).includes(areaSelecionada))
-            .map((e, i) => (
-              <Box key={`estrat-${i}`} sx={{ px: 2, py: 1, bgcolor: i % 2 === 0 ? "#ededed" : "#e5e5e5" }}>
-                <Typography><strong>{e.titulo}</strong></Typography>
-              </Box>
-            ))}
-        </Box>
-
-        {/* Táticas */}
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="h6" sx={{ color: "#00796b", mb: 1 }}>
-            Táticas
-          </Typography>
-          {projeto.estrategicas?.flatMap((est, i) =>
-            est.taticas
-              ?.filter((t) => (t.areasResponsaveis || []).includes(areaSelecionada))
-              .map((t, j) => (
-                <Box key={`tat-${i}-${j}`} sx={{ px: 2, py: 1, bgcolor: j % 2 === 0 ? "#ededed" : "#e5e5e5" }}>
-                  <Typography><strong>{t.titulo}</strong></Typography>
-                </Box>
-              ))
-          )}
-        </Box>
-
-        {/* Operacionais */}
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="h6" sx={{ color: "#f44336", mb: 1 }}>
-            Operacionais
-          </Typography>
-          {projeto.estrategicas?.flatMap((est, i) =>
-            est.taticas?.flatMap((tat, j) =>
-              tat.operacionais
-                ?.filter((op) => (op.areasResponsaveis || []).includes(areaSelecionada))
-                .map((op, k) => (
-                  <Box key={`op-${i}-${j}-${k}`} sx={{ px: 2, py: 1, bgcolor: k % 2 === 0 ? "#ededed" : "#e5e5e5" }}>
-                    <Typography><strong>{op.titulo}</strong></Typography>
-                  </Box>
-                ))
-            )
-          )}
-        </Box>
-
-        {/* Tarefas */}
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="h6" sx={{ color: "#f28e2b", mb: 1 }}>
-            Tarefas
-          </Typography>
-          {projeto.estrategicas?.flatMap((est, i) =>
-            est.taticas?.flatMap((tat, j) =>
-              tat.operacionais?.flatMap((op, k) =>
-                op.tarefas
-                  ?.filter((t) => (t.areasResponsaveis || []).includes(areaSelecionada))
-                  .map((t, l) => (
-                    <Box key={`tarefa-${i}-${j}-${k}-${l}`} sx={{ px: 2, py: 1, bgcolor: l % 2 === 0 ? "#ededed" : "#e5e5e5" }}>
-                      <Typography><strong>{t.tituloTarefa}</strong></Typography>
-                    </Box>
-                  ))
-              )
-            )
-          )}
-        </Box>
+        {renderBloco(
+          "Estratégicas",
+          "#312783",
+          estrategicasFiltradas,
+          "titulo",
+          item => (item.emails || []).join(", ") || "Nenhum"
+        )}
+        {renderBloco(
+          "Táticas",
+          "#00796b",
+          taticasFiltradas,
+          "titulo",
+          item => (item.emails || []).join(", ") || "Nenhum"
+        )}
+        {renderBloco(
+          "Operacionais",
+          "#f44336",
+          operacionaisFiltradas,
+          "titulo",
+          item => (item.emails || []).join(", ") || "Nenhum"
+        )}
+        {renderBloco(
+          "Tarefas",
+          "#f28e2b",
+          tarefasFiltradas,
+          "tituloTarefa",
+          item => {
+            const quem = item?.planoDeAcao?.quemEmail;
+            return Array.isArray(quem) ? quem.join(", ") : quem || "Nenhum";
+          }
+        )}
       </>
     );
   })()}
 </TabPanel>
+
 
 
 
@@ -2064,79 +2113,105 @@ useEffect(() => {
     const projeto = todosProjetos.find(p => p.id === projetoSelecionado);
     if (!projeto) return null;
 
+    const renderBloco = (titulo, cor, dados, tituloCampo, getResponsaveis) => (
+      <Box sx={{ mb: 2 }}>
+        <Box display="flex" alignItems="center" mb={1}>
+          <DoubleArrowIcon sx={{ color: cor, mr: 1 }} />
+          <Typography variant="h6" sx={{ color: cor }}>
+            {titulo}
+          </Typography>
+        </Box>
+        {dados.map((item, i) => (
+          <Box
+            key={`${titulo}-${i}`}
+            sx={{
+              backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+              px: 2,
+              py: 1,
+              borderBottom: "1px solid #e0e0e0",
+              display: "flex",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 1,
+            }}
+          >
+            <Typography variant="body2" sx={{ flex: 1 }}>
+              {item[tituloCampo] || "-"}
+            </Typography>
+            <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+            <Typography variant="body2" sx={{ flex: 2 }}>
+              <strong>Responsáveis:</strong>{" "}
+              <span style={{ fontStyle: "italic", color: "#555" }}>
+                {getResponsaveis(item)}
+              </span>
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+    );
+
+    const estrategicasFiltradas =
+      projeto.estrategicas?.filter(e => (e.unidades || []).includes(unidadeSelecionada)) || [];
+
+    const taticasFiltradas =
+      projeto.estrategicas?.flatMap(e =>
+        e.taticas?.filter(t => (t.unidades || []).includes(unidadeSelecionada)) || []
+      ) || [];
+
+    const operacionaisFiltradas =
+      projeto.estrategicas?.flatMap(e =>
+        e.taticas?.flatMap(t =>
+          t.operacionais?.filter(op => (op.unidades || []).includes(unidadeSelecionada)) || []
+        ) || []
+      ) || [];
+
+    const tarefasFiltradas =
+      projeto.estrategicas?.flatMap(e =>
+        e.taticas?.flatMap(t =>
+          t.operacionais?.flatMap(op =>
+            op.tarefas?.filter(tar => (tar.unidades || []).includes(unidadeSelecionada)) || []
+          ) || []
+        ) || []
+      ) || [];
+
     return (
       <>
-        {/* Estratégicas */}
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="h6" sx={{ color: "#312783", mb: 1 }}>
-            Estratégicas
-          </Typography>
-          {projeto.estrategicas
-            ?.filter((e) => (e.unidades || []).includes(unidadeSelecionada))
-            .map((e, i) => (
-              <Box key={`estrat-unid-${i}`} sx={{ px: 2, py: 1, bgcolor: i % 2 === 0 ? "#ededed" : "#e5e5e5" }}>
-                <Typography><strong>{e.titulo}</strong></Typography>
-              </Box>
-            ))}
-        </Box>
-
-        {/* Táticas */}
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="h6" sx={{ color: "#00796b", mb: 1 }}>
-            Táticas
-          </Typography>
-          {projeto.estrategicas?.flatMap((est, i) =>
-            est.taticas
-              ?.filter((t) => (t.unidades || []).includes(unidadeSelecionada))
-              .map((t, j) => (
-                <Box key={`tat-unid-${i}-${j}`} sx={{ px: 2, py: 1, bgcolor: j % 2 === 0 ? "#ededed" : "#e5e5e5" }}>
-                  <Typography><strong>{t.titulo}</strong></Typography>
-                </Box>
-              ))
-          )}
-        </Box>
-
-        {/* Operacionais */}
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="h6" sx={{ color: "#f44336", mb: 1 }}>
-            Operacionais
-          </Typography>
-          {projeto.estrategicas?.flatMap((est, i) =>
-            est.taticas?.flatMap((tat, j) =>
-              tat.operacionais
-                ?.filter((op) => (op.unidades || []).includes(unidadeSelecionada))
-                .map((op, k) => (
-                  <Box key={`op-unid-${i}-${j}-${k}`} sx={{ px: 2, py: 1, bgcolor: k % 2 === 0 ? "#ededed" : "#e5e5e5" }}>
-                    <Typography><strong>{op.titulo}</strong></Typography>
-                  </Box>
-                ))
-            )
-          )}
-        </Box>
-
-        {/* Tarefas */}
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="h6" sx={{ color: "#f28e2b", mb: 1 }}>
-            Tarefas
-          </Typography>
-          {projeto.estrategicas?.flatMap((est, i) =>
-            est.taticas?.flatMap((tat, j) =>
-              tat.operacionais?.flatMap((op, k) =>
-                op.tarefas
-                  ?.filter((t) => (t.unidades || []).includes(unidadeSelecionada))
-                  .map((t, l) => (
-                    <Box key={`tarefa-unid-${i}-${j}-${k}-${l}`} sx={{ px: 2, py: 1, bgcolor: l % 2 === 0 ? "#ededed" : "#e5e5e5" }}>
-                      <Typography><strong>{t.tituloTarefa}</strong></Typography>
-                    </Box>
-                  ))
-              )
-            )
-          )}
-        </Box>
+        {renderBloco(
+          "Estratégicas",
+          "#312783",
+          estrategicasFiltradas,
+          "titulo",
+          item => (item.emails || []).join(", ") || "Nenhum"
+        )}
+        {renderBloco(
+          "Táticas",
+          "#00796b",
+          taticasFiltradas,
+          "titulo",
+          item => (item.emails || []).join(", ") || "Nenhum"
+        )}
+        {renderBloco(
+          "Operacionais",
+          "#f44336",
+          operacionaisFiltradas,
+          "titulo",
+          item => (item.emails || []).join(", ") || "Nenhum"
+        )}
+        {renderBloco(
+          "Tarefas",
+          "#f28e2b",
+          tarefasFiltradas,
+          "tituloTarefa",
+          item => {
+            const quem = item?.planoDeAcao?.quemEmail;
+            return Array.isArray(quem) ? quem.join(", ") : quem || "Nenhum";
+          }
+        )}
       </>
     );
   })()}
 </TabPanel>
+
 
 
 

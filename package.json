@@ -32,6 +32,7 @@
     "@nivo/pie": "^0.88.0",
     "@nivo/stream": "^0.88.0",
     "@react-google-maps/api": "^2.20.6",
+    "@react-pdf/renderer": "^4.3.0",
     "@react-spring/web": "^9.7.5",
     "axios": "^1.7.9",
     "cors": "^2.8.5",
