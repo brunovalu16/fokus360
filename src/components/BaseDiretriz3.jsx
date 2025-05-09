@@ -54,6 +54,9 @@ const [emailsPorIdOperacional, setEmailsPorIdOperacional] = useState({});
 
 
 
+  const [selectedArea, setSelectedArea] = useState("");
+  const [selectedAreaTarefa, setSelectedAreaTarefa] = useState("");
+
 
 
 
@@ -256,16 +259,25 @@ const handleRemoveTarefa = (idEstrategica, idTatica, idOperacional, idTarefa) =>
 
 
 
-
+//Criar tarefas
 const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => {
-  if (!novaTarefa || typeof novaTarefa !== "string" || !novaTarefa.trim()) {
+  if (!novaTarefa?.trim()) {
     alert("Nome da tarefa é obrigatório.");
     return;
   }
 
+  if (!selectedAreaTarefa) {
+    alert("Selecione a área responsável pela tarefa.");
+    return;
+  }
+
+  const areaNome = areas.find((a) => a.id === selectedAreaTarefa)?.nome || "Desconhecida";
+
   const novaTarefaObj = {
     id: Date.now(),
     tituloTarefa: novaTarefa,
+    areaId: selectedAreaTarefa,
+    areaNome: areaNome,
     planoDeAcao: {
       oQue: "",
       porQue: "",
@@ -283,33 +295,36 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
 
   console.log("📌 Adicionando nova tarefa:", JSON.stringify(novaTarefaObj, null, 2));
 
-  setEstrategicas((prevEstrategicas) => {
-    return prevEstrategicas.map((estrategica) => {
-      if (estrategica.id !== idEstrategica) return estrategica;
+  setEstrategicas((prevEstrategicas) =>
+    prevEstrategicas.map((estrategica) =>
+      estrategica.id !== idEstrategica
+        ? estrategica
+        : {
+            ...estrategica,
+            taticas: estrategica.taticas.map((tatica) =>
+              tatica.id !== idTatica
+                ? tatica
+                : {
+                    ...tatica,
+                    operacionais: tatica.operacionais.map((operacional) =>
+                      operacional.id !== idOperacional
+                        ? operacional
+                        : {
+                            ...operacional,
+                            tarefas: [...(operacional.tarefas || []), novaTarefaObj],
+                          }
+                    ),
+                  }
+            ),
+          }
+    )
+  );
 
-      return {
-        ...estrategica,
-        taticas: estrategica.taticas.map((tatica) => {
-          if (tatica.id !== idTatica) return tatica;
-
-          return {
-            ...tatica,
-            operacionais: tatica.operacionais.map((operacional) => {
-              if (operacional.id !== idOperacional) return operacional;
-
-              return {
-                ...operacional,
-                tarefas: [...(operacional.tarefas || []), novaTarefaObj],
-              };
-            }),
-          };
-        }),
-      };
-    });
-  });
-
-  setNovaTarefa(""); // Limpa o campo de entrada
+  setNovaTarefa("");
+  setSelectedAreaTarefa("");
 };
+
+
 
 
 
@@ -365,45 +380,52 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   // -------------------------------------
   //|| !descricao.trim()
 
-  const handleAddTatica = (idEstrategica, titulo, descricao) => {
-    if (!titulo.trim()) {
-      alert("Preencha o nome da Diretriz Tática!");
-      return;
-    }
-  
-    // Busca os e-mails diretamente do estado do input
-    const emailsInput = emailsTaticasInput[idEstrategica] || "";
-    const emails = emailsInput
-      .split(",")
-      .map((email) => email.trim())
-      .filter((email) => email !== "");
-  
-    const novo = {
-      id: Date.now(),
-      titulo,
-      descricao,
-      operacionais: [],
-      emails, // ✅ Aqui já vem certo!
-    };
-  
-    const atualizadas = estrategicas.map((est) => {
-      if (est.id === idEstrategica) {
-        return { ...est, taticas: [...est.taticas, novo] };
-      }
-      return est;
-    });
-  
-    setEstrategicas(atualizadas);
-    onUpdate && onUpdate(atualizadas);
-    console.log("📩 Estado atualizado com e-mail da tática:", atualizadas);
-  
-    /** ✅ Limpa apenas o input visual, sem afetar as táticas */
-    setEmailsTaticasInput((prev) => ({
-      ...prev,
-      [idEstrategica]: "",
-    }));
+ const handleAddTatica = (idEstrategica, titulo, descricao, areaId, areaNome) => {
+  if (!titulo.trim()) {
+    alert("Preencha o nome da Diretriz Tática!");
+    return;
+  }
+
+  if (!areaId) {
+    alert("Selecione uma área para a Tática.");
+    return;
+  }
+
+  const emailsInput = emailsTaticasInput[idEstrategica] || "";
+  const emails = emailsInput
+    .split(",")
+    .map((email) => email.trim())
+    .filter((email) => email !== "");
+
+  const novaTatica = {
+    id: Date.now(),
+    titulo,
+    descricao,
+    operacionais: [],
+    emails,
+    areaId,       // <- Anexa a referência da área
+    areaNome,     // <- Nome legível, se quiser exibir nas "pastas"
   };
-  
+
+  const atualizado = estrategicas.map((est) => {
+    if (est.id !== idEstrategica) return est;
+
+    return {
+      ...est,
+      taticas: [...est.taticas, novaTatica], // simples push, sem agrupar visualmente
+    };
+  });
+
+  setEstrategicas(atualizado);
+  onUpdate && onUpdate(atualizado);
+
+  setEmailsTaticasInput((prev) => ({
+    ...prev,
+    [idEstrategica]: "",
+  }));
+};
+
+
   
   
   
@@ -434,53 +456,59 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   // -------------------------------------
   //|| !descricao.trim()) 
 
-  const handleAddOperacional = (idEstrategica, idTatica, titulo, descricao) => {
-    if (!titulo.trim()) {
-      alert("Preencha o nome da Diretriz Operacional!");
-      return;
-    }
-  
-    const emailsInput = emailsOperacionaisInput[idTatica] || "";
-    const emails = emailsInput
-      .split(",")
-      .map((email) => email.trim())
-      .filter((email) => email !== "");
-  
-    const novo = {
-      id: Date.now(),
-      titulo,
-      descricao,
-      tarefas: [],
-      emails, // ✅ Agora vem certo
-    };
-  
-    const atualizadas = estrategicas.map((est) => {
-      if (est.id === idEstrategica) {
-        const novasTaticas = est.taticas.map((t) => {
-          if (t.id === idTatica) {
-            return {
-              ...t,
-              operacionais: [...t.operacionais, novo],
-            };
-          }
-          return t;
-        });
-        return { ...est, taticas: novasTaticas };
-      }
-      return est;
-    });
-  
-    setEstrategicas(atualizadas);
-    onUpdate && onUpdate(atualizadas);
-    console.log("📌 Diretriz Operacional atualizada com e-mail:", atualizadas);
-  
-    // Limpa o campo input visualmente (opcional)
-    setEmailsOperacionaisInput((prev) => ({
-      ...prev,
-      [idTatica]: "",
-    }));
+  const handleAddOperacional = (idEstrategica, idTatica, titulo, descricao, areaId, areaNome) => {
+  if (!titulo.trim()) {
+    alert("Preencha o nome da Diretriz Operacional!");
+    return;
+  }
+
+  if (!areaId) {
+    alert("Selecione uma área para a Operacional.");
+    return;
+  }
+
+  const emailsInput = emailsOperacionaisInput[idTatica] || "";
+  const emails = emailsInput
+    .split(",")
+    .map((email) => email.trim())
+    .filter((email) => email !== "");
+
+  const novo = {
+    id: Date.now(),
+    titulo,
+    descricao,
+    tarefas: [],
+    emails,
+    areaId,
+    areaNome,
   };
-  
+
+  const atualizadas = estrategicas.map((est) => {
+    if (est.id === idEstrategica) {
+      const novasTaticas = est.taticas.map((t) => {
+        if (t.id === idTatica) {
+          return {
+            ...t,
+            operacionais: [...t.operacionais, novo],
+          };
+        }
+        return t;
+      });
+      return { ...est, taticas: novasTaticas };
+    }
+    return est;
+  });
+
+  setEstrategicas(atualizadas);
+  onUpdate && onUpdate(atualizadas);
+  console.log("📌 Diretriz Operacional atualizada com área:", atualizadas);
+
+  setEmailsOperacionaisInput((prev) => ({
+    ...prev,
+    [idTatica]: "",
+  }));
+};
+
   
 
   // -------------------------------------
@@ -1244,10 +1272,14 @@ const areaRolesMap = {
 
             {/* Form para adicionar Tática dentro da Estratégica */}
             <NovaTaticaForm
-              onAdd={(titulo, desc) =>
-                handleAddTatica(estrategica.id, titulo, desc)
+              estrategicaId={estrategica.id}
+              onAdd={(titulo, desc, areaId, areaNome) =>
+                handleAddTatica(estrategica.id, titulo, desc, areaId, areaNome)
               }
+              areasPorIdEstrategica={areasPorIdEstrategica}
+              setAreasPorIdEstrategica={setAreasPorIdEstrategica}
             />
+
 
             
 
@@ -1268,8 +1300,51 @@ const areaRolesMap = {
                 Diretriz Tática
               </Typography>
             </Box>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             
             {/* Accordion das Táticas */}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             {estrategica.taticas.map((tatica) => (
               <Accordion
                 key={tatica.id}
@@ -1496,15 +1571,11 @@ const areaRolesMap = {
 
                   {/* Form para adicionar Operacional */}
                   <NovaOperacionalForm
-                    onAdd={(titulo, desc) =>
-                      handleAddOperacional(
-                        estrategica.id,
-                        tatica.id,
-                        titulo,
-                        desc
-                      )
+                    onAdd={(titulo, desc, areaId, areaNome) =>
+                      handleAddOperacional(estrategica.id, tatica.id, titulo, desc, areaId, areaNome)
                     }
                   />
+
 
                   
 
@@ -1866,12 +1937,38 @@ const areaRolesMap = {
                               marginTop: "20px",
                             }}
                           >
-                            <TextField
-                              label="Nome do Plano de ação..."
-                              value={novaTarefa}
-                              onChange={(e) => setNovaTarefa(e.target.value)}
-                              fullWidth
-                            />
+                            <Box display="flex" flexDirection="row" gap={2} flexWrap="wrap">
+                              <Box sx={{ flex: 1, minWidth: "300px" }}>
+                                <TextField
+                                  label="Nome do Plano de ação..."
+                                  value={novaTarefa}
+                                  onChange={(e) => setNovaTarefa(e.target.value)}
+                                  fullWidth
+                                />
+                              </Box>
+
+                              <Box sx={{ flex: 1, minWidth: "200px", maxWidth: "300px" }}>
+                                <Select
+                                  value={selectedAreaTarefa || ""}
+                                  onChange={(event) => setSelectedAreaTarefa(event.target.value)}
+                                  displayEmpty
+                                  fullWidth
+                                  sx={{ backgroundColor: "#fff" }}
+                                  renderValue={(selected) =>
+                                    !selected
+                                      ? "Selecione uma área responsável"
+                                      : areas.find((a) => a.id === selected)?.nome || "Desconhecida"
+                                  }
+                                >
+                                  {areas.map((area) => (
+                                    <MenuItem key={area.id} value={area.id}>
+                                      <ListItemText primary={area.nome} />
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </Box>
+                            </Box>
+
                             <Button
                               onClick={() =>
                                 handleAddTarefa(
@@ -2001,58 +2098,58 @@ const areaRolesMap = {
                                         }
                                       />
 
- {/* 🔹 Campo "Quem" com múltipla seleção */}
- {/* Responsáveis pela tarefa (quemOperacionais) */}
-<Box sx={{ flex: 1, minWidth: "300px" }}>
-  <Select
-    multiple
-    displayEmpty
-    value={tarefa.planoDeAcao.quemEmail || []}
-    onChange={(event) => {
-      const selectedEmails = event.target.value;
+                          {/* 🔹 Campo "Quem" com múltipla seleção */}
+                          {/* Responsáveis pela tarefa (quemOperacionais) */}
+                          <Box sx={{ flex: 1, minWidth: "300px" }}>
+                            <Select
+                              multiple
+                              displayEmpty
+                              value={tarefa.planoDeAcao.quemEmail || []}
+                              onChange={(event) => {
+                                const selectedEmails = event.target.value;
 
-      // Atualiza o estado das tarefas na estrutura de estratégicas
-      setEstrategicas((prev) =>
-        prev.map((est) => ({
-          ...est,
-          taticas: est.taticas.map((tat) => ({
-            ...tat,
-            operacionais: tat.operacionais.map((op) => ({
-              ...op,
-              tarefas: op.tarefas.map((t) =>
-                t.id === tarefa.id
-                  ? {
-                      ...t,
-                      planoDeAcao: {
-                        ...t.planoDeAcao,
-                        quemEmail: selectedEmails,
-                      },
-                    }
-                  : t
-              ),
-            })),
-          })),
-        }))
-      );
-    }}
-    renderValue={(selected) =>
-      selected.length === 0
-        ? "Selecione os responsáveis pela tarefa"
-        : selected.join(", ")
-    }
-    fullWidth
-    sx={{ backgroundColor: "#fff" }}
-  >
-    {users?.map((user) => (
-      <MenuItem key={user.id} value={user.email}>
-        <Checkbox
-          checked={(tarefa.planoDeAcao.quemEmail || []).includes(user.email)}
-        />
-        <ListItemText primary={`${user.username} (${user.email})`} />
-      </MenuItem>
-    ))}
-  </Select>
-</Box>
+                                // Atualiza o estado das tarefas na estrutura de estratégicas
+                                setEstrategicas((prev) =>
+                                  prev.map((est) => ({
+                                    ...est,
+                                    taticas: est.taticas.map((tat) => ({
+                                      ...tat,
+                                      operacionais: tat.operacionais.map((op) => ({
+                                        ...op,
+                                        tarefas: op.tarefas.map((t) =>
+                                          t.id === tarefa.id
+                                            ? {
+                                                ...t,
+                                                planoDeAcao: {
+                                                  ...t.planoDeAcao,
+                                                  quemEmail: selectedEmails,
+                                                },
+                                              }
+                                            : t
+                                        ),
+                                      })),
+                                    })),
+                                  }))
+                                );
+                              }}
+                              renderValue={(selected) =>
+                                selected.length === 0
+                                  ? "Selecione os responsáveis pela tarefa"
+                                  : selected.join(", ")
+                              }
+                              fullWidth
+                              sx={{ backgroundColor: "#fff" }}
+                            >
+                              {users?.map((user) => (
+                                <MenuItem key={user.id} value={user.email}>
+                                  <Checkbox
+                                    checked={(tarefa.planoDeAcao.quemEmail || []).includes(user.email)}
+                                  />
+                                  <ListItemText primary={`${user.username} (${user.email})`} />
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </Box>
 
                                       <TextField
                                         label="E-mail dos responsáveis"
@@ -2179,6 +2276,16 @@ const areaRolesMap = {
                 </AccordionDetails>
               </Accordion>
             ))}
+
+
+
+
+
+
+
+
+
+            
           </AccordionDetails>
         </Accordion>
       ))}
@@ -2228,36 +2335,87 @@ export default BaseDiretriz3;
 
 
 
-function NovaTaticaForm({ onAdd }) {
+
+function NovaTaticaForm({
+  onAdd,
+  estrategicaId,
+  areasPorIdEstrategica = {},
+  setAreasPorIdEstrategica = () => {},
+}) {
   const [titulo, setTitulo] = useState("");
   const [desc, setDesc] = useState("");
+  const [areas, setAreas] = useState([]);
+  const [selectedArea, setSelectedArea] = useState("");
+
+  useEffect(() => {
+    const fetchAreas = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "areas"));
+        const areasData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          nome: doc.data().nome,
+        }));
+        setAreas(areasData);
+      } catch (err) {
+        console.error("Erro ao buscar áreas:", err);
+      }
+    };
+    fetchAreas();
+  }, []);
 
   return (
     <Box display="flex" flexDirection="column" gap={2} mb={2}>
-      <TextField
-        label="Nome da Diretriz Tática..."
-        value={titulo}
-        onChange={(e) => setTitulo(e.target.value)}
-        fullWidth
-      />
-      {/** 
-      <TextField
-        label="Descrição da Diretriz Tática..."
-        value={desc}
-        onChange={(e) => setDesc(e.target.value)}
-        fullWidth
-        multiline
-        rows={2}
-      />
-      */}
+      <Box display="flex" flexDirection="row" gap={2} flexWrap="wrap">
+        <Box sx={{ flex: 1, minWidth: "300px" }}>
+          <TextField
+            label="Nome da Diretriz Tática..."
+            value={titulo}
+            onChange={(e) => setTitulo(e.target.value)}
+            fullWidth
+          />
+        </Box>
 
-      
+        <Box sx={{ flex: 1, minWidth: "200px", maxWidth: "300px" }}>
+          <Select
+            value={selectedArea}
+            onChange={(event) => {
+              const selected = event.target.value;
+              setSelectedArea(selected);
+              setAreasPorIdEstrategica((prev) => ({
+                ...prev,
+                [estrategicaId]: [selected],
+              }));
+            }}
+            displayEmpty
+            fullWidth
+            sx={{ backgroundColor: "#fff" }}
+            renderValue={(selected) =>
+              !selected
+                ? "Selecione uma área responsável"
+                : areas.find((area) => area.id === selected)?.nome || "Desconhecida"
+            }
+          >
+            {areas.map((area) => (
+              <MenuItem key={area.id} value={area.id}>
+                <ListItemText primary={area.nome} />
+              </MenuItem>
+            ))}
+          </Select>
+        </Box>
+      </Box>
 
       <Button
         onClick={() => {
-          onAdd(titulo, desc);
+          if (!selectedArea) {
+            alert("Selecione uma área para a Tática.");
+            return;
+          }
+
+          const nomeArea = areas.find((a) => a.id === selectedArea)?.nome || "";
+          onAdd(titulo, desc, selectedArea, nomeArea);
           setTitulo("");
           setDesc("");
+          setSelectedArea("");
         }}
         disableRipple
         sx={{
@@ -2288,6 +2446,11 @@ function NovaTaticaForm({ onAdd }) {
 
 
 
+
+
+
+
+
 // CRIAR DIRETRIZ OPERACIONAL
 
 
@@ -2303,42 +2466,77 @@ function NovaTaticaForm({ onAdd }) {
 function NovaOperacionalForm({ onAdd }) {
   const [titulo, setTitulo] = useState("");
   const [desc, setDesc] = useState("");
+  const [areas, setAreas] = useState([]);
+  const [selectedArea, setSelectedArea] = useState("");
+
+  useEffect(() => {
+    const fetchAreas = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "areas"));
+        const areasData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          nome: doc.data().nome,
+        }));
+        setAreas(areasData);
+      } catch (err) {
+        console.error("Erro ao buscar áreas:", err);
+      }
+    };
+    fetchAreas();
+  }, []);
 
   return (
     <Box display="flex" flexDirection="column" gap={2} mb={2}>
-      <TextField
-        label="Nome da Diretriz Operacional..."
-        value={titulo}
-        onChange={(e) => setTitulo(e.target.value)}
-        fullWidth
-      />
-      {/** 
-      <TextField
-        label="Descrição da Diretriz Operacional..."
-        value={desc}
-        onChange={(e) => setDesc(e.target.value)}
-        fullWidth
-        multiline
-        rows={2}
-      />
-      */}
+      <Box display="flex" flexDirection="row" gap={2} flexWrap="wrap">
+        <Box sx={{ flex: 1, minWidth: "300px" }}>
+          <TextField
+            label="Nome da Diretriz Operacional..."
+            value={titulo}
+            onChange={(e) => setTitulo(e.target.value)}
+            fullWidth
+          />
+        </Box>
+
+        <Box sx={{ flex: 1, minWidth: "200px", maxWidth: "300px" }}>
+          <Select
+            value={selectedArea}
+            onChange={(event) => setSelectedArea(event.target.value)}
+            displayEmpty
+            fullWidth
+            sx={{ backgroundColor: "#fff" }}
+            renderValue={(selected) =>
+              !selected
+                ? "Selecione uma área responsável"
+                : areas.find((a) => a.id === selected)?.nome || "Desconhecida"
+            }
+          >
+            {areas.map((area) => (
+              <MenuItem key={area.id} value={area.id}>
+                <ListItemText primary={area.nome} />
+              </MenuItem>
+            ))}
+          </Select>
+        </Box>
+      </Box>
+
       <Button
         onClick={() => {
-          onAdd(titulo, desc);
+          if (!selectedArea) {
+            alert("Selecione uma área para a Diretriz Operacional.");
+            return;
+          }
+          const areaNome = areas.find((a) => a.id === selectedArea)?.nome || "";
+          onAdd(titulo, desc, selectedArea, areaNome);
           setTitulo("");
           setDesc("");
+          setSelectedArea("");
         }}
         disableRipple
         sx={{
           alignSelf: "flex-start",
           backgroundColor: "transparent",
-          "&:hover": {
-            backgroundColor: "transparent",
-            boxShadow: "none",
-          },
-          "&:focus": {
-            outline: "none",
-          },
+          "&:hover": { backgroundColor: "transparent", boxShadow: "none" },
+          "&:focus": { outline: "none" },
         }}
       >
         <AddCircleOutlineIcon sx={{ fontSize: 25, color: "#f44336" }} />

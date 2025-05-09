@@ -57,15 +57,13 @@
 
 
 
-    const BaseDiretriz4 = ({ projetoData, onUpdate, dataInicio, prazoPrevisto, estrategicaId, }) => {
+    const BaseDiretriz4 = ({ projetoData, onUpdate, dataInicio, prazoPrevisto }) => {
     // Estados para os três conjuntos de diretrizes
     const [users, setUsers] = useState([]);
 
     const [estrategicas, setEstrategicas] = useState([]);
 
     const [operacionais, setOperacionais] = useState([]);
-
-     const [selectedArea, setSelectedArea] = useState("");
 
 
     const [areasResponsaveistaticas, setAreasResponsaveistaticas] = useState([]);
@@ -136,9 +134,6 @@
 
 
 
-    //listar taticas em relação a area selecionada
-    const [taticasFiltradasPorArea, setTaticasFiltradasPorArea] = useState([]);
-
 
 
 
@@ -183,27 +178,6 @@
     
 
 
-//useEffect que filtra as táticas por selectedArea
-useEffect(() => {
-  if (!selectedArea || !estrategicas.length) {
-    setTaticasFiltradasPorArea([]);
-    return;
-  }
-
-  const taticasRelacionadas = [];
-
-  estrategicas.forEach((estrategica) => {
-    estrategica.taticas.forEach((tatica) => {
-      const areas = areasTaticasPorId[tatica.id] || [];
-
-      if (areas.includes(selectedArea)) {
-        taticasRelacionadas.push(tatica);
-      }
-    });
-  });
-
-  setTaticasFiltradasPorArea(taticasRelacionadas);
-}, [selectedArea, estrategicas, areasTaticasPorId]);
 
 
 
@@ -2067,42 +2041,13 @@ useEffect(() => {
                   sx={{ fontSize: 30, color: "#4caf50", mr: 1 }}
                 />
                 <Typography
-                      variant="h6"
-                      fontWeight="bold"
-                      sx={{ color: "#29c42e", marginTop: 1 }}
-                    >
-                      Diretriz Tática
-                    </Typography>
-                  
-                  <Box sx={{ flex: 1, minWidth: "200px", maxWidth: "300px", marginLeft: "20px" }}>
-                    <Select
-                      value={selectedArea}
-                      onChange={(event) => {
-                        const selected = event.target.value;
-                        setSelectedArea(selected);
-                        setAreasPorIdEstrategica((prev) => ({
-                          ...prev,
-                          [estrategicaId]: [selected],
-                        }));
-                      }}
-                      displayEmpty
-                      fullWidth
-                      sx={{ backgroundColor: "#fff" }}
-                      renderValue={(selected) =>
-                        !selected
-                          ? "Selecione uma área responsável"
-                          : areas.find((area) => area.id === selected)?.nome || "Desconhecida"
-                      }
-                    >
-                      {areas.map((area) => (
-                        <MenuItem key={area.id} value={area.id}>
-                          <ListItemText primary={area.nome} />
-                        </MenuItem>
-                      ))}
-                    </Select>
-                </Box>
+                  variant="h6"
+                  fontWeight="bold"
+                  sx={{ color: "#29c42e", marginTop: 1 }}
+                >
+                  Diretriz Tática
+                </Typography>
               </Box>
-              
             
 
               {/* Form para adicionar Tática dentro da Estratégica */}
@@ -2230,7 +2175,7 @@ useEffect(() => {
 
 
               {/* Accordion das Táticas */}
-              {taticasFiltradasPorArea.map((tatica) => (
+              {estrategica.taticas.map((tatica) => (
                 <Accordion
                   key={tatica.id}
                   disableGutters
@@ -4324,48 +4269,16 @@ export default BaseDiretriz4;
 function NovaTaticaForm({ onAdd }) {
   const [titulo, setTitulo] = useState("");
   const [desc, setDesc] = useState("");
-  const [areas, setAreas] = useState([]);
-  const [selectedArea, setSelectedArea] = useState("");
 
   return (
     <Box display="flex" flexDirection="column" gap={2} mb={2}>
-      
-      <Box display="flex" flexDirection="row" gap={2} flexWrap="wrap">
-      <Box sx={{ flex: 1, minWidth: "300px" }}>
+      <Box>
       <TextField
         label="Nome da Diretriz Tática..."
         value={titulo}
         onChange={(e) => setTitulo(e.target.value)}
         fullWidth
       />
-      </Box>
-      <Box sx={{ flex: 1, minWidth: "200px", maxWidth: "300px" }}>
-                <Select
-                  value={selectedArea}
-                  onChange={(event) => {
-                    const selected = event.target.value;
-                    setSelectedArea(selected);
-                    setAreasPorIdEstrategica((prev) => ({
-                      ...prev,
-                      [estrategicaId]: [selected],
-                    }));
-                  }}
-                  displayEmpty
-                  fullWidth
-                  sx={{ backgroundColor: "#fff" }}
-                  renderValue={(selected) =>
-                    !selected
-                      ? "Selecione uma área responsável"
-                      : areas.find((area) => area.id === selected)?.nome || "Desconhecida"
-                  }
-                >
-                  {areas.map((area) => (
-                    <MenuItem key={area.id} value={area.id}>
-                      <ListItemText primary={area.nome} />
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Box>
       </Box>
       
       <Button

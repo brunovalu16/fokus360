@@ -39,6 +39,7 @@ import Capacontabilidade from "./scenes/capacontabilidade";
 import Eapplanejamento from "./scenes/eapplanejamento";
 import ManuaisCSC from "./scenes/ManuaisCSC";
 import Manuais from "./scenes/Manuais";
+import VendastotalTrade from "./scenes/vendastotaltrade";
 import {
   Team,
   Invoices,
@@ -103,6 +104,7 @@ const router = createBrowserRouter(
         { path: "/line", element: <PrivateRoute><Line /></PrivateRoute> },
         { path: "/faq", element: <PrivateRoute><FAQ /></PrivateRoute> },
         { path: "/geography", element: <PrivateRoute><Geography /></PrivateRoute> },
+        { path: "/vendastotaltrade", element: <PrivateRoute><VendastotalTrade /></PrivateRoute> },
         { path: "/usuario/editar", element: <PrivateRoute><UserDetalhe /></PrivateRoute> },
       ],
     },

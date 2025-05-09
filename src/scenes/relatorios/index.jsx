@@ -389,7 +389,16 @@ const Relatorios = () => {
                   variant="contained"
                   sx={mainButtonStyle}
                 >
-                  RELATÓRIO TRADE
+                  VENDAS POR PROMOTOR
+                </Button>
+                <Button
+                  component={Link} // Define que o botão será um Link do React Router
+                  to="/vendastotaltrade"
+                  fullWidth
+                  variant="contained"
+                  sx={mainButtonStyle}
+                >
+                  VENDAS TOTAL
                 </Button>
                 
               </>
