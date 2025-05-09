@@ -177,14 +177,13 @@ const SideBar = () => {
     },
   }}
 >
-  <MenuItem component={<Link to="/home" />} icon={<HomeIcon sx={{ fontSize: 25 }} />}>
-    Home
-  </MenuItem>
-
-  <MenuItem component={<Link to="/relatorios" />} icon={<AssessmentIcon />}>
+  <MenuItem
+    component={<Link to="/home" />}
+    icon={<AssessmentIcon sx={{ fontSize: 25 }} />}>
     Relatórios
   </MenuItem>
 
+  
  
 
 
