@@ -3495,43 +3495,38 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
                       <AccordionDetails>
 
 <Box sx={{ display: "flex" }}>
- <TextField
+<TextField
   label="Descrição da Operacional"
   value={operacional.descricao || ""}
-  onChange={() => {
-    const atualizado = estrategicas.map((est) => ({
-      ...est,
-      taticas: est.taticas.map((tat) => ({
-        ...tat,
-        operacionais: tat.operacionais.map((op) => {
-          if (op.id !== operacional.id) return op;
-  
-          const novoStatus = op.status === "concluida" ? "" : "concluida";
-          const dataAgora = new Date();
-          const dataPrazo = new Date(projetoData.prazoPrevisto);
-  
-          return {
-            ...op,
-            status: novoStatus,
-            statusVisual:
-              novoStatus === "concluida"
-                ? dataAgora > dataPrazo
-                  ? "atrasada"
-                  : "no_prazo"
-                : "",
-          };
-        }),
-      })),
-    }));
-  
-    setEstrategicas(atualizado);
-    onUpdate && onUpdate({ estrategicas: atualizado });
+  onChange={(e) => {
+    const value = e.target.value;
+
+    setEstrategicas((prev) =>
+      prev.map((est) =>
+        est.id === estrategica.id
+          ? {
+              ...est,
+              taticas: est.taticas.map((tat) =>
+                tat.id === tatica.id
+                  ? {
+                      ...tat,
+                      operacionais: tat.operacionais.map((op) =>
+                        op.id === operacional.id
+                          ? { ...op, descricao: value }
+                          : op
+                      ),
+                    }
+                  : tat
+              ),
+            }
+          : est
+      )
+    );
   }}
   sx={{
     flex: 1,
     backgroundColor: "transparent",
     marginTop: "10px",
-    paddingRight: "10px",
   }}
 />
 
