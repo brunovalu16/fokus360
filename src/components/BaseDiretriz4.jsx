@@ -25,6 +25,9 @@
   import { doc, updateDoc, getFirestore, collection, getDocs, setDoc, onSnapshot   } from "firebase/firestore";
   import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para Fokus360
 
+  import SelectAreaStatus from "./SelectAreaStatus";
+
+
   import { calcularStatusVisualPorStatus } from "../utils/calcularStatusVisualPorStatus";
 
 
@@ -166,6 +169,17 @@
         valor: "",
       },
     });
+
+
+const formatarDataISO = (data) => {
+  if (!data) return "";
+  const d = new Date(data);
+  const ano = d.getFullYear();
+  const mes = String(d.getMonth() + 1).padStart(2, "0");
+  const dia = String(d.getDate()).padStart(2, "0");
+  return `${ano}-${mes}-${dia}`;
+};
+
 
 
 
@@ -1611,7 +1625,9 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
       sx={{
         width: 14,
         height: 14,
+        marginTop: "10px",
         borderRadius: "50%",
+        marginRight: "5px",
         backgroundColor:
           estrategica.status === "concluida"
             ? (estrategica.statusVisual === "no_prazo" ? "#00ff08" : "#ff0000")
@@ -1628,16 +1644,20 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
 
 
 
-  <StatusProgresso progresso={calcularProgressoEstrategica(estrategica)} />
+  <SelectAreaStatus estrategica={estrategica} areas={areas} />
 
 
-              <Box sx={{ flex: 1, textAlign: "left" }}>
+
+              <Box sx={{ flex: 1, textAlign: "left", marginLeft: "-100px" }}>
                 <Typography fontWeight="bold" sx={{ color: "#fff" }}>
                   {estrategica.titulo}
                 </Typography>
                 <Typography sx={{ color: "#b7b7b7", fontSize: "0.9em" }}>
-                  {estrategica.descricao}
+                  {estrategica.descricao?.length > 63
+                    ? `${estrategica.descricao.slice(0, 63)}`
+                    : estrategica.descricao}
                 </Typography>
+
               </Box>
 
               
@@ -2221,6 +2241,20 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
                         const nome = areas.find((area) => area.id === selected)?.nome;
                         return nome || "Desconhecida";
                       }}
+                      sx={{
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'transparent',
+                        },
+                        backgroundColor: '#4caf50',
+                        borderRadius: '4px',
+                        color: "#fff"
+                      }}
                     >
                       <MenuItem disabled value="">
                         <em>Selecione Táticas por áreas</em>
@@ -2231,6 +2265,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
                         </MenuItem>
                       ))}
                     </Select>
+
                   </Box>
 
               </Box>
@@ -2643,112 +2678,125 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
   {/* descrição diretriz taticas */}
   <Box sx={{ display: "flex" }}>
   <TextField
-    label="Descrição da Tática"
-    value={tatica.descricao || ""}
-    onChange={(e) => {
-      const value = e.target.value;
+  label="Descrição"
+  value={tatica.descricao || ""}
+  onChange={(e) => {
+    const value = e.target.value;
 
-      setEstrategicas((prev) =>
-        prev.map((est) =>
-          est.id === estrategica.id
-            ? {
-                ...est,
-                taticas: est.taticas.map((tat) =>
-                  tat.id === tatica.id
-                    ? { ...tat, descricao: value }
-                    : tat
-                ),
-              }
-            : est
-        )
-      );
-    }}
-    sx={{
-      flex: 1,
-      backgroundColor: "transparent",
-      marginTop: "10px",
-      paddingRight: "10px"
-    }}
-  />
+    setEstrategicas((prev) =>
+      prev.map((est) =>
+        est.id === estrategica.id
+          ? {
+              ...est,
+              taticas: est.taticas.map((tat) =>
+                tat.id === tatica.id
+                  ? { ...tat, descricao: value }
+                  : tat
+              ),
+            }
+          : est
+      )
+    );
+  }}
+  sx={{
+    flex: 1,
+    backgroundColor: "transparent",
+    marginTop: "10px",
+    paddingRight: "10px"
+  }}
+/>
 
-  <TextField
-    label="Data de criação"
-    type="date"
-    size="small"
-    value={tatica.criacao || ""}
-    InputLabelProps={{ shrink: true }}
-    onChange={(e) => {
-      const value = e.target.value;
-      setEstrategicas((prev) =>
-        prev.map((est) =>
-          est.id === estrategica.id
-            ? {
-                ...est,
-                taticas: est.taticas.map((t) =>
-                  t.id === tatica.id ? { ...t, criacao: value } : t
-                ),
-              }
-            : est
-        )
-      );
-    }}
-    sx={{
-      paddingRight: "10px",
-      minWidth: "180px",
-      maxWidth: "120px",
-      marginTop: "10px",
-      '& .MuiInputBase-root': {
-        height: "53px",
-        alignItems: "center",
-      },
-    }}
-  />
 
-  <TextField
-    label="Prazo previsto"
-    type="date"
-    size="small"
-    value={tatica.finalizacao || ""}
-    InputLabelProps={{ shrink: true }}
-    onChange={(e) => {
-      const value = e.target.value;
-      const prazo = normalizarData(value);
-      const dataAtual = normalizarData(new Date());
-    
-      const time = dataAtual.getTime() <= prazo.getTime() ? "no prazo" : "atrasada";
-    
-    
-      setEstrategicas((prev) =>
-        prev.map((est) =>
-          est.id === estrategica.id
-            ? {
-                ...est,
-                taticas: est.taticas.map((t) =>
-                  t.id === tatica.id
-                    ? {
-                        ...t,
-                        finalizacao: value,
-                        time: t.status !== "concluida" ? time : t.time, // ✅ só altera se não for concluída
-                      }
-                    : t
-                ),
-              }
-            : est
-        )
-      );
-    }}  
-    sx={{
-      minWidth: "170px",
-      maxWidth: "120px",
-      marginTop: "10px",
-      '& .MuiInputBase-root': {
-        height: "53px",
-        alignItems: "center",
-      },
-    }}
-  />
+<TextField
+  label="Data de criação"
+  type="date"
+  size="small"
+  defaultValue={tatica.criacao || ""}
+  InputLabelProps={{ shrink: true }}
+  onBlur={(e) => {
+    const value = e.target.value;
+    const isValid = /^\d{4}-\d{2}-\d{2}$/.test(value);
+    if (!isValid) return;
 
-            
+    setEstrategicas((prev) =>
+      prev.map((est) =>
+        est.id === estrategica.id
+          ? {
+              ...est,
+              taticas: est.taticas.map((tat) =>
+                tat.id === tatica.id ? { ...tat, criacao: value } : tat
+              ),
+            }
+          : est
+      )
+    );
+  }}
+  sx={{
+    width: "180px",
+    marginTop: "10px",
+    '& .MuiInputBase-root': {
+      height: "53px",
+      alignItems: "center",
+      marginRight: "10px"
+    },
+  }}
+/>
+
+
+
+
+
+
+
+<TextField
+  label="Prazo previsto"
+  type="date"
+  size="small"
+  defaultValue={tatica.finalizacao || ""}
+  InputLabelProps={{ shrink: true }}
+  onBlur={(e) => {
+    const value = e.target.value;
+
+    const isValid = /^\d{4}-\d{2}-\d{2}$/.test(value);
+    if (!isValid) return;
+
+    const prazo = normalizarData(value);
+    const dataAtual = normalizarData(new Date());
+    const novoTime = dataAtual <= prazo ? "no prazo" : "atrasada";
+
+    const statusVisualCalculado = tatica.status === "concluida"
+      ? tatica.statusVisual
+      : calcularStatusVisualPorStatus(tatica.status, value);
+
+    setEstrategicas((prev) =>
+      prev.map((est) =>
+        est.id === estrategica.id
+          ? {
+              ...est,
+              taticas: est.taticas.map((t) =>
+                t.id === tatica.id
+                  ? {
+                      ...t,
+                      finalizacao: value,
+                      time: t.status !== "concluida" ? novoTime : t.time,
+                      statusVisual: statusVisualCalculado
+                    }
+                  : t
+              ),
+            }
+          : est
+      )
+    );
+  }}
+  sx={{
+    width: "180px",
+    marginTop: "10px",
+    '& .MuiInputBase-root': {
+      height: "53px",
+      alignItems: "center",
+    },
+  }}
+/>       
   </Box>
         
               
@@ -3013,37 +3061,6 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
                       >
                         Diretriz Operacional
                       </Typography>
-
-                      <Box sx={{ flex: 1, minWidth: "250px", maxWidth: "300px", marginLeft: "20px" }}>
-                        <Select
-                          fullWidth
-                          displayEmpty
-                          value={selectedAreaId}
-                          onChange={(event) => {
-                            const id = event.target.value;
-                            const nome = areas.find((area) => area.id === id)?.nome || "";
-
-                            setSelectedAreaId(id);
-                            setSelectedAreaNome(nome);
-                          }}
-                          renderValue={(selected) => {
-                            if (!selected) {
-                              return <em>Selecione Táticas por áreas</em>;
-                            }
-                            const nome = areas.find((area) => area.id === selected)?.nome;
-                            return nome || "Desconhecida";
-                          }}
-                        >
-                          <MenuItem disabled value="">
-                            <em>Selecione Táticas por áreas</em>
-                          </MenuItem>
-                          {areas.map((area) => (
-                            <MenuItem key={area.id} value={area.id}>
-                              <ListItemText primary={area.nome} />
-                            </MenuItem>
-                          ))}
-                        </Select>
-                  </Box>
                     </Box>
 
                     
@@ -3518,80 +3535,84 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
   }}
 />
 
+
 <TextField
   label="Data de criação"
   type="date"
   size="small"
-  value={operacional.criacao || ""}
+  defaultValue={operacional.criacao || ""}
   InputLabelProps={{ shrink: true }}
-  onChange={(e) => {
+  onBlur={(e) => {
     const value = e.target.value;
+    const isValid = /^\d{4}-\d{2}-\d{2}$/.test(value);
+    if (!isValid) return;
 
-    setEstrategicas((prev) =>
-      prev.map((est) => ({
-        ...est,
-        taticas: est.taticas.map((tat) => ({
-          ...tat,
-          operacionais: tat.operacionais.map((op) =>
-            op.id === operacional.id
-              ? {
-                  ...op,
-                  criacao: value,
-                }
-              : op
-          ),
-        })),
-      }))
-    );
-  }}
-  inputProps={{
-    style: {
-      padding: "12px",
-    },
+    const atualizado = estrategicas.map((est) => ({
+      ...est,
+      taticas: est.taticas.map((tat) => ({
+        ...tat,
+        operacionais: tat.operacionais.map((op) =>
+          op.id === operacional.id ? { ...op, criacao: value } : op
+        ),
+      })),
+    }));
+
+    setEstrategicas(atualizado);
+    onUpdate && onUpdate({ estrategicas: atualizado });
   }}
   sx={{
-    paddingRight: "10px",
-    minWidth: "180px",
-    maxWidth: "120px",
     width: "180px",
-    mt: 1,
+    marginTop: "10px",
     '& .MuiInputBase-root': {
       height: "53px",
+      alignItems: "center",
+      marginRight: "10px"
     },
   }}
 />
+
+
+
 
 
 <TextField
   label="Prazo previsto"
   type="date"
   size="small"
-  value={operacional.finalizacao || ""}
+  defaultValue={operacional.finalizacao || ""}
   InputLabelProps={{ shrink: true }}
-  onChange={(e) => {
+  onBlur={(e) => {
     const value = e.target.value;
+    const isValid = /^\d{4}-\d{2}-\d{2}$/.test(value);
+    if (!isValid) return;
+
     const prazo = normalizarData(value);
     const dataAtual = normalizarData(new Date());
-    const novoTime = dataAtual.getTime() <= prazo.getTime() ? "no prazo" : "atrasada";
-  
+    const novoTime = dataAtual <= prazo ? "no prazo" : "atrasada";
 
-    setEstrategicas((prev) =>
-      prev.map((est) => ({
-        ...est,
-        taticas: est.taticas.map((tat) => ({
-          ...tat,
-          operacionais: tat.operacionais.map((op) =>
-            op.id === operacional.id
-              ? {
-                  ...op,
-                  finalizacao: value,
-                  time: op.status !== "concluida" ? novoTime : op.time,
-                }
-              : op
-          ),
-        })),
-      }))
-    );
+    const statusVisualCalculado = operacional.status === "concluida"
+      ? operacional.statusVisual
+      : calcularStatusVisualPorStatus(operacional.status, value);
+
+    const atualizado = estrategicas.map((est) => ({
+      ...est,
+      taticas: est.taticas.map((tat) => ({
+        ...tat,
+        operacionais: tat.operacionais.map((op) =>
+          op.id === operacional.id
+            ? {
+                ...op,
+                finalizacao: value,
+                time: op.status !== "concluida" ? novoTime : op.time,
+                statusVisual: statusVisualCalculado,
+              }
+            : op
+        ),
+      })),
+    }));
+
+    setEstrategicas(atualizado);
+    onUpdate && onUpdate({ estrategicas: atualizado });
   }}
   sx={{
     width: "180px",
@@ -3602,6 +3623,9 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
     },
   }}
 />
+
+
+
 
 
 
@@ -4131,13 +4155,20 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
 
 
 
-  <TextField
+<TextField
   label="Data de criação"
   type="date"
   size="small"
-  value={tarefa.criacao || ""}
+  defaultValue={tarefa.criacao || ""}
   InputLabelProps={{ shrink: true }}
-  onChange={(e) => handleEditTarefa(tarefa.id, "criacao", e.target.value)}
+  onBlur={(e) => {
+    const value = e.target.value;
+    const isValid = /^\d{4}-\d{2}-\d{2}$/.test(value);
+    if (!isValid) return;
+
+    handleEditTarefa(tarefa.id, "criacao", value);
+    onUpdate && onUpdate({ estrategicas });
+  }}
   sx={{
     width: "180px",
     marginTop: "10px",
@@ -4147,40 +4178,52 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
     },
   }}
 />
+
+
+
+
 
 <TextField
   label="Prazo previsto"
   type="date"
   size="small"
-  value={tarefa.finalizacao || ""}
+  defaultValue={tarefa.finalizacao || ""}
   InputLabelProps={{ shrink: true }}
-  onChange={(e) => {
+  onBlur={(e) => {
     const value = e.target.value;
+    const isValid = /^\d{4}-\d{2}-\d{2}$/.test(value);
+    if (!isValid) return;
+
     const prazo = normalizarData(value);
     const dataAtual = normalizarData(new Date());
-    const novoTime = dataAtual.getTime() <= prazo.getTime() ? "no prazo" : "atrasada";
-  
+    const novoTime = dataAtual <= prazo ? "no prazo" : "atrasada";
 
-    setEstrategicas((prev) =>
-      prev.map((est) => ({
-        ...est,
-        taticas: est.taticas.map((tat) => ({
-          ...tat,
-          operacionais: tat.operacionais.map((op) => ({
-            ...op,
-            tarefas: op.tarefas.map((t) =>
-              t.id === tarefa.id
-                ? {
-                    ...t,
-                    finalizacao: value,
-                    time: t.status !== "concluida" ? novoTime : t.time,
-                  }
-                : t
-            ),
-          })),
+    const statusVisualCalculado = tarefa.status === "concluida"
+      ? tarefa.statusVisual
+      : calcularStatusVisualPorStatus(tarefa.status, value);
+
+    const atualizado = estrategicas.map((est) => ({
+      ...est,
+      taticas: est.taticas.map((tat) => ({
+        ...tat,
+        operacionais: tat.operacionais.map((op) => ({
+          ...op,
+          tarefas: op.tarefas.map((t) =>
+            t.id === tarefa.id
+              ? {
+                  ...t,
+                  finalizacao: value,
+                  time: t.status !== "concluida" ? novoTime : t.time,
+                  statusVisual: statusVisualCalculado,
+                }
+              : t
+          ),
         })),
-      }))
-    );
+      })),
+    }));
+
+    setEstrategicas(atualizado);
+    onUpdate && onUpdate({ estrategicas: atualizado });
   }}
   sx={{
     width: "180px",
@@ -4191,6 +4234,13 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
     },
   }}
 />
+
+
+
+
+
+
+
 
 
 
@@ -4498,7 +4548,7 @@ function NovaTaticaForm({ areas, onAdd }) {
       <Box display="flex" flexDirection="row" gap={2} flexWrap="wrap">
         <Box sx={{ flex: 1, minWidth: "300px" }}>
           <TextField
-            label="Nome da Diretriz Tática..."
+            label="Criar uma Diretriz Tática..."
             value={titulo}
             onChange={(e) => setTitulo(e.target.value)}
             fullWidth
@@ -4511,10 +4561,10 @@ function NovaTaticaForm({ areas, onAdd }) {
             onChange={(event) => setSelectedArea(event.target.value)}
             displayEmpty
             fullWidth
-            sx={{ backgroundColor: "#fff" }}
+            sx={{ backgroundColor: "transparent" }}
             renderValue={(selected) =>
               !selected
-                ? "Selecione uma área responsável"
+                ? "Selecione uma área para Tática"
                 : areas.find((area) => area.id === selected)?.nome || "Desconhecida"
             }
           >
