@@ -26,25 +26,38 @@ const SelectAreaStatus = ({ estrategica, areas }) => {
       size="small"
       value={areaSelecionada}
       onChange={(e) => setAreaSelecionada(e.target.value)}
-      onClick={(e) => e.stopPropagation()} // 👈 esta linha é o segredo
+      onClick={(e) => e.stopPropagation()}
       displayEmpty
       sx={{
         minWidth: 105,
         fontSize: "0.8rem",
-        backgroundColor: "#2d19e5",
+        backgroundColor: "#312783",
         borderRadius: 2,
-        color: "#fff"
+        color: "#fff",
+        '& .MuiOutlinedInput-notchedOutline': {
+          border: 'none',
+        },
+        '&:hover .MuiOutlinedInput-notchedOutline': {
+          border: 'none',
+        },
+        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+          border: 'none',
+        },
+        '& .MuiSelect-icon': {
+      color: '#fff', // ✅ seta branca
+    },
       }}
     >
-        <MenuItem value="" disabled>
-          Progresso:
+      <MenuItem value="" disabled>
+        Progresso:
+      </MenuItem>
+      {areas.map((area) => (
+        <MenuItem key={area.id} value={area.nome}>
+          {area.nome}
         </MenuItem>
-        {areas.map((area) => (
-          <MenuItem key={area.id} value={area.nome}>
-            {area.nome}
-          </MenuItem>
-        ))}
-      </Select>
+      ))}
+    </Select>
+
 
       {areaSelecionada && (
         <StatusProgresso progresso={progresso} />

@@ -9,14 +9,19 @@ import { Box, Typography,
   MenuItem,
   IconButton,
   Divider, } from "@mui/material";
-import { getDocs, collection } from "firebase/firestore";
-import { dbFokus360 } from "../../data/firebase-config";
+
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import FilterListIcon from "@mui/icons-material/FilterList"; // Ícone para o Select
 import ClearAllIcon from "@mui/icons-material/ClearAll"; // Ícone para limpar filtro
 import AddIcon from "@mui/icons-material/Add"; // ✅ Importação correta
 
+import { doc, updateDoc, getFirestore, collection, getDocs, setDoc, onSnapshot   } from "firebase/firestore";
+import { dbFokus360 } from "../../data/firebase-config";
+
+
 import FiltrosPlanejamento2 from "../../components/FiltrosPlanejamento2";
+import SelectAreaStatus2 from "../../components/SelectAreaStatus2";
+
 
 
 
@@ -84,22 +89,37 @@ const calcularProgressoTarefas = (tarefas = []) => {
 };
 
 const calcularProgressoOperacional = (operacional) => {
-  return calcularProgressoTarefas(operacional?.tarefas || []);
+  const tarefas = operacional?.tarefas || [];
+
+  if (tarefas.length === 0) {
+    // Se não houver tarefas, considera o checkbox da operacional
+    return operacional.status === "concluida" ? 100 : 0;
+  }
+
+  // Se houver tarefas, conta a operacional + todas as tarefas
+  const totalPartes = tarefas.length + 1; // +1 pelo checkbox da operacional
+  const concluidas = (operacional.status === "concluida" ? 1 : 0) +
+    tarefas.filter(t => t.status === "concluida").length;
+
+  return Math.round((concluidas / totalPartes) * 100);
 };
 
 const calcularProgressoTatica = (tatica) => {
-  const ops = tatica?.operacionais || [];
-  if (!ops.length) return 0;
-  const total = ops.reduce((acc, op) => acc + calcularProgressoOperacional(op), 0);
-  return Math.round(total / ops.length);
+  const operacionais = tatica?.operacionais || [];
+  if (!operacionais.length) return 0;
+
+  const total = operacionais.reduce((acc, op) => acc + calcularProgressoOperacional(op), 0);
+  return Math.round(total / operacionais.length);
 };
 
 const calcularProgressoEstrategica = (estrategica) => {
   const taticas = estrategica?.taticas || [];
   if (!taticas.length) return 0;
+
   const total = taticas.reduce((acc, tat) => acc + calcularProgressoTatica(tat), 0);
   return Math.round(total / taticas.length);
 };
+
 
 
 
@@ -115,6 +135,15 @@ const Eapplanejamento = () => {
   const [expandedEstrategicas, setExpandedEstrategicas] = useState({});
   const [expandedTaticas, setExpandedTaticas] = useState({});
   const [expandedOperacionais, setExpandedOperacionais] = useState({});
+  
+  // buscar areas
+  const [areaSelecionada, setAreaSelecionada] = useState({});
+  const [areasDisponiveis, setAreasDisponiveis] = useState([]);
+  const [areas, setAreas] = useState([]);
+
+const [estrategicasBase, setEstrategicasBase] = useState([]);
+
+
 
   const [ativo, setAtivo] = useState({
     estrategicaId: null,
@@ -129,6 +158,25 @@ const Eapplanejamento = () => {
     operacionais: {}
   });
   
+
+
+//Buscar areas do banco
+useEffect(() => {
+  const fetchAreas = async () => {
+    const querySnapshot = await getDocs(collection(dbFokus360, "areas"));
+    const lista = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      nome: doc.data().nome
+    })).filter(area => area.nome);
+    setAreas(lista);
+  };
+
+  fetchAreas();
+}, []);
+
+
+
+
 
   
 
@@ -236,8 +284,8 @@ const Eapplanejamento = () => {
                 <Box
                   sx={{
                     flex: 1,
-                    minWidth: "70%",
-                    maxWidth: "100%",
+                    minWidth: "60%",
+                    maxWidth: "60%",
                     backgroundColor: "white",
                     borderRadius: "10px",
                     padding: "10px",
@@ -246,7 +294,7 @@ const Eapplanejamento = () => {
                     alignItems: "center",
                   }}
                 >
-                  <FilterListIcon sx={{ color: "#757575", mr: 1 }} />
+                  <FilterListIcon sx={{ color: "#757575", mr: 1, maxWidth: "50%", }} />
                   <Select
                     fullWidth
                     displayEmpty
@@ -284,6 +332,7 @@ const Eapplanejamento = () => {
                       backgroundColor: "#f5f5f5",
                       borderRadius: "5px",
                       height: "40px",
+                      maxWidth: "180px",
                       "& .MuiOutlinedInput-notchedOutline": { border: "none" },
                       "&:hover .MuiOutlinedInput-notchedOutline": { border: "none" },
                       "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: "none" },
@@ -312,7 +361,7 @@ const Eapplanejamento = () => {
                   }}
                   sx={{
                     height: "40px",
-                    minWidth: "140px", // 🔥 Define um tamanho mínimo para não sobrepor a caixa de seleção
+                    minWidth: "130px", // 🔥 Define um tamanho mínimo para não sobrepor a caixa de seleção
                     backgroundColor: "#f44336",
                     color: "white",
                     whiteSpace: "nowrap", // 🔥 Impede quebra de linha no botão
@@ -332,15 +381,14 @@ const Eapplanejamento = () => {
               {/* Contador de Tarefas */}
               <Box
                 sx={{
-                  width: "55%", // 🔥 Ocupa 40% da largura
+                  width: "50%", // 🔥 Ocupa 40% da largura
                   backgroundColor: "white",
                   borderRadius: "10px",
                   padding: "15px",
                   boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
                   display: "flex",
                   alignItems: "center", // 🔥 Alinha na horizontal
-                  justifyContent: "space-between", // 🔥 Mantém espaçamento uniforme
-                  gap: 2,
+                  gap: 1,
                 }}
               >
                 {/* Total de Tarefas */}
@@ -385,7 +433,7 @@ const Eapplanejamento = () => {
 
 
 
-<Box sx={{ marginBottom: "50px" }}>
+<Box sx={{ marginBottom: "70px" }}>
   <FiltrosPlanejamento2 projetoSelecionado={selectedFilter} />
 </Box>
 
@@ -452,95 +500,297 @@ const Eapplanejamento = () => {
   <Box display="flex" gap={4} mt={4} sx={{ marginBottom: "50px" }}>
   {/* Estratégicas */}
   <Box minWidth="200px">
-  {columns.find(col => col.title === "Estratégicas")?.cards.map((estrategica, index) => (
-  <LinhaItem
-    key={estrategica.id}
-    cor="#0069f7"
-    texto={estrategica.titulo || "Sem título"}
-    tipo={index === 0 ? "Estratégicas" : null}
-    porcentagem={calcularProgressoEstrategica(estrategica)}
-    style={{
-      opacity: deveDiminuirOpacidade(estrategica.id, "Estratégicas") ? 0.3 : 1
-    }}
-    onClick={() => {
+  {columns.find(col => col.title === "Estratégicas")?.cards.map((estrategica, index) => {
+    const estrategicaAtualizada = columns
+      .find(col => col.title === "Estratégicas")
+      ?.cards.find(e => e.id === estrategica.id);
+
+    return (
+      <LinhaItem
+  key={estrategica.id}
+  cor="#0069f7"
+  texto={estrategicaAtualizada?.titulo || "Sem título"}
+  tipo={index === 0 ? "Estratégicas" : null}
+  porcentagem={calcularProgressoEstrategica(estrategicaAtualizada)}
+  style={{
+    opacity: deveDiminuirOpacidade(estrategica.id, "Estratégicas") ? 0.3 : 1
+  }}
+  onClick={() => {
+    const estaAberta = expandedEstrategicas[estrategica.id];
+
+    if (estaAberta) {
+      const taticasIds = (estrategica.taticas || []).map(t => t.id);
+      const operacionaisIds = estrategica.taticas?.flatMap(t => t.operacionais || []).map(op => op.id) || [];
+
       setExpandedEstrategicas(prev => ({
         ...prev,
-        [estrategica.id]: !prev[estrategica.id],
+        [estrategica.id]: false,
       }));
+
+      setExpandedTaticas(prev => {
+        const novo = { ...prev };
+        taticasIds.forEach(id => delete novo[id]);
+        return novo;
+      });
+
+      setExpandedOperacionais(prev => {
+        const novo = { ...prev };
+        operacionaisIds.forEach(id => delete novo[id]);
+        return novo;
+      });
+
+      setAreaSelecionada(prev => {
+        const novo = { ...prev };
+        delete novo[estrategica.id];
+        return novo;
+      });
+
+      setAtivo({
+        estrategicaId: null,
+        taticaId: null,
+        operacionalId: null,
+      });
+    } else {
+      setExpandedEstrategicas(prev => ({
+        ...prev,
+        [estrategica.id]: true,
+      }));
+
       setAtivo({
         estrategicaId: estrategica.id,
         taticaId: null,
-        operacionalId: null
+        operacionalId: null,
       });
-    }}
-  />
-))}
+    }
+  }}
+/>
+  );
+  })}
+</Box>
 
-
-  </Box>
 
   {/* Táticas (somente das estratégicas expandidas) */}
-  <Box minWidth="200px">
+ {/* Táticas com filtro por área */}
+<Box minWidth="200px">
   {columns.find(col => col.title === "Estratégicas")?.cards
-  .filter(e => expandedEstrategicas[e.id])
-  .flatMap(e => e.taticas || [])
-  .map((tatica, index) => (
-    <LinhaItem
-      key={tatica.id}
-      cor="#4caf50"
-      texto={tatica.titulo || "Sem título"}
-      tipo={index === 0 ? "Táticas" : null}
-      porcentagem={calcularProgressoTatica(tatica)}
-      style={{
-        opacity: deveDiminuirOpacidade(tatica.id, "Táticas") ? 0.3 : 1
-      }}
-      onClick={() => {
-        setExpandedTaticas(prev => ({
-          ...prev,
-          [tatica.id]: !prev[tatica.id],
-        }));
-        setAtivo(prev => ({
-          ...prev,
-          taticaId: tatica.id
-        }));
-      }}
-    />
-  ))}
-  
+    .filter(e => expandedEstrategicas[e.id]) // Estratégicas abertas
+    .map(estrategica => {
+      const area = areaSelecionada[estrategica.id];
+      const todasTaticas = estrategica.taticas || [];
+      const taticas = area ? todasTaticas.filter(t => t.areaNome === area) : [];
 
-  </Box>
+      return (
+        <Box key={estrategica.id} sx={{ mb: 3 }}>
+          {/* Filtro de área por Estratégica */}
+          <Box sx={{ backgroundColor: "#8a8a8a", maxWidth: "210px", borderRadius: "10px", padding: "5px", marginTop: "-45px" }}>
+            <SelectAreaStatus2
+              estrategica={estrategica}
+              areas={areas}
+              value={areaSelecionada[estrategica.id] || ""}
+              onChangeArea={(novaArea) =>
+                setAreaSelecionada((prev) => ({
+                  ...prev,
+                  [estrategica.id]: novaArea
+                }))
+              }
+            />
+          </Box>
+
+          {/* Lista de Táticas da área filtrada */}
+          {taticas.map((tatica, index) => (
+            <Box key={tatica.id} mb={1}>
+              {index === 0 && (
+                <Typography fontWeight={400} sx={{ fontSize: "10px" }}>
+                  Táticas:
+                </Typography>
+              )}
+
+              {/* Barra + botão + checkbox */}
+              <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Box sx={{ width: "100%", height: "10px", backgroundColor: "#4caf50", borderRadius: "2px" }} />
+
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setExpandedTaticas(prev => ({
+                      ...prev,
+                      [tatica.id]: !prev[tatica.id]
+                    }));
+                    setAtivo(prev => ({
+                      ...prev,
+                      taticaId: tatica.id
+                    }));
+                  }}
+                >
+                  <AddIcon fontSize="small" />
+                </IconButton>
+
+                <Checkbox
+                  size="small"
+                  checked={tatica.status === "concluida"}
+                  onChange={() => {
+                    const novoStatus = tatica.status === "concluida" ? "" : "concluida";
+                    const hoje = new Date();
+                    const [ano, mes, dia] = tatica?.prazo?.split("-") || [];
+                    const prazo = new Date(Number(ano), Number(mes) - 1, Number(dia));
+                    const statusVisual = novoStatus === "concluida"
+                      ? hoje <= prazo ? "no_prazo" : "atrasada"
+                      : "";
+
+                    setColumns(prev =>
+                      prev.map(coluna => {
+                        if (coluna.title !== "Estratégicas") return coluna;
+                        return {
+                          ...coluna,
+                          cards: coluna.cards.map(e => ({
+                            ...e,
+                            taticas: e.taticas.map(t =>
+                              t.id === tatica.id
+                                ? { ...t, status: novoStatus, statusVisual }
+                                : t
+                            )
+                          }))
+                        };
+                      })
+                    );
+                  }}
+                  sx={{
+                    color: "#888888",
+                    "&.Mui-checked": { color: "#888888" },
+                    padding: 0,
+                  }}
+                />
+              </Box>
+
+              {/* Título e Progresso */}
+              
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+                sx={{ borderTop: "none", padding: "-2px", borderRadius: "0 0 4px 4px" }}
+              >
+                <Typography fontWeight={400} sx={{ fontSize: "11px" }}>
+                  {tatica.titulo || "Sem título"}
+                </Typography>
+                <Typography fontSize="10px" sx={{ color: "#888" }}>
+                  {calcularProgressoTatica(tatica)}%
+                </Typography>
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      );
+    })}
+</Box>
+
+
+
 
   {/* Operacionais (somente das táticas expandidas) */}
-  <Box minWidth="200px">
+<Box minWidth="200px">
   {columns.find(col => col.title === "Estratégicas")?.cards
-  .flatMap(e => e.taticas || [])
-  .filter(t => expandedTaticas[t.id])
-  .flatMap(t => t.operacionais || [])
-  .map((op, index) => (
-    <LinhaItem
-      key={op.id}
-      cor="#f44336"
-      texto={op.titulo || "Sem título"}
-      tipo={index === 0 ? "Operacionais" : null}
-      porcentagem={calcularProgressoOperacional(op)}
-      style={{
-        opacity: deveDiminuirOpacidade(op.id, "Operacionais") ? 0.3 : 1
-      }}
-      onClick={() => {
-        setExpandedOperacionais(prev => ({
-          ...prev,
-          [op.id]: !prev[op.id],
-        }));
-        setAtivo(prev => ({
-          ...prev,
-          operacionalId: op.id
-        }));
-      }}
-    />
-  ))}
-  
+    .flatMap(e => e.taticas || [])
+    .filter(t => expandedTaticas[t.id])
+    .flatMap(t => t.operacionais || [])
+    .map((op, index) => (
+      <Box key={op.id} mb={1}>
+        {index === 0 && (
+          <Typography fontWeight={400} sx={{ fontSize: "10px" }}>
+            Operacionais:
+          </Typography>
+        )}
 
-  </Box>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          {/* Barra de progresso */}
+          <Box
+            sx={{
+              width: "100%",
+              height: "10px",
+              backgroundColor: "#f44336",
+              borderRadius: "2px",
+            }}
+          />
+
+          {/* Botão "+" para expandir */}
+          <IconButton size="small" onClick={() => {
+            setExpandedOperacionais(prev => ({
+              ...prev,
+              [op.id]: !prev[op.id]
+            }));
+            setAtivo(prev => ({
+              ...prev,
+              operacionalId: op.id
+            }));
+          }}>
+            <AddIcon fontSize="small" />
+          </IconButton>
+
+          {/* Checkbox de status */}
+          <Checkbox
+            size="small"
+            checked={op.status === "concluida"}
+            onChange={() => {
+              const novoStatus = op.status === "concluida" ? "" : "concluida";
+              const hoje = new Date();
+              const [ano, mes, dia] = op?.prazo?.split("-") || [];
+              const prazo = new Date(Number(ano), Number(mes) - 1, Number(dia));
+              const statusVisual = novoStatus === "concluida"
+                ? hoje <= prazo ? "no_prazo" : "atrasada"
+                : "";
+
+              setColumns(prev =>
+                prev.map(coluna => {
+                  if (coluna.title !== "Estratégicas") return coluna;
+                  return {
+                    ...coluna,
+                    cards: coluna.cards.map(e => ({
+                      ...e,
+                      taticas: e.taticas.map(t => ({
+                        ...t,
+                        operacionais: t.operacionais.map(o =>
+                          o.id === op.id
+                            ? { ...o, status: novoStatus, statusVisual }
+                            : o
+                        )
+                      }))
+                    }))
+                  };
+                })
+              );
+
+            }}
+            sx={{
+              color: "#888888",
+              "&.Mui-checked": { color: "#888888" },
+              padding: 0,
+            }}
+          />
+        </Box>
+
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Typography fontWeight={400} sx={{ fontSize: "11px" }}>
+            {op.titulo || "Sem título"}
+          </Typography>
+          {(() => {
+            const atualizado = columns
+              .find(col => col.title === "Estratégicas")?.cards
+              .flatMap(e => e.taticas || [])
+              .flatMap(t => t.operacionais || [])
+              .find(o => o.id === op.id);
+
+            return (
+              <Typography fontSize="10px" sx={{ color: "#888" }}>
+                {calcularProgressoOperacional(atualizado || op)}%
+              </Typography>
+            );
+          })()}
+
+        </Box>
+      </Box>
+    ))}
+</Box>
+
 
   {/* Tarefas (somente das operacionais expandidas) */}
   <Box minWidth="200px">

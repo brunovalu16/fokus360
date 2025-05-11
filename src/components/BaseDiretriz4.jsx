@@ -29,6 +29,9 @@
 
 
   import { calcularStatusVisualPorStatus } from "../utils/calcularStatusVisualPorStatus";
+  import { calcularMediaProgressoGeral } from "../utils/progressoUtils";
+
+  
 
 
   //API para buscar data universal
@@ -50,6 +53,7 @@
     calcularProgressoEstrategica,
     calcularProgressoTatica,
     calcularProgressoOperacional,
+    calcularProgressoArea
   } from "../utils/progressoUtils";
 
 
@@ -1642,13 +1646,21 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
 
 
 
+<StatusProgresso
+  progresso={calcularMediaProgressoGeral(estrategicas)}
+  cor="#0069f7" // ou qualquer cor que você quiser
+/>
 
 
-  <SelectAreaStatus estrategica={estrategica} areas={areas} />
 
 
 
-              <Box sx={{ flex: 1, textAlign: "left", marginLeft: "-100px" }}>
+
+ 
+
+
+
+              <Box sx={{ flex: 1, textAlign: "left" }}>
                 <Typography fontWeight="bold" sx={{ color: "#fff" }}>
                   {estrategica.titulo}
                 </Typography>
@@ -1892,6 +1904,13 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
 
 
 
+
+<Box sx={{ backgroundColor: "#8a8a8a", maxWidth: "210px", borderRadius: "10px", padding: "5px"}}>
+ <SelectAreaStatus estrategica={estrategica} areas={areas} />
+</Box>
+
+
+
   {/* descrição diretriz estrategicas */}
   <Box sx={{ display: "flex" }}>
   <TextField
@@ -1999,7 +2018,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
       borderRadius: "8px", 
       borderColor: "#c4c4c4", 
       borderWidth: "1px",
-      padding: "33px 8px",
+      padding: "18px 8px",
       position: "relative",
       display: "flex",
       alignItems: "center",
@@ -2007,7 +2026,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
     }}>
       <legend style={{ 
         color: "#757575", 
-        fontSize: "0.75rem", 
+        fontSize: "0.70rem", 
         padding: "0 4px",
       }}>
         Áreas Responsáveis
@@ -2065,7 +2084,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
       borderRadius: "8px", 
       borderColor: "#c4c4c4", 
       borderWidth: "1px",
-      padding: "33px 8px",
+      padding: "18px 8px",
       position: "relative",
       display: "flex",
       alignItems: "center",
@@ -2130,12 +2149,14 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
       borderRadius: "8px", 
       borderColor: "#c4c4c4", 
       borderWidth: "1px",
-      position: "relative"
+      position: "relative",
+      maxHeight: "56px"
     }}>
       <legend style={{ 
         color: "#757575", 
-        fontSize: "0.75rem", 
-        padding: "2 6px",
+        fontSize: "0.70rem", 
+        paddingRight: "5px",
+        paddingLeft: "5px"
       }}>
         Responsáveis
       </legend>
@@ -2166,7 +2187,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
                   key={email}
                   src={user?.photoURL}
                   alt={user?.username}
-                  sx={{ width: 30, height: 30, border: "2px solid #312783" }}
+                  sx={{ width: 30, height: 30, border: "2px solid #312783", marginTop:"-16px" }}
                   imgProps={{ referrerPolicy: "no-referrer" }}
                 >
                   {!user?.photoURL && user?.username?.charAt(0).toUpperCase()}
@@ -2818,7 +2839,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
       borderRadius: "8px", 
       borderColor: "#c4c4c4", 
       borderWidth: "1px",
-      padding: "33px 8px",
+      padding: "18px 8px",
       position: "relative",
       display: "flex",
       alignItems: "center",
@@ -2882,7 +2903,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
       borderRadius: "8px", 
       borderColor: "#c4c4c4", 
       borderWidth: "1px",
-      padding: "33px 8px",
+      padding: "18px 8px",
       position: "relative",
       display: "flex",
       alignItems: "center",
@@ -2946,7 +2967,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
       borderRadius: "8px", 
       borderColor: "#c4c4c4", 
       borderWidth: "1px",
-      padding: "33px 8px",
+      padding: "18px 8px",
       position: "relative",
       display: "flex",
       alignItems: "center",
@@ -3527,6 +3548,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
     flex: 1,
     backgroundColor: "transparent",
     marginTop: "10px",
+    marginRight: "10px"
   }}
 />
 
@@ -3648,7 +3670,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
       borderRadius: "8px",
       borderColor: "#c4c4c4",
       borderWidth: "1px",
-      padding: "33px 8px",
+      padding: "18px 8px",
       position: "relative",
       display: "flex",
       alignItems: "center",
@@ -3708,7 +3730,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
       borderRadius: "8px",
       borderColor: "#c4c4c4",
       borderWidth: "1px",
-      padding: "33px 8px",
+      padding: "18px 8px",
       position: "relative",
       display: "flex",
       alignItems: "center",
@@ -3768,7 +3790,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
       borderRadius: "8px",
       borderColor: "#c4c4c4",
       borderWidth: "1px",
-      padding: "33px 8px",
+      padding: "18px 8px",
       position: "relative",
       display: "flex",
       alignItems: "center",

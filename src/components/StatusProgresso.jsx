@@ -1,7 +1,13 @@
 import { Box, LinearProgress, Typography } from "@mui/material";
 
-const StatusProgresso = ({ progresso }) => {
-  const cor = progresso === 100 ? "#00ff08" : progresso >= 1 ? "#2d81ff" : "#9ca3af";
+const StatusProgresso = ({ progresso, cor: corPersonalizada }) => {
+  const cor =
+    corPersonalizada ||
+    (progresso === 100
+      ? "#00ff08"
+      : progresso >= 1
+      ? "#312783"
+      : "#9ca3af");
 
   return (
     <Box sx={{ minWidth: 60, mr: 2, textAlign: "center" }}>
@@ -25,3 +31,4 @@ const StatusProgresso = ({ progresso }) => {
 };
 
 export default StatusProgresso;
+
