@@ -2877,41 +2877,17 @@ function NovaOperacionalForm({ onAdd }) {
             fullWidth
           />
         </Box>
+<Button
+  onClick={() => {
+    const areaNome = selectedArea
+      ? areas.find((a) => a.id === selectedArea)?.nome || ""
+      : "";
+    onAdd(titulo, desc, selectedArea || "", areaNome);
+    setTitulo("");
+    setDesc("");
+    setSelectedArea("");
+  }}
 
-        <Box sx={{ flex: 1, minWidth: "200px", maxWidth: "300px" }}>
-          <Select
-            value={selectedArea}
-            onChange={(event) => setSelectedArea(event.target.value)}
-            displayEmpty
-            fullWidth
-            sx={{ backgroundColor: "#fff" }}
-            renderValue={(selected) =>
-              !selected
-                ? "Selecione uma área responsável"
-                : areas.find((a) => a.id === selected)?.nome || "Desconhecida"
-            }
-          >
-            {areas.map((area) => (
-              <MenuItem key={area.id} value={area.id}>
-                <ListItemText primary={area.nome} />
-              </MenuItem>
-            ))}
-          </Select>
-        </Box>
-      </Box>
-
-      <Button
-        onClick={() => {
-          if (!selectedArea) {
-            alert("Selecione uma área para a Diretriz Operacional.");
-            return;
-          }
-          const areaNome = areas.find((a) => a.id === selectedArea)?.nome || "";
-          onAdd(titulo, desc, selectedArea, areaNome);
-          setTitulo("");
-          setDesc("");
-          setSelectedArea("");
-        }}
         disableRipple
         sx={{
           alignSelf: "flex-start",
@@ -2922,6 +2898,10 @@ function NovaOperacionalForm({ onAdd }) {
       >
         <AddCircleOutlineIcon sx={{ fontSize: 25, color: "#f44336" }} />
       </Button>
+        
+      </Box>
+
+      
     </Box>
   );
 }
