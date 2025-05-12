@@ -22,8 +22,10 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { doc, updateDoc, getFirestore, collection, getDocs, setDoc  } from "firebase/firestore";
 import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para Fokus360
 
-
-
+ //Importando o contador de data
+  import { getDataHojeFormatada } from "../utils/formatDate";
+ import { normalizarData } from "../utils/normalizarData";
+ import { calcularStatusVisualPorStatus } from "../utils/calcularStatusVisualPorStatus";
 
 const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacional, onUpdate, LimpaEstado }) => {
 
@@ -115,6 +117,41 @@ const [emailsPorIdOperacional, setEmailsPorIdOperacional] = useState({});
       emails: "",
     });
     
+
+
+
+
+    const formatarDataISO = (data) => {
+  if (!data) return "";
+  const d = new Date(data);
+  const ano = d.getFullYear();
+  const mes = String(d.getMonth() + 1).padStart(2, "0");
+  const dia = String(d.getDate()).padStart(2, "0");
+  return `${ano}-${mes}-${dia}`;
+};
+
+
+
+
+
+//exibir a data atual do navegador
+  useEffect(() => {
+    const hoje = new Date();
+    const dia = hoje.getDate().toString().padStart(2, '0');
+    const mes = (hoje.getMonth() + 1).toString().padStart(2, '0');
+    const ano = hoje.getFullYear();
+
+    const dataAtual = `${ano}-${mes}-${dia}`;
+    const elemento = document.getElementById('dataAtual');
+
+    if (elemento) {
+      elemento.textContent = `${dia}/${mes}/${ano}`;
+    }
+
+    console.log("📅 Data do navegador:", dataAtual);
+  }, []);
+
+
 
 
 
@@ -266,17 +303,14 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
     return;
   }
 
-  if (!selectedAreaTarefa) {
-    alert("Selecione a área responsável pela tarefa.");
-    return;
-  }
-
-  const areaNome = areas.find((a) => a.id === selectedAreaTarefa)?.nome || "Desconhecida";
+  const areaNome = selectedAreaTarefa
+    ? areas.find((a) => a.id === selectedAreaTarefa)?.nome || "Desconhecida"
+    : "";
 
   const novaTarefaObj = {
     id: Date.now(),
     tituloTarefa: novaTarefa,
-    areaId: selectedAreaTarefa,
+    areaId: selectedAreaTarefa || "",
     areaNome: areaNome,
     planoDeAcao: {
       oQue: "",
@@ -329,39 +363,48 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
 
 
 
+
   // -------------------------------------
   // Criar nova Diretriz Estratégica
   // -------------------------------------
   //|| !descEstrategica.trim()
 
   const handleAddEstrategica = () => {
-    if (!novaEstrategica.trim()) {
-      alert("Preencha o nome da Diretriz Estratégica!");
-      return;
-    }
-  
-    const emails = emailsDigitados
-      .split(",")
-      .map((email) => email.trim())
-      .filter((email) => email !== "");
-  
-    const item = {
-      id: Date.now(),
-      titulo: novaEstrategica,
-      descricao: descEstrategica,
-      taticas: [],
-      emails,
-    };
-  
-    const atualizado = [...estrategicas, item];
-    setEstrategicas(atualizado);
-  
-    onUpdate && onUpdate(atualizado);
-  
-    setNovaEstrategica("");
-    setDescEstrategica("");
-    /** Não limpa os e-mails **/
+  if (!novaEstrategica.trim()) {
+    alert("Preencha o nome da Diretriz Estratégica!");
+    return;
+  }
+
+  if (!selectedArea) {
+    alert("Selecione uma área responsável para a Estratégica!");
+    return;
+  }
+
+  const emails = emailsDigitados
+    .split(",")
+    .map((email) => email.trim())
+    .filter((email) => email !== "");
+
+  const areaSelecionadaObj = areas.find((a) => a.id === selectedArea);
+
+  const item = {
+    id: Date.now().toString(),
+    titulo: novaEstrategica,
+    descricao: descEstrategica,
+    emails,
+    taticas: [],
+    status: "",
+    finalizacao: "",
+    createdAt: new Date().toISOString(),
+    areaNome: areaSelecionadaObj?.nome || "", // ✅ nome da área
   };
+
+  const atualizado = [...estrategicas, item];
+  setEstrategicas(atualizado);
+  setNovaEstrategica("");
+  setDescEstrategica("");
+  setSelectedArea(""); // limpa a seleção após adicionar
+};
   
   
   
@@ -456,14 +499,9 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   // -------------------------------------
   //|| !descricao.trim()) 
 
-  const handleAddOperacional = (idEstrategica, idTatica, titulo, descricao, areaId, areaNome) => {
+ const handleAddOperacional = (idEstrategica, idTatica, titulo, descricao, areaId = "", areaNome = "") => {
   if (!titulo.trim()) {
     alert("Preencha o nome da Diretriz Operacional!");
-    return;
-  }
-
-  if (!areaId) {
-    alert("Selecione uma área para a Operacional.");
     return;
   }
 
@@ -489,7 +527,7 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
         if (t.id === idTatica) {
           return {
             ...t,
-            operacionais: [...t.operacionais, novo],
+            operacionais: [...(t.operacionais || []), novo],
           };
         }
         return t;
@@ -501,13 +539,14 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
 
   setEstrategicas(atualizadas);
   onUpdate && onUpdate(atualizadas);
-  console.log("📌 Diretriz Operacional atualizada com área:", atualizadas);
+  console.log("📌 Diretriz Operacional adicionada:", novo);
 
   setEmailsOperacionaisInput((prev) => ({
     ...prev,
     [idTatica]: "",
   }));
 };
+
 
   
 
@@ -642,53 +681,64 @@ const areaRolesMap = {
       }
   
       const estrategicasAtualizadas = estrategicas.map((estrategica) => {
-        const taticasAtualizadas = estrategica.taticas.map((tatica) => {
-          const operacionaisAtualizadas = tatica.operacionais.map((op) => {
-            const manualEmails = Array.isArray(emailsPorIdOperacional?.[op.id])
-              ? emailsPorIdOperacional[op.id]
-              : String(emailsPorIdOperacional?.[op.id] || "")
-                  .split(",")
-                  .map((e) => e.trim());
-  
-            const responsaveisEmails = Array.isArray(op.quemOperacionais)
-              ? op.quemOperacionais
-              : [];
-  
-            return {
-              ...op,
-              areasResponsaveis: areasOperacionaisPorId[op.id] || [],
-              unidades: unidadesPorIdOperacional?.[op.id] || [],
-              emails: [...manualEmails, ...responsaveisEmails].filter((e) => e.trim() !== ""),
-            };
-          });
-  
-          return {
-            ...tatica,
-            areasResponsaveis: areasPorIdTatica[tatica.id] || [],
-            unidades: unidadesPorIdTatica[tatica.id] || [],
-            emails: Array.isArray(emailsPorIdTatica[tatica.id])
-              ? emailsPorIdTatica[tatica.id].filter((e) => e.trim() !== "")
-              : String(emailsPorIdTatica[tatica.id] || "")
-                  .split(",")
-                  .map((e) => e.trim())
-                  .filter((e) => e !== ""),
-            operacionais: operacionaisAtualizadas,
-          };
-        });
-  
-        return {
-          ...estrategica,
-          areasResponsaveis: areasPorIdEstrategica[estrategica.id] || [],
-          unidades: unidadesPorIdEstrategica[estrategica.id] || [],
-          emails: Array.isArray(emailsPorIdEstrategica[estrategica.id])
-            ? emailsPorIdEstrategica[estrategica.id].filter((e) => e.trim() !== "")
-            : String(emailsPorIdEstrategica[estrategica.id] || "")
-                .split(",")
-                .map((e) => e.trim())
-                .filter((e) => e !== ""),
-          taticas: taticasAtualizadas,
-        };
-      });
+  const taticasAtualizadas = estrategica.taticas.map((tatica) => {
+    const operacionaisAtualizadas = tatica.operacionais.map((op) => {
+      const manualEmails = Array.isArray(emailsPorIdOperacional?.[op.id])
+        ? emailsPorIdOperacional[op.id]
+        : String(emailsPorIdOperacional?.[op.id] || "")
+            .split(",")
+            .map((e) => e.trim());
+
+      const responsaveisEmails = Array.isArray(op.quemOperacionais)
+        ? op.quemOperacionais
+        : [];
+
+      return {
+        ...op,
+        criacao: op.criacao || "",
+        finalizacao: op.finalizacao || "",
+        status: op.status || "",
+        statusVisual: op.statusVisual || "",
+        time: op.time || "",
+        areasResponsaveis: areasOperacionaisPorId[op.id] || [],
+        unidades: unidadesPorIdOperacional?.[op.id] || [],
+        emails: [...manualEmails, ...responsaveisEmails].filter((e) => e.trim() !== ""),
+      };
+    });
+
+    return {
+      ...tatica,
+      criacao: tatica.criacao || "",
+      finalizacao: tatica.finalizacao || "",
+      status: tatica.status || "",
+      statusVisual: tatica.statusVisual || "",
+      time: tatica.time || "",
+      areasResponsaveis: areasPorIdTatica[tatica.id] || [],
+      unidades: unidadesPorIdTatica[tatica.id] || [],
+      emails: Array.isArray(emailsPorIdTatica[tatica.id])
+        ? emailsPorIdTatica[tatica.id].filter((e) => e.trim() !== "")
+        : String(emailsPorIdTatica[tatica.id] || "")
+            .split(",")
+            .map((e) => e.trim())
+            .filter((e) => e !== ""),
+      operacionais: operacionaisAtualizadas,
+    };
+  });
+
+  return {
+    ...estrategica,
+    areasResponsaveis: areasPorIdEstrategica[estrategica.id] || [],
+    unidades: unidadesPorIdEstrategica[estrategica.id] || [],
+    emails: Array.isArray(emailsPorIdEstrategica[estrategica.id])
+      ? emailsPorIdEstrategica[estrategica.id].filter((e) => e.trim() !== "")
+      : String(emailsPorIdEstrategica[estrategica.id] || "")
+          .split(",")
+          .map((e) => e.trim())
+          .filter((e) => e !== ""),
+    taticas: taticasAtualizadas,
+  };
+});
+
   
       const projetoRef = doc(db, "projetos", projectId);
       await updateDoc(projetoRef, {
@@ -900,6 +950,11 @@ const areaRolesMap = {
   // -------------------------------------
   return (
     <Box>
+
+
+      <Typography variant="body2" sx={{ color: "#f2f0f0", mb: 2 }}>
+              Data atual: {getDataHojeFormatada().split("-").reverse().join("/")}
+            </Typography>
       {/* ***************************** */}
       {/* Form para criar EstratÉgica */}
       {/* ***************************** */}
@@ -912,12 +967,42 @@ const areaRolesMap = {
       </Typography>
 
       <Box display="flex" flexDirection="column" gap={2} mb={4}>
-        <TextField
-          label="Nome da Diretriz Estratégica..."
-          value={novaEstrategica}
-          onChange={(e) => setNovaEstrategica(e.target.value)}
-          fullWidth
-        />
+        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+                    {/* Campo de texto maior */}
+                    <Box sx={{ flex: 2, minWidth: "250px" }}>
+                      <TextField
+                        label="Nome da Diretriz Estratégica..."
+                        value={novaEstrategica}
+                        onChange={(e) => setNovaEstrategica(e.target.value)}
+                        fullWidth
+                      />
+                    </Box>
+        
+                    {/* Select menor ao lado */}
+                    <Box sx={{ flex: 1, minWidth: "200px" }}>
+                      <Select
+                        value={selectedArea}
+                        onChange={(event) => setSelectedArea(event.target.value)}
+                        displayEmpty
+                        fullWidth
+                        sx={{ backgroundColor: "transparent" }}
+                        renderValue={(selected) =>
+                          !selected
+                            ? "Selecione uma área para Estratégica"
+                            : areas.find((area) => area.id === selected)?.nome || "Desconhecida"
+                        }
+                      >
+                        <MenuItem disabled value="">
+                          <em>Selecione uma área responsável</em>
+                        </MenuItem>
+                        {areas.map((area) => (
+                          <MenuItem key={area.id} value={area.id}>
+                            <ListItemText primary={area.nome} />
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </Box>
+                  </Box>
 
         <Box
           sx={{
@@ -1117,8 +1202,71 @@ const areaRolesMap = {
                 flex: 1,
                 backgroundColor: "transparent",
                 marginTop: "10px",
+                paddingRight: "10px",
               }}
             />
+
+            <TextField
+                label="Data de criação"
+                type="date"
+                size="small"
+                value={estrategica.criacao ? estrategica.criacao : ""}
+                InputLabelProps={{ shrink: true }}
+                onChange={(e) => {
+                  const value = e.target.value; // formato: "2025-04-29"
+                  setEstrategicas((prev) =>
+                    prev.map((est) =>
+                      est.id === estrategica.id
+                        ? { ...est, criacao: value }
+                        : est
+                    )
+                  );
+                }}
+                sx={{
+                  paddingRight: "10px",
+                  width: "180px", // substitui min/maxWidth para manter coerência
+                  marginTop: "10px",
+                  '& .MuiInputBase-root': {
+                    height: "53px",
+                    alignItems: "center",
+                  },
+                }}
+              />
+            
+              <TextField
+                label="Prazo previsto"
+                type="date"
+                size="small"
+                value={estrategica.finalizacao ? estrategica.finalizacao : ""}
+                InputLabelProps={{ shrink: true }}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const prazo = normalizarData(value);
+                  const dataAtual = normalizarData(new Date());
+                
+                  const time = dataAtual <= prazo ? "no prazo" : "atrasada";
+                
+                  setEstrategicas((prev) =>
+                    prev.map((est) =>
+                      est.id === estrategica.id
+                        ? {
+                            ...est,
+                            finalizacao: value,
+                            time: est.status !== "concluida" ? time : est.time,
+                          }
+                        : est
+                    )
+                  );
+                }}  
+                sx={{
+                  width: "180px", // mantido padrão com o outro campo
+                  marginTop: "10px",
+                  '& .MuiInputBase-root': {
+                    height: "53px",
+                    alignItems: "center",
+                  },
+                }}
+              />
             </Box>
 
 
@@ -1425,8 +1573,89 @@ const areaRolesMap = {
     flex: 1,
     backgroundColor: "transparent",
     marginTop: "10px",
+    marginRight: "10px"
   }}
 />
+
+<TextField
+  label="Data de criação"
+  type="date"
+  size="small"
+  value={tatica.criacao || ""} // ✅ Corrigido
+  InputLabelProps={{ shrink: true }}
+  onChange={(e) => {
+    const value = e.target.value;
+    setEstrategicas((prev) =>
+      prev.map((est) =>
+        est.id === estrategica.id
+          ? {
+              ...est,
+              taticas: est.taticas.map((tat) =>
+                tat.id === tatica.id ? { ...tat, criacao: value } : tat
+              ),
+            }
+          : est
+      )
+    );
+  }}
+  sx={{
+    width: "180px",
+    marginTop: "10px",
+    '& .MuiInputBase-root': {
+      height: "53px",
+      alignItems: "center",
+    },
+  }}
+/>
+
+
+
+<TextField
+  label="Prazo previsto"
+  type="date"
+  size="small"
+  value={tatica.finalizacao || ""}
+  InputLabelProps={{ shrink: true }}
+  onChange={(e) => {
+    const value = e.target.value;
+    const prazo = normalizarData(value);
+    const dataAtual = normalizarData(new Date());
+    const novoTime = dataAtual <= prazo ? "no prazo" : "atrasada";
+
+    setEstrategicas((prev) =>
+      prev.map((est) =>
+        est.id === estrategica.id
+          ? {
+              ...est,
+              taticas: est.taticas.map((t) =>
+                t.id === tatica.id
+                  ? {
+                      ...t,
+                      finalizacao: value,
+                      time: t.status !== "concluida" ? novoTime : t.time,
+                      statusVisual:
+                        t.status === "concluida"
+                          ? t.statusVisual
+                          : calcularStatusVisualPorStatus(t.status, value),
+                    }
+                  : t
+              ),
+            }
+          : est
+      )
+    );
+  }}
+  sx={{
+    width: "180px",
+    marginTop: "10px",
+    '& .MuiInputBase-root': {
+      height: "53px",
+      alignItems: "center",
+    },
+  }}
+/>
+
+
 </Box>
 
 
@@ -1796,6 +2025,96 @@ const areaRolesMap = {
                             flex: 1,
                             backgroundColor: "transparent",
                             marginTop: "10px",
+                            marginRight: "10px"
+                          }}
+                        />
+
+
+                        <TextField
+                          label="Data de criação"
+                          type="date"
+                          size="small"
+                          defaultValue={operacional.criacao || ""}
+                          InputLabelProps={{ shrink: true }}
+                          onBlur={(e) => {
+                            const value = e.target.value;
+                            const isValid = /^\d{4}-\d{2}-\d{2}$/.test(value);
+                            if (!isValid) return;
+                        
+                            const atualizado = estrategicas.map((est) => ({
+                              ...est,
+                              taticas: est.taticas.map((tat) => ({
+                                ...tat,
+                                operacionais: tat.operacionais.map((op) =>
+                                  op.id === operacional.id ? { ...op, criacao: value } : op
+                                ),
+                              })),
+                            }));
+                        
+                            setEstrategicas(atualizado);
+                            onUpdate && onUpdate({ estrategicas: atualizado });
+                          }}
+                          sx={{
+                            width: "180px",
+                            marginTop: "10px",
+                            '& .MuiInputBase-root': {
+                              height: "53px",
+                              alignItems: "center",
+                              marginRight: "10px"
+                            },
+                          }}
+                        />
+                        
+                        
+                        
+                        
+                        
+                        <TextField
+                          label="Prazo previsto"
+                          type="date"
+                          size="small"
+                          defaultValue={operacional.finalizacao || ""}
+                          InputLabelProps={{ shrink: true }}
+                          onBlur={(e) => {
+                            const value = e.target.value;
+                            const isValid = /^\d{4}-\d{2}-\d{2}$/.test(value);
+                            if (!isValid) return;
+                        
+                            const prazo = normalizarData(value);
+                            const dataAtual = normalizarData(new Date());
+                            const novoTime = dataAtual <= prazo ? "no prazo" : "atrasada";
+                        
+                            const statusVisualCalculado = operacional.status === "concluida"
+                              ? operacional.statusVisual
+                              : calcularStatusVisualPorStatus(operacional.status, value);
+                        
+                            const atualizado = estrategicas.map((est) => ({
+                              ...est,
+                              taticas: est.taticas.map((tat) => ({
+                                ...tat,
+                                operacionais: tat.operacionais.map((op) =>
+                                  op.id === operacional.id
+                                    ? {
+                                        ...op,
+                                        finalizacao: value,
+                                        time: op.status !== "concluida" ? novoTime : op.time,
+                                        statusVisual: statusVisualCalculado,
+                                      }
+                                    : op
+                                ),
+                              })),
+                            }));
+                        
+                            setEstrategicas(atualizado);
+                            onUpdate && onUpdate({ estrategicas: atualizado });
+                          }}
+                          sx={{
+                            width: "180px",
+                            marginTop: "10px",
+                            '& .MuiInputBase-root': {
+                              height: "53px",
+                              alignItems: "center",
+                            },
                           }}
                         />
                         </Box>
@@ -1937,37 +2256,17 @@ const areaRolesMap = {
                               marginTop: "20px",
                             }}
                           >
-                            <Box display="flex" flexDirection="row" gap={2} flexWrap="wrap">
-                              <Box sx={{ flex: 1, minWidth: "300px" }}>
-                                <TextField
-                                  label="Nome do Plano de ação..."
-                                  value={novaTarefa}
-                                  onChange={(e) => setNovaTarefa(e.target.value)}
-                                  fullWidth
-                                />
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 2, width: "100%" }}>
+                                <Box sx={{ flexGrow: 1 }}>
+                                  <TextField
+                                    label="Nome do Plano de ação..."
+                                    value={novaTarefa}
+                                    onChange={(e) => setNovaTarefa(e.target.value)}
+                                    fullWidth
+                                  />
+                                </Box>
                               </Box>
 
-                              <Box sx={{ flex: 1, minWidth: "200px", maxWidth: "300px" }}>
-                                <Select
-                                  value={selectedAreaTarefa || ""}
-                                  onChange={(event) => setSelectedAreaTarefa(event.target.value)}
-                                  displayEmpty
-                                  fullWidth
-                                  sx={{ backgroundColor: "#fff" }}
-                                  renderValue={(selected) =>
-                                    !selected
-                                      ? "Selecione uma área responsável"
-                                      : areas.find((a) => a.id === selected)?.nome || "Desconhecida"
-                                  }
-                                >
-                                  {areas.map((area) => (
-                                    <MenuItem key={area.id} value={area.id}>
-                                      <ListItemText primary={area.nome} />
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                              </Box>
-                            </Box>
 
                             <Button
                               onClick={() =>
@@ -2063,7 +2362,89 @@ const areaRolesMap = {
                                       <Typography variant="h6">
                                         Plano de Ação (5W2H)
                                       </Typography>
+                                        <Box sx={{ display: "flex", justifyContent: "flex-end", width: "100%" }}>
+  <Box sx={{ display: "flex", flexDirection: "row", gap: 2 }}>
+    <TextField
+      label="Data de criação"
+      type="date"
+      size="small"
+      defaultValue={tarefa.criacao || ""}
+      InputLabelProps={{ shrink: true }}
+      onBlur={(e) => {
+        const value = e.target.value;
+        const isValid = /^\d{4}-\d{2}-\d{2}$/.test(value);
+        if (!isValid) return;
+
+        handleEditTarefa(tarefa.id, "criacao", value);
+        onUpdate && onUpdate({ estrategicas });
+      }}
+      sx={{
+        width: "180px",
+        marginTop: "10px",
+        '& .MuiInputBase-root': {
+          height: "53px",
+          alignItems: "center",
+        },
+      }}
+    />
+
+    <TextField
+      label="Prazo previsto"
+      type="date"
+      size="small"
+      defaultValue={tarefa.finalizacao || ""}
+      InputLabelProps={{ shrink: true }}
+      onBlur={(e) => {
+        const value = e.target.value;
+        const isValid = /^\d{4}-\d{2}-\d{2}$/.test(value);
+        if (!isValid) return;
+
+        const prazo = normalizarData(value);
+        const dataAtual = normalizarData(new Date());
+        const novoTime = dataAtual <= prazo ? "no prazo" : "atrasada";
+
+        const statusVisualCalculado = tarefa.status === "concluida"
+          ? tarefa.statusVisual
+          : calcularStatusVisualPorStatus(tarefa.status, value);
+
+        const atualizado = estrategicas.map((est) => ({
+          ...est,
+          taticas: est.taticas.map((tat) => ({
+            ...tat,
+            operacionais: tat.operacionais.map((op) => ({
+              ...op,
+              tarefas: op.tarefas.map((t) =>
+                t.id === tarefa.id
+                  ? {
+                      ...t,
+                      finalizacao: value,
+                      time: t.status !== "concluida" ? novoTime : t.time,
+                      statusVisual: statusVisualCalculado,
+                    }
+                  : t
+              ),
+            })),
+          })),
+        }));
+
+        setEstrategicas(atualizado);
+        onUpdate && onUpdate({ estrategicas: atualizado });
+      }}
+      sx={{
+        width: "180px",
+        marginTop: "10px",
+        '& .MuiInputBase-root': {
+          height: "53px",
+          alignItems: "center",
+        },
+      }}
+    />
+  </Box>
+</Box>
+
                                     </Box>
+
+                                    
 
                                     {/* 🔹 Campos do 5W2H */}
 

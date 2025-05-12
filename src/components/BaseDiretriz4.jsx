@@ -890,12 +890,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
     // -------------------------------------
     //|| !descricao.trim()) 
 
-   const handleAddOperacional = (idEstrategica, idTatica, titulo, descricao) => {
-  if (!selectedAreaId || !selectedAreaNome) {
-    alert("Selecione uma área antes de adicionar uma Diretriz Operacional.");
-    return;
-  }
-
+  const handleAddOperacional = (idEstrategica, idTatica, titulo, descricao) => {
   if (!titulo.trim()) {
     alert("Preencha o nome da Diretriz Operacional!");
     return;
@@ -913,7 +908,8 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
     descricao,
     tarefas: [],
     emails,
-    areaNome: selectedAreaNome, // 🔴 ESSENCIAL para o filtro funcionar
+    areaNome: selectedAreaNome || "", // se não houver área selecionada, fica vazio
+    areaId: selectedAreaId || "",
     status: "",
     time: new Date() <= new Date(projetoData.prazoPrevisto) ? "no prazo" : "atrasada",
     statusVisual: calcularStatusVisual(
@@ -943,12 +939,12 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
   setEstrategicas(atualizado);
   onUpdate && onUpdate({ estrategicas: atualizado });
 
-  // Limpar e-mails digitados
   setEmailsOperacionaisInput((prev) => ({
     ...prev,
     [idTatica]: "",
   }));
 };
+
 
     
 
@@ -3257,7 +3253,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
                     
 
                     {/* Lista de Operacionais */}
-                    {operacionaisFiltradas.map((operacional) => (
+                    {(tatica.operacionais || []).map((operacional) => (
                       <Accordion
                         key={operacional.id}
                         disableGutters
