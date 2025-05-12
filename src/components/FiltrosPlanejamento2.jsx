@@ -111,6 +111,83 @@ const FiltrosPlanejamento2 = ({ estrategicas, projetoSelecionado   }) => {
 
 
 
+
+
+
+
+      //buscar diretrizes e tarefas atrasadas do projeto
+useEffect(() => {
+  const buscarAtrasadasPorProjeto = async () => {
+    console.log("📌 projetoSelecionado:", projetoSelecionado);
+    if (!projetoSelecionado) return;
+
+    try {
+      const docRef = doc(dbFokus360, "projetos", projetoSelecionado);
+      const docSnap = await getDocs(collection(dbFokus360, "projetos"));
+      const projeto = docSnap.docs.find(d => d.id === projetoSelecionado)?.data();
+
+      if (!projeto) {
+        console.log("❌ Projeto não encontrado");
+        return;
+      }
+
+      const est = [], tat = [], op = [], tar = [];
+
+      (projeto.estrategicas || []).forEach((estrategica) => {
+        if (isAtrasada(estrategica)) est.push(estrategica);
+
+        (estrategica.taticas || []).forEach((tatica) => {
+          if (isAtrasada(tatica)) tat.push(tatica);
+
+          (tatica.operacionais || []).forEach((operacional) => {
+            if (isAtrasada(operacional)) op.push(operacional);
+
+            (operacional.tarefas || []).forEach((tarefa) => {
+              if (isAtrasada(tarefa)) tar.push(tarefa);
+            });
+          });
+        });
+      });
+
+      console.log(`✔ Totais encontrados -> Est: ${est.length} | Tat: ${tat.length} | Op: ${op.length} | Tar: ${tar.length}`);
+
+      setEstrategicasAtrasadas(est);
+      setTaticasAtrasadas(tat);
+      setOperacionaisAtrasadas(op);
+      setTarefasAtrasadas(tar);
+    } catch (error) {
+      console.error("❌ Erro ao buscar atrasadas:", error);
+    }
+  };
+
+  buscarAtrasadasPorProjeto();
+}, [projetoSelecionado]);
+
+
+
+
+
+// E aqui a função isAtrasada com log interno:
+const isAtrasada = (item) => {
+  const status = item.status || "";
+  const statusVisual = item.statusVisual || "";
+  const time = item.time || "";
+  const isConcluida = status === "concluida";
+
+  if (isConcluida) return false;
+
+  const regra1 = (statusVisual === "atrasada" && (status === "" || status === "atrasada"));
+  const regra2 = time === "atrasada";
+
+  return regra1 || regra2;
+};
+
+
+
+
+
+
+
       useEffect(() => {
         const carregarProjetos = async () => {
           const projetosSnapshot = await getDocs(collection(dbFokus360, "projetos"));
@@ -177,75 +254,7 @@ const FiltrosPlanejamento2 = ({ estrategicas, projetoSelecionado   }) => {
 
 
 
-      //função buscar tarefas atrasadas
-      useEffect(() => {
-        const buscarAtrasadas = async () => {
-          try {
-            const snapshot = await getDocs(collection(db, "projetos"));
-      
-            const est = [], tat = [], op = [], tar = [];
-      
-            snapshot.forEach((docSnap) => {
-              const projeto = docSnap.data();
-              const estrategicas = projeto.estrategicas || [];
-      
-              estrategicas.forEach((estrategica) => {
-                const { status = "", statusVisual = "", time = "" } = estrategica;
-      
-                if (
-                  (status === "andamento" && statusVisual === "atrasada" && time === "atrasada") ||
-                  (status === "" && statusVisual === "" && time === "atrasada")
-                ) {
-                  est.push(estrategica);
-                }
-      
-                (estrategica.taticas || []).forEach((tatica) => {
-                  const { status = "", statusVisual = "", time = "" } = tatica;
-      
-                  if (
-                    (status === "andamento" && statusVisual === "atrasada" && time === "atrasada") ||
-                    (status === "" && statusVisual === "" && time === "atrasada")
-                  ) {
-                    tat.push(tatica);
-                  }
-      
-                  (tatica.operacionais || []).forEach((opItem) => {
-                    const { status = "", statusVisual = "", time = "" } = opItem;
-      
-                    if (
-                      (status === "andamento" && statusVisual === "atrasada" && time === "atrasada") ||
-                      (status === "" && statusVisual === "" && time === "atrasada")
-                    ) {
-                      op.push(opItem);
-                    }
-      
-                    (opItem.tarefas || []).forEach((tarefa) => {
-                      const { status = "", statusVisual = "", time = "" } = tarefa;
-      
-                      if (
-                        (status === "andamento" && statusVisual === "atrasada" && time === "atrasada") ||
-                        (status === "" && statusVisual === "" && time === "atrasada")
-                      ) {
-                        tar.push(tarefa);
-                      }
-                    });
-                  });
-                });
-              });
-            });
-      
-            setEstrategicasAtrasadas(est);
-            setTaticasAtrasadas(tat);
-            setOperacionaisAtrasadas(op);
-            setTarefasAtrasadas(tar);
-          } catch (error) {
-            console.error("❌ Erro ao buscar diretrizes atrasadas:", error);
-          }
-        };
-      
-        buscarAtrasadas();
-      }, []);
-      
+
       
 
 
@@ -1715,8 +1724,11 @@ useEffect(() => {
                 </Box>
 
                 {dados.length === 0 ? (
-                  <Typography variant="body2" sx={{ color: "#999", px: 2 }}>
-                    
+                  <Typography
+                    variant="body2"
+                    sx={{ color: "#999", px: 2, fontStyle: "italic" }}
+                  >
+                    Nenhuma {titulo.toLowerCase()} atrasada encontrada para este projeto.
                   </Typography>
                 ) : (
                   dados.map((item, i) => (
@@ -1734,7 +1746,7 @@ useEffect(() => {
                       }}
                     >
                       <Typography variant="body2" sx={{ flex: 1 }}>
-                        {item.titulo}
+                        {item.tituloTarefa || item.titulo || "Sem título"}
                       </Typography>
 
                       <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>
@@ -1758,6 +1770,7 @@ useEffect(() => {
     </>
   )}
 </TabPanel>
+
 
 
 
@@ -1809,44 +1822,81 @@ useEffect(() => {
             
             
 <TabPanel value="7">
-  {projetoSelecionado &&
-    [
+  {projetoSelecionado && (() => {
+    const projeto = todosProjetos.find(p => p.id === projetoSelecionado);
+    if (!projeto) return null;
+
+    const estrategicas = projeto.estrategicas?.filter(
+      e => e.status === "concluida" && e.statusVisual === "atrasada"
+    ) || [];
+
+    const taticas = projeto.estrategicas?.flatMap(e =>
+      (e.taticas || []).filter(
+        t => t.status === "concluida" && t.statusVisual === "atrasada"
+      )
+    ) || [];
+
+    const operacionais = projeto.estrategicas?.flatMap(e =>
+      e.taticas?.flatMap(t =>
+        (t.operacionais || []).filter(
+          o => o.status === "concluida" && o.statusVisual === "atrasada"
+        )
+      )
+    ) || [];
+
+    const tarefas = projeto.estrategicas?.flatMap(e =>
+      e.taticas?.flatMap(t =>
+        t.operacionais?.flatMap(op =>
+          (op.tarefas || []).filter(
+            tar => tar.status === "concluida" && tar.statusVisual === "atrasada"
+          )
+        )
+      )
+    ) || [];
+
+    const blocos = [
       {
         titulo: "Estratégicas",
         cor: "#312783",
-        dados: estrategicasConcluidasAtrasadas,
-        prefixo: "est-conc-atrasada",
+        dados: estrategicas,
         getResponsaveis: (item) => (item.emails || []).join(", "),
-        tituloCampo: "titulo",
+        getTitulo: (item) => item.titulo || "Sem título",
+        getInicio: (item) => item.criacao || "",
+        getPrazo: (item) => item.finalizacao || "",
       },
       {
         titulo: "Táticas",
         cor: "#00796b",
-        dados: taticasConcluidasAtrasadas,
-        prefixo: "tat-conc-atrasada",
+        dados: taticas,
         getResponsaveis: (item) => (item.emails || []).join(", "),
-        tituloCampo: "titulo",
+        getTitulo: (item) => item.titulo || "Sem título",
+        getInicio: (item) => item.criacao || "",
+        getPrazo: (item) => item.finalizacao || "",
       },
       {
         titulo: "Operacionais",
         cor: "#f44336",
-        dados: operacionaisConcluidasAtrasadas,
-        prefixo: "op-conc-atrasada",
+        dados: operacionais,
         getResponsaveis: (item) => (item.emails || []).join(", "),
-        tituloCampo: "titulo",
+        getTitulo: (item) => item.titulo || "Sem título",
+        getInicio: (item) => item.criacao || "",
+        getPrazo: (item) => item.finalizacao || "",
       },
       {
         titulo: "Tarefas",
         cor: "#f28e2b",
-        dados: tarefasConcluidasAtrasadas,
-        prefixo: "tarefa-conc-atrasada",
+        dados: tarefas,
         getResponsaveis: (item) => {
           const quem = item?.planoDeAcao?.quemEmail;
           return Array.isArray(quem) ? quem.join(", ") : quem || "Nenhum responsável";
         },
-        tituloCampo: "tituloTarefa",
+        getTitulo: (item) => item.tituloTarefa || item.titulo || "Sem título",
+        getInicio: (item) => item.criacao || "",
+        getPrazo: (item) => item.finalizacao || "",
       },
-    ].map(({ titulo, cor, dados, prefixo, getResponsaveis, tituloCampo }, index) => (
+    ];
+
+    return blocos.map(({ titulo, cor, dados, getResponsaveis, getTitulo, getInicio, getPrazo }, index) => (
       <Box key={index} sx={{ mb: 2 }}>
         <Box display="flex" alignItems="center" mb={1}>
           <DoubleArrowIcon sx={{ color: cor, mr: 1 }} />
@@ -1855,37 +1905,71 @@ useEffect(() => {
           </Typography>
         </Box>
 
-        {dados.map((item, i) => (
-          <Box
-            key={`${prefixo}-${i}`}
-            sx={{
-              backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
-              px: 2,
-              py: 1,
-              borderBottom: "1px solid #e0e0e0",
-              display: "flex",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: 1,
-            }}
-          >
-            <Typography variant="body2" sx={{ flex: 1 }}>
-              {item[tituloCampo] || "-"}
-            </Typography>
-            <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>
-              |
-            </Typography>
-            <Typography variant="body2" sx={{ flex: 2 }}>
-              <strong>Responsáveis:</strong>{" "}
-              <span style={{ fontStyle: "italic", color: "#555" }}>
-                {getResponsaveis(item)}
-              </span>
-            </Typography>
-          </Box>
-        ))}
+        {dados.length === 0 ? (
+          <Typography variant="body2" sx={{ color: "#999", px: 2, fontStyle: "italic" }}>
+            Nenhuma {titulo.toLowerCase()} concluída em atraso para este projeto.
+          </Typography>
+        ) : (
+          dados.map((item, i) => (
+            <Box
+              key={`${titulo}-${i}`}
+              sx={{
+                backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+                px: 2,
+                py: 1,
+                borderBottom: "1px solid #e0e0e0",
+                display: "flex",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 1,
+              }}
+            >
+              <Typography variant="body2" sx={{ flex: 1 }}>
+                {getTitulo(item)}
+              </Typography>
+
+              <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+              <Typography variant="body2" sx={{ flex: 2 }}>
+                <strong>Responsáveis:</strong>{" "}
+                <span style={{ fontStyle: "italic", color: "#555" }}>
+                  {getResponsaveis(item)}
+                </span>
+              </Typography>
+
+              <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                <TextField
+                  label="Data início"
+                  type="date"
+                  size="small"
+                  value={getInicio(item)}
+                  InputLabelProps={{ shrink: true }}
+                  disabled
+                  sx={{ minWidth: "100px", maxWidth: "120px" }}
+                />
+                <TextField
+                  label="Prazo previsto"
+                  type="date"
+                  size="small"
+                  value={getPrazo(item)}
+                  InputLabelProps={{ shrink: true }}
+                  disabled
+                  sx={{ minWidth: "100px", maxWidth: "120px" }}
+                />
+              </Box>
+            </Box>
+          ))
+        )}
       </Box>
-    ))}
+    ));
+  })()}
 </TabPanel>
+
+
+
+
 
 
 
@@ -1948,6 +2032,8 @@ useEffect(() => {
     const projeto = todosProjetos.find(p => p.id === projetoSelecionado);
     if (!projeto) return null;
 
+    const areaNomeSelecionada = areas.find(a => a.id === areaSelecionada)?.nome || "";
+
     const renderBloco = (titulo, cor, dados, tituloCampo, getResponsaveis) => (
       <Box sx={{ mb: 2 }}>
         <Box display="flex" alignItems="center" mb={1}>
@@ -1956,47 +2042,53 @@ useEffect(() => {
             {titulo}
           </Typography>
         </Box>
-        {dados.map((item, i) => (
-          <Box
-            key={`${titulo}-${i}`}
-            sx={{
-              backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
-              px: 2,
-              py: 1,
-              borderBottom: "1px solid #e0e0e0",
-              display: "flex",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: 1,
-            }}
-          >
-            <Typography variant="body2" sx={{ flex: 1 }}>
-              {item[tituloCampo] || "-"}
-            </Typography>
-            <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
-            <Typography variant="body2" sx={{ flex: 2 }}>
-              <strong>Responsáveis:</strong>{" "}
-              <span style={{ fontStyle: "italic", color: "#555" }}>
-                {getResponsaveis(item)}
-              </span>
-            </Typography>
-          </Box>
-        ))}
+        {dados.length === 0 ? (
+          <Typography sx={{ px: 2, fontStyle: "italic", color: "#888" }}>
+            Nenhuma {titulo.toLowerCase()} encontrada para essa área.
+          </Typography>
+        ) : (
+          dados.map((item, i) => (
+            <Box
+              key={`${titulo}-${i}`}
+              sx={{
+                backgroundColor: i % 2 === 0 ? "#ededed" : "#e5e5e5",
+                px: 2,
+                py: 1,
+                borderBottom: "1px solid #e0e0e0",
+                display: "flex",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 1,
+              }}
+            >
+              <Typography variant="body2" sx={{ flex: 1 }}>
+                {item[tituloCampo] || "-"}
+              </Typography>
+              <Typography variant="body2" sx={{ mx: 1, color: "#888" }}>|</Typography>
+              <Typography variant="body2" sx={{ flex: 2 }}>
+                <strong>Responsáveis:</strong>{" "}
+                <span style={{ fontStyle: "italic", color: "#555" }}>
+                  {getResponsaveis(item)}
+                </span>
+              </Typography>
+            </Box>
+          ))
+        )}
       </Box>
     );
 
     const estrategicasFiltradas =
-      projeto.estrategicas?.filter(e => (e.areasResponsaveis || []).includes(areaSelecionada)) || [];
+      projeto.estrategicas?.filter(e => e.areaNome === areaNomeSelecionada) || [];
 
     const taticasFiltradas =
       projeto.estrategicas?.flatMap(e =>
-        e.taticas?.filter(t => (t.areasResponsaveis || []).includes(areaSelecionada)) || []
+        e.taticas?.filter(t => t.areaNome === areaNomeSelecionada) || []
       ) || [];
 
     const operacionaisFiltradas =
       projeto.estrategicas?.flatMap(e =>
         e.taticas?.flatMap(t =>
-          t.operacionais?.filter(op => (op.areasResponsaveis || []).includes(areaSelecionada)) || []
+          t.operacionais?.filter(op => op.areaNome === areaNomeSelecionada) || []
         ) || []
       ) || [];
 
@@ -2004,7 +2096,7 @@ useEffect(() => {
       projeto.estrategicas?.flatMap(e =>
         e.taticas?.flatMap(t =>
           t.operacionais?.flatMap(op =>
-            op.tarefas?.filter(tar => (tar.areasResponsaveis || []).includes(areaSelecionada)) || []
+            op.tarefas?.filter(tar => tar.areaNome === areaNomeSelecionada) || []
           ) || []
         ) || []
       ) || [];
@@ -2046,6 +2138,7 @@ useEffect(() => {
     );
   })()}
 </TabPanel>
+
 
 
 

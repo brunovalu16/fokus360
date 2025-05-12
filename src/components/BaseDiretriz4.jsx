@@ -154,6 +154,8 @@
 
     const [selectedTaticaId, setSelectedTaticaId] = useState("");
 
+    const [areasSelecionadasPorEstrategica, setAreasSelecionadasPorEstrategica] = useState({});
+
 
 
     // Estados para seleção de áreas, unidades, etc.
@@ -239,69 +241,65 @@ const formatarDataISO = (data) => {
 
 //useEffect que filtra as táticas por selectedArea
 useEffect(() => {
-  if (!selectedArea || !estrategicas.length) {
+  if (!estrategicaId) {
     setTaticasFiltradasPorArea([]);
     return;
   }
 
-  const taticasRelacionadas = [];
+  const areaSelecionada = areasSelecionadasPorEstrategica[estrategicaId];
 
-  estrategicas.forEach((estrategica) => {
-    estrategica.taticas.forEach((tatica) => {
-      const areas = areasTaticasPorId[tatica.id] || [];
-
-      if (areas.includes(selectedArea)) {
-        taticasRelacionadas.push(tatica);
-      }
-    });
-  });
-
-  setTaticasFiltradasPorArea(taticasRelacionadas);
-}, [selectedArea, estrategicas, areasTaticasPorId]);
-
-
-
-
-//aparece a tatica que foi selecionada
-useEffect(() => {
-  if (!selectedAreaNome) {
+  if (!areaSelecionada?.nome) {
     setTaticasFiltradasPorArea([]);
     return;
   }
 
-  const filtradas = estrategicas
-    .flatMap((est) => est.taticas.map((t) => ({ ...t, estrategicaId: est.id })))
-    .filter((tatica) => tatica.areaNome === selectedAreaNome);
+  const estrategicaAtual = estrategicas.find((e) => e.id === estrategicaId);
+  if (!estrategicaAtual) {
+    setTaticasFiltradasPorArea([]);
+    return;
+  }
+
+  const filtradas = (estrategicaAtual.taticas || []).filter(
+    (tatica) => tatica.areaNome === areaSelecionada.nome
+  );
 
   setTaticasFiltradasPorArea(filtradas);
-}, [selectedAreaNome, estrategicas]);
+}, [estrategicaId, areasSelecionadasPorEstrategica, estrategicas]);
+
+
+
+
+
 
 
 
 //aparece a Operacionais que foi selecionada
 // operacionais filtradas por tática + área
 useEffect(() => {
-  if (!selectedAreaNome || !selectedTaticaId) {
-    setOperacionaisFiltradas([]);
+  if (!estrategicaId) {
+    setTaticasFiltradasPorArea([]);
     return;
   }
 
-  const filtradas = estrategicas
-    .flatMap((est) =>
-      est.taticas
-        .filter((tat) => tat.id === selectedTaticaId)
-        .flatMap((tat) =>
-          (tat.operacionais || []).map((op) => ({
-            ...op,
-            taticaId: tat.id,
-            estrategicaId: est.id,
-          }))
-        )
-    )
-    .filter((op) => op.areaNome === selectedAreaNome);
+  const areaSelecionada = areasSelecionadasPorEstrategica[estrategicaId];
+  if (!areaSelecionada?.nome) {
+    setTaticasFiltradasPorArea([]);
+    return;
+  }
 
-  setOperacionaisFiltradas(filtradas);
-}, [selectedAreaNome, selectedTaticaId, estrategicas]);
+  const estrategicaAtual = estrategicas.find((e) => e.id === estrategicaId);
+  if (!estrategicaAtual) {
+    setTaticasFiltradasPorArea([]);
+    return;
+  }
+
+  const filtradas = (estrategicaAtual.taticas || []).filter(
+    (tatica) => tatica.areaNome === areaSelecionada.nome
+  );
+
+  setTaticasFiltradasPorArea(filtradas);
+}, [estrategicaId, areasSelecionadasPorEstrategica, estrategicas]);
+
 
 
 
@@ -719,35 +717,43 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
     // -------------------------------------
     //|| !descEstrategica.trim()
 
-    const handleAddEstrategica = () => {
-      if (!novaEstrategica.trim()) {
-        alert("Preencha o nome da Diretriz Estratégica!");
-        return;
-      }
-    
-      const emails = emailsDigitados
-        .split(",")
-        .map((email) => email.trim())
-        .filter((email) => email !== "");
-    
-      const item = {
-        id: Date.now().toString(),
-        titulo: novaEstrategica,
-        descricao: descEstrategica,
-        emails,
-        taticas: [],
-        status: "",
-        finalizacao: "", // ainda não definido
-        createdAt: new Date().toISOString(),
-        // 🔴 sem time e statusVisual neste momento
-      };
-    
-      const atualizado = [...estrategicas, item];
-      setEstrategicas(atualizado);
-      setNovaEstrategica("");
-      setDescEstrategica("");
-    };
-    
+   const handleAddEstrategica = () => {
+  if (!novaEstrategica.trim()) {
+    alert("Preencha o nome da Diretriz Estratégica!");
+    return;
+  }
+
+  if (!selectedArea) {
+    alert("Selecione uma área responsável para a Estratégica!");
+    return;
+  }
+
+  const emails = emailsDigitados
+    .split(",")
+    .map((email) => email.trim())
+    .filter((email) => email !== "");
+
+  const areaSelecionadaObj = areas.find((a) => a.id === selectedArea);
+
+  const item = {
+    id: Date.now().toString(),
+    titulo: novaEstrategica,
+    descricao: descEstrategica,
+    emails,
+    taticas: [],
+    status: "",
+    finalizacao: "",
+    createdAt: new Date().toISOString(),
+    areaNome: areaSelecionadaObj?.nome || "", // ✅ nome da área
+  };
+
+  const atualizado = [...estrategicas, item];
+  setEstrategicas(atualizado);
+  setNovaEstrategica("");
+  setDescEstrategica("");
+  setSelectedArea(""); // limpa a seleção após adicionar
+};
+
     
     
     
@@ -1435,13 +1441,47 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
         </Typography>
 
         <Box display="flex" flexDirection="column" gap={2} mb={4}>
+          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+            {/* Campo de texto maior */}
+            <Box sx={{ flex: 2, minWidth: "250px" }}>
+              <TextField
+                label="Nome da Diretriz Estratégica..."
+                value={novaEstrategica}
+                onChange={(e) => setNovaEstrategica(e.target.value)}
+                fullWidth
+              />
+            </Box>
+
+            {/* Select menor ao lado */}
+            <Box sx={{ flex: 1, minWidth: "200px" }}>
+              <Select
+                value={selectedArea}
+                onChange={(event) => setSelectedArea(event.target.value)}
+                displayEmpty
+                fullWidth
+                sx={{ backgroundColor: "transparent" }}
+                renderValue={(selected) =>
+                  !selected
+                    ? "Selecione uma área para Estratégica"
+                    : areas.find((area) => area.id === selected)?.nome || "Desconhecida"
+                }
+              >
+                <MenuItem disabled value="">
+                  <em>Selecione uma área responsável</em>
+                </MenuItem>
+                {areas.map((area) => (
+                  <MenuItem key={area.id} value={area.id}>
+                    <ListItemText primary={area.nome} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </Box>
+          </Box>
+
+          <Box sx={{ flex: 1, minWidth: "200px", maxWidth: "300px" }}>
           
-          <TextField
-            label="Nome da Diretriz Estratégica..."
-            value={novaEstrategica}
-            onChange={(e) => setNovaEstrategica(e.target.value)}
-            fullWidth
-          />
+          
+        </Box>
 
           {/* Botões "+" e "Salvar Estratégicas" alinhados à esquerda em coluna */}
           <Box
@@ -1473,6 +1513,8 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
               <AddCircleOutlineIcon sx={{ fontSize: 25, color: "#312783" }} />
             </Button>
           </Box>
+
+          
 
           {/* Título da seção Estratégica */}
         </Box>
@@ -1594,7 +1636,14 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
         {/* ************************************ */}
         {/* Accordion p/ cada Diretriz Estratégica */}
         {/* ************************************ */}
-        {estrategicas.map((estrategica) => (
+        {estrategicas.map((estrategica) => {
+          const areaSelecionada = areasSelecionadasPorEstrategica[estrategica.id]?.nome;
+
+          const taticasFiltradas = (estrategica.taticas || []).filter(
+            (tatica) => tatica.areaNome === areaSelecionada
+          );
+
+          return (
           <Accordion
             key={estrategica.id}
             disableGutters
@@ -1609,6 +1658,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
             
             {/* Cabeçalho da Estratégica */}
             <AccordionSummary
+              onClick={() => setEstrategicaId(estrategica.id)}
               expandIcon={<ExpandMoreIcon sx={{ color: "#b7b7b7" }} />}
               sx={{
                 borderRadius: "8px",
@@ -1647,9 +1697,10 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
 
 
 <StatusProgresso
-  progresso={calcularMediaProgressoGeral(estrategicas)}
-  cor="#0069f7" // ou qualquer cor que você quiser
+  progresso={calcularMediaProgressoGeral([estrategica])} // passa só a estratégica atual
+  cor="#0069f7"
 />
+
 
 
 
@@ -2247,13 +2298,14 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
                     <Select
                       fullWidth
                       displayEmpty
-                      value={selectedAreaId}
+                      value={areasSelecionadasPorEstrategica[estrategica.id]?.id || ""}
                       onChange={(event) => {
                         const id = event.target.value;
                         const nome = areas.find((area) => area.id === id)?.nome || "";
-
-                        setSelectedAreaId(id);
-                        setSelectedAreaNome(nome);
+                        setAreasSelecionadasPorEstrategica((prev) => ({
+                          ...prev,
+                          [estrategica.id]: { id, nome },
+                        }));
                       }}
                       renderValue={(selected) => {
                         if (!selected) {
@@ -2420,7 +2472,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
 
 
               {/* Accordion das Táticas */}
-              {taticasFiltradasPorArea.map((tatica) => (
+              {taticasFiltradas.map((tatica) => (
                 <Accordion
                   key={tatica.id}
                   disableGutters
@@ -4507,7 +4559,8 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
             ))}
           </AccordionDetails>
         </Accordion>
-      ))}
+        );
+      })}
       {/* Botão SALVAR */}
       <Box sx={{ display: "flex", justifyContent: "flex-end",  }}>
       <Button
