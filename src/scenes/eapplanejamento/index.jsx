@@ -20,13 +20,23 @@ import { dbFokus360 } from "../../data/firebase-config";
 
 
 import FiltrosPlanejamento2 from "../../components/FiltrosPlanejamento2";
-import SelectAreaStatus2 from "../../components/SelectAreaStatus2";
+import SelectAreaStatus3 from "../../components/SelectAreaStatus3";
+
+
+import {
+  calcularProgressoPorArea,
+  calcularProgressoTatica,
+  calcularProgressoOperacional,
+  calcularProgressoEstrategica,
+  calcularProgressoArea,
+  calcularMediaProgressoGeral
+} from "../../utils/progressoUtils";
 
 
 
 
 
-const LinhaItem = ({ cor, texto, onClick, style = {}, tipo, porcentagem   }) => (
+const LinhaItem = ({ cor, texto, onClick, style = {}, tipo, porcentagem }) => (
   <Box mb={1} style={style}>
     {tipo && (
       <Typography fontWeight={400} sx={{ fontSize: "10px", marginBottom: "-5px" }}>
@@ -50,26 +60,39 @@ const LinhaItem = ({ cor, texto, onClick, style = {}, tipo, porcentagem   }) => 
     </Box>
 
     <Box
-      display="flex"
-      alignItems="center"
-      justifyContent="space-between"
+  display="flex"
+  justifyContent="space-between"
+  alignItems="flex-start"
+  sx={{
+    borderTop: "none",
+    paddingTop: "4px",
+    borderRadius: "0 0 4px 4px",
+    gap: 1,
+  }}
+>
+  <Box sx={{ maxWidth: "180px", wordBreak: "break-word" }}>
+    <Typography
+      fontWeight={400}
       sx={{
-        borderTop: "none",
-        padding: "-2px",
-        borderRadius: "0 0 4px 4px",
+        fontSize: "11px",
+        whiteSpace: "normal",
+        lineHeight: 1.2,
       }}
     >
-      <Typography fontWeight={400} sx={{ fontSize: "11px" }}>
-        {texto}
-      </Typography>
-      {porcentagem != null && (
-        <Typography fontSize="10px" sx={{ color: "#888" }}>
-          {porcentagem}%
-        </Typography>
-      )}
-    </Box>
+      {texto}
+    </Typography>
+  </Box>
+
+  {porcentagem != null && (
+    <Typography fontSize="10px" sx={{ color: "#888", whiteSpace: "nowrap" }}>
+      {Math.round(porcentagem)}%
+    </Typography>
+  )}
+</Box>
+
   </Box>
 );
+
 
 
 //PEgar todas as tarefas do banco
@@ -81,44 +104,7 @@ const extrairTarefas = (estrategicas) => {
 };
 
 
-//Funções de calculos de progresso
-const calcularProgressoTarefas = (tarefas = []) => {
-  if (!tarefas.length) return 0;
-  const concluidas = tarefas.filter(t => t.status === "concluida").length;
-  return Math.round((concluidas / tarefas.length) * 100);
-};
 
-const calcularProgressoOperacional = (operacional) => {
-  const tarefas = operacional?.tarefas || [];
-
-  if (tarefas.length === 0) {
-    // Se não houver tarefas, considera o checkbox da operacional
-    return operacional.status === "concluida" ? 100 : 0;
-  }
-
-  // Se houver tarefas, conta a operacional + todas as tarefas
-  const totalPartes = tarefas.length + 1; // +1 pelo checkbox da operacional
-  const concluidas = (operacional.status === "concluida" ? 1 : 0) +
-    tarefas.filter(t => t.status === "concluida").length;
-
-  return Math.round((concluidas / totalPartes) * 100);
-};
-
-const calcularProgressoTatica = (tatica) => {
-  const operacionais = tatica?.operacionais || [];
-  if (!operacionais.length) return 0;
-
-  const total = operacionais.reduce((acc, op) => acc + calcularProgressoOperacional(op), 0);
-  return Math.round(total / operacionais.length);
-};
-
-const calcularProgressoEstrategica = (estrategica) => {
-  const taticas = estrategica?.taticas || [];
-  if (!taticas.length) return 0;
-
-  const total = taticas.reduce((acc, tat) => acc + calcularProgressoTatica(tat), 0);
-  return Math.round(total / taticas.length);
-};
 
 
 
@@ -499,7 +485,7 @@ useEffect(() => {
 
   <Box display="flex" gap={4} mt={4} sx={{ marginBottom: "50px" }}>
   {/* Estratégicas */}
-  <Box minWidth="200px">
+ <Box minWidth="200px" sx={{ marginTop: "30px" }}>
   {columns.find(col => col.title === "Estratégicas")?.cards.map((estrategica, index) => {
     const estrategicaAtualizada = columns
       .find(col => col.title === "Estratégicas")
@@ -507,66 +493,68 @@ useEffect(() => {
 
     return (
       <LinhaItem
-  key={estrategica.id}
-  cor="#0069f7"
-  texto={estrategicaAtualizada?.titulo || "Sem título"}
-  tipo={index === 0 ? "Estratégicas" : null}
-  porcentagem={calcularProgressoEstrategica(estrategicaAtualizada)}
-  style={{
-    opacity: deveDiminuirOpacidade(estrategica.id, "Estratégicas") ? 0.3 : 1
-  }}
-  onClick={() => {
-    const estaAberta = expandedEstrategicas[estrategica.id];
+        key={estrategica.id}
+        cor="#0069f7"
+        texto={estrategicaAtualizada?.titulo || "Sem título"}
+        tipo={index === 0 ? "Estratégicas" : null}
+        porcentagem={calcularProgressoEstrategica(estrategicaAtualizada)}
+        style={{
+          opacity: deveDiminuirOpacidade(estrategica.id, "Estratégicas") ? 0.3 : 1
+        }}
+        onClick={() => {
+          const estaAberta = expandedEstrategicas[estrategica.id];
 
-    if (estaAberta) {
-      const taticasIds = (estrategica.taticas || []).map(t => t.id);
-      const operacionaisIds = estrategica.taticas?.flatMap(t => t.operacionais || []).map(op => op.id) || [];
+          if (estaAberta) {
+            const taticasIds = (estrategica.taticas || []).map(t => t.id);
+            const operacionaisIds = estrategica.taticas?.flatMap(t => t.operacionais || []).map(op => op.id) || [];
 
-      setExpandedEstrategicas(prev => ({
-        ...prev,
-        [estrategica.id]: false,
-      }));
+            setExpandedEstrategicas(prev => ({
+              ...prev,
+              [estrategica.id]: false,
+            }));
 
-      setExpandedTaticas(prev => {
-        const novo = { ...prev };
-        taticasIds.forEach(id => delete novo[id]);
-        return novo;
-      });
+            setExpandedTaticas(prev => {
+              const novo = { ...prev };
+              taticasIds.forEach(id => delete novo[id]);
+              return novo;
+            });
 
-      setExpandedOperacionais(prev => {
-        const novo = { ...prev };
-        operacionaisIds.forEach(id => delete novo[id]);
-        return novo;
-      });
+            setExpandedOperacionais(prev => {
+              const novo = { ...prev };
+              operacionaisIds.forEach(id => delete novo[id]);
+              return novo;
+            });
 
-      setAreaSelecionada(prev => {
-        const novo = { ...prev };
-        delete novo[estrategica.id];
-        return novo;
-      });
+            setAreaSelecionada(prev => {
+              const novo = { ...prev };
+              delete novo[estrategica.id];
+              return novo;
+            });
 
-      setAtivo({
-        estrategicaId: null,
-        taticaId: null,
-        operacionalId: null,
-      });
-    } else {
-      setExpandedEstrategicas(prev => ({
-        ...prev,
-        [estrategica.id]: true,
-      }));
+            setAtivo({
+              estrategicaId: null,
+              taticaId: null,
+              operacionalId: null,
+            });
+          } else {
+            setExpandedEstrategicas(prev => ({
+              ...prev,
+              [estrategica.id]: true,
+            }));
 
-      setAtivo({
-        estrategicaId: estrategica.id,
-        taticaId: null,
-        operacionalId: null,
-      });
-    }
-  }}
-/>
-  );
+            setAtivo({
+              estrategicaId: estrategica.id,
+              taticaId: null,
+              operacionalId: null,
+            });
+          }
+        }}
+      />
+    );
   })}
 </Box>
+
+
 
 
   {/* Táticas (somente das estratégicas expandidas) */}
@@ -582,8 +570,18 @@ useEffect(() => {
       return (
         <Box key={estrategica.id} sx={{ mb: 3 }}>
           {/* Filtro de área por Estratégica */}
-          <Box sx={{ backgroundColor: "#8a8a8a", maxWidth: "210px", borderRadius: "10px", padding: "5px", marginTop: "-45px" }}>
-            <SelectAreaStatus2
+          <Box sx={{  
+            backgroundColor: "transparent",
+            border: "1px solid #a0a0a0",
+            width: "100%",
+            minWidth: "400px", // 🔥 aumenta a largura mínima
+            borderRadius: "17px",
+            padding: "10px",
+            marginTop: "-45px",
+            boxSizing: "border-box",
+            marginBottom: "20px"
+           }}>
+            <SelectAreaStatus3
               estrategica={estrategica}
               areas={areas}
               value={areaSelecionada[estrategica.id] || ""}
@@ -670,12 +668,29 @@ useEffect(() => {
                 justifyContent="space-between"
                 sx={{ borderTop: "none", padding: "-2px", borderRadius: "0 0 4px 4px" }}
               >
-                <Typography fontWeight={400} sx={{ fontSize: "11px" }}>
-                  {tatica.titulo || "Sem título"}
-                </Typography>
-                <Typography fontSize="10px" sx={{ color: "#888" }}>
-                  {calcularProgressoTatica(tatica)}%
-                </Typography>
+                <Box sx={{ maxWidth: "180px", wordBreak: "break-word" }}>
+                  <Typography
+                    fontWeight={400}
+                    sx={{
+                      fontSize: "11px",
+                      whiteSpace: "normal",
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {tatica.titulo || "Sem título"}
+                  </Typography>
+                </Box>
+                {(() => {
+                  const taticaAtualizada = columns
+                    .find(col => col.title === "Táticas")?.cards
+                    .find(t => t.id === tatica.id);
+
+                  return (
+                    <Typography fontSize="10px" sx={{ color: "#888" }}>
+                      {calcularProgressoTatica(tatica)}%
+                    </Typography>
+                  );
+                })()}
               </Box>
             </Box>
           ))}
@@ -688,7 +703,7 @@ useEffect(() => {
 
 
   {/* Operacionais (somente das táticas expandidas) */}
-<Box minWidth="200px">
+<Box minWidth="200px" sx={{ marginTop: "30px" }}>
   {columns.find(col => col.title === "Estratégicas")?.cards
     .flatMap(e => e.taticas || [])
     .filter(t => expandedTaticas[t.id])
@@ -781,10 +796,21 @@ useEffect(() => {
 
             return (
               <Typography fontSize="10px" sx={{ color: "#888" }}>
-                {calcularProgressoOperacional(atualizado || op)}%
+                {(() => {
+                  const atualizado = columns
+                    .find(col => col.title === "Operacionais")?.cards
+                    .find(o => o.id === op.id);
+
+                  return (
+                    <Typography fontSize="10px" sx={{ color: "#888" }}>
+                      {calcularProgressoOperacional(op)}%
+                    </Typography>
+                  );
+                })()}
               </Typography>
             );
           })()}
+
 
         </Box>
       </Box>
@@ -793,7 +819,7 @@ useEffect(() => {
 
 
   {/* Tarefas (somente das operacionais expandidas) */}
-  <Box minWidth="200px">
+  <Box minWidth="200px" sx={{ marginTop: "40px" }}>
   {columns.find(col => col.title === "Estratégicas")?.cards
     .flatMap(e => e.taticas || [])
     .flatMap(t => t.operacionais || [])
@@ -819,7 +845,10 @@ useEffect(() => {
         </Box>
 
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography fontWeight={400} sx={{ fontSize: "11px" }}>
+          <Typography
+            fontWeight={400}
+            sx={{ fontSize: "11px", whiteSpace: "normal" }}
+          >
             {tarefa.tituloTarefa || "Sem título"}
           </Typography>
 

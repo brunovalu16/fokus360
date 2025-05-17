@@ -22,6 +22,36 @@ export const calcularProgressoOperacional = (operacional) => {
 
 
 
+export function calcularProgressoPorArea(estrategicas) {
+  const progressoPorArea = {};
+
+  estrategicas.forEach((estrategica) => {
+    (estrategica.taticas || []).forEach((tatica) => {
+      const area = tatica.areaNome || "Sem Área";
+      const progresso = calcularProgressoTatica(tatica);
+
+      if (!progressoPorArea[area]) {
+        progressoPorArea[area] = { soma: 0, total: 0 };
+      }
+
+      progressoPorArea[area].soma += progresso;
+      progressoPorArea[area].total += 1;
+    });
+  });
+
+  // Transformar em array com médias arredondadas
+  return Object.entries(progressoPorArea).map(([area, { soma, total }]) => ({
+    area,
+    progresso: Math.round(soma / total)
+  }));
+}
+
+
+
+
+
+
+
 export function calcularProgressoArea(areaNome, estrategicas) {
   if (!areaNome || !estrategicas?.length) return 0;
 
@@ -37,6 +67,7 @@ export function calcularProgressoArea(areaNome, estrategicas) {
 
   return Math.round(soma / taticasDaArea.length);
 }
+
   
   
   
@@ -88,12 +119,12 @@ export function calcularProgressoEstrategica(estrategica) {
   let concluidas = estrategica.status === "concluida" ? 1 : 0;
 
   taticas.forEach(tat => {
-    totalPartes += 1; // Checkbox da tática
+    totalPartes += 1;
     if (tat.status === "concluida") concluidas += 1;
 
     const operacionais = tat.operacionais || [];
     operacionais.forEach(op => {
-      totalPartes += 1; // Checkbox da operacional
+      totalPartes += 1;
       if (op.status === "concluida") concluidas += 1;
 
       const tarefas = op.tarefas || [];
@@ -104,8 +135,9 @@ export function calcularProgressoEstrategica(estrategica) {
     });
   });
 
-  return Math.round((concluidas / totalPartes) * 100);
+  return totalPartes === 0 ? 0 : Math.round((concluidas / totalPartes) * 100);
 }
+
 
 
 

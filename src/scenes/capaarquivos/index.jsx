@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, Typography, Modal, Alert } from "@mui/material";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import { Link } from "react-router-dom";
-import capaplanejamento from "../../../src/assets/images/capaplanejamento.webp"
+import capaarquivos from "../../../src/assets/images/capaarquivos.webp"
 import { getDocs, getDoc, doc, collection } from "firebase/firestore";
 import { dbFokus360 } from "../../data/firebase-config"; // Para Fokus360
 
@@ -15,7 +15,7 @@ import Collapse from '@mui/material/Collapse';
 import CloseIcon from '@mui/icons-material/Close';
 import WarningIcon from '@mui/icons-material/Warning';
 
-const Projetos = () => {
+const Capaarquivos = () => {
   const [isUserAssociated, setIsUserAssociated] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userId, setUserId] = useState(null);
@@ -269,8 +269,8 @@ const checkUserAssociation = async (userEmail, userId) => {
         }}
       >
         <Box display="flex" alignItems="center" gap={1}>
-          <PlayCircleFilledIcon sx={{ color: "#0069f7", fontSize: 25 }} />
-          <Typography color="#858585">FOKUS 360 | PLANEJAMENTOS</Typography>
+          <PlayCircleFilledIcon sx={{ color: "#ffe000", fontSize: 25 }} />
+          <Typography color="#858585">FOKUS 360 | ARQUIVOS</Typography>
         </Box>
 
         <Box
@@ -288,7 +288,7 @@ const checkUserAssociation = async (userEmail, userId) => {
         {/* Estrutura da Imagem */}
         <div style={{ position: "relative", width: "100%", top: "-40px" }}>
           <img
-            src={capaplanejamento}
+            src={capaarquivos}
             style={{
               width: "100%",
               height: "auto",
@@ -307,7 +307,7 @@ const checkUserAssociation = async (userEmail, userId) => {
             }}
           >
             <Link
-              to="/planejamento"
+              to="/arquivos"
               style={{
                 backgroundColor: "transparent",
                 color: "transparent",
@@ -400,4 +400,4 @@ const checkUserAssociation = async (userEmail, userId) => {
   );
 };
 
-export default Projetos;
+export default Capaarquivos;

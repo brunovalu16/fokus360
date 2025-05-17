@@ -259,7 +259,7 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
                 sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}
               >
                 <MenuItem value="" disabled>
-                  Selecione uma categoria
+                  Selecione área responsável
                 </MenuItem>
                 <MenuItem value="ADMINISTRATIVO">ADMINISTRATIVO</MenuItem>
                 <MenuItem value="COMERCIAL">COMERCIAL</MenuItem>

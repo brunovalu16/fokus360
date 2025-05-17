@@ -373,33 +373,32 @@ useEffect(() => {
               </FormControl>
 
               {/* Categoria */}
-              <FormControl fullWidth sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}>
-                <InputLabel shrink id="label-categoria">Categoria</InputLabel>
-                <Select
-                  labelId="label-categoria"
-                  name="categoria"
-                  value={formValues.categoria}
-                  onChange={handleChange}
-                  displayEmpty
-                  notched
-                  label="Categoria"
-                >
-                <MenuItem value="ADMINISTRATIVO">ADMINISTRATIVO</MenuItem>
-                <MenuItem value="COMERCIAL">COMERCIAL</MenuItem>
-                <MenuItem value="CONTABILIDADE">CONTABILIDADE</MenuItem>
-                <MenuItem value="CONTROLADORIA">CONTROLADORIA</MenuItem>
-                <MenuItem value="DEPARTAMENTOPESSOAL">
-                  DEPARTAMENTO PESSOAL
-                </MenuItem>
-                <MenuItem value="DIRETORIA">DIRETORIA</MenuItem>
-                <MenuItem value="ESTRATEGIADENEGOCIOS">
-                  ESTRATÉGIA DE NEGÓCIOS
-                </MenuItem>
-                <MenuItem value="FINANCEIRO">FINANCEIRO</MenuItem>
-                <MenuItem value="RECURSOSHUMANOS">RECURSOS HUMANOS</MenuItem>
-                <MenuItem value="LOGISTICA">LOGÍSTICA</MenuItem>
-                </Select>
-              </FormControl>
+              <FormControl
+  fullWidth
+  variant="outlined"
+  sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}
+>
+  <InputLabel id="label-categoria">Área responsável</InputLabel>
+  <Select
+    labelId="label-categoria"
+    name="categoria"
+    value={formValues.categoria}
+    onChange={handleChange}
+    label="Área responsável"
+  >
+    <MenuItem value="ADMINISTRATIVO">ADMINISTRATIVO</MenuItem>
+    <MenuItem value="COMERCIAL">COMERCIAL</MenuItem>
+    <MenuItem value="CONTABILIDADE">CONTABILIDADE</MenuItem>
+    <MenuItem value="CONTROLADORIA">CONTROLADORIA</MenuItem>
+    <MenuItem value="DEPARTAMENTOPESSOAL">DEPARTAMENTO PESSOAL</MenuItem>
+    <MenuItem value="DIRETORIA">DIRETORIA</MenuItem>
+    <MenuItem value="ESTRATEGIADENEGOCIOS">ESTRATÉGIA DE NEGÓCIOS</MenuItem>
+    <MenuItem value="FINANCEIRO">FINANCEIRO</MenuItem>
+    <MenuItem value="RECURSOSHUMANOS">RECURSOS HUMANOS</MenuItem>
+    <MenuItem value="LOGISTICA">LOGÍSTICA</MenuItem>
+  </Select>
+</FormControl>
+
 
 
               {/* Colaboradores (múltipla seleção) */}

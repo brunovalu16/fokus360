@@ -1693,9 +1693,10 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
 
 
 <StatusProgresso
-  progresso={calcularMediaProgressoGeral([estrategica])} // passa só a estratégica atual
+  progresso={calcularProgressoEstrategica(estrategica)}
   cor="#0069f7"
 />
+
 
 
 

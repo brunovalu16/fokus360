@@ -84,26 +84,45 @@ const Cadastro = () => {
         display="flex" flexDirection="row" alignItems="center" justifyContent="center"
         sx={{ backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat", width: "80vw", minHeight: "90vh" }}
       >
-        {/* ✅ Logo - Agora Importada */}
-        <Box sx={{ backgroundColor: "#312783", padding: "192px", paddingRight: "80px", borderBottomLeftRadius: "50px" }}>
-          <img src={logoImage} alt="Logo" style={{ width: "75%", height: "auto", marginRight: "100px" }} />
-        </Box>
+        
 
         {/* Formulário de Cadastro */}
-        <Box sx={{ borderTopRightRadius: "50px", backgroundColor: "white", padding: 5, boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)", width: "90%", maxWidth: 400, textAlign: "center" }}>
+        <Box sx={{ borderTopRightRadius: "50px", backgroundColor: "transparent", padding: 5, boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)", width: "100%", maxWidth: 800, textAlign: "center" }}>
           <Box component="form" onSubmit={handleCadastro} sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
             
             {/* Avatar */}
-            <Box textAlign="center" mb={2}>
-              <Avatar src={avatarPreview || ""} alt="Avatar do Usuário" sx={{ width: 100, height: 100, margin: "0 auto", border: "2px solid #9d9d9c", borderRadius: 5 }} />
-              <Button 
-                variant="outlined" component="label"
-                sx={{ textTransform: "none", marginBottom: 2, marginTop: "10px", backgroundColor: "#312783", color: "#fff", border: "none", width: "50%", borderRadius: "10px" }}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 3, mb: 2 }}>
+              {/* Avatar */}
+              <Avatar
+                src={avatarPreview || ""}
+                alt="Avatar do Usuário"
+                sx={{
+                  width: 100,
+                  height: 100,
+                  border: "2px solid #9d9d9c",
+                  borderRadius: 5,
+                }}
+              />
+
+              {/* Botão */}
+              <Button
+                variant="outlined"
+                component="label"
+                sx={{
+                  textTransform: "none",
+                  backgroundColor: "#312783",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "10px",
+                  width: "160px", // 🔧 define uma largura apropriada ao lado do avatar
+                  height: "40px",
+                }}
               >
                 Selecionar Foto
                 <input type="file" accept="image/*" hidden onChange={handleAvatarChange} />
               </Button>
             </Box>
+
 
             <TextField label="Nome" variant="outlined" value={username} onChange={(e) => setUsername(e.target.value)} fullWidth required />
             <TextField label="E-mail" type="email" variant="outlined" value={email} onChange={(e) => setEmail(e.target.value)} fullWidth required />

@@ -134,7 +134,7 @@ const SideBar = () => {
             src={logo}
             alt="Logo"
             style={{
-              width: "100px", // Tamanho da logo
+              width: "150px", // Tamanho da logo
               height: "auto",
               marginTop: "10px",
               marginBottom: "20px",
@@ -255,11 +255,11 @@ const SideBar = () => {
   )}
 </div>
 
-<MenuItem component={<Link to="/arquivos" />} icon={<SourceIcon />}>
+<MenuItem component={<Link to="/capaarquivos" />} icon={<SourceIcon />}>
     Arquivos
   </MenuItem>
 
-  <MenuItem component={<Link to="/kanban" />} icon={<AssignmentTurnedInIcon />}>
+  <MenuItem component={<Link to="/capatarefas" />} icon={<AssignmentTurnedInIcon />}>
     Tarefas
   </MenuItem>
 

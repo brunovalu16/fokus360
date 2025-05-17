@@ -280,8 +280,8 @@ const Login = () => {
         <Box
           sx={{
             backgroundColor: "#312783",
-            padding: "58px",
-            paddingBottom: "64px",
+            padding: "30px",
+            paddingBottom: "50px",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -295,7 +295,7 @@ const Login = () => {
             src={logo}
             alt="Logo"
             style={{
-              width: "450px",
+              width: "420px",
               height: "auto",
             }}
           />
@@ -304,6 +304,7 @@ const Login = () => {
         <Box
           sx={{
             borderTopRightRadius: "50px",
+            borderBottomLeftRadius: "50px",
             backgroundColor: "white",
             padding: 4,
             boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
@@ -317,7 +318,7 @@ const Login = () => {
           <Box
             component="form"
             onSubmit={handleLogin}
-            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+            sx={{ display: "flex", flexDirection: "column", gap: 1 }}
           >
             <TextField
               label="E-mail"
