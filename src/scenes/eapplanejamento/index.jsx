@@ -559,7 +559,7 @@ useEffect(() => {
 
   {/* Táticas (somente das estratégicas expandidas) */}
  {/* Táticas com filtro por área */}
-<Box minWidth="200px">
+<Box minWidth="100px" maxWidth="250px">
   {columns.find(col => col.title === "Estratégicas")?.cards
     .filter(e => expandedEstrategicas[e.id]) // Estratégicas abertas
     .map(estrategica => {
@@ -574,7 +574,7 @@ useEffect(() => {
             backgroundColor: "transparent",
             border: "1px solid #a0a0a0",
             width: "100%",
-            minWidth: "400px", // 🔥 aumenta a largura mínima
+            minWidth: "600px", // 🔥 aumenta a largura mínima
             borderRadius: "17px",
             padding: "10px",
             marginTop: "-45px",
@@ -703,7 +703,7 @@ useEffect(() => {
 
 
   {/* Operacionais (somente das táticas expandidas) */}
-<Box minWidth="200px" sx={{ marginTop: "30px" }}>
+<Box minWidth="100px" maxWidth="250px" sx={{ marginTop: "30px" }}>
   {columns.find(col => col.title === "Estratégicas")?.cards
     .flatMap(e => e.taticas || [])
     .filter(t => expandedTaticas[t.id])

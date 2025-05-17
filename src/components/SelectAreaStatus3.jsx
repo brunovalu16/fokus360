@@ -1,4 +1,4 @@
-import { Box, MenuItem, Select } from "@mui/material";
+import { Box, MenuItem, Select, Typography  } from "@mui/material";
 import StatusProgresso2 from "./StatusProgresso2";
 import {
   calcularProgressoTatica,
@@ -76,9 +76,27 @@ const SelectAreaStatus3 = ({ estrategica, areas, value, onChangeArea }) => {
       {/* Gráficos lado a lado */}
       {value && (
         <>
-          <StatusProgresso2 progresso={progressoTatica} tipo="tatica" />
-          <StatusProgresso2 progresso={progressoOperacional} tipo="operacional" />
-          <StatusProgresso2 progresso={progressoTarefa} tipo="tarefa" />
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Typography sx={{ color: "#4caf50", fontSize: "0.8rem", minWidth: "50px" }}>
+              Tática:
+            </Typography>
+            <StatusProgresso2 progresso={progressoTatica} tipo="tatica" />
+          </Box>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Typography sx={{ color: "#f44336", fontSize: "0.8rem", minWidth: "80px" }}>
+              Operacional:
+            </Typography>
+            <StatusProgresso2 progresso={progressoOperacional} tipo="operacional" />
+          </Box>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Typography sx={{ color: "#ffa600", fontSize: "0.8rem", minWidth: "50px" }}>
+              Tarefa:
+            </Typography>
+            <StatusProgresso2 progresso={progressoTarefa} tipo="tarefa" />
+          </Box>
+
         </>
       )}
     </Box>

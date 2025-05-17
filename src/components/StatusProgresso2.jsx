@@ -26,7 +26,7 @@ const StatusProgresso2 = ({ progresso, tipo, cor: corPersonalizada }) => {
 
   return (
     <Box sx={{ minWidth: 60, mr: 2, textAlign: "center" }}>
-      <Typography sx={{ fontSize: "0.75rem", color: "#979797", mb: 0.5 }}>
+      <Typography sx={{ fontSize: "0.75rem", color: "#747474", mb: 0.5 }}>
         {progresso}%
       </Typography>
       <LinearProgress
