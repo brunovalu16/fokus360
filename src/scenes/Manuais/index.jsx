@@ -13,6 +13,12 @@ import { Box, Typography,
   ListItemButton,
   Divider, } from "@mui/material";
 
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import DownloadIcon from "@mui/icons-material/Download";
+
+
 import { getDocs, collection, addDoc, getDoc, doc, updateDoc } from "firebase/firestore";
 import { dbFokus360 } from "../../data/firebase-config";
 
@@ -684,6 +690,7 @@ const scrollToMatch = () => {
                   descricao: sub.descricao || "",
                 }))
               : [],
+            anexos: Array.isArray(item.anexos) ? item.anexos : [], // ✅ ESSENCIAL
           }));
 
           setFormularios(formulariosConvertidos);
@@ -1049,11 +1056,11 @@ const scrollToMatch = () => {
         </Box>
       </AccordionDetails>
     </Accordion>
+    
   </div>
 ))}
 
-<Box display="flex" justifyContent="space-between" mt={4} gap={2}>
-  <Button
+<Button
     variant="outlined"
     onClick={adicionarFormulario}
     startIcon={<AddIcon />}
@@ -1070,7 +1077,103 @@ const scrollToMatch = () => {
     Adicionar Item
   </Button>
 
-  <Box display="flex" gap={2}>
+
+<Box display="flex" justifyContent="space-between" mt={4} gap={2}>
+  
+  
+
+
+
+
+  {formularios.some(f => Array.isArray(f.anexos) && f.anexos.length > 0) && (
+  <Box mt={4}>
+    <Typography
+        fontWeight={600}
+        sx={{
+          mb: 2,
+          color: "#7c7c7c",
+          display: "flex",
+          alignItems: "center",
+          gap: 1, // espaço entre o ícone e o texto
+        }}
+      >
+        <AttachFileIcon sx={{ fontSize: 20 }} />
+        Anexos do projeto:
+      </Typography>
+
+    <Box
+      component="table"
+      sx={{
+        width: "100%",
+        borderCollapse: "collapse",
+        backgroundColor: "#fff",
+        borderRadius: "6px",
+        overflow: "hidden",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+      }}
+    >
+      <thead>
+        <Box component="tr" sx={{ backgroundColor: "#f44336" }}>
+          <Box component="th" sx={{ p: 1.5, textAlign: "left", fontWeight: 600, color: "#fff" }}>
+            Nome do Arquivo
+          </Box>
+          <Box component="th" sx={{ p: 1.5, width: "120px" }} />
+          <Box component="th" sx={{ p: 1.5, width: "120px" }} />
+        </Box>
+      </thead>
+
+      <tbody>
+        {formularios
+          .flatMap((form) => form.anexos || [])
+          .map((arquivo, index) => (
+            <Box
+              component="tr"
+              key={index}
+              sx={{
+                borderTop: "1px solid #e0e0e0",
+                "&:hover": { backgroundColor: "#fafafa" },
+              }}
+            >
+              <Box component="td" sx={{ p: 1.5, fontSize: "0.875rem" }}>
+                {arquivo.nomeArquivo}
+              </Box>
+
+              <Box component="td" sx={{ p: 1.5 }}>
+                <IconButton
+                  href={arquivo.arquivoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  size="small"
+                >
+                  <VisibilityIcon fontSize="small" sx={{ color: "#f44336" }} />
+                </IconButton>
+              </Box>
+
+              <Box component="td" sx={{ p: 1.5 }}>
+                <IconButton
+                  href={arquivo.arquivoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download
+                  size="small"
+                >
+                  <DownloadIcon fontSize="small" sx={{ color: "#f44336" }} />
+                </IconButton>
+
+              </Box>
+            </Box>
+          ))}
+      </tbody>
+    </Box>
+  </Box>
+)}
+</Box>
+
+
+ <Box display="flex"
+      justifyContent="flex-end"
+      gap={2}
+      sx={{ marginTop: "30px", width: "100%" }}>
   <Button
     variant="contained"
     onClick={salvarFormularios}
@@ -1083,7 +1186,7 @@ const scrollToMatch = () => {
       },
     }}
   >
-    Salvar todos
+    Salvar tudo
   </Button>
 
   <PDFDownloadLink
@@ -1114,8 +1217,6 @@ const scrollToMatch = () => {
       )
     }
   </PDFDownloadLink>
-</Box>
-
 </Box>
 
 

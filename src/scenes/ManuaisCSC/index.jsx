@@ -12,6 +12,10 @@ import { Box, Typography,
 
 import { getDocs, collection, addDoc, } from "firebase/firestore";
 import { dbFokus360 } from "../../data/firebase-config";
+import { storageFokus360 } from "../../data/firebase-config";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
+
 
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import FilterListIcon from "@mui/icons-material/FilterList"; // Ícone para o Select
@@ -167,12 +171,20 @@ const ManuaisCSC = () => {
   const [allCards, setAllCards] = useState([]); // 🔥 Armazena todos os cards para aplicar os filtros depois
   const [columns, setColumns] = useState([]);
 
+  const [uploading, setUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(null); // ou string com nome do arquivo
+
+
   //estados para o fluxo grama
   const [expandedEstrategicas, setExpandedEstrategicas] = useState({});
   const [expandedTaticas, setExpandedTaticas] = useState({});
   const [expandedOperacionais, setExpandedOperacionais] = useState({});
 
   const [nomeProjeto, setNomeProjeto] = useState("");
+  const [arquivoUpload, setArquivoUpload] = useState({ nome: null, url: null });
+  const [arquivosUpload, setArquivosUpload] = useState([]); // ← array de arquivos enviados
+
+
 
 
 
@@ -181,6 +193,12 @@ const ManuaisCSC = () => {
     { id: 1, titulo: "", descricao: "", subItens: [] }
   ]);  
   const [expandedAccordion, setExpandedAccordion] = useState("panel-1");
+
+
+
+  // ✅ Limite de tamanho por arquivo
+  const TAMANHO_MAXIMO_MB = 5;
+  const TAMANHO_MAXIMO_BYTES = TAMANHO_MAXIMO_MB * 1024 * 1024;
 
 
   const handleAccordionChange = (panel) => (_, isExpanded) => {
@@ -236,35 +254,48 @@ const ManuaisCSC = () => {
 
 
   //Salvar formulario no banco
-  const salvarFormularios = async () => {
-    if (!nomeProjeto.trim()) {
-      alert("Informe o nome do projeto antes de salvar.");
-      return;
-    }
-  
-    try {
-      const doc = {
-        nome: nomeProjeto.trim(),
-        itens: formularios.map(form => ({
-          titulo: form.titulo.trim(),
-          descricao: form.descricao.trim(),
-          subItens: Array.isArray(form.subItens)
-            ? form.subItens.map(sub => ({
-                titulo: sub.titulo.trim(),
-                descricao: sub.descricao.trim(),
-              }))
-            : []
-        })),
-        criadoEm: new Date(),
+const salvarFormularios = async () => {
+  if (!nomeProjeto.trim()) {
+    alert("Informe o nome do projeto antes de salvar.");
+    return;
+  }
+
+  try {
+    const formulariosAtualizados = [...formularios];
+
+    if (arquivosUpload.length && formulariosAtualizados.length > 0) {
+      const lastIndex = formulariosAtualizados.length - 1;
+      formulariosAtualizados[lastIndex] = {
+        ...formulariosAtualizados[lastIndex],
+        anexos: arquivosUpload, // ✅ array com todos os arquivos
       };
-  
-      await addDoc(collection(dbFokus360, "csc"), doc);
-      alert("Projeto salvo com sucesso!");
-    } catch (error) {
-      console.error("Erro ao salvar no Firestore:", error);
-      alert("Erro ao salvar dados. Verifique o console.");
     }
-  };
+
+    const doc = {
+      nome: nomeProjeto.trim(),
+      criadoEm: new Date(),
+      itens: formulariosAtualizados.map((form) => ({
+        titulo: form.titulo?.trim() || "",
+        descricao: form.descricao?.trim() || "",
+        anexos: form.anexos || [], // ✅ salva se existir
+        subItens: Array.isArray(form.subItens)
+          ? form.subItens.map((sub) => ({
+              titulo: sub.titulo?.trim() || "",
+              descricao: sub.descricao?.trim() || "",
+            }))
+          : [],
+      })),
+    };
+
+    await addDoc(collection(dbFokus360, "csc"), doc);
+    alert("✅ Projeto salvo com sucesso!");
+  } catch (error) {
+    console.error("❌ Erro ao salvar no Firestore:", error);
+    alert("Erro ao salvar dados. Verifique o console.");
+  }
+};
+
+
   
   
   
@@ -367,6 +398,67 @@ const removerSubItem = (formId, index) => {
     )
   );
 };
+
+
+//função para fazer upload de arquivos
+const handleUploadArquivo = async (event) => {
+  const files = Array.from(event.target.files);
+  if (!files.length) return;
+
+  const arquivosValidos = [];
+  const arquivosInvalidos = [];
+
+  // Separa os arquivos válidos e inválidos por tamanho
+  files.forEach((file) => {
+    if (file.size <= TAMANHO_MAXIMO_BYTES) {
+      arquivosValidos.push(file);
+    } else {
+      arquivosInvalidos.push(file.name);
+    }
+  });
+
+  // Mostra alerta se houver arquivos inválidos
+  if (arquivosInvalidos.length > 0) {
+    alert(`❌ Os seguintes arquivos excedem o limite de ${TAMANHO_MAXIMO_MB} MB:\n\n${arquivosInvalidos.join("\n")}`);
+  }
+
+  if (!arquivosValidos.length) return;
+
+  setUploading(true);
+  setUploadSuccess(null);
+
+  try {
+    const uploads = await Promise.all(
+      arquivosValidos.map(async (file) => {
+        const caminho = `csc_uploads/${Date.now()}_${file.name}`;
+        const storageRef = ref(storageFokus360, caminho);
+
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+
+        return {
+          nomeArquivo: file.name,
+          arquivoUrl: url,
+        };
+      })
+    );
+
+    setArquivosUpload((prev) => [...prev, ...uploads]);
+    setUploadSuccess("Arquivos enviados com sucesso!");
+    console.log("📁 Arquivos válidos enviados:", uploads);
+  } catch (error) {
+    console.error("Erro ao enviar:", error);
+    alert("❌ Erro ao enviar arquivos.");
+  } finally {
+    setUploading(false);
+  }
+};
+
+
+
+
+
+
 
 
 
@@ -524,12 +616,12 @@ const removerSubItem = (formId, index) => {
     >
       Adicionar Subitem
     </Button>
-  </Box>
+
+</Box>
 </AccordionDetails>
   </Accordion>
 ))}
 
-<Box display="flex" justifyContent="flex-end" mt={2} gap={2}>
 <Button
     variant="outlined"
     onClick={adicionarFormulario}
@@ -546,23 +638,104 @@ const removerSubItem = (formId, index) => {
     Adicionar Item
   </Button>
 
+<Box display="flex" justifyContent="flex-end" mt={2} gap={2}>
+
+
+<Box display="flex" flexDirection="column" gap={1}>
+
+  {/* Botão de upload */}
+  <Button
+    variant="outlined"
+    component="label"
+    size="small"
+    sx={{
+      textTransform: "none",
+      marginRight: "5px",
+      color: "#fff",
+      borderColor: "#312783",
+      backgroundColor: "#312783",
+      width: "fit-content",
+      "&:hover": {
+        backgroundColor: "#312783",
+        borderColor: "#1565c0",
+      },
+    }}
+  >
+    {uploading ? "Enviando..." : "Enviar Arquivos"}
+    <input
+      type="file"
+      multiple
+      hidden
+      accept=".jpg,.jpeg,.xlsx,.xlsm,.xlsb,.xls,.pptx,.pptm,.ppt,.ppsx,.doc,.docx,.docm,.dotx"
+      onChange={handleUploadArquivo}
+    />
+  </Button>
+
+  {/* Lista de arquivos enviados com botão de remover */}
+  {arquivosUpload.length > 0 && (
+    <Box mt={1}>
+      <Typography fontSize="0.875rem" fontWeight={500}>
+        📎 Arquivos enviados:
+      </Typography>
+
+      {arquivosUpload.map((arquivo, index) => (
+        <Box
+          key={index}
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          gap={1}
+          mt={0.5}
+          sx={{
+            backgroundColor: "#f5f5f5",
+            padding: "6px 12px",
+            borderRadius: "4px",
+            maxWidth: "100%",
+          }}
+        >
+          <Typography
+            fontSize="0.85rem"
+            color="green"
+            noWrap
+            sx={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis" }}
+          >
+            {arquivo.nomeArquivo}
+          </Typography>
+
+          <IconButton
+            onClick={() => removerArquivoUpload(arquivo.nomeArquivo)}
+            size="small"
+            color="error"
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      ))}
+    </Box>
+  )}
+</Box>
+</Box>
+
+
+<Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 2 }}>
 
   <Button
-  variant="contained"
-  onClick={salvarFormularios}
-  sx={{
-    textTransform: "none",
-    backgroundColor: "#d32f2f",
-    color: "#fff",
-    "&:hover": {
+    variant="contained"
+    onClick={salvarFormularios}
+    sx={{
+      textTransform: "none",
+      marginRight: "5px",
       backgroundColor: "#d32f2f",
-    },
-  }}
->
-  Salvar todos
-</Button>
-
+      color: "#fff",
+      "&:hover": {
+        backgroundColor: "#d32f2f",
+      },
+    }}
+  >
+    Salvar tudo
+  </Button>
 </Box>
+
 
 
 

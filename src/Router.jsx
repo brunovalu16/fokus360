@@ -42,6 +42,7 @@ import Manuais from "./scenes/Manuais";
 import VendastotalTrade from "./scenes/vendastotaltrade";
 import Capatarefas from "./scenes/capatarefas";
 import Capaarquivos from "./scenes/capaarquivos";
+import Capajuridico from "./scenes/capajuridico";
 import {
   Team,
   Invoices,
@@ -71,6 +72,7 @@ const router = createBrowserRouter(
         { path: "/capatarefas", element: <PrivateRoute><Capatarefas /></PrivateRoute> },
         { path: "/capaarquivos", element: <PrivateRoute><Capaarquivos /></PrivateRoute> },
         { path: "/capacontabilidade", element: <PrivateRoute><Capacontabilidade /></PrivateRoute> },
+        { path: "/capajuridico", element: <PrivateRoute><Capajuridico /></PrivateRoute> },
         { path: "/manuaisCSC", element: <PrivateRoute><ManuaisCSC /></PrivateRoute> },
         { path: "/manuais", element: <PrivateRoute><Manuais /></PrivateRoute> },
         { path: "/eapplanejamento", element: <PrivateRoute><Eapplanejamento /></PrivateRoute> },

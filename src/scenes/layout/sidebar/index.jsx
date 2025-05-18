@@ -326,7 +326,7 @@ const SideBar = () => {
         Gestão Estratégica
       </MenuItem>
       <MenuItem
-        component={<Link to="/projetos" />}
+        component={<Link to="/capajuridico" />}
         style={{
           padding: "5px 10px",
           fontSize: "13px",
