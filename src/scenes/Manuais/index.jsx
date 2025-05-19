@@ -1088,18 +1088,18 @@ const scrollToMatch = () => {
   {formularios.some(f => Array.isArray(f.anexos) && f.anexos.length > 0) && (
   <Box mt={4}>
     <Typography
-        fontWeight={600}
-        sx={{
-          mb: 2,
-          color: "#7c7c7c",
-          display: "flex",
-          alignItems: "center",
-          gap: 1, // espaço entre o ícone e o texto
-        }}
-      >
-        <AttachFileIcon sx={{ fontSize: 20 }} />
-        Anexos do projeto:
-      </Typography>
+      fontWeight={600}
+      sx={{
+        mb: 2,
+        color: "#7c7c7c",
+        display: "flex",
+        alignItems: "center",
+        gap: 1,
+      }}
+    >
+      <AttachFileIcon sx={{ fontSize: 20 }} />
+      Anexos do projeto:
+    </Typography>
 
     <Box
       component="table"
@@ -1119,28 +1119,31 @@ const scrollToMatch = () => {
           </Box>
           <Box component="th" sx={{ p: 1.5, width: "120px" }} />
           <Box component="th" sx={{ p: 1.5, width: "120px" }} />
+          <Box component="th" sx={{ p: 1.5, width: "120px" }} />
         </Box>
       </thead>
 
       <tbody>
         {formularios
-          .flatMap((form) => form.anexos || [])
-          .map((arquivo, index) => (
+          .flatMap((form, formIndex) =>
+            (form.anexos || []).map((arquivo, index) => ({ ...arquivo, formIndex, index }))
+          )
+          .map(({ nomeArquivo, arquivoUrl, formIndex, index }) => (
             <Box
               component="tr"
-              key={index}
+              key={`${formIndex}-${index}`}
               sx={{
                 borderTop: "1px solid #e0e0e0",
                 "&:hover": { backgroundColor: "#fafafa" },
               }}
             >
               <Box component="td" sx={{ p: 1.5, fontSize: "0.875rem" }}>
-                {arquivo.nomeArquivo}
+                {nomeArquivo}
               </Box>
 
               <Box component="td" sx={{ p: 1.5 }}>
                 <IconButton
-                  href={arquivo.arquivoUrl}
+                  href={arquivoUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   size="small"
@@ -1151,7 +1154,7 @@ const scrollToMatch = () => {
 
               <Box component="td" sx={{ p: 1.5 }}>
                 <IconButton
-                  href={arquivo.arquivoUrl}
+                  href={arquivoUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   download
@@ -1159,7 +1162,26 @@ const scrollToMatch = () => {
                 >
                   <DownloadIcon fontSize="small" sx={{ color: "#f44336" }} />
                 </IconButton>
+              </Box>
 
+              <Box component="td" sx={{ p: 1.5 }}>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setFormularios((prev) =>
+                      prev.map((form, i) =>
+                        i === formIndex
+                          ? {
+                              ...form,
+                              anexos: form.anexos.filter((_, idx) => idx !== index),
+                            }
+                          : form
+                      )
+                    );
+                  }}
+                >
+                  <DeleteIcon fontSize="small" sx={{ color: "#f44336" }} />
+                </IconButton>
               </Box>
             </Box>
           ))}
@@ -1167,6 +1189,7 @@ const scrollToMatch = () => {
     </Box>
   </Box>
 )}
+
 </Box>
 
 

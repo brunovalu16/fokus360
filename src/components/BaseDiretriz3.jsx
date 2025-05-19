@@ -395,8 +395,8 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
     taticas: [],
     status: "",
     finalizacao: "",
-    createdAt: new Date().toISOString(),
-    areaNome: areaSelecionadaObj?.nome || "", // ✅ nome da área
+    areaId: selectedArea, // ✅ adicionado
+    areaNome: areaSelecionadaObj?.nome || "", // já está correto
   };
 
   const atualizado = [...estrategicas, item];

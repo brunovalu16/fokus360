@@ -1,9 +1,12 @@
 import React from "react";
-import { Box, Typography, Divider } from "@mui/material";
+import { Box, Typography, Divider, Button } from "@mui/material";
 import  Header  from "./Header";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import LocalGroceryStoreIcon from "@mui/icons-material/LocalGroceryStore";
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+
+import { Link } from "react-router-dom";
 
 export const LinkPowerbi=({ url, title, descripton}) => {
     return(
@@ -36,10 +39,36 @@ export const LinkPowerbi=({ url, title, descripton}) => {
           }}
       >
 
-        <Box display="flex" alignItems="center" gap={1}>
-          <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
-          <Typography color="#858585">RELATÓRIOS | {descripton} </Typography>
-        </Box>
+        
+        <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
+  {/* Texto e ícone à esquerda */}
+  <Box display="flex" alignItems="center" gap={1}>
+    <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
+    <Typography color="#858585">RELATÓRIOS | {descripton}</Typography>
+  </Box>
+
+  {/* Botão Voltar à direita */}
+  <Box>
+    <Button
+      component={Link}
+      to="/relatorios"
+      startIcon={<ExitToAppIcon sx={{ color: "#5f53e5", marginRight: "-7px", marginTop: "-3px" }} />}
+      sx={{
+        padding: "5px 10px",
+        fontSize: "13px",
+        color: "#858585",
+        marginRight: "20px",
+        textTransform: "none",
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+      }}
+    >
+      Voltar
+    </Button>
+  </Box>
+</Box>
+
 
         <Box
           sx={{

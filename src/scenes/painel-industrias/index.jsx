@@ -5,6 +5,13 @@ import LocalGroceryStoreIcon from '@mui/icons-material/LocalGroceryStore';
 import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
 import { Divider } from "@mui/material";
 
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import { Menu, MenuItem, Sidebar, SubMenu  } from "react-pro-sidebar";
+
+import { Link } from "react-router-dom";
+
+
+
 const PainelIndustrias = () => {
   // Estado para rastrear qual conteúdo está ativo
   const [activeContent, setActiveContent] = useState("AB Mauri");
@@ -45,12 +52,43 @@ const PainelIndustrias = () => {
           marginTop: "-15px",
         }}
       >
-        <Box display="flex" alignItems="center" gap={1}>
-            <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
-            <Typography color="#858585">
-                RELATÓRIOS
-          </Typography>     
-        </Box>
+        
+ <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
+  {/* Relatórios à esquerda */}
+  <Box display="flex" alignItems="center" gap={1}>
+    <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
+    <Typography color="#858585">RELATÓRIOS</Typography>
+  </Box>
+
+  {/* Voltar à direita como botão com Link */}
+  <Box>
+    <Button
+      component={Link}
+      to="/relatorios"
+      startIcon={<ExitToAppIcon sx={{ color: "#5f53e5", marginRight: "-7px", marginTop: "-3px" }} />}
+      sx={{
+        padding: "5px 10px",
+        fontSize: "13px",
+        color: "#858585",
+        marginRight: "20px",
+        textTransform: "none",
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+      }}
+    >
+      Voltar
+    </Button>
+  </Box>
+</Box>
+
+
+
+
+
+     
+
+
 
         <Box
             sx={{
