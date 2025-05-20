@@ -270,7 +270,7 @@ const checkUserAssociation = async (userEmail, userId) => {
       >
         <Box display="flex" alignItems="center" gap={1}>
           <PlayCircleFilledIcon sx={{ color: "#082c53", fontSize: 25 }} />
-          <Typography color="#858585">FOKUS 360 | PROJETOS</Typography>
+          <Typography color="#858585">FOKUS 360 | CSC - Jurídico</Typography>
         </Box>
 
         <Box

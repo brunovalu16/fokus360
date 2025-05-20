@@ -28,7 +28,7 @@ const Home = () => {
 
         
         <Box display="flex" alignItems="center" gap={1}>
-          <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
+          <PlayCircleFilledIcon sx={{ color: "#949494", fontSize: 25 }} />
             <Typography
                 color="#858585">FOKUS 360 | RELATÓRIOS POWER BI
             </Typography>

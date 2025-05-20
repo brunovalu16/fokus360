@@ -170,7 +170,7 @@ const SideBar = () => {
       color: "#312783",
       backgroundColor: "#f2f0f0",
       ":hover": {
-        color: "#22d3ee",
+        color: "#bbbbbb",
         background: "transparent",
         transition: ".4s ease",
       },
@@ -496,10 +496,10 @@ const SideBar = () => {
             <LogoutIcon
               sx={{
                 fontSize: "25px",
-                color: "#312783",
+                color: "#f44336",
                 ":hover": {
                   boxShadow: "none",
-                  color: "#22d3ee",
+                  color: "#bbbbbb",
                   transition: "all 0.3s ease", // Transição suave
                 },
               }}
