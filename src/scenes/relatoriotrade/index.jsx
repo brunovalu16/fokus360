@@ -7,7 +7,7 @@ const RelatorioTrade = () => {
     <>
     
     <LinkPowerbi
-      url="https://app.powerbi.com/view?r=eyJrIjoiZTYxYjYxMjktOWE1MC00MzRkLTliMjYtYjQ4ZjllMzg0YWU5IiwidCI6ImFkNDA4MGMwLTRlMjgtNGI0NC05ZTVjLWE1YTk4MzdkNzg1YyJ9"
+      url="https://app.powerbi.com/view?r=eyJrIjoiYjM2Y2UxZWEtOTAzYS00YWEzLTk5MTEtMDdiZGIxMDc4ZGI3IiwidCI6ImFkNDA4MGMwLTRlMjgtNGI0NC05ZTVjLWE1YTk4MzdkNzg1YyJ9"
       descripton="RELATÓRIOS TRADE"
       title="Relatório de Trade"
       linkText="Abrir Relatório"
