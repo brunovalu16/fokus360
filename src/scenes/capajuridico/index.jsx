@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, Typography, Modal, Alert } from "@mui/material";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import { Link } from "react-router-dom";
-import capacontabilidade from "../../../src/assets/images/capacontabilidade.webp"
+import capajuridico from "../../../src/assets/images/capajuridico.webp"
 import { getDocs, getDoc, doc, collection } from "firebase/firestore";
 import { dbFokus360 } from "../../data/firebase-config"; // Para Fokus360
 
@@ -288,7 +288,7 @@ const checkUserAssociation = async (userEmail, userId) => {
         {/* Estrutura da Imagem */}
         <div style={{ position: "relative", width: "100%", top: "-40px" }}>
           <img
-            src={capacontabilidade}
+            src={capajuridico}
             style={{
               width: "100%",
               height: "auto",

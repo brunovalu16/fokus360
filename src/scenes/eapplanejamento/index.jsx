@@ -21,6 +21,8 @@ import { dbFokus360 } from "../../data/firebase-config";
 
 import FiltrosPlanejamento2 from "../../components/FiltrosPlanejamento2";
 import SelectAreaStatus3 from "../../components/SelectAreaStatus3";
+import StatusProgressoPorArea from "../../components/StatusProgressoPorArea";
+
 
 
 import {
@@ -483,9 +485,9 @@ useEffect(() => {
 
 
 
-  <Box display="flex" gap={4} mt={4} sx={{ marginBottom: "50px" }}>
+  <Box display="flex" gap={4} mt={4} sx={{ marginBottom: "40px" }}>
   {/* Estratégicas */}
- <Box minWidth="200px" sx={{ marginTop: "30px" }}>
+ <Box minWidth="200px" sx={{ marginTop: "90px" }}>
   {columns.find(col => col.title === "Estratégicas")?.cards.map((estrategica, index) => {
     const estrategicaAtualizada = columns
       .find(col => col.title === "Estratégicas")
@@ -572,7 +574,7 @@ useEffect(() => {
           {/* Filtro de área por Estratégica */}
           <Box sx={{  
             backgroundColor: "transparent",
-            border: "1px solid #a0a0a0",
+            //border: "1px solid #a0a0a0",
             width: "100%",
             minWidth: "600px", // 🔥 aumenta a largura mínima
             borderRadius: "17px",
@@ -581,6 +583,12 @@ useEffect(() => {
             boxSizing: "border-box",
             marginBottom: "20px"
            }}>
+
+           <Box sx={{ maxWidth: "210px", borderRadius: "10px", marginBottom: "15px" }}>
+            <StatusProgressoPorArea estrategica={estrategica} />
+           </Box>
+
+
             <SelectAreaStatus3
               estrategica={estrategica}
               areas={areas}
@@ -703,7 +711,7 @@ useEffect(() => {
 
 
   {/* Operacionais (somente das táticas expandidas) */}
-<Box minWidth="100px" maxWidth="250px" sx={{ marginTop: "30px" }}>
+<Box minWidth="100px" maxWidth="250px" sx={{ marginTop: "90px" }}>
   {columns.find(col => col.title === "Estratégicas")?.cards
     .flatMap(e => e.taticas || [])
     .filter(t => expandedTaticas[t.id])
@@ -819,7 +827,7 @@ useEffect(() => {
 
 
   {/* Tarefas (somente das operacionais expandidas) */}
-  <Box minWidth="200px" sx={{ marginTop: "40px" }}>
+  <Box minWidth="200px" sx={{ marginTop: "100px" }}>
   {columns.find(col => col.title === "Estratégicas")?.cards
     .flatMap(e => e.taticas || [])
     .flatMap(t => t.operacionais || [])
