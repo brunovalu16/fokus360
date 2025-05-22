@@ -221,7 +221,7 @@ const [highlightedMatches, setHighlightedMatches] = useState([]);
 
 
 //controlar o tamanho dos arquivos enviados
-const TAMANHO_MAXIMO_MB = 5;
+const TAMANHO_MAXIMO_MB = 15;
 const TAMANHO_MAXIMO_BYTES = TAMANHO_MAXIMO_MB * 1024 * 1024;
 
   const normalizarTexto = (texto) => {
