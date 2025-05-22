@@ -199,7 +199,7 @@ const ManuaisCSC = () => {
 
 
   // ✅ Limite de tamanho por arquivo
-  const TAMANHO_MAXIMO_MB = 5;
+  const TAMANHO_MAXIMO_MB = 15;
   const TAMANHO_MAXIMO_BYTES = TAMANHO_MAXIMO_MB * 1024 * 1024;
 
 
@@ -276,18 +276,19 @@ const salvarFormularios = async () => {
     const doc = {
       nome: nomeProjeto.trim(),
       criadoEm: new Date(),
-      itens: formulariosAtualizados.map((form) => ({
+      itens: formularios.map((form) => ({
         titulo: form.titulo?.trim() || "",
-        descricao: form.descricao?.trim() || "",
-        anexos: form.anexos || [], // ✅ salva se existir
+        descricao: form.descricao || "", // 🔥 Sem trim!
+        anexos: form.anexos || [],
         subItens: Array.isArray(form.subItens)
           ? form.subItens.map((sub) => ({
               titulo: sub.titulo?.trim() || "",
-              descricao: sub.descricao?.trim() || "",
+              descricao: sub.descricao || "", // 🔥 Sem trim!
             }))
           : [],
       })),
     };
+
 
     await addDoc(collection(dbFokus360, "csc"), doc);
     alert("✅ Projeto salvo com sucesso!");

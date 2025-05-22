@@ -250,88 +250,60 @@ const TAMANHO_MAXIMO_BYTES = TAMANHO_MAXIMO_MB * 1024 * 1024;
 
 
 
-  const buscarPalavraNoProjeto = async () => {
-    console.log("🔍 Disparou buscarPalavraNoProjeto");
-    if (!searchText.trim() || !selectedFilter) return;
-  
-    const termo = normalizarTexto(searchText);
-    const docRef = doc(dbFokus360, "csc", selectedFilter);
-    const snap = await getDoc(docRef);
-  
-    if (!snap.exists()) {
-      alert("Projeto não encontrado.");
-      return;
+ const buscarPalavraNoProjeto = () => {
+  if (!searchText.trim()) return;
+
+  const termo = normalizarTexto(searchText);
+  const matches = [];
+
+  formularios.forEach((form) => {
+    const formId = form.id;
+
+    if (normalizarTexto(form.titulo).includes(termo)) {
+      matches.push({ formId, type: "titulo" });
     }
-  
-    const data = snap.data();
-    const { nome, itens } = data;
-    setNomeProjeto(nome);
-  
-    const matches = [];
-  
-    const formulariosConvertidos = (Array.isArray(itens) ? itens : []).map((item, index) => {
-      const id = index + 1;
-      const titulo = item.titulo || "";
-      const descricao = item.descricao || "";
-  
-      const subItens = Array.isArray(item.subItens)
-        ? item.subItens.map((sub, subIndex) => {
-            if (normalizarTexto(sub.titulo).includes(termo)) {
-              matches.push({ formId: id, type: "subTitulo", subIndex });
-            }
-            if (normalizarTexto(sub.descricao).includes(termo)) {
-              matches.push({ formId: id, type: "subDescricao", subIndex });
-            }
-            return {
-              titulo: sub.titulo || "",
-              descricao: sub.descricao || ""
-            };
-          })
-        : [];
-  
-      if (normalizarTexto(titulo).includes(termo)) {
-        matches.push({ formId: id, type: "titulo" });
+
+    if (normalizarTexto(form.descricao).includes(termo)) {
+      matches.push({ formId, type: "descricao" });
+    }
+
+    form.subItens?.forEach((sub, subIndex) => {
+      if (normalizarTexto(sub.titulo).includes(termo)) {
+        matches.push({ formId, type: "subTitulo", subIndex });
       }
-  
-      if (normalizarTexto(descricao).includes(termo)) {
-        matches.push({ formId: id, type: "descricao" });
+      if (normalizarTexto(sub.descricao).includes(termo)) {
+        matches.push({ formId, type: "subDescricao", subIndex });
       }
-  
-      return { id, titulo, descricao, subItens };
     });
-  
-    setFormularios(formulariosConvertidos);
-    setHighlightedMatches(matches);
-  
-    if (matches.length > 0) {
-      const first = matches[0];
-      setExpandedAccordion(`panel-${first.formId}`);
-setExpandedSubAccordions({}); // fecha todos
-
-if (first.type.startsWith("sub")) {
-  setExpandedSubAccordions({
-    [`${first.formId}-${first.subIndex}`]: true,
   });
-}
 
-  
-      setTimeout(() => {
-        if (first.type.startsWith("sub")) {
-          const subRef = subItemRefs.current[`${first.formId}-${first.subIndex}`];
-          if (subRef?.scrollIntoView) {
-            subRef.scrollIntoView({ behavior: "smooth", block: "start" });
-          }
-        } else {
-          const ref = formRefs.current[first.formId];
-          if (ref?.scrollIntoView) {
-            ref.scrollIntoView({ behavior: "smooth", block: "start" });
-          }
-        }
-      }, 300);
-    } else {
-      alert("Palavra não encontrada neste projeto.");
+  setHighlightedMatches(matches);
+
+  if (matches.length > 0) {
+    const first = matches[0];
+    setExpandedAccordion(`panel-${first.formId}`);
+    setExpandedSubAccordions({});
+
+    if (first.type.startsWith("sub")) {
+      setExpandedSubAccordions({
+        [`${first.formId}-${first.subIndex}`]: true,
+      });
     }
-  };
+
+    setTimeout(() => {
+      const ref = first.type.startsWith("sub")
+        ? subItemRefs.current[`${first.formId}-${first.subIndex}`]
+        : formRefs.current[first.formId];
+
+      if (ref?.scrollIntoView) {
+        ref.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 300);
+  } else {
+    alert("Palavra não encontrada.");
+  }
+};
+
   
   
   
@@ -444,20 +416,21 @@ const adicionarSubItem = (formId, posicao) => {
       }
 
 
-    const docData = {
+      const docData = {
       nome: nomeProjeto.trim(),
-      itens: formulariosAtualizados.map((form) => ({
-        titulo: form.titulo?.trim() || "",
-        descricao: form.descricao?.trim() || "",
+      itens: formularios.map((form) => ({
+        titulo: form.titulo || "",
+        descricao: form.descricao || "", // 🔥 mantém o HTML do editor
         anexos: form.anexos || [],
         subItens: Array.isArray(form.subItens)
           ? form.subItens.map((sub) => ({
-              titulo: sub.titulo?.trim() || "",
-              descricao: sub.descricao?.trim() || "",
+              titulo: sub.titulo || "",
+              descricao: sub.descricao || "", // 🔥 mantém o HTML do editor
             }))
           : [],
       })),
     };
+
 
     if (selectedFilter) {
       const docRef = doc(dbFokus360, "csc", selectedFilter);
@@ -1021,16 +994,21 @@ const removerArquivoUpload = (nomeArquivo) => {
           {normalizarTexto(form.descricao).includes(normalizarTexto(searchText)) && searchText.trim() ? (
             <Box
               sx={{
-                border: "1px solid #c4c4c4",
-                borderRadius: "4px",
+                border: "1px solid #ccc",
+                borderRadius: "6px",
                 padding: "10px",
                 backgroundColor: "#fffde7",
-                whiteSpace: "pre-wrap",
                 minHeight: "120px",
               }}
             >
-              <div dangerouslySetInnerHTML={{ __html: form.descricao }} />
+              <div
+                  className="editor-content"
+                  dangerouslySetInnerHTML={{ __html: form.descricao }}
+                />
             </Box>
+
+
+
           ) : (
             <Editor
               value={form.descricao}
@@ -1091,17 +1069,22 @@ const removerArquivoUpload = (nomeArquivo) => {
                   {/* SUB-DESCRIÇÃO */}
                   {descricaoMatch && searchText.trim() ? (
                     <Box
+                      className="ql-editor"
                       sx={{
                         border: "1px solid #c4c4c4",
                         borderRadius: "4px",
                         padding: "10px",
                         backgroundColor: "#fffde7",
+                        whiteSpace: "normal",
                         minHeight: "120px",
-                        whiteSpace: "pre-wrap",
                       }}
                     >
-                      <div dangerouslySetInnerHTML={{ __html: sub.descricao }} />
+                      <div
+                          className="editor-content"
+                          dangerouslySetInnerHTML={{ __html: sub.descricao }}
+                        />
                     </Box>
+
                   ) : (
                     <Editor
                       value={sub.descricao}

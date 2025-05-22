@@ -38,3 +38,133 @@ body,
   font-family: 'Poppins', sans-serif;
 }
 
+
+
+/* 🎯 FORMATAÇÃO PARA A PARTE DO FORMULÁRIO CSC (Editor e Visualização) */
+
+.editor-content {
+  word-wrap: break-word;
+  white-space: pre-wrap; /* 🔥 Mantém espaços, tabs e quebras de linha */
+  line-height: 1.6;
+  font-size: 14px;
+  color: #333;
+}
+
+.editor-content * {
+  text-align: inherit;
+  line-height: 1.6;
+}
+
+.editor-content p {
+  margin: 0 0 10px;
+}
+
+.editor-content h1,
+.editor-content h2,
+.editor-content h3 {
+  margin: 16px 0 10px;
+  font-weight: 600;
+}
+
+.editor-content ul,
+.editor-content ol {
+  padding-left: 24px;
+  margin: 8px 0;
+}
+
+.editor-content li {
+  margin-bottom: 6px;
+}
+
+.editor-content p[style*="text-align: center"],
+.editor-content div[style*="text-align: center"] {
+  text-align: center;
+}
+
+.editor-content p[style*="text-align: right"],
+.editor-content div[style*="text-align: right"] {
+  text-align: right;
+}
+
+.editor-content p[style*="text-align: justify"],
+.editor-content div[style*="text-align: justify"] {
+  text-align: justify;
+}
+
+.editor-content p[style*="text-align: left"],
+.editor-content div[style*="text-align: left"] {
+  text-align: left;
+}
+
+.editor-content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 10px 0;
+  border-radius: 4px;
+}
+
+.editor-content blockquote {
+  border-left: 4px solid #ccc;
+  margin: 8px 0;
+  padding-left: 12px;
+  color: #555;
+  font-style: italic;
+  background-color: #f9f9f9;
+}
+
+.editor-content pre {
+  background-color: #f4f4f4;
+  padding: 10px;
+  border-radius: 4px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+.editor-content strong {
+  font-weight: bold;
+}
+
+.editor-content em {
+  font-style: italic;
+}
+
+
+/* 🔥 Trata indentação do Quill na visualização */
+.editor-content .ql-indent-1 {
+  margin-left: 40px;
+}
+
+.editor-content .ql-indent-2 {
+  margin-left: 80px;
+}
+
+.editor-content .ql-indent-3 {
+  margin-left: 120px;
+}
+
+.editor-content .ql-indent-4 {
+  margin-left: 160px;
+}
+
+
+/* 🔥 Tratamento de indentação para visualização do conteúdo */
+.editor-content .ql-indent-1 {
+  margin-left: 40px;
+}
+.editor-content .ql-indent-2 {
+  margin-left: 80px;
+}
+.editor-content .ql-indent-3 {
+  margin-left: 120px;
+}
+.editor-content .ql-indent-4 {
+  margin-left: 160px;
+}
+.editor-content .ql-indent-5 {
+  margin-left: 200px;
+}
+
+
+
+
