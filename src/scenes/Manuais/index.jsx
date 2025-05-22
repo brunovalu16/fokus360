@@ -1029,7 +1029,7 @@ const removerArquivoUpload = (nomeArquivo) => {
                 minHeight: "120px",
               }}
             >
-              <Typography variant="body2">{grifarPalavra(form.descricao)}</Typography>
+              <div dangerouslySetInnerHTML={{ __html: form.descricao }} />
             </Box>
           ) : (
             <Editor
@@ -1100,7 +1100,7 @@ const removerArquivoUpload = (nomeArquivo) => {
                         whiteSpace: "pre-wrap",
                       }}
                     >
-                      <Typography variant="body2">{grifarPalavra(sub.descricao)}</Typography>
+                      <div dangerouslySetInnerHTML={{ __html: sub.descricao }} />
                     </Box>
                   ) : (
                     <Editor
