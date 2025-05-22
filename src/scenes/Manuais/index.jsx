@@ -18,9 +18,13 @@ import AttachFileIcon from '@mui/icons-material/AttachFile';
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DownloadIcon from "@mui/icons-material/Download";
 
+import Editor from "../../components/Editor";
 
 import { getDocs, collection, addDoc, getDoc, doc, updateDoc } from "firebase/firestore";
 import { dbFokus360 } from "../../data/firebase-config";
+import { storageFokus360 } from "../../data/firebase-config";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
 
 
 import { PDFDownloadLink } from "@react-pdf/renderer";
@@ -179,6 +183,12 @@ const Manuais = () => {
   const [allCards, setAllCards] = useState([]); // 🔥 Armazena todos os cards para aplicar os filtros depois
   const [columns, setColumns] = useState([]);
 
+  //estados para a parte de upload
+const [arquivosUpload, setArquivosUpload] = useState([]);
+const [uploading, setUploading] = useState(false);
+const [uploadSuccess, setUploadSuccess] = useState(null);
+
+
   //estados para o fluxo grama
   const [expandedEstrategicas, setExpandedEstrategicas] = useState({});
   const [expandedTaticas, setExpandedTaticas] = useState({});
@@ -210,6 +220,9 @@ const Manuais = () => {
 const [highlightedMatches, setHighlightedMatches] = useState([]);
 
 
+//controlar o tamanho dos arquivos enviados
+const TAMANHO_MAXIMO_MB = 5;
+const TAMANHO_MAXIMO_BYTES = TAMANHO_MAXIMO_MB * 1024 * 1024;
 
   const normalizarTexto = (texto) => {
     return texto
@@ -410,41 +423,57 @@ const adicionarSubItem = (formId, posicao) => {
 
 
   //Salvar formulario no banco
-  const salvarFormularios = async () => {
-    if (!nomeProjeto.trim()) {
-      alert("Informe o nome do departamento antes de salvar.");
-      return;
-    }
-  
-    try {
-      const docData = {
-        nome: nomeProjeto.trim(),
-        itens: formularios.map((form) => ({
-          titulo: form.titulo.trim(),
-          descricao: form.descricao.trim(),
-          subItens: Array.isArray(form.subItens)
-            ? form.subItens.map((sub) => ({
-                titulo: sub.titulo.trim(),
-                descricao: sub.descricao.trim(),
-              }))
-            : [],
-        })),
-      };
-  
-      if (selectedFilter) {
-        // 🔁 Atualiza projeto existente
-        const docRef = doc(dbFokus360, "csc", selectedFilter);
-        await updateDoc(docRef, docData);
-        alert("Projeto atualizado com sucesso!");
-      } else {
-        // 🆕 Apenas se quiser permitir salvar como novo (pode remover isso se quiser impedir)
-        alert("Nenhum projeto selecionado para salvar. Por favor, selecione um projeto.");
+ const salvarFormularios = async () => {
+  if (!nomeProjeto.trim()) {
+    alert("Informe o nome do departamento antes de salvar.");
+    return;
+  }
+
+  try {
+    const formulariosAtualizados = [...formularios];
+
+    if (arquivosUpload.length && formulariosAtualizados.length > 0) {
+        const lastIndex = formulariosAtualizados.length - 1;
+
+        const anexosAnteriores = formulariosAtualizados[lastIndex].anexos || [];
+
+        formulariosAtualizados[lastIndex] = {
+          ...formulariosAtualizados[lastIndex],
+          anexos: [...anexosAnteriores, ...arquivosUpload], // ✅ mantém os antigos e adiciona os novos
+        };
       }
-    } catch (error) {
-      console.error("Erro ao salvar no Firestore:", error);
-      alert("Erro ao salvar dados. Verifique o console.");
+
+
+    const docData = {
+      nome: nomeProjeto.trim(),
+      itens: formulariosAtualizados.map((form) => ({
+        titulo: form.titulo?.trim() || "",
+        descricao: form.descricao?.trim() || "",
+        anexos: form.anexos || [],
+        subItens: Array.isArray(form.subItens)
+          ? form.subItens.map((sub) => ({
+              titulo: sub.titulo?.trim() || "",
+              descricao: sub.descricao?.trim() || "",
+            }))
+          : [],
+      })),
+    };
+
+    if (selectedFilter) {
+      const docRef = doc(dbFokus360, "csc", selectedFilter);
+      await updateDoc(docRef, docData);
+      alert("Projeto atualizado com sucesso!");
+      setArquivosUpload([]);
+
+    } else {
+      alert("Nenhum projeto selecionado para salvar. Selecione um projeto.");
     }
-  };
+  } catch (error) {
+    console.error("Erro ao salvar no Firestore:", error);
+    alert("Erro ao salvar dados.");
+  }
+};
+
   
   
   
@@ -591,6 +620,64 @@ const scrollToMatch = () => {
       }
     }
   }
+};
+
+
+
+//função para fazer upload dos arquivos
+const handleUploadArquivo = async (event) => {
+  const files = Array.from(event.target.files);
+  if (!files.length) return;
+
+  const arquivosValidos = [];
+  const arquivosInvalidos = [];
+
+  files.forEach((file) => {
+    if (file.size <= TAMANHO_MAXIMO_BYTES) {
+      arquivosValidos.push(file);
+    } else {
+      arquivosInvalidos.push(file.name);
+    }
+  });
+
+  if (arquivosInvalidos.length > 0) {
+    alert(`❌ Arquivos acima de ${TAMANHO_MAXIMO_MB}MB:\n${arquivosInvalidos.join("\n")}`);
+  }
+
+  if (!arquivosValidos.length) return;
+
+  setUploading(true);
+  setUploadSuccess(null);
+
+  try {
+    const uploads = await Promise.all(
+      arquivosValidos.map(async (file) => {
+        const caminho = `csc_uploads/${Date.now()}_${file.name}`;
+        const storageRef = ref(storageFokus360, caminho);
+
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+
+        return {
+          nomeArquivo: file.name,
+          arquivoUrl: url,
+        };
+      })
+    );
+
+    setArquivosUpload((prev) => [...prev, ...uploads]);
+    setUploadSuccess("Arquivos enviados com sucesso!");
+  } catch (error) {
+    console.error("Erro ao enviar:", error);
+    alert("❌ Erro ao enviar arquivos.");
+  } finally {
+    setUploading(false);
+  }
+};
+
+//função para remover os arquivos antes de salvar
+const removerArquivoUpload = (nomeArquivo) => {
+  setArquivosUpload((prev) => prev.filter((a) => a.nomeArquivo !== nomeArquivo));
 };
 
 
@@ -945,15 +1032,11 @@ const scrollToMatch = () => {
               <Typography variant="body2">{grifarPalavra(form.descricao)}</Typography>
             </Box>
           ) : (
-            <TextField
-              label="Descrição"
-              size="small"
-              fullWidth
-              multiline
-              rows={5}
+            <Editor
               value={form.descricao}
-              onChange={(e) => atualizarFormulario(form.id, "descricao", e.target.value)}
+              onChange={(value) => atualizarFormulario(form.id, "descricao", value)}
             />
+
           )}
 
           {/* SUB-ITENS */}
@@ -1020,16 +1103,11 @@ const scrollToMatch = () => {
                       <Typography variant="body2">{grifarPalavra(sub.descricao)}</Typography>
                     </Box>
                   ) : (
-                    <TextField
-                      label="Descrição do Subitem"
-                      size="small"
-                      fullWidth
-                      multiline
-                      rows={4}
+                    <Editor
                       value={sub.descricao}
-                      onChange={(e) => atualizarSubItem(form.id, index, "descricao", e.target.value)}
-                      sx={{ marginTop: "10px" }}
+                      onChange={(value) => atualizarSubItem(form.id, index, "descricao", value)}
                     />
+
                   )}
 
                   <Button
@@ -1080,7 +1158,77 @@ const scrollToMatch = () => {
 
 <Box display="flex" justifyContent="space-between" mt={4} gap={2}>
   
-  
+  <Box display="flex" flexDirection="column" gap={1}>
+  <Button
+    variant="outlined"
+    component="label"
+    size="small"
+    sx={{
+      textTransform: "none",
+      marginRight: "5px",
+      color: "#fff",
+      borderColor: "#312783",
+      backgroundColor: "#312783",
+      width: "fit-content",
+      "&:hover": {
+        backgroundColor: "#312783",
+        borderColor: "#1565c0",
+      },
+    }}
+  >
+    {uploading ? "Enviando..." : "Enviar Arquivos"}
+    <input
+      type="file"
+      multiple
+      hidden
+      accept=".jpg,.jpeg,.xlsx,.xlsm,.xlsb,.xls,.pptx,.pptm,.ppt,.ppsx,.doc,.docx,.docm,.dotx,.pdf"
+      onChange={handleUploadArquivo}
+    />
+  </Button>
+
+  {arquivosUpload.length > 0 && (
+    <Box mt={1}>
+      <Typography fontSize="0.875rem" fontWeight={500}>
+        📎 Arquivos enviados:
+      </Typography>
+
+      {arquivosUpload.map((arquivo, index) => (
+        <Box
+          key={index}
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          gap={1}
+          mt={0.5}
+          sx={{
+            backgroundColor: "#f5f5f5",
+            padding: "6px 12px",
+            borderRadius: "4px",
+            maxWidth: "100%",
+          }}
+        >
+          <Typography
+            fontSize="0.85rem"
+            color="green"
+            noWrap
+            sx={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis" }}
+          >
+            {arquivo.nomeArquivo}
+          </Typography>
+
+          <IconButton
+            onClick={() => removerArquivoUpload(arquivo.nomeArquivo)}
+            size="small"
+            color="error"
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      ))}
+    </Box>
+  )}
+</Box>
+
 
 
 
@@ -1209,7 +1357,7 @@ const scrollToMatch = () => {
       },
     }}
   >
-    Salvar tudo
+    Salvar
   </Button>
 
   <PDFDownloadLink

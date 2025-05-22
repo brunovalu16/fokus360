@@ -15,6 +15,8 @@ import { dbFokus360 } from "../../data/firebase-config";
 import { storageFokus360 } from "../../data/firebase-config";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
+import Editor from "../../components/Editor";
+
 
 
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
@@ -549,15 +551,11 @@ const handleUploadArquivo = async (event) => {
       value={form.titulo}
       onChange={(e) => atualizarFormulario(form.id, "titulo", e.target.value)}
     />
-    <TextField
-      label="Descrição"
-      size="small"
-      fullWidth
-      multiline
-      rows={3}
-      value={form.descricao}
-      onChange={(e) => atualizarFormulario(form.id, "descricao", e.target.value)}
-    />
+    <Editor
+  value={form.descricao}
+  onChange={(value) => atualizarFormulario(form.id, "descricao", value)}
+/>
+
 
     {/* Sub-accordions */}
     {form.subItens?.map((sub, index) => (
@@ -584,17 +582,11 @@ const handleUploadArquivo = async (event) => {
             }
             sx={{ mb: 1 }}
           />
-          <TextField
-            label="Descrição do Subitem"
-            size="small"
-            fullWidth
-            multiline
-            rows={2}
+          <Editor
             value={sub.descricao}
-            onChange={(e) =>
-              atualizarSubItem(form.id, index, "descricao", e.target.value)
-            }
+            onChange={(value) => atualizarSubItem(form.id, index, "descricao", value)}
           />
+
           <Button
             variant="outlined"
             onClick={() => adicionarSubItem(form.id)}

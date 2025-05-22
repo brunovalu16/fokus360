@@ -35,14 +35,13 @@ import Planejamento from "./scenes/planejamento";
 import DashboardPlanejamento from "./scenes/dashboardplanejamento";
 import DataPlanejamento from "./components/DataPlanejamento";
 import PlanejamentoGeral from "./scenes/planejamentoGeral";
-import Capacontabilidade from "./scenes/capacontabilidade";
 import Eapplanejamento from "./scenes/eapplanejamento";
 import ManuaisCSC from "./scenes/ManuaisCSC";
 import Manuais from "./scenes/Manuais";
 import VendastotalTrade from "./scenes/vendastotaltrade";
 import Capatarefas from "./scenes/capatarefas";
 import Capaarquivos from "./scenes/capaarquivos";
-import Capajuridico from "./scenes/capajuridico";
+import Csc from "./scenes/csc";
 import {
   Team,
   Invoices,
@@ -69,10 +68,9 @@ const router = createBrowserRouter(
         { path: "/cadastro", element: <PrivateRoute><Cadastro /></PrivateRoute> },
         { path: "/home", element: <PrivateRoute><Home /></PrivateRoute> },
         { path: "/planejamentogeral", element: <PrivateRoute><PlanejamentoGeral /></PrivateRoute> },
+        { path: "/csc", element: <PrivateRoute><Csc /></PrivateRoute> },
         { path: "/capatarefas", element: <PrivateRoute><Capatarefas /></PrivateRoute> },
         { path: "/capaarquivos", element: <PrivateRoute><Capaarquivos /></PrivateRoute> },
-        { path: "/capacontabilidade", element: <PrivateRoute><Capacontabilidade /></PrivateRoute> },
-        { path: "/capajuridico", element: <PrivateRoute><Capajuridico /></PrivateRoute> },
         { path: "/manuaisCSC", element: <PrivateRoute><ManuaisCSC /></PrivateRoute> },
         { path: "/manuais", element: <PrivateRoute><Manuais /></PrivateRoute> },
         { path: "/eapplanejamento", element: <PrivateRoute><Eapplanejamento /></PrivateRoute> },

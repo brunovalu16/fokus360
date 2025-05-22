@@ -658,12 +658,12 @@ const handleDrop = async (targetColumnId, targetIndex) => {
               sx={{
                 height: "40px",
                 minWidth: "140px", // 🔥 Define um tamanho mínimo para não sobrepor a caixa de seleção
-                backgroundColor: "#f44336",
+                backgroundColor: "#00d497",
                 color: "white",
                 whiteSpace: "nowrap", // 🔥 Impede quebra de linha no botão
                 flexShrink: 0, // 🔥 Impede que o botão diminua ao reduzir a tela
                 "&:hover": {
-                  backgroundColor: "#d32f2f",
+                  backgroundColor: "#03b381",
                   boxShadow: "none",
                 },
                 "&:focus": { outline: "none" },
@@ -951,11 +951,11 @@ const handleDrop = async (targetColumnId, targetIndex) => {
     sx={{
       marginBottom: "15px",
       height: "40px",
-      backgroundColor: "#d32f2f",
+      backgroundColor: "#00d497",
       color: "white",
       whiteSpace: "nowrap",
       "&:hover": {
-        backgroundColor: "#d32f2f",
+        backgroundColor: "#03b381",
         boxShadow: "none",
       },
       "&:focus": { outline: "none" },
@@ -1067,7 +1067,7 @@ const handleDrop = async (targetColumnId, targetIndex) => {
             <Typography
               variant="h5"
               mb={2}
-              backgroundColor="#5f53e5"
+              backgroundColor="#00d497"
               padding="10px"
               borderRadius="10px"
               color="white"
@@ -1297,11 +1297,11 @@ const handleDrop = async (targetColumnId, targetIndex) => {
               fullWidth
               sx={{
                 marginBottom: "15px",
-                backgroundColor: "#5f53e5",
+                backgroundColor: "#00d497",
                 color: "#ffffff",
                 boxShadow: "none",
                 "&:hover": {
-                  backgroundColor: "#3f2cb2",
+                  backgroundColor: "#03b381",
                   boxShadow: "none",
                 },
               }}
@@ -1336,10 +1336,10 @@ const handleDrop = async (targetColumnId, targetIndex) => {
                   sx={{
                     boxShadow: "none",
                     marginBottom: "15px",
-                    backgroundColor: "#332984",
+                    backgroundColor: "#00d497",
                     color: "#ffffff",
                     "&:hover": {
-                      backgroundColor: "#332984",
+                      backgroundColor: "#03b381",
                       boxShadow: "none",
                     },
                   }}

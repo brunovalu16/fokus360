@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, Typography, Modal, Alert } from "@mui/material";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import { Link } from "react-router-dom";
-import capacontabilidade from "../../../src/assets/images/capacontabilidade.webp"
+import capascsc from "../../../src/assets/images/capascsc.webp"
 import { getDocs, getDoc, doc, collection } from "firebase/firestore";
 import { dbFokus360 } from "../../data/firebase-config"; // Para Fokus360
 
@@ -15,7 +15,7 @@ import Collapse from '@mui/material/Collapse';
 import CloseIcon from '@mui/icons-material/Close';
 import WarningIcon from '@mui/icons-material/Warning';
 
-const Capacontabilidade = () => {
+const Csc = () => {
   const [isUserAssociated, setIsUserAssociated] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userId, setUserId] = useState(null);
@@ -270,7 +270,7 @@ const checkUserAssociation = async (userEmail, userId) => {
       >
         <Box display="flex" alignItems="center" gap={1}>
           <PlayCircleFilledIcon sx={{ color: "#082c53", fontSize: 25 }} />
-          <Typography color="#858585">FOKUS 360 | CSC - Contabilidade</Typography>
+          <Typography color="#858585">FOKUS 360 | CSC</Typography>
         </Box>
 
         <Box
@@ -288,7 +288,7 @@ const checkUserAssociation = async (userEmail, userId) => {
         {/* Estrutura da Imagem */}
         <div style={{ position: "relative", width: "100%", top: "-40px" }}>
           <img
-            src={capacontabilidade}
+            src={capascsc}
             style={{
               width: "100%",
               height: "auto",
@@ -403,4 +403,4 @@ const checkUserAssociation = async (userEmail, userId) => {
   );
 };
 
-export default Capacontabilidade;
+export default Csc;
