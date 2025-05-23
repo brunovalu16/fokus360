@@ -20,6 +20,8 @@ import DownloadIcon from "@mui/icons-material/Download";
 
 import Editor from "../../components/Editor";
 
+
+
 import { getDocs, collection, addDoc, getDoc, doc, updateDoc } from "firebase/firestore";
 import { dbFokus360 } from "../../data/firebase-config";
 import { storageFokus360 } from "../../data/firebase-config";
@@ -375,77 +377,45 @@ const adicionarSubItem = (formId, posicao) => {
 
 
   //função para atualizar accordion
-  const atualizarSubItem = (formId, index, campo, valor) => {
-    setFormularios(prev =>
-      prev.map(form =>
-        form.id === formId
-          ? {
-              ...form,
-              subItens: form.subItens.map((sub, i) =>
-                i === index ? { ...sub, [campo]: valor } : sub
-              )
-            }
-          : form
-      )
-    );
-  };
-  
-  
-
-
-
-  //Salvar formulario no banco
- const salvarFormularios = async () => {
+const salvarFormularios = async () => {
   if (!nomeProjeto.trim()) {
     alert("Informe o nome do departamento antes de salvar.");
     return;
   }
 
   try {
-    const formulariosAtualizados = [...formularios];
-
-    if (arquivosUpload.length && formulariosAtualizados.length > 0) {
-        const lastIndex = formulariosAtualizados.length - 1;
-
-        const anexosAnteriores = formulariosAtualizados[lastIndex].anexos || [];
-
-        formulariosAtualizados[lastIndex] = {
-          ...formulariosAtualizados[lastIndex],
-          anexos: [...anexosAnteriores, ...arquivosUpload], // ✅ mantém os antigos e adiciona os novos
-        };
-      }
-
-
-      const docData = {
+    const docData = {
       nome: nomeProjeto.trim(),
+      criadoEm: new Date(),
       itens: formularios.map((form) => ({
         titulo: form.titulo || "",
-        descricao: form.descricao || "", // 🔥 mantém o HTML do editor
-        anexos: form.anexos || [],
+        descricao: form.descricao || "",
+        anexos: form.anexos || [],  // 🔥 Mantém exatamente como está
         subItens: Array.isArray(form.subItens)
           ? form.subItens.map((sub) => ({
               titulo: sub.titulo || "",
-              descricao: sub.descricao || "", // 🔥 mantém o HTML do editor
+              descricao: sub.descricao || "",
             }))
           : [],
       })),
     };
 
-
     if (selectedFilter) {
       const docRef = doc(dbFokus360, "csc", selectedFilter);
       await updateDoc(docRef, docData);
-      alert("Projeto atualizado com sucesso!");
-      setArquivosUpload([]);
-
+      alert("✅ Projeto atualizado com sucesso!");
     } else {
-      alert("Nenhum projeto selecionado para salvar. Selecione um projeto.");
+      const docRef = await addDoc(collection(dbFokus360, "csc"), docData);
+      alert("✅ Projeto salvo com sucesso!");
     }
+
+    setArquivosUpload([]); // 🔥 Pode até remover se não usa anexos gerais
   } catch (error) {
-    console.error("Erro ao salvar no Firestore:", error);
+    console.error("❌ Erro ao salvar no Firestore:", error);
     alert("Erro ao salvar dados.");
   }
 };
+
 
   
   
@@ -495,9 +465,8 @@ useEffect(() => {
       const lista = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         nome: doc.data().nome || "Sem nome",
-        data: doc.data(), // salva os dados também
       }));
-      setProjects(lista);
+      setProjects(lista); // 🔥 Só nome e ID, bem leve
     } catch (error) {
       console.error("Erro ao buscar projetos:", error);
     }
@@ -505,6 +474,38 @@ useEffect(() => {
 
   fetchProjects();
 }, []);
+
+
+
+//busca o projeto somente quando escolhe
+const carregarProjeto = async (projectId) => {
+  try {
+    const docRef = doc(dbFokus360, "csc", projectId);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      setNomeProjeto(data.nome);
+      const formulariosConvertidos = (data.itens || []).map((item, index) => ({
+        id: index + 1,
+        titulo: item.titulo || "",
+        descricao: item.descricao || "",
+        subItens: Array.isArray(item.subItens)
+          ? item.subItens.map((sub) => ({
+              titulo: sub.titulo || "",
+              descricao: sub.descricao || "",
+            }))
+          : [],
+        anexos: Array.isArray(item.anexos) ? item.anexos : [],
+      }));
+
+      setFormularios(formulariosConvertidos);
+    }
+  } catch (error) {
+    console.error("Erro ao carregar projeto:", error);
+  }
+};
+
 
 
 
@@ -602,27 +603,10 @@ const handleUploadArquivo = async (event) => {
   const files = Array.from(event.target.files);
   if (!files.length) return;
 
-  const arquivosValidos = [];
-  const arquivosInvalidos = [];
-
-  files.forEach((file) => {
-    if (file.size <= TAMANHO_MAXIMO_BYTES) {
-      arquivosValidos.push(file);
-    } else {
-      arquivosInvalidos.push(file.name);
-    }
-  });
-
-  if (arquivosInvalidos.length > 0) {
-    alert(`❌ Arquivos acima de ${TAMANHO_MAXIMO_MB}MB:\n${arquivosInvalidos.join("\n")}`);
-  }
-
-  if (!arquivosValidos.length) return;
-
-  setUploading(true);
-  setUploadSuccess(null);
+  const arquivosValidos = files.filter(file => file.size <= TAMANHO_MAXIMO_BYTES);
 
   try {
+    setUploading(true);
     const uploads = await Promise.all(
       arquivosValidos.map(async (file) => {
         const caminho = `csc_uploads/${Date.now()}_${file.name}`;
@@ -634,19 +618,30 @@ const handleUploadArquivo = async (event) => {
         return {
           nomeArquivo: file.name,
           arquivoUrl: url,
+          caminhoStorage: caminho,
         };
       })
     );
 
-    setArquivosUpload((prev) => [...prev, ...uploads]);
-    setUploadSuccess("Arquivos enviados com sucesso!");
+    setFormularios((prev) =>
+      prev.map((form, index) =>
+        index === 0
+          ? { ...form, anexos: [...(form.anexos || []), ...uploads] }
+          : form
+      )
+    );
+
+    alert("✅ Arquivos enviados com sucesso!");
   } catch (error) {
-    console.error("Erro ao enviar:", error);
+    console.error("❌ Erro no upload:", error);
     alert("❌ Erro ao enviar arquivos.");
   } finally {
     setUploading(false);
   }
 };
+
+
+
 
 //função para remover os arquivos antes de salvar
 const removerArquivoUpload = (nomeArquivo) => {
@@ -727,56 +722,66 @@ const removerArquivoUpload = (nomeArquivo) => {
     >
       <FilterListIcon sx={{ color: "#757575", mr: 1 }} />
       <Select
-        fullWidth
-        displayEmpty
-        value={selectedFilter || ""}
-        onChange={(e) => {
-          const selectedValue = e.target.value;
-          setSelectedFilter(selectedValue);
+  fullWidth
+  displayEmpty
+  value={selectedFilter || ""}
+  onChange={async (e) => {
+    const selectedValue = e.target.value;
+    setSelectedFilter(selectedValue);
 
-          const projetoSelecionado = projects.find((p) => p.id === selectedValue);
-          if (!projetoSelecionado) return;
+    try {
+      const docRef = doc(dbFokus360, "csc", selectedValue);
+      const docSnap = await getDoc(docRef);
 
-          const { nome, itens } = projetoSelecionado.data;
-          setNomeProjeto(nome);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setNomeProjeto(data.nome);
 
-          const formulariosConvertidos = (itens || []).map((item, index) => ({
-            id: index + 1,
-            titulo: item.titulo || "",
-            descricao: item.descricao || "",
-            subItens: Array.isArray(item.subItens)
-              ? item.subItens.map((sub) => ({
-                  titulo: sub.titulo || "",
-                  descricao: sub.descricao || "",
-                }))
-              : [],
-            anexos: Array.isArray(item.anexos) ? item.anexos : [], // ✅ ESSENCIAL
-          }));
+        const formulariosConvertidos = (data.itens || []).map((item, index) => ({
+          id: index + 1,
+          titulo: item.titulo || "",
+          descricao: item.descricao || "",
+          subItens: Array.isArray(item.subItens)
+            ? item.subItens.map((sub) => ({
+                titulo: sub.titulo || "",
+                descricao: sub.descricao || "",
+              }))
+            : [],
+          anexos: Array.isArray(item.anexos) ? item.anexos : [],
+        }));
 
-          setFormularios(formulariosConvertidos);
-          setExpandedAccordion(null);
-        }}
-        sx={{
-          backgroundColor: "#f5f5f5",
-          borderRadius: "5px",
-          height: "40px",
-          "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-          "&:hover .MuiOutlinedInput-notchedOutline": { border: "none" },
-          "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: "none" },
-          "&:focus": { outline: "none" },
-          "&.Mui-focused": { boxShadow: "none" },
-        }}
-      >
-        <MenuItem value="" disabled>
-          Selecione um departamento:
-        </MenuItem>
+        setFormularios(formulariosConvertidos);
+        setExpandedAccordion(null);
+      } else {
+        alert("Projeto não encontrado.");
+      }
+    } catch (error) {
+      console.error("Erro ao carregar projeto:", error);
+      alert("Erro ao carregar projeto.");
+    }
+  }}
+  sx={{
+    backgroundColor: "#f5f5f5",
+    borderRadius: "5px",
+    height: "40px",
+    "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+    "&:hover .MuiOutlinedInput-notchedOutline": { border: "none" },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: "none" },
+    "&:focus": { outline: "none" },
+    "&.Mui-focused": { boxShadow: "none" },
+  }}
+>
+  <MenuItem value="" disabled>
+    Selecione um departamento:
+  </MenuItem>
 
-        {projects.map((projeto) => (
-          <MenuItem key={projeto.id} value={projeto.id}>
-            {projeto.nome}
-          </MenuItem>
-        ))}
-      </Select>
+  {projects.map((projeto) => (
+    <MenuItem key={projeto.id} value={projeto.id}>
+      {projeto.nome}
+    </MenuItem>
+  ))}
+</Select>
+
     </Box>
 
     <Button
@@ -1143,31 +1148,32 @@ const removerArquivoUpload = (nomeArquivo) => {
   
   <Box display="flex" flexDirection="column" gap={1}>
   <Button
-    variant="outlined"
-    component="label"
-    size="small"
-    sx={{
-      textTransform: "none",
-      marginRight: "5px",
-      color: "#fff",
-      borderColor: "#312783",
+  variant="outlined"
+  component="label"
+  size="small"
+  sx={{
+    textTransform: "none",
+    marginRight: "5px",
+    color: "#fff",
+    borderColor: "#312783",
+    backgroundColor: "#312783",
+    width: "fit-content",
+    "&:hover": {
       backgroundColor: "#312783",
-      width: "fit-content",
-      "&:hover": {
-        backgroundColor: "#312783",
-        borderColor: "#1565c0",
-      },
-    }}
-  >
-    {uploading ? "Enviando..." : "Enviar Arquivos"}
-    <input
-      type="file"
-      multiple
-      hidden
-      accept=".jpg,.jpeg,.xlsx,.xlsm,.xlsb,.xls,.pptx,.pptm,.ppt,.ppsx,.doc,.docx,.docm,.dotx,.pdf"
-      onChange={handleUploadArquivo}
-    />
-  </Button>
+      borderColor: "#1565c0",
+    },
+  }}
+>
+  {uploading ? "Enviando..." : "Enviar Arquivos"}
+  <input
+    type="file"
+    multiple
+    hidden
+    accept=".jpg,.jpeg,.xlsx,.xlsm,.xlsb,.xls,.pptx,.pptm,.ppt,.ppsx,.doc,.docx,.docm,.dotx,.pdf"
+    onChange={handleUploadArquivo} // 🔥 igual estava antes
+  />
+</Button>
+
 
   {arquivosUpload.length > 0 && (
     <Box mt={1}>
@@ -1233,91 +1239,97 @@ const removerArquivoUpload = (nomeArquivo) => {
     </Typography>
 
     <Box
-      component="table"
-      sx={{
-        width: "100%",
-        borderCollapse: "collapse",
-        backgroundColor: "#fff",
-        borderRadius: "6px",
-        overflow: "hidden",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-      }}
-    >
-      <thead>
-        <Box component="tr" sx={{ backgroundColor: "#f44336" }}>
-          <Box component="th" sx={{ p: 1.5, textAlign: "left", fontWeight: 600, color: "#fff" }}>
-            Nome do Arquivo
-          </Box>
-          <Box component="th" sx={{ p: 1.5, width: "120px" }} />
-          <Box component="th" sx={{ p: 1.5, width: "120px" }} />
-          <Box component="th" sx={{ p: 1.5, width: "120px" }} />
-        </Box>
-      </thead>
-
-      <tbody>
-        {formularios
-          .flatMap((form, formIndex) =>
-            (form.anexos || []).map((arquivo, index) => ({ ...arquivo, formIndex, index }))
-          )
-          .map(({ nomeArquivo, arquivoUrl, formIndex, index }) => (
-            <Box
-              component="tr"
-              key={`${formIndex}-${index}`}
-              sx={{
-                borderTop: "1px solid #e0e0e0",
-                "&:hover": { backgroundColor: "#fafafa" },
-              }}
-            >
-              <Box component="td" sx={{ p: 1.5, fontSize: "0.875rem" }}>
-                {nomeArquivo}
-              </Box>
-
-              <Box component="td" sx={{ p: 1.5 }}>
-                <IconButton
-                  href={arquivoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  size="small"
-                >
-                  <VisibilityIcon fontSize="small" sx={{ color: "#f44336" }} />
-                </IconButton>
-              </Box>
-
-              <Box component="td" sx={{ p: 1.5 }}>
-                <IconButton
-                  href={arquivoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  download
-                  size="small"
-                >
-                  <DownloadIcon fontSize="small" sx={{ color: "#f44336" }} />
-                </IconButton>
-              </Box>
-
-              <Box component="td" sx={{ p: 1.5 }}>
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setFormularios((prev) =>
-                      prev.map((form, i) =>
-                        i === formIndex
-                          ? {
-                              ...form,
-                              anexos: form.anexos.filter((_, idx) => idx !== index),
-                            }
-                          : form
-                      )
-                    );
-                  }}
-                >
-                  <DeleteIcon fontSize="small" sx={{ color: "#f44336" }} />
-                </IconButton>
-              </Box>
-            </Box>
-          ))}
-      </tbody>
+  component="table"
+  sx={{
+    width: "100%",
+    borderCollapse: "collapse",
+    backgroundColor: "#fff",
+    borderRadius: "6px",
+    overflow: "hidden",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+  }}
+>
+  <thead>
+    <Box component="tr" sx={{ backgroundColor: "#f44336" }}>
+      <Box component="th" sx={{ p: 1.5, textAlign: "left", fontWeight: 600, color: "#fff" }}>
+        Nome do Arquivo
+      </Box>
+      <Box component="th" sx={{ p: 1.5, width: "120px" }} />
+      <Box component="th" sx={{ p: 1.5, width: "120px" }} />
+      <Box component="th" sx={{ p: 1.5, width: "120px" }} />
     </Box>
+  </thead>
+
+  <tbody>
+  {formularios
+    .flatMap((form) =>
+      (form.anexos || []).map((arquivo, index) => ({
+        ...arquivo,
+        formId: form.id, // ✔️ Correto agora
+        index,           // ✔️ Índice do anexo dentro do form
+      }))
+    )
+    .map(({ nomeArquivo, arquivoUrl, formId, index }) => ( // ✔️ formId certo aqui
+      <tr
+        key={`${formId}-${index}`}
+        style={{
+          borderTop: "1px solid #e0e0e0",
+          cursor: "default",
+          transition: "background-color 0.2s",
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#fafafa"}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+      >
+        <td style={{ padding: "12px", fontSize: "0.875rem" }}>
+          {nomeArquivo}
+        </td>
+
+        <td style={{ padding: "12px" }}>
+          <IconButton
+            href={arquivoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            size="small"
+          >
+            <VisibilityIcon fontSize="small" sx={{ color: "#f44336" }} />
+          </IconButton>
+        </td>
+
+        <td style={{ padding: "12px" }}>
+          <IconButton
+            href={arquivoUrl}
+            download
+            size="small"
+          >
+            <DownloadIcon fontSize="small" sx={{ color: "#f44336" }} />
+          </IconButton>
+        </td>
+
+        <td style={{ padding: "12px" }}>
+          <IconButton
+            size="small"
+            onClick={() => {
+              setFormularios((prev) =>
+                prev.map((form) =>
+                  form.id === formId
+                    ? {
+                        ...form,
+                        anexos: form.anexos.filter((_, idx) => idx !== index),
+                      }
+                    : form
+                )
+              );
+            }}
+          >
+            <DeleteIcon fontSize="small" sx={{ color: "#f44336" }} />
+          </IconButton>
+        </td>
+      </tr>
+    ))}
+</tbody>
+
+</Box>
+
   </Box>
 )}
 
