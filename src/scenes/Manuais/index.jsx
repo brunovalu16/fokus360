@@ -317,20 +317,38 @@ const TAMANHO_MAXIMO_BYTES = TAMANHO_MAXIMO_MB * 1024 * 1024;
 //destacar a palavra na renderização
 const grifarPalavra = (texto) => {
   const termo = normalizarTexto(searchText);
-  const regex = new RegExp(`(${termo})`, "gi");
 
   if (!termo || !texto) return texto;
 
-  return texto.split(regex).map((part, i) =>
-    normalizarTexto(part) === termo ? (
-      <mark key={i} style={{ backgroundColor: "#fff176", padding: "0 2px" }}>
-        {part}
-      </mark>
-    ) : (
-      part
-    )
-  );
+  const textoOriginal = texto;
+  const textoNormalizado = normalizarTexto(textoOriginal);
+
+  const partes = textoNormalizado.split(termo);
+  const resultado = [];
+
+  let offset = 0;
+
+  partes.forEach((parte, index) => {
+    const parteOriginal = textoOriginal.slice(offset, offset + parte.length);
+    resultado.push(parteOriginal);
+    offset += parte.length;
+
+    if (index < partes.length - 1) {
+      const termoOriginal = textoOriginal.slice(offset, offset + termo.length);
+      resultado.push(
+        <mark key={offset} style={{ backgroundColor: "#fff176", padding: "0 2px" }}>
+          {termoOriginal}
+        </mark>
+      );
+      offset += termo.length;
+    }
+  });
+
+  return resultado;
 };
+
+
+
 
 
 
@@ -961,8 +979,6 @@ const removerArquivoUpload = (nomeArquivo) => {
       onChange={handleAccordionChange(`panel-${form.id}`)}
       sx={{
         mb: 2,
-        backgroundColor: "#fff",
-        transition: "background-color 0.5s ease",
       }}
     >
 
@@ -986,7 +1002,7 @@ const removerArquivoUpload = (nomeArquivo) => {
         <Box display="flex" flexDirection="column" gap={2}>
           {/* TÍTULO */}
           {normalizarTexto(form.titulo).includes(normalizarTexto(searchText)) && searchText.trim() ? (
-            <Box sx={{ border: "1px solid #c4c4c4", borderRadius: "4px", padding: "10px", backgroundColor: "#fffde7" }}>
+            <Box sx={{ border: "1px solid #c4c4c4", borderRadius: "4px", padding: "10px" }}>
               <Typography variant="body2">{grifarPalavra(form.titulo)}</Typography>
             </Box>
           ) : (
@@ -1006,7 +1022,6 @@ const removerArquivoUpload = (nomeArquivo) => {
                 border: "1px solid #ccc",
                 borderRadius: "6px",
                 padding: "10px",
-                backgroundColor: "#fffde7",
                 minHeight: "120px",
               }}
             >
@@ -1069,7 +1084,7 @@ const removerArquivoUpload = (nomeArquivo) => {
                 <AccordionDetails ref={(el) => (subItemRefs.current[subKey] = el)}>
                   {/* SUB-TÍTULO */}
                   {tituloMatch && searchText.trim() ? (
-                    <Box sx={{ border: "1px solid #c4c4c4", borderRadius: "4px", padding: "10px", backgroundColor: "#fffde7" }}>
+                    <Box sx={{ border: "1px solid #c4c4c4", borderRadius: "4px", padding: "10px" }}>
                       <Typography variant="body2">{grifarPalavra(sub.titulo)}</Typography>
                     </Box>
                   ) : (
@@ -1091,7 +1106,6 @@ const removerArquivoUpload = (nomeArquivo) => {
                         border: "1px solid #c4c4c4",
                         borderRadius: "4px",
                         padding: "10px",
-                        backgroundColor: "#fffde7",
                         whiteSpace: "normal",
                         minHeight: "120px",
                       }}
