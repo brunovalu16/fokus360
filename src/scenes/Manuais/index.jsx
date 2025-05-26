@@ -961,15 +961,19 @@ const removerArquivoUpload = (nomeArquivo) => {
       onChange={handleAccordionChange(`panel-${form.id}`)}
       sx={{
         mb: 2,
-        backgroundColor: highlightedId === form.id ? "#fff59d" : "#fff",
+        backgroundColor: "#fff",
         transition: "background-color 0.5s ease",
       }}
     >
+
       <AccordionSummary aria-controls={`panel-${form.id}-content`} id={`panel-${form.id}-header`}>
         <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
           <Typography fontWeight="bold">
-            {form.titulo?.trim() ? form.titulo : `Item #${form.id}`}
+            {searchText.trim()
+              ? grifarPalavra(form.titulo?.trim() || `Item #${form.id}`)
+              : (form.titulo?.trim() || `Item #${form.id}`)}
           </Typography>
+
           {formularios.length > 1 && (
             <IconButton onClick={() => removerFormulario(form.id)} size="small" sx={{ ml: 1 }}>
               <DeleteIcon fontSize="small" />
@@ -1007,9 +1011,17 @@ const removerArquivoUpload = (nomeArquivo) => {
               }}
             >
               <div
-                  className="editor-content"
-                  dangerouslySetInnerHTML={{ __html: form.descricao }}
-                />
+                className="editor-content"
+                dangerouslySetInnerHTML={{
+                  __html: searchText.trim()
+                    ? form.descricao.replace(
+                        new RegExp(`(${normalizarTexto(searchText)})`, "gi"),
+                        (match) => `<mark style="background-color: #fff176;">${match}</mark>`
+                      )
+                    : form.descricao,
+                }}
+              />
+
             </Box>
 
 
@@ -1086,8 +1098,16 @@ const removerArquivoUpload = (nomeArquivo) => {
                     >
                       <div
                           className="editor-content"
-                          dangerouslySetInnerHTML={{ __html: sub.descricao }}
+                          dangerouslySetInnerHTML={{
+                            __html: searchText.trim()
+                              ? sub.descricao.replace(
+                                  new RegExp(`(${normalizarTexto(searchText)})`, "gi"),
+                                  (match) => `<mark style="background-color: #fff176;">${match}</mark>`
+                                )
+                              : sub.descricao,
+                          }}
                         />
+
                     </Box>
 
                   ) : (
