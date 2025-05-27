@@ -251,60 +251,72 @@ const TAMANHO_MAXIMO_BYTES = TAMANHO_MAXIMO_MB * 1024 * 1024;
 
 
 
-
- const buscarPalavraNoProjeto = () => {
+//função para abrir todos os accordions itens e subitens para grifar a palavra
+const buscarPalavraNoProjeto = () => {
   if (!searchText.trim()) return;
 
   const termo = normalizarTexto(searchText);
   const matches = [];
+  const expandedSub = {};
+  const expandedMain = [];
 
   formularios.forEach((form) => {
     const formId = form.id;
+    let encontrouNoForm = false;
 
     if (normalizarTexto(form.titulo).includes(termo)) {
       matches.push({ formId, type: "titulo" });
+      encontrouNoForm = true;
     }
 
     if (normalizarTexto(form.descricao).includes(termo)) {
       matches.push({ formId, type: "descricao" });
+      encontrouNoForm = true;
     }
 
     form.subItens?.forEach((sub, subIndex) => {
-      if (normalizarTexto(sub.titulo).includes(termo)) {
+      const subTitulo = normalizarTexto(sub.titulo);
+      const subDescricao = normalizarTexto(sub.descricao);
+
+      if (subTitulo.includes(termo)) {
         matches.push({ formId, type: "subTitulo", subIndex });
+        expandedSub[`${formId}-${subIndex}`] = true;
+        encontrouNoForm = true;
       }
-      if (normalizarTexto(sub.descricao).includes(termo)) {
+
+      if (subDescricao.includes(termo)) {
         matches.push({ formId, type: "subDescricao", subIndex });
+        expandedSub[`${formId}-${subIndex}`] = true;
+        encontrouNoForm = true;
       }
     });
+
+    if (encontrouNoForm) {
+      expandedMain.push(`panel-${formId}`);
+    }
   });
 
   setHighlightedMatches(matches);
 
+  // Abre todos os accordions que têm match
+  setExpandedAccordion(expandedMain.length > 0 ? expandedMain[0] : null);
+  setExpandedSubAccordions(expandedSub);
+
+  // Faz scroll até o primeiro match
   if (matches.length > 0) {
     const first = matches[0];
-    setExpandedAccordion(`panel-${first.formId}`);
-    setExpandedSubAccordions({});
+    const ref = first.type.startsWith("sub")
+      ? subItemRefs.current[`${first.formId}-${first.subIndex}`]
+      : formRefs.current[first.formId];
 
-    if (first.type.startsWith("sub")) {
-      setExpandedSubAccordions({
-        [`${first.formId}-${first.subIndex}`]: true,
-      });
+    if (ref?.scrollIntoView) {
+      ref.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-
-    setTimeout(() => {
-      const ref = first.type.startsWith("sub")
-        ? subItemRefs.current[`${first.formId}-${first.subIndex}`]
-        : formRefs.current[first.formId];
-
-      if (ref?.scrollIntoView) {
-        ref.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    }, 300);
   } else {
     alert("Palavra não encontrada.");
   }
 };
+
 
   
   
@@ -316,38 +328,100 @@ const TAMANHO_MAXIMO_BYTES = TAMANHO_MAXIMO_MB * 1024 * 1024;
 
 //destacar a palavra na renderização
 const grifarPalavra = (texto) => {
-  const termo = normalizarTexto(searchText);
-
+  const termo = searchText.trim();
   if (!termo || !texto) return texto;
 
-  const textoOriginal = texto;
-  const textoNormalizado = normalizarTexto(textoOriginal);
+  const normalizar = (str) =>
+    str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-  const partes = textoNormalizado.split(termo);
-  const resultado = [];
+  const termoNormalizado = normalizar(termo);
+  const textoNormalizado = normalizar(texto);
 
-  let offset = 0;
+  if (!termoNormalizado) return texto;
 
-  partes.forEach((parte, index) => {
-    const parteOriginal = textoOriginal.slice(offset, offset + parte.length);
-    resultado.push(parteOriginal);
-    offset += parte.length;
+  // 🔥 Mapeia cada caractere do texto normalizado para o índice no texto original
+  const mapaIndices = [];
+  let indexOriginal = 0;
 
-    if (index < partes.length - 1) {
-      const termoOriginal = textoOriginal.slice(offset, offset + termo.length);
-      resultado.push(
-        <mark key={offset} style={{ backgroundColor: "#fff176", padding: "0 2px" }}>
-          {termoOriginal}
-        </mark>
-      );
-      offset += termo.length;
+  for (const char of texto) {
+    const charNormalizado = char.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    for (let i = 0; i < charNormalizado.length; i++) {
+      mapaIndices.push(indexOriginal);
     }
-  });
+    indexOriginal++;
+  }
+
+  const resultado = [];
+  let posicaoAtualNoTexto = 0;
+
+  const regex = new RegExp(termoNormalizado, "gi");
+  let match;
+
+  while ((match = regex.exec(textoNormalizado)) !== null) {
+    const indexNoNormalizado = match.index;
+    const length = termoNormalizado.length;
+
+    const indexNoOriginal = mapaIndices[indexNoNormalizado];
+    const indexFimNoOriginal =
+      mapaIndices[indexNoNormalizado + length - 1] + 1 || texto.length;
+
+    const antes = texto.slice(posicaoAtualNoTexto, indexNoOriginal);
+    if (antes) resultado.push(antes);
+
+    const trecho = texto.slice(indexNoOriginal, indexFimNoOriginal);
+    resultado.push(
+      <mark
+        key={indexNoOriginal}
+        style={{ backgroundColor: "#fff176", padding: "0 2px" }}
+      >
+        {trecho}
+      </mark>
+    );
+
+    posicaoAtualNoTexto = indexFimNoOriginal;
+  }
+
+  const depois = texto.slice(posicaoAtualNoTexto);
+  if (depois) resultado.push(depois);
 
   return resultado;
 };
 
 
+
+//função para fazer replace de string normalizando acentos no texto HTML da descrição
+const destacarNoHtml = (texto) => {
+  const termo = searchText.trim();
+  if (!termo || !texto) return texto;
+
+  const normalizar = (str) =>
+    str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+  const termoNormalizado = normalizar(termo);
+  const textoNormalizado = normalizar(texto);
+
+  let resultado = "";
+  let i = 0;
+
+  while (i < texto.length) {
+    const trechoOriginal = texto.slice(i);
+    const trechoNormalizado = textoNormalizado.slice(i);
+
+    if (trechoNormalizado.startsWith(termoNormalizado)) {
+      const fim = i + termo.length;
+      resultado += `<mark style="background-color: #fff176;">${texto.slice(
+        i,
+        fim
+      )}</mark>`;
+      i = fim;
+    } else {
+      resultado += texto[i];
+      i++;
+    }
+  }
+
+  return resultado;
+};
 
 
 
@@ -1029,13 +1103,11 @@ const removerArquivoUpload = (nomeArquivo) => {
                 className="editor-content"
                 dangerouslySetInnerHTML={{
                   __html: searchText.trim()
-                    ? form.descricao.replace(
-                        new RegExp(`(${normalizarTexto(searchText)})`, "gi"),
-                        (match) => `<mark style="background-color: #fff176;">${match}</mark>`
-                      )
+                    ? destacarNoHtml(form.descricao)
                     : form.descricao,
                 }}
               />
+
 
             </Box>
 
