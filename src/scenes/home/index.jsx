@@ -80,7 +80,7 @@ const Home = () => {
                 marginLeft: "60px",
                 alignContent: "center",
                 paddingRight: "500px",
-                paddingBottom: "150px",
+                paddingBottom: "170px",
               }}
             >
               Novo Projeto
