@@ -305,7 +305,7 @@ const Login = () => {
           sx={{
             borderTopRightRadius: "50px",
             borderBottomLeftRadius: "50px",
-            backgroundColor: "white",
+            backgroundColor: "rgba(37, 29, 112, 0.7)", // 0.6 = 60% opacidade
             padding: 4,
             boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
             width: "90%",
@@ -328,6 +328,33 @@ const Login = () => {
               onChange={(e) => setEmail(e.target.value)}
               fullWidth
               required
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: '#4d44bf',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#4d44bf',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#4d44bf',
+                  },
+                  color: '#4d44bf',
+                },
+                '& .MuiInputLabel-root': {
+                  color: '#b6b6b6',
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: '#b6b6b6',
+                },
+                '& .MuiOutlinedInput-input': {
+                  color: '#b6b6b6',
+                },
+                '& .MuiInputBase-input::placeholder': {
+                  color: '#b6b6b6',
+                  opacity: 1,
+                },
+              }}
             />
 
             <TextField
@@ -338,7 +365,35 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               fullWidth
               required
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: '#4d44bf',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#4d44bf',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#4d44bf',
+                  },
+                  color: '#b6b6b6',
+                },
+                '& .MuiInputLabel-root': {
+                  color: '#b6b6b6',
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: '#b6b6b6',
+                },
+                '& .MuiOutlinedInput-input': {
+                  color: '#b6b6b6',
+                },
+                '& .MuiInputBase-input::placeholder': {
+                  color: '#b6b6b6',
+                  opacity: 1,
+                },
+              }}
             />
+
 
             <Button
               variant="contained"
@@ -362,7 +417,7 @@ const Login = () => {
             <Button
               variant="text"
               onClick={() => setOpen(true)}
-              sx={{ color: "#312783" }}
+              sx={{ color: "#b6b6b6" }}
             >
               Esqueci a senha
             </Button>
