@@ -20,6 +20,8 @@ import DownloadIcon from "@mui/icons-material/Download";
 
 import Editor from "../../components/Editor";
 
+import { onAuthStateChanged } from "firebase/auth";
+import { authFokus360 } from "../../data/firebase-config";
 
 
 import { getDocs, collection, addDoc, getDoc, doc, updateDoc } from "firebase/firestore";
@@ -185,6 +187,14 @@ const Manuais = () => {
   const [allCards, setAllCards] = useState([]); // 🔥 Armazena todos os cards para aplicar os filtros depois
   const [columns, setColumns] = useState([]);
 
+//verifica usuario logado
+const [userRole, setUserRole] = useState("");
+const [isLoadingUser, setIsLoadingUser] = useState(true);
+
+const isAdmin = userRole === "08";
+
+
+
   //estados para a parte de upload
 const [arquivosUpload, setArquivosUpload] = useState([]);
 const [uploading, setUploading] = useState(false);
@@ -248,6 +258,34 @@ const TAMANHO_MAXIMO_BYTES = TAMANHO_MAXIMO_MB * 1024 * 1024;
       }, 300);
     }
   }, [highlightedMatches]);
+
+
+
+
+//verifica usuario logado
+  useEffect(() => {
+  const unsubscribe = onAuthStateChanged(authFokus360, async (currentUser) => {
+    if (currentUser) {
+      try {
+        const docRef = doc(dbFokus360, "user", currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const role = docSnap.data().role;
+          setUserRole(role);
+        } else {
+          console.error("❌ Dados do usuário não encontrados.");
+        }
+      } catch (error) {
+        console.error("❌ Erro ao buscar dados do usuário:", error);
+      }
+    } else {
+      setUserRole("");
+    }
+    setIsLoadingUser(false);
+  });
+
+  return () => unsubscribe();
+}, []);
 
 
 
@@ -436,11 +474,16 @@ const destacarNoHtml = (texto) => {
   };
   
   //função add accordion
-  const adicionarFormulario = () => {
-    const novoId = formularios.length + 1;
-    setFormularios([...formularios, { id: novoId, titulo: "", descricao: "", subItens: [] }]);
-    setExpandedAccordion(`panel-${novoId}`);
-  };
+ const adicionarFormulario = () => {
+  if (!isAdmin) {
+    alert("❌ Você não tem permissão para adicionar.");
+    return;
+  }
+  const novoId = formularios.length + 1;
+  setFormularios([...formularios, { id: novoId, titulo: "", descricao: "", subItens: [] }]);
+  setExpandedAccordion(`panel-${novoId}`);
+};
+
   
   
   
@@ -452,24 +495,31 @@ const destacarNoHtml = (texto) => {
 
 //função apra adcionar sub-accordion com posição definida
 const adicionarSubItem = (formId, posicao) => {
+  if (!isAdmin) {
+    alert("❌ Você não tem permissão para adicionar.");
+    return;
+  }
   setFormularios(prev =>
     prev.map(form => {
       if (form.id !== formId) return form;
-
       const novosSubItens = [...form.subItens];
       const novoSubItem = { titulo: "", descricao: "" };
-
       const indexParaInserir = posicao != null ? posicao + 1 : novosSubItens.length;
       novosSubItens.splice(indexParaInserir, 0, novoSubItem);
-
       return { ...form, subItens: novosSubItens };
     })
   );
 };
 
 
+
   //função para atualizar accordion
 const salvarFormularios = async () => {
+  if (!isAdmin) {
+    alert("❌ Você não tem permissão para executar esta ação.");
+    return;
+  }
+
   if (!nomeProjeto.trim()) {
     alert("Informe o nome do departamento antes de salvar.");
     return;
@@ -482,7 +532,7 @@ const salvarFormularios = async () => {
       itens: formularios.map((form) => ({
         titulo: form.titulo || "",
         descricao: form.descricao || "",
-        anexos: form.anexos || [],  // 🔥 Mantém exatamente como está
+        anexos: form.anexos || [],
         subItens: Array.isArray(form.subItens)
           ? form.subItens.map((sub) => ({
               titulo: sub.titulo || "",
@@ -497,11 +547,11 @@ const salvarFormularios = async () => {
       await updateDoc(docRef, docData);
       alert("✅ Projeto atualizado com sucesso!");
     } else {
-      const docRef = await addDoc(collection(dbFokus360, "csc"), docData);
+      await addDoc(collection(dbFokus360, "csc"), docData);
       alert("✅ Projeto salvo com sucesso!");
     }
 
-    setArquivosUpload([]); // 🔥 Pode até remover se não usa anexos gerais
+    setArquivosUpload([]);
   } catch (error) {
     console.error("❌ Erro ao salvar no Firestore:", error);
     alert("Erro ao salvar dados.");
@@ -623,27 +673,34 @@ const carregarProjeto = async (projectId) => {
     };
     
 //função deletar
-    const removerFormulario = (id) => {
-      setFormularios(prev => prev.filter(form => form.id !== id));
-      if (expandedAccordion === `panel-${id}`) {
-        setExpandedAccordion(null);
-      }
-    };
+  const removerFormulario = (id) => {
+  if (!isAdmin) {
+    alert("❌ Você não tem permissão para remover.");
+    return;
+  }
+  setFormularios(prev => prev.filter(form => form.id !== id));
+  if (expandedAccordion === `panel-${id}`) {
+    setExpandedAccordion(null);
+  }
+};
+
 
     
 //função deletar sub-accordion
 const removerSubItem = (formId, index) => {
+  if (!isAdmin) {
+    alert("❌ Você não tem permissão para remover.");
+    return;
+  }
   setFormularios(prev =>
     prev.map(form =>
       form.id === formId
-        ? {
-            ...form,
-            subItens: form.subItens.filter((_, i) => i !== index)
-          }
+        ? { ...form, subItens: form.subItens.filter((_, i) => i !== index) }
         : form
     )
   );
 };
+
 
 // função scrollToMatch para quando pesquisar uma palavra, a pagina rolar até ela
 const scrollToMatch = () => {
@@ -692,6 +749,11 @@ const scrollToMatch = () => {
 
 //função para fazer upload dos arquivos
 const handleUploadArquivo = async (event) => {
+  if (!isAdmin) {
+    alert("❌ Você não tem permissão para enviar arquivos.");
+    return;
+  }
+
   const files = Array.from(event.target.files);
   if (!files.length) return;
 
@@ -731,6 +793,7 @@ const handleUploadArquivo = async (event) => {
     setUploading(false);
   }
 };
+
 
 
 
@@ -1039,6 +1102,7 @@ const removerArquivoUpload = (nomeArquivo) => {
 
 
 <TextField
+  disabled={!isAdmin}
   label="Nome do departamento"
   size="small"
   fullWidth
@@ -1087,6 +1151,7 @@ const removerArquivoUpload = (nomeArquivo) => {
               fullWidth
               value={form.titulo}
               onChange={(e) => atualizarFormulario(form.id, "titulo", e.target.value)}
+              disabled={!isAdmin}
             />
           )}
 
@@ -1118,6 +1183,7 @@ const removerArquivoUpload = (nomeArquivo) => {
             <Editor
               value={form.descricao}
               onChange={(value) => atualizarFormulario(form.id, "descricao", value)}
+              readOnly={!isAdmin}
             />
 
           )}
@@ -1168,6 +1234,7 @@ const removerArquivoUpload = (nomeArquivo) => {
                       value={sub.titulo}
                       onChange={(e) => atualizarSubItem(form.id, index, "titulo", e.target.value)}
                       sx={{ mb: 1 }}
+                      disabled={!isAdmin}
                     />
                   )}
 
@@ -1201,6 +1268,7 @@ const removerArquivoUpload = (nomeArquivo) => {
                     <Editor
                       value={sub.descricao}
                       onChange={(value) => atualizarSubItem(form.id, index, "descricao", value)}
+                      readOnly={!isAdmin}
                     />
 
                   )}
@@ -1236,6 +1304,7 @@ const removerArquivoUpload = (nomeArquivo) => {
 <Button
     variant="outlined"
     onClick={adicionarFormulario}
+    disabled={!isAdmin}
     startIcon={<AddIcon />}
     sx={{
       textTransform: "none",
@@ -1258,6 +1327,7 @@ const removerArquivoUpload = (nomeArquivo) => {
   variant="outlined"
   component="label"
   size="small"
+  disabled={!isAdmin}
   sx={{
     textTransform: "none",
     marginRight: "5px",
@@ -1450,6 +1520,7 @@ const removerArquivoUpload = (nomeArquivo) => {
   <Button
     variant="contained"
     onClick={salvarFormularios}
+    disabled={!isAdmin}
     sx={{
       textTransform: "none",
       backgroundColor: "#d32f2f",

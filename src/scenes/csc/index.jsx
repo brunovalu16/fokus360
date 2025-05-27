@@ -150,7 +150,9 @@ const checkUserAssociation = async (userEmail, userId) => {
   
   
   
+//aqui faz o controle de acesso, verifica o role do usuario
 
+{/**
    // Controla o clique nos links
   const handleLinkClick = (e) => {
     //console.log("UserRole atual:", userRole);
@@ -164,6 +166,14 @@ const checkUserAssociation = async (userEmail, userId) => {
       setIsModalOpen(true);
     }
   };
+
+   */}
+
+
+  const handleLinkClick = () => {
+  // Desabilitado controle de acesso
+};
+
 
 
 //função para buscar e validar os e-mails nas diretrizes
@@ -195,9 +205,9 @@ const checkUserAssociation = async (userEmail, userId) => {
     return false;
   };
   
-
-
-  const hasPermission = userRole === "08" || isUserAssociated || isSolicitanteAssociated;
+// aqui é a regra que controla qual role pode acessar
+    const hasPermission = true;
+  //const hasPermission = userRole === "08" || isUserAssociated || isSolicitanteAssociated;
 
 
   return (

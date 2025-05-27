@@ -1,13 +1,12 @@
-import React, { useMemo, useRef, useEffect } from "react";
+import React, { useMemo, useRef } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storageFokus360 } from "../data/firebase-config";
 
-const Editor = ({ value, onChange }) => {
+const Editor = ({ value, onChange, readOnly = false }) => {
   const quillRef = useRef();
 
-  // 🔥 Upload de imagem
   const handleImageUpload = () => {
     const input = document.createElement("input");
     input.setAttribute("type", "file");
@@ -35,46 +34,51 @@ const Editor = ({ value, onChange }) => {
     };
   };
 
-  // 🔧 Toolbar + módulos
-  const modules = useMemo(() => ({
-    toolbar: {
-      container: [
-        [{ header: [1, 2, 3, false] }],
-        ["bold", "italic", "underline", "strike"],
-        [{ color: [] }, { background: [] }],
-        [{ font: [] }],
-        [{ align: [] }],
-        [{ indent: "-1" }, { indent: "+1" }], // 🔥 indentação
-        [{ list: "ordered" }, { list: "bullet" }],
-        ["link", "image"],
-        ["clean"],
-      ],
-      handlers: {
-        image: handleImageUpload,
-      },
-    },
-    keyboard: {
-      bindings: {
-        tab: {
-          key: 9,
-          handler: function (range, context) {
-            const quill = quillRef.current.getEditor();
-            quill.format("indent", "+1");
-            return false;
-          },
-        },
-        shiftTab: {
-          key: 9,
-          shiftKey: true,
-          handler: function (range, context) {
-            const quill = quillRef.current.getEditor();
-            quill.format("indent", "-1");
-            return false;
-          },
+  const modules = useMemo(() => {
+    if (readOnly) {
+      return { toolbar: false }; // 🔥 Remove toolbar quando estiver bloqueado
+    }
+
+    return {
+      toolbar: {
+        container: [
+          [{ header: [1, 2, 3, false] }],
+          ["bold", "italic", "underline", "strike"],
+          [{ color: [] }, { background: [] }],
+          [{ font: [] }],
+          [{ align: [] }],
+          [{ indent: "-1" }, { indent: "+1" }],
+          [{ list: "ordered" }, { list: "bullet" }],
+          ["link", "image"],
+          ["clean"],
+        ],
+        handlers: {
+          image: handleImageUpload,
         },
       },
-    },
-  }), []);
+      keyboard: {
+        bindings: {
+          tab: {
+            key: 9,
+            handler: function () {
+              const quill = quillRef.current.getEditor();
+              quill.format("indent", "+1");
+              return false;
+            },
+          },
+          shiftTab: {
+            key: 9,
+            shiftKey: true,
+            handler: function () {
+              const quill = quillRef.current.getEditor();
+              quill.format("indent", "-1");
+              return false;
+            },
+          },
+        },
+      },
+    };
+  }, [readOnly]);
 
   const formats = [
     "header",
@@ -102,7 +106,8 @@ const Editor = ({ value, onChange }) => {
       modules={modules}
       formats={formats}
       placeholder="Digite aqui..."
-      style={{ backgroundColor: "#fff", borderRadius: "8px" }}
+      readOnly={readOnly} // 🔥 Aqui ativa o modo somente leitura
+      style={{ backgroundColor: readOnly ? "#f3f3f3" : "#fff", borderRadius: "8px" }}
     />
   );
 };
