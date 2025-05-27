@@ -814,65 +814,65 @@ const removerArquivoUpload = (nomeArquivo) => {
     >
       <FilterListIcon sx={{ color: "#757575", mr: 1 }} />
       <Select
-  fullWidth
-  displayEmpty
-  value={selectedFilter || ""}
-  onChange={async (e) => {
-    const selectedValue = e.target.value;
-    setSelectedFilter(selectedValue);
+        fullWidth
+        displayEmpty
+        value={selectedFilter || ""}
+        onChange={async (e) => {
+          const selectedValue = e.target.value;
+          setSelectedFilter(selectedValue);
 
-    try {
-      const docRef = doc(dbFokus360, "csc", selectedValue);
-      const docSnap = await getDoc(docRef);
+          try {
+            const docRef = doc(dbFokus360, "csc", selectedValue);
+            const docSnap = await getDoc(docRef);
 
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setNomeProjeto(data.nome);
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              setNomeProjeto(data.nome);
 
-        const formulariosConvertidos = (data.itens || []).map((item, index) => ({
-          id: index + 1,
-          titulo: item.titulo || "",
-          descricao: item.descricao || "",
-          subItens: Array.isArray(item.subItens)
-            ? item.subItens.map((sub) => ({
-                titulo: sub.titulo || "",
-                descricao: sub.descricao || "",
-              }))
-            : [],
-          anexos: Array.isArray(item.anexos) ? item.anexos : [],
-        }));
+              const formulariosConvertidos = (data.itens || []).map((item, index) => ({
+                id: index + 1,
+                titulo: item.titulo || "",
+                descricao: item.descricao || "",
+                subItens: Array.isArray(item.subItens)
+                  ? item.subItens.map((sub) => ({
+                      titulo: sub.titulo || "",
+                      descricao: sub.descricao || "",
+                    }))
+                  : [],
+                anexos: Array.isArray(item.anexos) ? item.anexos : [],
+              }));
 
-        setFormularios(formulariosConvertidos);
-        setExpandedAccordion(null);
-      } else {
-        alert("Projeto não encontrado.");
-      }
-    } catch (error) {
-      console.error("Erro ao carregar projeto:", error);
-      alert("Erro ao carregar projeto.");
-    }
-  }}
-  sx={{
-    backgroundColor: "#f5f5f5",
-    borderRadius: "5px",
-    height: "40px",
-    "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-    "&:hover .MuiOutlinedInput-notchedOutline": { border: "none" },
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: "none" },
-    "&:focus": { outline: "none" },
-    "&.Mui-focused": { boxShadow: "none" },
-  }}
->
-  <MenuItem value="" disabled>
-    Selecione um departamento:
-  </MenuItem>
+              setFormularios(formulariosConvertidos);
+              setExpandedAccordion(null);
+            } else {
+              alert("Projeto não encontrado.");
+            }
+          } catch (error) {
+            console.error("Erro ao carregar projeto:", error);
+            alert("Erro ao carregar projeto.");
+          }
+        }}
+        sx={{
+          backgroundColor: "#f5f5f5",
+          borderRadius: "5px",
+          height: "40px",
+          "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+          "&:hover .MuiOutlinedInput-notchedOutline": { border: "none" },
+          "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: "none" },
+          "&:focus": { outline: "none" },
+          "&.Mui-focused": { boxShadow: "none" },
+        }}
+      >
+        <MenuItem value="" disabled>
+          Selecione um departamento:
+        </MenuItem>
 
-  {projects.map((projeto) => (
-    <MenuItem key={projeto.id} value={projeto.id}>
-      {projeto.nome}
-    </MenuItem>
-  ))}
-</Select>
+        {projects.map((projeto) => (
+          <MenuItem key={projeto.id} value={projeto.id}>
+            {projeto.nome}
+          </MenuItem>
+        ))}
+      </Select>
 
     </Box>
 
@@ -886,13 +886,14 @@ const removerArquivoUpload = (nomeArquivo) => {
       
       sx={{
         height: "40px",
-        minWidth: "140px",
-        backgroundColor: "#f44336",
+        minWidth: "120px",
+        backgroundColor: "#d71936",
         color: "white",
+        fontSize: "10px",
         whiteSpace: "nowrap",
         flexShrink: 0,
         "&:hover": {
-          backgroundColor: "#d32f2f",
+          backgroundColor: "#f44336 ",
           boxShadow: "none",
         },
         "&:focus": { outline: "none" },
@@ -901,7 +902,7 @@ const removerArquivoUpload = (nomeArquivo) => {
       <ClearAllIcon sx={{ fontSize: "20px", mr: 1 }} />
       Limpar Filtro
     </Button>
-        </Box>
+  </Box>
 
         {/* Campo de pesquisa */}
         <Box
@@ -1006,7 +1007,7 @@ const removerArquivoUpload = (nomeArquivo) => {
     
     
             <Box display="flex" alignItems="center" gap={1} sx={{ marginTop: "50px", marginBottom: "20px" }}>
-              <PlayCircleFilledIcon sx={{ color: "#f44336", fontSize: 25 }} />
+              <PlayCircleFilledIcon sx={{ color: "#d71936", fontSize: 25 }} />
               <Typography color="#858585">
                 Visualize ou adicione informações ao manual do seu departamento: 
               </Typography>
@@ -1356,7 +1357,7 @@ const removerArquivoUpload = (nomeArquivo) => {
   }}
 >
   <thead>
-    <Box component="tr" sx={{ backgroundColor: "#f44336" }}>
+    <Box component="tr" sx={{ backgroundColor: "#d71936" }}>
       <Box component="th" sx={{ p: 1.5, textAlign: "left", fontWeight: 600, color: "#fff" }}>
         Nome do Arquivo
       </Box>
@@ -1397,7 +1398,7 @@ const removerArquivoUpload = (nomeArquivo) => {
             rel="noopener noreferrer"
             size="small"
           >
-            <VisibilityIcon fontSize="small" sx={{ color: "#f44336" }} />
+            {/**<VisibilityIcon fontSize="small" sx={{ color: "#f44336" }} /> */}
           </IconButton>
         </td>
 
@@ -1479,7 +1480,7 @@ const removerArquivoUpload = (nomeArquivo) => {
             color: "#d71936",
             borderColor: "#d71936",
             "&:hover": {
-              borderColor: "#d71936",
+              borderColor: "#f44336",
               backgroundColor: "transparent"
             },
           }}

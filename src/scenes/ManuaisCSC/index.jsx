@@ -225,6 +225,50 @@ const ManuaisCSC = () => {
     }
   };
 
+
+//função de upload de arquivos
+  const handleUploadArquivo = async (event) => {
+  const files = Array.from(event.target.files);
+  if (!files.length) return;
+
+  const arquivosValidos = files.filter(file => file.size <= TAMANHO_MAXIMO_BYTES);
+
+  try {
+    setUploading(true);
+    const uploads = await Promise.all(
+      arquivosValidos.map(async (file) => {
+        const caminho = `csc_uploads/${Date.now()}_${file.name}`;
+        const storageRef = ref(storageFokus360, caminho);
+
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+
+        return {
+          nomeArquivo: file.name,
+          arquivoUrl: url,
+          caminhoStorage: caminho,
+        };
+      })
+    );
+
+    setFormularios((prev) =>
+      prev.map((form, index) =>
+        index === 0
+          ? { ...form, anexos: [...(form.anexos || []), ...uploads] }
+          : form
+      )
+    );
+
+    alert("✅ Arquivos enviados com sucesso!");
+  } catch (error) {
+    console.error("❌ Erro no upload:", error);
+    alert("❌ Erro ao enviar arquivos.");
+  } finally {
+    setUploading(false);
+  }
+};
+
+
   return (
     <Box sx={{ padding: "40px" }}>
       <Header
@@ -362,29 +406,6 @@ const ManuaisCSC = () => {
 
               {/* Upload */}
               <Box>
-                <Button
-                  variant="outlined"
-                  component="label"
-                  size="small"
-                  sx={{
-                    textTransform: "none",
-                    color: "#fff",
-                    borderColor: "#312783",
-                    backgroundColor: "#312783",
-                    "&:hover": {
-                      backgroundColor: "#312783",
-                    },
-                  }}
-                >
-                  {uploading ? "Enviando..." : "Enviar Arquivos"}
-                  <input
-                    type="file"
-                    multiple
-                    hidden
-                    accept=".jpg,.jpeg,.xlsx,.xls,.pptx,.ppt,.doc,.docx,.pdf"
-                    onChange={(e) => handleUploadArquivoPorFormulario(form.id, e)}
-                  />
-                </Button>
 
                 {form.anexos.length > 0 && (
                   <Box mt={1}>
@@ -451,7 +472,36 @@ const ManuaisCSC = () => {
         Adicionar Item
       </Button>
 
+                
+
       <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+
+                <Button
+                  variant="outlined"
+                  component="label"
+                  size="small"
+                  sx={{
+                    textTransform: "none",
+                    color: "#fff",
+                    borderColor: "#312783",
+                    marginRight: "10px",
+                    backgroundColor: "#312783",
+                    "&:hover": {
+                      backgroundColor: "#312783",
+                    },
+                  }}
+                >
+                  {uploading ? "Enviando..." : "Enviar Arquivos"}
+                  <input
+                    type="file"
+                    multiple
+                    hidden
+                    accept=".jpg,.jpeg,.xlsx,.xls,.pptx,.ppt,.doc,.docx,.pdf"
+                    onChange={handleUploadArquivo}
+                  />
+                </Button>
+
+
         <Button
           variant="contained"
           onClick={salvarFormularios}
