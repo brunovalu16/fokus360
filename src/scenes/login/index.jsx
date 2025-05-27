@@ -305,7 +305,7 @@ const Login = () => {
           sx={{
             borderTopRightRadius: "50px",
             borderBottomLeftRadius: "50px",
-            backgroundColor: "rgba(37, 29, 112, 0.7)", // 0.6 = 60% opacidade
+            backgroundColor: "rgba(37, 29, 112, 0.9)", // 0.6 = 60% opacidade
             padding: 4,
             boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
             width: "90%",
