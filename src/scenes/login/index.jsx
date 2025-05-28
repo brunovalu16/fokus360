@@ -21,7 +21,7 @@ import { authFokus360, dbFokus360 as db } from "../../data/firebase-config"; // 
 
 import CloseIcon from "@mui/icons-material/Close";
 import WarningIcon from "@mui/icons-material/Warning";
-import background from "../../assets/images/backlogin3.webp";
+import background from "../../assets/images/backlogin4.jpg";
 import logo from "../../assets/images/fokus360cinza.png";
 
 
@@ -305,7 +305,7 @@ const Login = () => {
           sx={{
             borderTopRightRadius: "50px",
             borderBottomLeftRadius: "50px",
-            backgroundColor: "#fff",
+            background: "radial-gradient(circle, #fff, #f7f7f7)",
             padding: 4,
             boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.3)",
             width: "90%",
@@ -314,6 +314,7 @@ const Login = () => {
             transform: "scale(0.8)",
             marginRight: "370px",
           }}
+
         >
           <Box
             component="form"
