@@ -21,8 +21,8 @@ import { authFokus360, dbFokus360 as db } from "../../data/firebase-config"; // 
 
 import CloseIcon from "@mui/icons-material/Close";
 import WarningIcon from "@mui/icons-material/Warning";
-import background from "../../assets/images/backlogin2.webp";
-import logo from "../../assets/images/logo360verde.png";
+import background from "../../assets/images/backlogin3.webp";
+import logo from "../../assets/images/fokus360cinza.png";
 
 
 const Login = () => {
@@ -163,7 +163,7 @@ const Login = () => {
             marginTop: "10%",
           }}
         >
-          <Typography variant="h6" mb={2}>
+          <Typography variant="h6" mb={2} sx={{ color: "#a7a7a7" }}>
             Redefinir Senha
           </Typography>
           <TextField
@@ -279,7 +279,7 @@ const Login = () => {
       >
         <Box
           sx={{
-            backgroundColor: "#312783",
+            //backgroundColor: "#312783",
             padding: "30px",
             paddingBottom: "50px",
             display: "flex",
@@ -295,7 +295,7 @@ const Login = () => {
             src={logo}
             alt="Logo"
             style={{
-              width: "420px",
+              width: "380px",
               height: "auto",
             }}
           />
@@ -305,9 +305,9 @@ const Login = () => {
           sx={{
             borderTopRightRadius: "50px",
             borderBottomLeftRadius: "50px",
-            backgroundColor: "rgba(37, 29, 112, 0.9)", // 0.6 = 60% opacidade
+            backgroundColor: "#fff",
             padding: 4,
-            boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
+            boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.3)",
             width: "90%",
             maxWidth: 400,
             textAlign: "center",
@@ -331,28 +331,34 @@ const Login = () => {
               sx={{
                 '& .MuiOutlinedInput-root': {
                   '& fieldset': {
-                    borderColor: '#4d44bf',
+                    borderColor: '#aaaaaa',
+                    borderRadius: "20px",
                   },
                   '&:hover fieldset': {
-                    borderColor: '#4d44bf',
+                    borderColor: '#aaaaaa',
+                    borderRadius: "20px",
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#4d44bf',
+                    borderColor: '#aaaaaa',
                   },
-                  color: '#4d44bf',
+                  color: '#aaaaaa',
                 },
                 '& .MuiInputLabel-root': {
                   color: '#b6b6b6',
+                  
                 },
                 '& .MuiInputLabel-root.Mui-focused': {
                   color: '#b6b6b6',
+                  
                 },
                 '& .MuiOutlinedInput-input': {
                   color: '#b6b6b6',
+                  
                 },
                 '& .MuiInputBase-input::placeholder': {
                   color: '#b6b6b6',
                   opacity: 1,
+                  
                 },
               }}
             />
@@ -368,13 +374,15 @@ const Login = () => {
               sx={{
                 '& .MuiOutlinedInput-root': {
                   '& fieldset': {
-                    borderColor: '#4d44bf',
+                    borderColor: '#aaaaaa',
+                    borderRadius: "20px",
                   },
                   '&:hover fieldset': {
-                    borderColor: '#4d44bf',
+                    borderColor: '#aaaaaa',
+                    borderRadius: "20px",
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#4d44bf',
+                    borderColor: '#aaaaaa',
                   },
                   color: '#b6b6b6',
                 },
@@ -417,7 +425,7 @@ const Login = () => {
             <Button
               variant="text"
               onClick={() => setOpen(true)}
-              sx={{ color: "#b6b6b6" }}
+              sx={{ color: "#949494" }}
             >
               Esqueci a senha
             </Button>

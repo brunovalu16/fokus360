@@ -112,7 +112,7 @@ const SideBar = () => {
         sx={{
           color: "#312783",
           margin: "15px auto", // Centraliza horizontalmente
-          marginLeft: "10px",
+          marginLeft: "20px",
           transition: "all 0.3s ease", // Suaviza a transição
         }}
       >
