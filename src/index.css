@@ -167,4 +167,15 @@ body,
 
 
 
+/*  CONFIGURAÇÃO DO BAIXAR PDF */
+
+@media print {
+  .avoid-break-inside {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .manual-section {
+    margin-bottom: 32px; /* segurança extra entre sessões */
+  }
+}
 

@@ -23,6 +23,13 @@ import Editor from "../../components/Editor";
 import { onAuthStateChanged } from "firebase/auth";
 import { authFokus360 } from "../../data/firebase-config";
 
+import html2pdf from 'html2pdf.js';
+
+import Dialog from "@mui/material/Dialog";
+import { convertImagesToDataURL } from "../../utils/convertImagesToDataURL";
+
+
+
 
 import { getDocs, collection, addDoc, getDoc, doc, updateDoc } from "firebase/firestore";
 import { dbFokus360 } from "../../data/firebase-config";
@@ -31,8 +38,6 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 
 
-import { PDFDownloadLink } from "@react-pdf/renderer";
-import ManualPDF from "../../components/ManualPDF"; // ajuste o caminho se necessário
 
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import FilterListIcon from "@mui/icons-material/FilterList"; // Ícone para o Select
@@ -180,12 +185,31 @@ const calcularProgressoEstrategica = (estrategica) => {
 
 
 
+function waitForImagesToLoad(element, callback) {
+  const images = element.querySelectorAll('img');
+  let loadedCount = 0;
+  if (images.length === 0) return callback();
+  images.forEach(img => {
+    if (img.complete && img.naturalHeight !== 0) {
+      loadedCount++;
+      if (loadedCount === images.length) callback();
+    } else {
+      img.onload = img.onerror = () => {
+        loadedCount++;
+        if (loadedCount === images.length) callback();
+      };
+    }
+  });
+}
+
+
 
 
 const Manuais = () => {
   const [projects, setProjects] = useState([]); // Todos os projetos
   const [allCards, setAllCards] = useState([]); // 🔥 Armazena todos os cards para aplicar os filtros depois
   const [columns, setColumns] = useState([]);
+  
 
 //verifica usuario logado
 const [userRole, setUserRole] = useState("");
@@ -199,6 +223,9 @@ const isAdmin = userRole === "08";
 const [arquivosUpload, setArquivosUpload] = useState([]);
 const [uploading, setUploading] = useState(false);
 const [uploadSuccess, setUploadSuccess] = useState(null);
+const [mostrarDialogPDF, setMostrarDialogPDF] = useState(false);
+const [mostrarConteudoPDF, setMostrarConteudoPDF] = useState(false);
+
 
 
   //estados para o fluxo grama
@@ -258,6 +285,13 @@ const TAMANHO_MAXIMO_BYTES = TAMANHO_MAXIMO_MB * 1024 * 1024;
       }, 300);
     }
   }, [highlightedMatches]);
+
+
+
+
+
+
+
 
 
 
@@ -802,6 +836,101 @@ const handleUploadArquivo = async (event) => {
 const removerArquivoUpload = (nomeArquivo) => {
   setArquivosUpload((prev) => prev.filter((a) => a.nomeArquivo !== nomeArquivo));
 };
+
+
+
+
+// função para gerar o HTML:
+const gerarHtmlManual = () => {
+  return `
+    <div style="padding: 24px; font-family: Arial, sans-serif;">
+      <h1 style="font-size: 24px;">${nomeProjeto}</h1>
+      ${formularios
+        .map(
+          (form) => `
+          <div class="manual-section avoid-break-inside" style="margin-bottom: 32px;">
+            <h2 style="font-size: 18px; margin-bottom: 8px;">${form.titulo}</h2>
+            <div>${form.descricao}</div>
+            ${form.subItens
+              ?.map(
+                (sub) => `
+                  <div style="margin-left: 16px; margin-top: 8px;" class="avoid-break-inside">
+                    <h3 style="font-size: 15px; margin-bottom: 4px;">${sub.titulo}</h3>
+                    <div>${sub.descricao}</div>
+                  </div>
+                `
+              )
+              .join("")}
+          </div>
+        `
+        )
+        .join("")}
+    </div>
+  `;
+};
+
+
+
+
+const exportarPDF = () => {
+  setMostrarDialogPDF(true);
+};
+
+
+//função que renderiza o pdf.
+useEffect(() => {
+  if (mostrarDialogPDF) {
+    setTimeout(() => {
+      const elemento = document.getElementById("conteudo-pdf");
+      if (!elemento) return setMostrarDialogPDF(false);
+
+      convertImagesToDataURL(elemento).then(() => {
+        html2pdf()
+          .from(elemento)
+          .set({
+            margin: [20, 20, 30, 20],
+            filename: `${nomeProjeto || "manual"}.pdf`,
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          })
+          .save()
+          .then(() => setMostrarDialogPDF(false));
+      });
+    }, 400);
+  }
+}, [mostrarDialogPDF]);
+
+
+
+
+useEffect(() => {
+  if (mostrarConteudoPDF) {
+    setTimeout(() => {
+      const elemento = document.getElementById("conteudo-pdf");
+      if (!elemento) return setMostrarConteudoPDF(false);
+
+      convertImagesToDataURL(elemento)
+        .then(() => {
+          return new Promise(resolve => waitForImagesToLoad(elemento, resolve));
+        })
+        .then(() => {
+          html2pdf()
+            .from(elemento)
+            .set({
+              margin: [20, 20, 30, 20],
+              filename: `${nomeProjeto || "manual"}.pdf`,
+              html2canvas: { scale: 2, useCORS: true },
+              jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+            })
+            .save()
+            .then(() => setMostrarConteudoPDF(false));
+        });
+    }, 400);
+  }
+}, [mostrarConteudoPDF]);
+
+
+
 
 
 
@@ -1513,10 +1642,7 @@ const removerArquivoUpload = (nomeArquivo) => {
 </Box>
 
 
- <Box display="flex"
-      justifyContent="flex-end"
-      gap={2}
-      sx={{ marginTop: "30px", width: "100%" }}>
+ <Box display="flex" justifyContent="flex-end" gap={2} sx={{ marginTop: "30px", width: "100%" }}>
   <Button
     variant="contained"
     onClick={salvarFormularios}
@@ -1533,94 +1659,55 @@ const removerArquivoUpload = (nomeArquivo) => {
     Salvar
   </Button>
 
-  <PDFDownloadLink
-    document={<ManualPDF nomeProjeto={nomeProjeto} formularios={formularios} />}
-    fileName={`${nomeProjeto || "manual"}.pdf`}
-    style={{ textDecoration: "none" }}
-  >
-    {({ loading }) =>
-      loading ? (
-        <Button variant="outlined" disabled>
-          Gerando PDF...
-        </Button>
-      ) : (
-        <Button
-          variant="outlined"
-          sx={{
-            textTransform: "none",
-            color: "#d71936",
-            borderColor: "#d71936",
-            "&:hover": {
-              borderColor: "#f44336",
-              backgroundColor: "transparent"
-            },
-          }}
-        >
-          Baixar PDF
-        </Button>
-      )
-    }
-  </PDFDownloadLink>
+  <Button
+  variant="outlined"
+  onClick={exportarPDF}
+  sx={{
+    textTransform: "none",
+    color: "#d71936",
+    borderColor: "#d71936",
+    "&:hover": {
+      borderColor: "#f44336",
+      backgroundColor: "transparent"
+    },
+  }}
+>
+  Baixar PDF
+</Button>
+
+<Dialog
+  open={mostrarDialogPDF}
+  onClose={() => setMostrarDialogPDF(false)}
+  maxWidth="md"
+  fullWidth
+  PaperProps={{ style: { boxShadow: "none", background: "#fff" } }}
+>
+  <div
+    id="conteudo-pdf"
+    style={{ padding: 32, background: "#fff" }}
+    dangerouslySetInnerHTML={{ __html: gerarHtmlManual() }}
+  />
+</Dialog>
 </Box>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-          
-          
-
-          
-
-
-            
           </Box>
+          {mostrarConteudoPDF && (
+            <div
+              id="conteudo-pdf"
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                opacity: 0,
+                pointerEvents: "none",
+                zIndex: -1,
+              }}
+              dangerouslySetInnerHTML={{ __html: gerarHtmlManual() }}
+            />
+          )}
+
+          
         </>
       );
     };
