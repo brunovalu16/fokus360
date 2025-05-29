@@ -1,13 +1,11 @@
-import React, { useMemo, useRef } from "react";
+import React, { useRef, useMemo } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storageFokus360 } from "../data/firebase-config";
 
 const Editor = ({ value, onChange, readOnly = false }) => {
   const quillRef = useRef();
 
-  const handleImageUpload = () => {
+  const imageHandler = () => {
     const input = document.createElement("input");
     input.setAttribute("type", "file");
     input.setAttribute("accept", "image/*");
@@ -15,29 +13,21 @@ const Editor = ({ value, onChange, readOnly = false }) => {
 
     input.onchange = async () => {
       const file = input.files?.[0];
-      if (file) {
-        const caminho = `quill_uploads/${Date.now()}_${file.name}`;
-        const storageRef = ref(storageFokus360, caminho);
+      if (!file) return;
 
-        try {
-          await uploadBytes(storageRef, file);
-          const url = await getDownloadURL(storageRef);
-
-          const editor = quillRef.current.getEditor();
-          const range = editor.getSelection();
-          editor.insertEmbed(range?.index || 0, "image", url);
-        } catch (error) {
-          console.error("Erro no upload da imagem:", error);
-          alert("❌ Erro ao fazer upload da imagem.");
-        }
-      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64Image = reader.result;
+        const editor = quillRef.current.getEditor();
+        const range = editor.getSelection();
+        editor.insertEmbed(range?.index || 0, "image", base64Image);
+      };
+      reader.readAsDataURL(file);
     };
   };
 
   const modules = useMemo(() => {
-    if (readOnly) {
-      return { toolbar: false }; // 🔥 Remove toolbar quando estiver bloqueado
-    }
+    if (readOnly) return { toolbar: false };
 
     return {
       toolbar: {
@@ -53,7 +43,7 @@ const Editor = ({ value, onChange, readOnly = false }) => {
           ["clean"],
         ],
         handlers: {
-          image: handleImageUpload,
+          image: imageHandler,
         },
       },
       keyboard: {
@@ -100,14 +90,16 @@ const Editor = ({ value, onChange, readOnly = false }) => {
   return (
     <ReactQuill
       ref={quillRef}
-      theme="snow"
       value={value}
       onChange={onChange}
       modules={modules}
       formats={formats}
-      placeholder="Digite aqui..."
-      readOnly={readOnly} // 🔥 Aqui ativa o modo somente leitura
-      style={{ backgroundColor: readOnly ? "#f3f3f3" : "#fff", borderRadius: "8px" }}
+      readOnly={readOnly}
+      theme="snow"
+      style={{
+        backgroundColor: readOnly ? "#f5f5f5" : "#fff",
+        borderRadius: "6px",
+      }}
     />
   );
 };

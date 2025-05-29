@@ -27,6 +27,8 @@ import html2pdf from 'html2pdf.js';
 
 import Dialog from "@mui/material/Dialog";
 import { convertImagesToDataURL } from "../../utils/convertImagesToDataURL";
+import { replaceImageUrlsWithBase64 } from "../../utils/replaceImageUrlsWithBase64(html)";
+
 
 
 
@@ -201,6 +203,14 @@ function waitForImagesToLoad(element, callback) {
     }
   });
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -563,17 +573,19 @@ const salvarFormularios = async () => {
     const docData = {
       nome: nomeProjeto.trim(),
       criadoEm: new Date(),
-      itens: formularios.map((form) => ({
-        titulo: form.titulo || "",
-        descricao: form.descricao || "",
-        anexos: form.anexos || [],
-        subItens: Array.isArray(form.subItens)
-          ? form.subItens.map((sub) => ({
+      itens: await Promise.all(
+        formularios.map(async (form) => ({
+          titulo: form.titulo || "",
+          descricao: form.descricao || "",
+          anexos: form.anexos || [],
+          subItens: await Promise.all(
+            (form.subItens || []).map(async (sub) => ({
               titulo: sub.titulo || "",
               descricao: sub.descricao || "",
             }))
-          : [],
-      })),
+          ),
+        }))
+      ),
     };
 
     if (selectedFilter) {
@@ -591,6 +603,9 @@ const salvarFormularios = async () => {
     alert("Erro ao salvar dados.");
   }
 };
+
+
+
 
 
   
@@ -783,30 +798,25 @@ const scrollToMatch = () => {
 
 //função para fazer upload dos arquivos
 const handleUploadArquivo = async (event) => {
-  if (!isAdmin) {
-    alert("❌ Você não tem permissão para enviar arquivos.");
-    return;
-  }
-
   const files = Array.from(event.target.files);
   if (!files.length) return;
 
   const arquivosValidos = files.filter(file => file.size <= TAMANHO_MAXIMO_BYTES);
 
   try {
-    setUploading(true);
     const uploads = await Promise.all(
       arquivosValidos.map(async (file) => {
-        const caminho = `csc_uploads/${Date.now()}_${file.name}`;
-        const storageRef = ref(storageFokus360, caminho);
-
-        await uploadBytes(storageRef, file);
-        const url = await getDownloadURL(storageRef);
+        // 🔄 Converte para base64
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result); // result = dataURL
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
 
         return {
           nomeArquivo: file.name,
-          arquivoUrl: url,
-          caminhoStorage: caminho,
+          dataUrl: base64, // ✅ salvando base64 direto
         };
       })
     );
@@ -819,14 +829,13 @@ const handleUploadArquivo = async (event) => {
       )
     );
 
-    alert("✅ Arquivos enviados com sucesso!");
+    alert("✅ Arquivos convertidos e anexados com sucesso!");
   } catch (error) {
-    console.error("❌ Erro no upload:", error);
-    alert("❌ Erro ao enviar arquivos.");
-  } finally {
-    setUploading(false);
+    console.error("❌ Erro ao processar arquivos:", error);
+    alert("❌ Erro ao processar arquivos.");
   }
 };
+
 
 
 
@@ -851,6 +860,7 @@ const gerarHtmlManual = () => {
           <div class="manual-section avoid-break-inside" style="margin-bottom: 32px;">
             <h2 style="font-size: 18px; margin-bottom: 8px;">${form.titulo}</h2>
             <div>${form.descricao}</div>
+
             ${form.subItens
               ?.map(
                 (sub) => `
@@ -861,6 +871,19 @@ const gerarHtmlManual = () => {
                 `
               )
               .join("")}
+
+            ${
+              form.anexos?.length
+                ? `<div style="margin-top: 12px;">
+                    ${form.anexos
+                      .map(
+                        (anexo) =>
+                          `<img src="${anexo.dataUrl}" alt="${anexo.nomeArquivo}" style="max-width: 300px; margin-top: 8px;" />`
+                      )
+                      .join("")}
+                  </div>`
+                : ""
+            }
           </div>
         `
         )
@@ -868,6 +891,7 @@ const gerarHtmlManual = () => {
     </div>
   `;
 };
+
 
 
 
@@ -930,6 +954,38 @@ useEffect(() => {
 }, [mostrarConteudoPDF]);
 
 
+
+
+//função converter Imagens Firebase Para Base64
+async function converterImagensFirebaseParaBase64(html) {
+  const container = document.createElement("div");
+  container.innerHTML = html;
+
+  const imgs = container.querySelectorAll("img");
+
+  for (const img of imgs) {
+    const src = img.src;
+
+    if (src.startsWith("data:")) continue;
+
+    try {
+      const res = await fetch(src, { mode: "cors" });
+      const blob = await res.blob();
+
+      const base64 = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+
+      img.src = base64;
+    } catch (err) {
+      console.warn("Erro ao converter imagem:", src, err);
+    }
+  }
+
+  return container.innerHTML;
+}
 
 
 
