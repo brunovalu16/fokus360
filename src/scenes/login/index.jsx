@@ -21,7 +21,7 @@ import { authFokus360, dbFokus360 as db } from "../../data/firebase-config"; // 
 
 import CloseIcon from "@mui/icons-material/Close";
 import WarningIcon from "@mui/icons-material/Warning";
-import background from "../../assets/images/backlogin4.jpg";
+import background from "../../assets/images/backlogin4.webp";
 import logo from "../../assets/images/fokus360cinza.png";
 
 
