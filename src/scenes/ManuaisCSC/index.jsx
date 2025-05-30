@@ -19,6 +19,10 @@ import {
 } from "firebase/storage";
 import { dbFokus360, storageFokus360 } from "../../data/firebase-config";
 
+import { replaceImageUrlsWithBase64 } from "../../utils/replaceImageUrlsWithBase64(html)";
+
+
+
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
@@ -196,34 +200,44 @@ const ManuaisCSC = () => {
   };
 
   // ✅ Salvar no Firestore
-  const salvarFormularios = async () => {
-    if (!nomeProjeto.trim()) {
-      alert("Informe o nome do departamento antes de salvar.");
-      return;
-    }
+const salvarFormularios = async () => {
+  if (!nomeProjeto.trim()) {
+    alert("Informe o nome do departamento antes de salvar.");
+    return;
+  }
 
-    const doc = {
+  try {
+    const itensConvertidos = await Promise.all(
+      formularios.map(async (form) => {
+        const descricaoConvertida = await replaceImageUrlsWithBase64(form.descricao || "");
+        const subItensConvertidos = await Promise.all(
+          (form.subItens || []).map(async (sub) => ({
+            titulo: sub.titulo?.trim() || "",
+            descricao: await replaceImageUrlsWithBase64(sub.descricao || ""),
+          }))
+        );
+
+        return {
+          titulo: form.titulo?.trim() || "",
+          descricao: descricaoConvertida,
+          anexos: form.anexos || [],
+          subItens: subItensConvertidos,
+        };
+      })
+    );
+
+    await addDoc(collection(dbFokus360, "csc"), {
       nome: nomeProjeto.trim(),
       criadoEm: new Date(),
-      itens: formularios.map((form) => ({
-        titulo: form.titulo?.trim() || "",
-        descricao: form.descricao || "",
-        anexos: form.anexos || [],
-        subItens: form.subItens.map((sub) => ({
-          titulo: sub.titulo?.trim() || "",
-          descricao: sub.descricao || "",
-        })),
-      })),
-    };
+      itens: itensConvertidos,
+    });
 
-    try {
-      await addDoc(collection(dbFokus360, "csc"), doc);
-      alert("✅ Projeto salvo com sucesso!");
-    } catch (error) {
-      console.error("❌ Erro ao salvar:", error);
-      alert("Erro ao salvar dados.");
-    }
-  };
+    alert("✅ Projeto salvo com sucesso!");
+  } catch (error) {
+    console.error("❌ Erro ao salvar:", error);
+    alert("Erro ao salvar dados.");
+  }
+};
 
 
 //função de upload de arquivos

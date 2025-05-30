@@ -329,27 +329,33 @@ const checkUserAssociation = async (userEmail, userId) => {
           </Box>
 
           <Box
-            sx={{
-              position: "absolute",
-              top: "30%", // Posição para "Resumo Geral"
-              right: "5%",
-              height: "150px",
-            }}
-          >
-            <Link
-              to="#"
-              onClick={(e) => {
-                e.preventDefault();
-                if (hasPermission) {
-                  setShowUploadModal(true); // ← Abre o modal
-                } else {
-                  handleLinkClick(e); // ← Continua a lógica atual para não autorizados
-                }
-              }}
-            >
-              Resumo Geral
-            </Link>
-          </Box>
+  sx={{
+    position: "absolute",
+    top: "30%",
+    right: "7%",
+    height: "150px",
+  }}
+>
+  <Link
+    to="#"
+    style={{
+      textDecoration: "none",
+      color: "#fff",
+      fontSize: "14px", // tamanho fixo
+    }}
+    onClick={(e) => {
+      e.preventDefault();
+      if (hasPermission) {
+        setShowUploadModal(true);
+      } else {
+        handleLinkClick(e);
+      }
+    }}
+  >
+    Adicionar arquivos
+  </Link>
+</Box>
+
 
           <Box
             sx={{

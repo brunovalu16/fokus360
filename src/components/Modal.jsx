@@ -194,9 +194,7 @@ const Modal = ({ open, onClose, onFileUploaded }) => {
               </MenuItem>
             ))}
           </TextField>
-        </form>
 
-        <Box display="flex" justifyContent="flex-end" mt={3} gap={2}>
           <TextField
             fullWidth
             label="Área"
@@ -212,6 +210,10 @@ const Modal = ({ open, onClose, onFileUploaded }) => {
               </MenuItem>
             ))}
           </TextField>
+        </form>
+
+        <Box display="flex" justifyContent="flex-end" mt={3} gap={2}>
+          
 
 
           <Button
