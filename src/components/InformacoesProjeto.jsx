@@ -13,7 +13,6 @@ import {
 import { dbFokus360 } from "../data/firebase-config"; // ✅ Usa a instância correta
 import { getDocs, collection, addDoc } from "firebase/firestore";
 import { getApps } from "firebase/app";
-console.log("Apps Inicializados:", getApps()); // ✅ Deve exibir os apps carregados
 
 
 

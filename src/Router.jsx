@@ -42,6 +42,7 @@ import VendastotalTrade from "./scenes/vendastotaltrade";
 import Capatarefas from "./scenes/capatarefas";
 import Capaarquivos from "./scenes/capaarquivos";
 import Csc from "./scenes/csc";
+import Arquivosareas from "./scenes/arquivosareas";
 import {
   Team,
   Invoices,
@@ -68,6 +69,7 @@ const router = createBrowserRouter(
         { path: "/cadastro", element: <PrivateRoute><Cadastro /></PrivateRoute> },
         { path: "/home", element: <PrivateRoute><Home /></PrivateRoute> },
         { path: "/planejamentogeral", element: <PrivateRoute><PlanejamentoGeral /></PrivateRoute> },
+        { path: "/arquivosareas", element: <PrivateRoute><Arquivosareas /></PrivateRoute> },
         { path: "/csc", element: <PrivateRoute><Csc /></PrivateRoute> },
         { path: "/capatarefas", element: <PrivateRoute><Capatarefas /></PrivateRoute> },
         { path: "/capaarquivos", element: <PrivateRoute><Capaarquivos /></PrivateRoute> },

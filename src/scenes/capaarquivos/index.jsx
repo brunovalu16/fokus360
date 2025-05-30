@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Modal, Alert } from "@mui/material";
+import { Box, Typography, Alert } from "@mui/material";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import { Link } from "react-router-dom";
 import capaarquivos from "../../../src/assets/images/capaarquivos.webp"
@@ -9,6 +9,9 @@ import { dbFokus360 } from "../../data/firebase-config"; // Para Fokus360
 import { authFokus360 } from "../../data/firebase-config"; // ✅ Removido appFokus360
 
 import { onAuthStateChanged } from "firebase/auth"; // Firebase Auth padrão
+
+import Modal from "../../components/Modal";
+
 
 import IconButton from '@mui/material/IconButton';
 import Collapse from '@mui/material/Collapse';
@@ -21,6 +24,8 @@ const Capaarquivos = () => {
   const [userId, setUserId] = useState(null);
   const [isSolicitanteAssociated, setIsSolicitanteAssociated] = useState(false); // Verificação específica para solicitante
   const [userRole, setUserRole] = useState(null); // Armazena o perfil do usuário
+  const [showUploadModal, setShowUploadModal] = useState(false);
+
   
   //const authFokus360 = getAuth(appFokus360 );
 
@@ -307,7 +312,7 @@ const checkUserAssociation = async (userEmail, userId) => {
             }}
           >
             <Link
-              to="/arquivos"
+              to="/arquivosareas"
               style={{
                 backgroundColor: "transparent",
                 color: "transparent",
@@ -332,17 +337,14 @@ const checkUserAssociation = async (userEmail, userId) => {
             }}
           >
             <Link
-              to={hasPermission ? "/planejamentogeral" : ""}
-              onClick={handleLinkClick}
-              style={{
-                padding: "10px 20px",
-                backgroundColor: "transparent",
-                color: "transparent",
-                borderRadius: "8px",
-                textDecoration: "none",
-                fontWeight: "bold",
-                paddingRight: "250px",
-                paddingBottom: "20px",
+              to="#"
+              onClick={(e) => {
+                e.preventDefault();
+                if (hasPermission) {
+                  setShowUploadModal(true); // ← Abre o modal
+                } else {
+                  handleLinkClick(e); // ← Continua a lógica atual para não autorizados
+                }
               }}
             >
               Resumo Geral
@@ -396,6 +398,16 @@ const checkUserAssociation = async (userEmail, userId) => {
           </Box>
         </div>
       </Box>
+      
+      <Modal
+        open={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        onFileUploaded={() => {
+          setShowUploadModal(false);
+          // Você pode colocar alguma ação adicional aqui, se quiser
+        }}
+      />
+
     </>
   );
 };

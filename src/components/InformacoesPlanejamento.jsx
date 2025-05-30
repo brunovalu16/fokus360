@@ -16,7 +16,7 @@ import {
 import { dbFokus360 } from "../data/firebase-config"; // ✅ Usa a instância correta
 import { getDocs, collection, addDoc } from "firebase/firestore";
 import { getApps } from "firebase/app";
-console.log("Apps Inicializados:", getApps()); // ✅ Deve exibir os apps carregados
+
 
 import { storageFokus360 } from "../data/firebase-config"; 
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -170,7 +170,7 @@ useEffect(() => {
       let bannerUrl = "";
   
       if (formValues.bannerFile) {
-        console.log("📤 Enviando imagem para o Storage:", formValues.bannerFile);
+        //console.log("📤 Enviando imagem para o Storage:", formValues.bannerFile);
         const storageRef = ref(
           storageFokus360,
           `banners/${Date.now()}_${formValues.bannerFile.name}`
@@ -198,7 +198,7 @@ useEffect(() => {
       delete projetoFormatado.bannerFile;
       delete projetoFormatado.bannerPreview;
   
-      console.log("🔥 Dados salvos no projeto:", projetoFormatado);
+      //console.log("🔥 Dados salvos no projeto:", projetoFormatado);
   
       const docRef = await addDoc(collection(dbFokus360, "projetos"), projetoFormatado);
   

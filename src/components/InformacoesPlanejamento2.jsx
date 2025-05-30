@@ -16,7 +16,6 @@ import { FormControl, InputLabel, ListItemAvatar, Avatar  } from "@mui/material"
 import { dbFokus360 } from "../data/firebase-config"; // ✅ Usa a instância correta
 import { getDocs, collection, addDoc, doc, setDoc, getDoc } from "firebase/firestore";
 import { getApps } from "firebase/app";
-console.log("Apps Inicializados:", getApps()); // ✅ Deve exibir os apps carregados
 
 
 
@@ -158,7 +157,7 @@ const handleUpdate = async () => {
   
         if (userDocSnap.exists()) {
           const role = userDocSnap.data().role;
-          console.log("Perfil carregado:", role);
+          //console.log("Perfil carregado:", role);
           setPerfilUsuario(role?.toString().padStart(2, "0"));
         } else {
           console.warn("Documento do usuário não encontrado.");
@@ -275,8 +274,8 @@ useEffect(() => {
     }
   };
   
-  console.log("perfilUsuario:", perfilUsuario);
-  console.log("podeEditarDatas:", perfilUsuario?.toString().padStart(2, "0") === "08");
+  //console.log("perfilUsuario:", perfilUsuario);
+  //console.log("podeEditarDatas:", perfilUsuario?.toString().padStart(2, "0") === "08");
   
   return (
     <Box>

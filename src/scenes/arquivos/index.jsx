@@ -9,6 +9,9 @@ import DeleteForeverSharpIcon from "@mui/icons-material/DeleteForeverSharp";
 import Modal from "../../components/Modal";
 import { dbFokus360, storageFokus360 } from "../../data/firebase-config";
 
+import { useLocation } from "react-router-dom";
+
+
 import { authFokus360 } from "../../data/firebase-config";
 import { collection, getDocs, doc, deleteDoc } from "firebase/firestore"; 
 import { ref, deleteObject } from "firebase/storage"; 
@@ -40,25 +43,42 @@ const CustomToolbar = () => (
 const Arquivos = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+
+  const location = useLocation(); // ✅ hook dentro do componente
+  const queryParams = new URLSearchParams(location.search);
+  const areaFiltrada = queryParams.get("area");
+
   const [isModalOpen, setModalOpen] = useState(false);
   const [filesData, setFilesData] = useState([]);
+ 
 
   const handleOpenModal = () => setModalOpen(true);
   const handleCloseModal = () => setModalOpen(false);
 
-  const fetchFiles = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(dbFokus360, "arquivos"));
-      const files = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setFilesData(files);
-      console.log(files);
-    } catch (error) {
-      console.error("Erro ao buscar arquivos:", error);
-    }
-  };
+
+
+
+const fetchFiles = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(dbFokus360, "arquivos"));
+    const files = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    // Aplica filtro se a área vier na URL
+    const filtrados = areaFiltrada
+      ? files.filter((file) => file.area === areaFiltrada)
+      : files;
+
+    setFilesData(filtrados);
+  } catch (error) {
+    console.error("Erro ao buscar arquivos:", error);
+  }
+};
+
+
+
 
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm("Tem certeza que deseja excluir este arquivo?");

@@ -18,6 +18,26 @@ const Modal = ({ open, onClose, onFileUploaded }) => {
   const [file, setFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [userName, setUserName] = useState(""); // Estado para o nome do usuário
+   const [areaSelecionada, setAreaSelecionada] = useState("");
+
+
+
+  //carregar areas
+    const areas = [
+    { id: "CONTABILIDADE", nome: "CONTABILIDADE" },
+    { id: "CONTROLADORIA", nome: "CONTROLADORIA" },
+    { id: "FINANCEIRO", nome: "FINANCEIRO" },
+    { id: "JURIDICO", nome: "JURÍDICO" },
+    { id: "LOGISTICA", nome: "LOGÍSTICA" },
+    { id: "MARKETING", nome: "MARKETING" },
+    { id: "TRADE", nome: "TRADE" },
+    { id: "RECURSOSHUMANOS", nome: "RECURSOS HUMANOS" },
+    { id: "TI", nome: "TI" },
+    { id: "COMERCIAL", nome: "COMERCIAL" },
+    { id: "INDUSTRIA", nome: "INDUSTRIA" },
+  ];
+
+
 
   const fileTypes = [
     "Ações",
@@ -48,7 +68,7 @@ const Modal = ({ open, onClose, onFileUploaded }) => {
 
   const handleFileUpload = async () => {
     // Validação de campos obrigatórios
-    if (!file || !selectedFileType || !selectedState) {
+    if (!file || !selectedFileType || !selectedState || !areaSelecionada) {
       alert("Por favor, preencha todos os campos.");
       return;
     }
@@ -63,13 +83,15 @@ const Modal = ({ open, onClose, onFileUploaded }) => {
 
       // Criar o objeto de metadados para salvar no Firestore
       const newFile = {
-        uploadedBy: userName, // Nome do usuário
+        uploadedBy: userName,
         fileType: selectedFileType,
         state: selectedState,
+        area: areaSelecionada, // ✅ nova linha
         fileName: file.name,
         fileURL: downloadURL,
         createdAt: Timestamp.now(),
       };
+
 
       // Adicionar o arquivo ao Firestore
       await addDoc(collection(dbFokus360, "arquivos"), newFile); // ✅ Agora usa dbFokus360 corretamente
@@ -175,6 +197,23 @@ const Modal = ({ open, onClose, onFileUploaded }) => {
         </form>
 
         <Box display="flex" justifyContent="flex-end" mt={3} gap={2}>
+          <TextField
+            fullWidth
+            label="Área"
+            variant="outlined"
+            margin="normal"
+            value={areaSelecionada}
+            onChange={(e) => setAreaSelecionada(e.target.value)}
+            select
+          >
+            {areas.map((area) => (
+              <MenuItem key={area.id} value={area.id}>
+                {area.nome}
+              </MenuItem>
+            ))}
+          </TextField>
+
+
           <Button
             variant="contained"
             color="primary"
