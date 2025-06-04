@@ -331,7 +331,7 @@ const checkUserAssociation = async (userEmail, userId) => {
           <Box
   sx={{
     position: "absolute",
-    top: "30%",
+    top: "28%",
     right: "7%",
     height: "150px",
   }}
@@ -341,7 +341,7 @@ const checkUserAssociation = async (userEmail, userId) => {
     style={{
       textDecoration: "none",
       color: "transparent",
-      fontSize: "19px", // tamanho fixo
+      fontSize: "25px", // tamanho fixo
     }}
     onClick={(e) => {
       e.preventDefault();
