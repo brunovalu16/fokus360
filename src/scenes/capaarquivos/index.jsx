@@ -340,7 +340,7 @@ const checkUserAssociation = async (userEmail, userId) => {
     to="#"
     style={{
       textDecoration: "none",
-      color: "#fff",
+      color: "transparent",
       fontSize: "14px", // tamanho fixo
     }}
     onClick={(e) => {
