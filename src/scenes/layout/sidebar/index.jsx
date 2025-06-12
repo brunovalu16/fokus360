@@ -329,7 +329,7 @@ const SideBar = () => {
             <LogoutIcon
               sx={{
                 fontSize: "25px",
-                color: "#f44336",
+                color: "#c71339",
                 ":hover": {
                   boxShadow: "none",
                   color: "#bbbbbb",
