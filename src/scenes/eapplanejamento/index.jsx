@@ -507,50 +507,40 @@ useEffect(() => {
           const estaAberta = expandedEstrategicas[estrategica.id];
 
           if (estaAberta) {
+            // Fecha somente a atual
             const taticasIds = (estrategica.taticas || []).map(t => t.id);
             const operacionaisIds = estrategica.taticas?.flatMap(t => t.operacionais || []).map(op => op.id) || [];
 
-            setExpandedEstrategicas(prev => ({
-              ...prev,
-              [estrategica.id]: false,
-            }));
-
+            setExpandedEstrategicas(prev => ({ ...prev, [estrategica.id]: false }));
             setExpandedTaticas(prev => {
               const novo = { ...prev };
               taticasIds.forEach(id => delete novo[id]);
               return novo;
             });
-
             setExpandedOperacionais(prev => {
               const novo = { ...prev };
               operacionaisIds.forEach(id => delete novo[id]);
               return novo;
             });
-
             setAreaSelecionada(prev => {
               const novo = { ...prev };
               delete novo[estrategica.id];
               return novo;
             });
+            setAtivo({ estrategicaId: null, taticaId: null, operacionalId: null });
 
-            setAtivo({
-              estrategicaId: null,
-              taticaId: null,
-              operacionalId: null,
-            });
           } else {
-            setExpandedEstrategicas(prev => ({
-              ...prev,
-              [estrategica.id]: true,
-            }));
+            // Fecha todas e abre só a nova
+            const novaArea = estrategica.areaNome || ""; // ou um valor padrão se necessário
 
-            setAtivo({
-              estrategicaId: estrategica.id,
-              taticaId: null,
-              operacionalId: null,
-            });
+            setExpandedEstrategicas({ [estrategica.id]: true });
+            setExpandedTaticas({});
+            setExpandedOperacionais({});
+            setAreaSelecionada({ [estrategica.id]: novaArea });
+            setAtivo({ estrategicaId: estrategica.id, taticaId: null, operacionalId: null });
           }
         }}
+
       />
     );
   })}
