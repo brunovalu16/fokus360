@@ -89,34 +89,37 @@ const Relatorios = () => {
 
 
   // Obter o perfil do usuário logado
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(authFokus360 , async (currentUser) => {
-      if (currentUser) {
-        try {
-          const docRef = doc(dbFokus360, "user", currentUser.uid);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            const role = docSnap.data().role;
-            setUserRole(role);
-            setVisibleLinks(links[role] || []);
-            if (rolesQueMostramModal.includes(role)) {
-              setIsModalOpen(true);
-            }
+ useEffect(() => {
+  const unsubscribe = onAuthStateChanged(authFokus360, async (currentUser) => {
+    console.log("🧪 Usuário logado:", currentUser); // <--- TESTE
 
-          } else {
-            console.error("Dados do usuário não encontrados!");
+    if (currentUser) {
+      try {
+        const docRef = doc(dbFokus360, "user", currentUser.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const roleRaw = docSnap.data().role;
+          const role = String(roleRaw).padStart(2, "0");
+          console.log("🧪 Role detectado:", role); // <--- TESTE
+
+          setUserRole(role);
+          setVisibleLinks(links[role] || []);
+
+          if (rolesQueMostramModal.includes(role)) {
+            console.log("✅ Modal deve aparecer"); // <--- TESTE
+            setIsModalOpen(true);
           }
-        } catch (error) {
-          console.error("Erro ao buscar dados do usuário:", error);
         }
-      } else {
-        setUserRole("");
-        setVisibleLinks([]);
+      } catch (error) {
+        console.error("Erro ao buscar dados do usuário:", error);
       }
-    });
+    }
+  });
 
-    return () => unsubscribe();
-  }, []);
+  return () => unsubscribe();
+}, []);
+
 
   // Função para fechar o modal
   const handleCloseModal = () => {
