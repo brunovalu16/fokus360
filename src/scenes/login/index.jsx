@@ -154,7 +154,7 @@ const Login = () => {
         <Box
           sx={{
             width: "30%",
-            backgroundColor: "white",
+            backgroundColor: "#fff",
             padding: 4,
             borderRadius: 3,
             boxShadow: 3,
@@ -279,7 +279,6 @@ const Login = () => {
       >
         <Box
           sx={{
-            //backgroundColor: "#312783",
             padding: "30px",
             paddingBottom: "50px",
             display: "flex",

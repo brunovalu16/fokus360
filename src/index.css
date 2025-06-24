@@ -179,3 +179,13 @@ body,
   }
 }
 
+/*  FORMATAÇÃO BACKGROUND LOGIN */
+
+html, body {
+  background-color: transparent;
+}
+
+#root {
+  background-color: transparent;
+}
+
