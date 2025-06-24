@@ -1028,7 +1028,7 @@ async function converterImagensFirebaseParaBase64(html) {
             }}
           >
             {/* Container principal para alinhar Filtro, Botão e Contador */}
-            <Box
+<Box
   sx={{
     display: "flex",
     alignItems: "center",
@@ -1041,14 +1041,14 @@ async function converterImagensFirebaseParaBase64(html) {
 >
   {/* Caixa de seleção de filtro */}
   <Box
-    sx={{
-      flex: 1,
-      display: "flex",
-      alignItems: "center",
-      gap: 2,
-      minWidth: "300px",
-    }}
-  >
+  sx={{
+    flex: "1 1 300px",
+    display: "flex",
+    alignItems: "center",
+    gap: 2, 
+  }}
+>
+
     <Box
       sx={{
         flex: 1,
@@ -1162,7 +1162,7 @@ async function converterImagensFirebaseParaBase64(html) {
             minWidth: "300px",
           }}
         >
-          <Box
+      <Box
         sx={{
           flex: 1,
           backgroundColor: "white",
@@ -1176,29 +1176,29 @@ async function converterImagensFirebaseParaBase64(html) {
         <FilterListIcon sx={{ color: "#757575", mr: 1 }} />
         <Box sx={{ position: "relative", width: "100%" }}>
         <TextField
-  fullWidth
-  placeholder="Pesquisar..."
-  value={searchText}
-  onChange={(e) => setSearchText(e.target.value)}
-  onKeyDown={(e) => {
-    if (e.key === "Enter") {
-      e.preventDefault(); // evita comportamento padrão
-      buscarPalavraNoProjeto(); // 🔥 dispara a função corretamente
-    }
-  }}
-  
-  sx={{
-    backgroundColor: "#f5f5f5",
-    borderRadius: "5px",
-    "& .MuiOutlinedInput-root": {
-      height: "40px",
-      borderRadius: "5px",
-    },
-    "& .MuiOutlinedInput-notchedOutline": {
-      border: "none",
-    },
-  }}
-/>
+          fullWidth
+          placeholder="Pesquisar..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault(); // evita comportamento padrão
+              buscarPalavraNoProjeto(); // 🔥 dispara a função corretamente
+            }
+          }}
+          
+          sx={{
+            backgroundColor: "#f5f5f5",
+            borderRadius: "5px",
+            "& .MuiOutlinedInput-root": {
+              height: "40px",
+              borderRadius: "5px",
+            },
+            "& .MuiOutlinedInput-notchedOutline": {
+              border: "none",
+            },
+          }}
+        />
 
           {/* Lista de sugestões (caso deseje exibir os resultados) */}
           {searchText.length > 0 && (
