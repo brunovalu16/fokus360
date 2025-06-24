@@ -577,7 +577,7 @@ const salvarFormularios = async () => {
         formularios.map(async (form) => ({
           titulo: form.titulo || "",
           descricao: form.descricao || "",
-          anexos: (form.anexos || []).concat(form.id === 1 ? arquivosUpload : []),
+          anexos: form.anexos || [],
           subItens: await Promise.all(
             (form.subItens || []).map(async (sub) => ({
               titulo: sub.titulo || "",
@@ -801,7 +801,15 @@ const handleUploadArquivo = async (event) => {
   const files = Array.from(event.target.files);
   if (!files.length) return;
 
-  const arquivosValidos = files.filter(file => file.size <= TAMANHO_MAXIMO_BYTES);
+  const arquivosGrandes = files.filter(file => file.size > TAMANHO_MAXIMO_BYTES);
+
+if (arquivosGrandes.length > 0) {
+  alert("❌ Limite máximo de arquivo permitido é de 40MB");
+}
+
+const arquivosValidos = files.filter(file => file.size <= TAMANHO_MAXIMO_BYTES);
+if (arquivosValidos.length === 0) return;
+
 
   try {
     const uploads = await Promise.all(
