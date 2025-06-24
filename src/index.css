@@ -181,11 +181,7 @@ body,
 
 /*  FORMATAÇÃO BACKGROUND LOGIN */
 
-html, body {
-  background-color: transparent;
-}
-
-#root {
-  background-color: transparent;
+html, body, #root {
+  background-color: #f7f7f7 !important;
 }
 

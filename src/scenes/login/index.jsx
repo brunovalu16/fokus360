@@ -268,15 +268,17 @@ const Login = () => {
         alignItems="center"
         justifyContent="center"
         sx={{
+          backgroundColor: "#f2f2f2", // ✅ força fundo branco antes da imagem carregar
           backgroundImage: `url(${background})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          backgroundAttachment: "fixed",
+          // backgroundAttachment: "fixed", // ❌ REMOVA ISSO!
           width: "100vw",
           minHeight: "100vh",
         }}
       >
+
         <Box
           sx={{
             padding: "30px",
