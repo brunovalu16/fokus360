@@ -10,12 +10,17 @@ import Modal from "../../components/Modal";
 import { dbFokus360, storageFokus360 } from "../../data/firebase-config";
 
 import { useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
+
+import { onAuthStateChanged } from "firebase/auth";
+
 
 
 import { authFokus360 } from "../../data/firebase-config";
-import { collection, getDocs, doc, deleteDoc } from "firebase/firestore"; 
+import { collection, getDocs, doc, deleteDoc, getDoc } from "firebase/firestore"; 
 import { ref, deleteObject } from "firebase/storage"; 
 import TopicIcon from '@mui/icons-material/Topic';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 
 const localeText = {
   toolbarColumns: "Colunas",
@@ -23,6 +28,22 @@ const localeText = {
   toolbarDensity: "Densidade",
   toolbarExport: "Exportar",
 };
+
+const roleToLabelMap = {
+  "37": "Ajinomoto",
+  "38": "AB Mauri",
+  "39": "Adoralle",
+  "40": "Bettanin",
+  "41": "Mars Choco",
+  "42": "Mars Pet",
+  "43": "M.Dias",
+  "44": "SCJhonson",
+  "47": "Ypê",
+};
+
+
+
+
 
 const CustomToolbar = () => (
   <GridToolbarContainer
@@ -47,6 +68,8 @@ const Arquivos = () => {
   const location = useLocation(); // ✅ hook dentro do componente
   const queryParams = new URLSearchParams(location.search);
   const areaFiltrada = queryParams.get("area");
+  const roleFiltrada = queryParams.get("role");
+
 
   const [isModalOpen, setModalOpen] = useState(false);
   const [filesData, setFilesData] = useState([]);
@@ -55,6 +78,13 @@ const Arquivos = () => {
   const handleOpenModal = () => setModalOpen(true);
   const handleCloseModal = () => setModalOpen(false);
 
+
+const [userRole, setUserRole] = useState(null);
+
+const [role, setRole] = useState("");
+const [loading, setLoading] = useState(true);
+
+const isRestricted = Object.keys(roleToLabelMap).includes(role);
 
 
 
@@ -67,9 +97,12 @@ const fetchFiles = async () => {
     }));
 
     // Aplica filtro se a área vier na URL
-    const filtrados = areaFiltrada
+    const filtrados = roleFiltrada
+      ? files.filter((file) => file.role === roleFiltrada)
+      : areaFiltrada
       ? files.filter((file) => file.area === areaFiltrada)
       : files;
+
 
     setFilesData(filtrados);
   } catch (error) {
@@ -105,8 +138,28 @@ const fetchFiles = async () => {
   };
 
   useEffect(() => {
-    fetchFiles();
-  }, []);
+  fetchFiles();
+}, [location.search]);
+
+
+//Busca o role do usuário logado no useEffect
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(authFokus360, async (user) => {
+    if (user) {
+      const userDoc = await getDoc(doc(dbFokus360, "user", user.uid));
+      if (userDoc.exists()) {
+        const dados = userDoc.data();
+        setRole(dados.role);
+      }
+    }
+    setLoading(false);
+  });
+
+  return () => unsubscribe();
+}, []);
+
+
+
 
   const columns = [
     {
@@ -195,23 +248,50 @@ const fetchFiles = async () => {
           },
         }}
       >
+
+        
         <Box display="flex" justifyContent="flex-end" mb={2}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleOpenModal}
-            sx={{
-              fontSize: "10px",
-              fontWeight: "bold",
-              borderRadius: "5px",
-              padding: "10px 20px",
-              backgroundColor: colors.blueAccent[1000],
-              boxShadow: "none",
-              "&:hover": { backgroundColor: "#3f2cb2" },
-            }}
-          >
-            Adicionar Arquivo
-          </Button>
+          <Box>
+              <Button
+                component={Link}
+                to="/painelindustriastrade"
+                startIcon={<ExitToAppIcon sx={{ color: "#5f53e5", marginRight: "-7px", marginTop: "-3px" }} />}
+                sx={{
+                  padding: "5px 10px",
+                  fontSize: "13px",
+                  color: "#858585",
+                  marginRight: "20px",
+                  textTransform: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                Voltar
+              </Button>
+            </Box>
+
+
+          {!loading && !isRestricted && (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleOpenModal}
+              sx={{
+                fontSize: "10px",
+                fontWeight: "bold",
+                borderRadius: "5px",
+                padding: "10px 20px",
+                backgroundColor: colors.blueAccent[1000],
+                boxShadow: "none",
+                "&:hover": { backgroundColor: "#3f2cb2" },
+              }}
+            >
+              Adicionar Arquivo
+            </Button>
+          )}
+
+
         </Box>
 
         <DataGrid

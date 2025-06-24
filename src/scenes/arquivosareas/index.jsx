@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Box, Button, TextField, Select, MenuItem, InputLabel, 
   Avatar, FormControl, Checkbox, ListItemText 
@@ -8,9 +8,12 @@ import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/
 
 import { dbFokus360, storageFokus360 } from "../../data/firebase-config";
 
+import { onAuthStateChanged } from "firebase/auth";
+
+
 import { authFokus360 } from "../../data/firebase-config";
 
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { collection, addDoc } from "firebase/firestore";
 
@@ -30,6 +33,8 @@ const Arquivosareas = () => {
   const [avatar, setAvatar] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(""); 
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+
 
 
   const areas = [
@@ -45,6 +50,45 @@ const Arquivosareas = () => {
     { id: "COMERCIAL", nome: "COMERCIAL" },
     { id: "INDUSTRIA", nome: "INDUSTRIA" }
   ];
+
+
+{/**================================================ */}
+
+  // Lista de roles restritos
+const rolesRestritos = [
+  "37", "38", "39", "40", "41", "42", "43", "44",
+  "45", "46", "47", "48", "49", "50", "51"
+];
+
+// Definir quais áreas devem ser exibidas com base no role
+const areasDisponiveis = React.useMemo(() => {
+  if (!role) return [];
+  return rolesRestritos.includes(role)
+    ? [{ id: "TRADE", nome: "TRADE" }]
+    : areas;
+}, [role]);
+
+
+
+
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(authFokus360, async (user) => {
+    if (user) {
+      const userDoc = await getDoc(doc(dbFokus360, "user", user.uid));
+      if (userDoc.exists()) {
+        const dados = userDoc.data();
+        setRole(dados.role);
+      }
+    }
+    setLoading(false); // marca que terminou de carregar
+  });
+
+  return () => unsubscribe();
+}, []);
+
+
+
+  {/**================================================ */}
 
   // Função para atualizar o preview do avatar
   const handleAvatarChange = (event) => {
@@ -111,9 +155,15 @@ const Arquivosareas = () => {
   
   
   
-  
+  if (loading) return (
+  <Box sx={{ textAlign: "center", mt: 10 }}>
+    <span>Carregando...</span>
+  </Box>
+);
+
 
   return (
+
     <Box sx={{ transform: "scale(0.8)", transformOrigin: "top center" }}>
       <Box 
         display="flex" flexDirection="row" alignItems="center" justifyContent="center"
@@ -129,24 +179,27 @@ const Arquivosareas = () => {
 
         
 
-        <FormControl fullWidth variant="outlined">
-          <InputLabel id="areas-label" sx={{ fontSize: 18 }}>
-            Escolha arquivos por área
-          </InputLabel>
-          <Select
-            labelId="areas-label"
-            value={area}
-            onChange={(event) => setArea(event.target.value)}
-            label="Escolha arquivos por área"
-            sx={{ fontSize: 16 }}
-          >
-            {areas.map((area) => (
-              <MenuItem key={area.id} value={area.id} sx={{ fontSize: 16 }}>
-                {area.nome}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        {role && (
+          <FormControl fullWidth variant="outlined">
+            <InputLabel id="areas-label" sx={{ fontSize: 18 }}>
+              Escolha arquivos por área
+            </InputLabel>
+            <Select
+              labelId="areas-label"
+              value={area}
+              onChange={(event) => setArea(event.target.value)}
+              label="Escolha arquivos por área"
+              sx={{ fontSize: 16 }}
+            >
+              {areasDisponiveis.map((area) => (
+                <MenuItem key={area.id} value={area.id} sx={{ fontSize: 16 }}>
+                  {area.nome}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+
 
 
 
@@ -155,7 +208,12 @@ const Arquivosareas = () => {
               fullWidth
               onClick={() => {
                 if (!area) return alert("Selecione uma área antes de continuar.");
-                navigate(`/arquivos?area=${area}`);
+
+                if (area === "TRADE") {
+                  navigate("/PainelIndustriasTrade"); // redireciona para a rota desejada
+                } else {
+                  navigate(`/arquivos?area=${area}`);
+                }
               }}
               sx={{
                 borderRadius: 2,

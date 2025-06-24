@@ -16,7 +16,7 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { Link } from 'react-router-dom';
 
 
-const Relatorios = () => {
+const Relatoriotrade2 = () => {
   const navigate = useNavigate();
   const [activeContent, setActiveContent] = useState("Vendas");
   const [userRole, setUserRole] = useState(""); // Armazena o perfil do usuário logado
@@ -62,31 +62,7 @@ const Relatorios = () => {
     "34": ["Central de monitoramento", "Indústrias"],
     "35": ["Central de monitoramento", "Indústrias"],
     "36": ["Central de monitoramento", "Indústrias"],
-    "37": ["Projetos"],
-    "38": ["Projetos"],
-    "39": ["Projetos"],
-    "40": ["Projetos"],
-    "41": ["Projetos"],
-    "42": ["Projetos"],
-    "43": ["Projetos"],
-    "44": ["Projetos"],
-    "45": ["Projetos"],
-    "46": ["Projetos"],
-    "47": ["Projetos"],
-    "48": ["Projetos"],
-    "49": ["Projetos"],
-    "50": ["Projetos"],
-    "51": ["Projetos"],
   };
-
-
-
-  const rolesQueMostramModal = [
-  "07", "12", "13", "14", "15", "16", "17", "18", "22", "23", "24", "28", "29", "30",
-  "31", "32", "33", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51"
-];
-
-
 
   // Obter o perfil do usuário logado
   useEffect(() => {
@@ -99,10 +75,9 @@ const Relatorios = () => {
             const role = docSnap.data().role;
             setUserRole(role);
             setVisibleLinks(links[role] || []);
-            if (rolesQueMostramModal.includes(role)) {
-              setIsModalOpen(true);
+            if (role === "07") {
+              setIsModalOpen(true); // Abre o modal para usuários com perfil 07
             }
-
           } else {
             console.error("Dados do usuário não encontrados!");
           }
@@ -375,16 +350,15 @@ const Relatorios = () => {
             {activeContent === "Central de monitoramento" &&
               visibleLinks.includes("Central de monitoramento") && (
                 <>
-                  <Button
-                  component={Link} // Define que o botão será um Link do React Router
-                  to="/monitoramentovendedor"
-                  fullWidth
-                  variant="contained"
-                  sx={mainButtonStyle}
-                >
-                  MONITORAMENTO VENDEDOR
-                </Button>
-                 
+                  <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                    teste 1 financeiro
+                  </Button>
+                  <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                    teste 2 financeiro
+                  </Button>
+                  <Button fullWidth variant="contained" sx={mainButtonStyle}>
+                    teste 3 financeiro
+                  </Button>
                 </>
               )}
             {activeContent === "Indústrias" && (
@@ -453,4 +427,4 @@ const mainButtonStyle = {
   },
 };
 
-export default Relatorios;
+export default Relatoriotrade2;

@@ -43,6 +43,9 @@ import Capatarefas from "./scenes/capatarefas";
 import Capaarquivos from "./scenes/capaarquivos";
 import Csc from "./scenes/csc";
 import Arquivosareas from "./scenes/arquivosareas";
+import Relatoriotrade2 from "./scenes/relatoriostrade";
+import PainelIndustriasTrade from "./scenes/painel-industriasTrade";
+import MonitoramentoVendedor from "./scenes/monitoramentovendedor";
 import {
   Team,
   Invoices,
@@ -70,10 +73,13 @@ const router = createBrowserRouter(
         { path: "/home", element: <PrivateRoute><Home /></PrivateRoute> },
         { path: "/planejamentogeral", element: <PrivateRoute><PlanejamentoGeral /></PrivateRoute> },
         { path: "/arquivosareas", element: <PrivateRoute><Arquivosareas /></PrivateRoute> },
+        { path: "/relatoriotrade2", element: <PrivateRoute><Relatoriotrade2 /></PrivateRoute> },
+        { path: "/monitoramentovendedor", element: <PrivateRoute><MonitoramentoVendedor /></PrivateRoute> },
+        { path: "/painelindustriastrade", element: <PrivateRoute><PainelIndustriasTrade /></PrivateRoute> },
         { path: "/csc", element: <PrivateRoute><Csc /></PrivateRoute> },
         { path: "/capatarefas", element: <PrivateRoute><Capatarefas /></PrivateRoute> },
         { path: "/capaarquivos", element: <PrivateRoute><Capaarquivos /></PrivateRoute> },
-        { path: "/manuaisCSC", element: <PrivateRoute><ManuaisCSC /></PrivateRoute> },
+        { path: "/manuaisCSC", element: <PrivateRoute><ManuaisCSC /></PrivateRoute> },  
         { path: "/manuais", element: <PrivateRoute><Manuais /></PrivateRoute> },
         { path: "/eapplanejamento", element: <PrivateRoute><Eapplanejamento /></PrivateRoute> },
         { path: "/dataplanejamento", element: <PrivateRoute><DataPlanejamento /></PrivateRoute> },

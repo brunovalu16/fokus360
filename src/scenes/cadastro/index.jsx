@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { 
-  Box, Button, TextField, Select, MenuItem, InputLabel, 
+  Box, Button, TextField, Select, MenuItem, InputLabel, ListSubheader,
   Avatar, FormControl 
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
@@ -150,43 +150,69 @@ const Cadastro = () => {
                 <MenuItem value="06">Industria</MenuItem>
                 <MenuItem value="07">Projetos</MenuItem>
                 <MenuItem value="08">Admin</MenuItem>
-                {/**Trade */}
+
+                <ListSubheader>Trade</ListSubheader>
                 <MenuItem value="09">Coordenador Trade</MenuItem>
                 <MenuItem value="10">Gerência Trade</MenuItem>
                 <MenuItem value="11">Analista Trade</MenuItem>
-                {/**Contabilidade */}
+
+                <ListSubheader>Contabilidade</ListSubheader>
                 <MenuItem value="12">Gerência Contabilidade</MenuItem>
                 <MenuItem value="13">Coordenador Contabilidade</MenuItem>
                 <MenuItem value="14">Analista Contabilidade</MenuItem>
-                {/**Controladoria */}
+
+                <ListSubheader>Controladoria</ListSubheader>
                 <MenuItem value="15">Gerência Controladoria</MenuItem>
                 <MenuItem value="16">Coordenador Controladoria</MenuItem>
                 <MenuItem value="17">Analista Controladoria</MenuItem>
                 <MenuItem value="18">Analista 2 Controladoria</MenuItem>
-                {/**Financeiro */}
+
+                <ListSubheader>Financeiro</ListSubheader>
                 <MenuItem value="19">Gerência Financeiro</MenuItem>
                 <MenuItem value="20">Coordenador Financeiro</MenuItem>
                 <MenuItem value="21">Analista Financeiro</MenuItem>
-                {/**Juridico */}
-                <MenuItem value="22">Gerência Juridico</MenuItem>
-                <MenuItem value="23">Coordenador Juridico</MenuItem>
-                <MenuItem value="24">Analista Juridico</MenuItem>
-                {/**Logistica */}
-                <MenuItem value="25">Gerência Logistica</MenuItem>
-                <MenuItem value="26">Coordenador Logistica</MenuItem>
-                <MenuItem value="27">Analista Logistica</MenuItem>
-                {/**Marketing */}
+
+                <ListSubheader>Jurídico</ListSubheader>
+                <MenuItem value="22">Gerência Jurídico</MenuItem>
+                <MenuItem value="23">Coordenador Jurídico</MenuItem>
+                <MenuItem value="24">Analista Jurídico</MenuItem>
+
+                <ListSubheader>Logística</ListSubheader>
+                <MenuItem value="25">Gerência Logística</MenuItem>
+                <MenuItem value="26">Coordenador Logística</MenuItem>
+                <MenuItem value="27">Analista Logística</MenuItem>
+
+                <ListSubheader>Marketing</ListSubheader>
                 <MenuItem value="28">Gerência Marketing</MenuItem>
                 <MenuItem value="29">Coordenador Marketing</MenuItem>
                 <MenuItem value="30">Analista Marketing</MenuItem>
-                {/**Recursos Humanos */}
+
+                <ListSubheader>Recursos Humanos</ListSubheader>
                 <MenuItem value="31">Gerência Recursos Humanos</MenuItem>
                 <MenuItem value="32">Coordenador Recursos Humanos</MenuItem>
                 <MenuItem value="33">Analista Recursos Humanos</MenuItem>
-                {/**Central de Monitoramento */}
+
+                <ListSubheader>Central de Monitoramento</ListSubheader>
                 <MenuItem value="34">Gerência Central de Monitoramento</MenuItem>
                 <MenuItem value="35">Coordenador Central de Monitoramento</MenuItem>
                 <MenuItem value="36">Analista Central de Monitoramento</MenuItem>
+
+                <ListSubheader>Indústrias</ListSubheader>
+                <MenuItem value="37">Ajinomoto</MenuItem>
+                <MenuItem value="38">AB Mauri</MenuItem>
+                <MenuItem value="39">Adoralle</MenuItem>
+                <MenuItem value="40">Bettanin</MenuItem>
+                <MenuItem value="41">Mars</MenuItem>
+                <MenuItem value="42">Mars Pet</MenuItem>
+                <MenuItem value="43">M. Dias</MenuItem>
+                <MenuItem value="44">SCJhonson</MenuItem>
+                <MenuItem value="45">UAU Ingleza</MenuItem>
+                <MenuItem value="46">Danone</MenuItem>
+                <MenuItem value="47">Ypê</MenuItem>
+                <MenuItem value="48">Adoralle</MenuItem>
+                <MenuItem value="49">Fini</MenuItem>
+                <MenuItem value="50">Heinz</MenuItem>
+                <MenuItem value="51">Red Bull</MenuItem>
               </Select>
             </FormControl>
 

@@ -18,6 +18,20 @@ import Collapse from '@mui/material/Collapse';
 import CloseIcon from '@mui/icons-material/Close';
 import WarningIcon from '@mui/icons-material/Warning';
 
+
+const roleToLabelMap = {
+  "37": "Ajinomoto",
+  "38": "AB Mauri",
+  "39": "Adoralle",
+  "40": "Bettanin",
+  "41": "Mars Choco",
+  "42": "Mars Pet",
+  "43": "M.Dias",
+  "44": "SCJhonson",
+  "47": "Ypê",
+};
+
+
 const Capaarquivos = () => {
   const [isUserAssociated, setIsUserAssociated] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,8 +39,17 @@ const Capaarquivos = () => {
   const [isSolicitanteAssociated, setIsSolicitanteAssociated] = useState(false); // Verificação específica para solicitante
   const [userRole, setUserRole] = useState(null); // Armazena o perfil do usuário
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("Nenhum projeto encontrado para este usuário.");
 
-  
+
+
+//bloquear o usuario ao clicar em adicionar arquivos
+  const blockedRoles = [
+  "37", "38", "39", "40", "41", "42", "43", "44",
+  "45", "46", "47", "48", "49", "50", "51"
+];
+
+
   //const authFokus360 = getAuth(appFokus360 );
 
 // Verifica se o usuário está associado a algum projeto
@@ -166,6 +189,7 @@ const checkUserAssociation = async (userEmail, userId) => {
 
     if (!isUserAssociated && !isSolicitanteAssociated) {
       e.preventDefault();
+      setModalMessage("Usuário sem permissão para enviar arquivos");
       setIsModalOpen(true);
     }
   };
@@ -202,7 +226,21 @@ const checkUserAssociation = async (userEmail, userId) => {
   
 
 
+
+
+
+
+
+
   const hasPermission = userRole === "08" || isUserAssociated || isSolicitanteAssociated;
+ 
+
+
+
+
+
+ 
+
 
 
   return (
@@ -230,7 +268,7 @@ const checkUserAssociation = async (userEmail, userId) => {
             icon={
               <WarningIcon
                 fontSize="inherit"
-                style={{ color: "yellow" }} // Cor amarela para o ícone
+                style={{ color: "yellow" }}
               />
             }
             action={
@@ -238,23 +276,24 @@ const checkUserAssociation = async (userEmail, userId) => {
                 aria-label="close"
                 color="inherit"
                 size="small"
-                onClick={() => setIsModalOpen(false)} // Fechar o modal
+                onClick={() => setIsModalOpen(false)}
               >
                 <CloseIcon fontSize="inherit" />
               </IconButton>
             }
             sx={{
               mb: 2,
-              backgroundColor: "#dc2626", // Fundo vermelho
+              backgroundColor: "#dc2626",
               border: "none",
-              color: "white", // Texto em branco
+              color: "white",
               "& .MuiAlert-icon": {
-                color: "yellow", // Garantia de que o ícone fique amarelo
+                color: "yellow",
               },
             }}
           >
-            Nenhum projeto encontrado para este usuário.
+            {modalMessage}
           </Alert>
+
         </Box>
       </Modal>
 
@@ -329,32 +368,54 @@ const checkUserAssociation = async (userEmail, userId) => {
           </Box>
 
           <Box
-  sx={{
-    position: "absolute",
-    top: "28%",
-    right: "7%",
-    height: "150px",
-  }}
->
+            sx={{
+              position: "absolute",
+              top: "28%",
+              right: "7%",
+              height: "150px",
+            }}
+          >
+            
+              {userRole !== null && !Object.keys(roleToLabelMap).includes(String(userRole)) && (
   <Link
     to="#"
     style={{
       textDecoration: "none",
       color: "transparent",
-      fontSize: "25px", // tamanho fixo
+      fontSize: "25px",
     }}
     onClick={(e) => {
       e.preventDefault();
-      if (hasPermission) {
-        setShowUploadModal(true);
-      } else {
-        handleLinkClick(e);
+
+      const isBlocked = Object.keys(roleToLabelMap).includes(String(userRole));
+      const hasPermission = userRole === "08" || isUserAssociated || isSolicitanteAssociated;
+
+      if (isBlocked) {
+        setModalMessage("Usuário sem permissão para enviar arquivos");
+        setIsModalOpen(true);
+        return;
       }
+
+      if (!hasPermission) {
+        setModalMessage("Nenhum projeto encontrado para este usuário.");
+        setIsModalOpen(true);
+        return;
+      }
+
+      setShowUploadModal(true);
     }}
   >
     Adicionar arquivos
   </Link>
-</Box>
+)}
+
+        
+
+
+
+
+
+      </Box>
 
 
           <Box

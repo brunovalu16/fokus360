@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, Typography, TextField, IconButton, MenuItem } from "@mui/material";
+import { Box, Button, Typography, TextField, IconButton, MenuItem, ListSubheader  } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { storageFokus360 } from "../data/firebase-config"; // ✅ Usa a instância correta
 
@@ -23,19 +23,35 @@ const Modal = ({ open, onClose, onFileUploaded }) => {
 
 
   //carregar areas
-    const areas = [
-    { id: "CONTABILIDADE", nome: "CONTABILIDADE" },
-    { id: "CONTROLADORIA", nome: "CONTROLADORIA" },
-    { id: "FINANCEIRO", nome: "FINANCEIRO" },
-    { id: "JURIDICO", nome: "JURÍDICO" },
-    { id: "LOGISTICA", nome: "LOGÍSTICA" },
-    { id: "MARKETING", nome: "MARKETING" },
-    { id: "TRADE", nome: "TRADE" },
-    { id: "RECURSOSHUMANOS", nome: "RECURSOS HUMANOS" },
-    { id: "TI", nome: "TI" },
-    { id: "COMERCIAL", nome: "COMERCIAL" },
-    { id: "INDUSTRIA", nome: "INDUSTRIA" },
-  ];
+ const areas = [
+  { id: "CONTABILIDADE", nome: "CONTABILIDADE" },
+  { id: "CONTROLADORIA", nome: "CONTROLADORIA" },
+  { id: "FINANCEIRO", nome: "FINANCEIRO" },
+  { id: "JURIDICO", nome: "JURÍDICO" },
+  { id: "LOGISTICA", nome: "LOGÍSTICA" },
+  { id: "MARKETING", nome: "MARKETING" },
+  // Substituindo TRADE por lista de indústrias:
+  { id: "37", nome: "Ajinomoto" },
+  { id: "38", nome: "AB Mauri" },
+  { id: "39", nome: "Adoralle" },
+  { id: "40", nome: "Bettanin" },
+  { id: "41", nome: "Mars" },
+  { id: "42", nome: "Mars Pet" },
+  { id: "43", nome: "M. Dias" },
+  { id: "44", nome: "SCJhonson" },
+  { id: "45", nome: "UAU Ingleza" },
+  { id: "46", nome: "Danone" },
+  { id: "47", nome: "Ypê" },
+  { id: "48", nome: "Adoralle" },
+  { id: "49", nome: "Fini" },
+  { id: "50", nome: "Heinz" },
+  { id: "51", nome: "Red Bull" },
+  { id: "RECURSOSHUMANOS", nome: "RECURSOS HUMANOS" },
+  { id: "TI", nome: "TI" },
+  { id: "COMERCIAL", nome: "COMERCIAL" },
+  { id: "INDUSTRIA", nome: "INDUSTRIA" },
+];
+
 
 
 
@@ -82,15 +98,20 @@ const Modal = ({ open, onClose, onFileUploaded }) => {
       const downloadURL = await getDownloadURL(storageRef);
 
       // Criar o objeto de metadados para salvar no Firestore
-      const newFile = {
-        uploadedBy: userName,
-        fileType: selectedFileType,
-        state: selectedState,
-        area: areaSelecionada, // ✅ nova linha
-        fileName: file.name,
-        fileURL: downloadURL,
-        createdAt: Timestamp.now(),
-      };
+     // Encontra o objeto da área selecionada
+    const areaInfo = areas.find(area => area.id === areaSelecionada);
+
+    const newFile = {
+      uploadedBy: userName,
+      fileType: selectedFileType,
+      state: selectedState,
+      area: areaInfo?.nome || areaSelecionada, // salva o nome da área ou o id caso não ache
+      role: !isNaN(areaSelecionada) ? areaSelecionada : null, // se for indústria, salva o role
+      fileName: file.name,
+      fileURL: downloadURL,
+      createdAt: Timestamp.now(),
+    };
+
 
 
       // Adicionar o arquivo ao Firestore
@@ -204,12 +225,28 @@ const Modal = ({ open, onClose, onFileUploaded }) => {
             onChange={(e) => setAreaSelecionada(e.target.value)}
             select
           >
-            {areas.map((area) => (
-              <MenuItem key={area.id} value={area.id}>
-                {area.nome}
-              </MenuItem>
-            ))}
+            {/* Áreas comuns */}
+            {areas
+              .filter(area => isNaN(area.id))
+              .map((area) => (
+                <MenuItem key={area.id} value={area.id}>
+                  {area.nome}
+                </MenuItem>
+              ))}
+
+            {/* Cabeçalho para indústrias */}
+            <ListSubheader sx={{ color: "#5f53e5" }}>Indústrias</ListSubheader>
+
+            {/* Indústrias */}
+            {areas
+              .filter(area => !isNaN(area.id))
+              .map((area) => (
+                <MenuItem key={area.id} value={area.id}>
+                  {area.nome}
+                </MenuItem>
+              ))}
           </TextField>
+
         </form>
 
         <Box display="flex" justifyContent="flex-end" mt={3} gap={2}>
