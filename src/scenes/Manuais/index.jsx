@@ -577,7 +577,7 @@ const salvarFormularios = async () => {
         formularios.map(async (form) => ({
           titulo: form.titulo || "",
           descricao: form.descricao || "",
-          anexos: form.anexos || [],
+          anexos: (form.anexos || []).concat(form.id === 1 ? arquivosUpload : []),
           subItens: await Promise.all(
             (form.subItens || []).map(async (sub) => ({
               titulo: sub.titulo || "",
