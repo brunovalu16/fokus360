@@ -15,9 +15,9 @@ function App() {
   const [toggled, setToggled] = useState(false);
   const values = { toggled, setToggled };
 
-  const location = useLocation(); // Pegando a rota atual
 
-  // ⚠️ Desloga após 2 minutos (120000ms) sem interação
+
+  // ✅ Chamada segura (hook sempre executado)
   useInactivityLogout(120000);
 
   return (
@@ -54,5 +54,4 @@ function App() {
 
 export default App;
 
-//{/* Navbar condicional */}
-//{location.pathname === "/kanban" ? <NavbarKanban /> : <Navbar />}
+
