@@ -220,10 +220,6 @@ const Manuais = () => {
   const [allCards, setAllCards] = useState([]); // 🔥 Armazena todos os cards para aplicar os filtros depois
   const [columns, setColumns] = useState([]);
   
-  //estados para loading
-  const [salvando, setSalvando] = useState(false);
-  const [mensagemSucesso, setMensagemSucesso] = useState("");
-
 
 //verifica usuario logado
 const [userRole, setUserRole] = useState("");
@@ -274,7 +270,7 @@ const [highlightedMatches, setHighlightedMatches] = useState([]);
 
 
 //controlar o tamanho dos arquivos enviados
-const TAMANHO_MAXIMO_MB = 40;
+const TAMANHO_MAXIMO_MB = 15;
 const TAMANHO_MAXIMO_BYTES = TAMANHO_MAXIMO_MB * 1024 * 1024;
 
   const normalizarTexto = (texto) => {
@@ -302,19 +298,7 @@ const TAMANHO_MAXIMO_BYTES = TAMANHO_MAXIMO_MB * 1024 * 1024;
 
 
 
-//função para upload no Firebase Storage
 
-const uploadFileToFirebase = async (file) => {
-  const timestamp = Date.now();
-  const storageRef = ref(storageFokus360, `csc-anexos/${timestamp}-${file.name}`);
-  await uploadBytes(storageRef, file);
-  const url = await getDownloadURL(storageRef);
-
-  return {
-    nomeArquivo: file.name,
-    arquivoUrl: url,
-  };
-};
 
 
 
@@ -585,9 +569,6 @@ const salvarFormularios = async () => {
     return;
   }
 
-  setSalvando(true);
-  setMensagemSucesso("");
-
   try {
     const docData = {
       nome: nomeProjeto.trim(),
@@ -610,20 +591,18 @@ const salvarFormularios = async () => {
     if (selectedFilter) {
       const docRef = doc(dbFokus360, "csc", selectedFilter);
       await updateDoc(docRef, docData);
+      alert("✅ Projeto atualizado com sucesso!");
     } else {
       await addDoc(collection(dbFokus360, "csc"), docData);
+      alert("✅ Projeto salvo com sucesso!");
     }
 
     setArquivosUpload([]);
-    setMensagemSucesso("✅ Arquivos salvos com sucesso!");
   } catch (error) {
     console.error("❌ Erro ao salvar no Firestore:", error);
     alert("Erro ao salvar dados.");
-  } finally {
-    setSalvando(false);
   }
 };
-
 
 
 
@@ -822,21 +801,23 @@ const handleUploadArquivo = async (event) => {
   const files = Array.from(event.target.files);
   if (!files.length) return;
 
-  const arquivosGrandes = files.filter(file => file.size > TAMANHO_MAXIMO_BYTES);
-  if (arquivosGrandes.length > 0) {
-    alert("❌ Limite máximo de arquivo permitido é de 40MB");
-  }
-
   const arquivosValidos = files.filter(file => file.size <= TAMANHO_MAXIMO_BYTES);
-  if (arquivosValidos.length === 0) return;
-
-  setUploading(true);
 
   try {
     const uploads = await Promise.all(
       arquivosValidos.map(async (file) => {
-        const uploadInfo = await uploadFileToFirebase(file);
-        return uploadInfo;
+        // 🔄 Converte para base64
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result); // result = dataURL
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+        return {
+          nomeArquivo: file.name,
+          dataUrl: base64, // ✅ salvando base64 direto
+        };
       })
     );
 
@@ -848,16 +829,12 @@ const handleUploadArquivo = async (event) => {
       )
     );
 
-    alert("✅ Arquivos enviados e anexados com sucesso!");
+    alert("✅ Arquivos convertidos e anexados com sucesso!");
   } catch (error) {
-    console.error("❌ Erro ao enviar arquivos:", error);
-    alert("❌ Erro ao enviar arquivos.");
-  } finally {
-    setUploading(false);
+    console.error("❌ Erro ao processar arquivos:", error);
+    alert("❌ Erro ao processar arquivos.");
   }
 };
-
-
 
 
 
@@ -876,20 +853,20 @@ const removerArquivoUpload = (nomeArquivo) => {
 const gerarHtmlManual = () => {
   return `
     <div style="padding: 24px; font-family: Arial, sans-serif;">
-      <h1 style="font-size: 24px; margin-bottom: 24px;">${nomeProjeto}</h1>
+      <h1 style="font-size: 24px;">${nomeProjeto}</h1>
       ${formularios
         .map(
           (form) => `
           <div class="manual-section avoid-break-inside" style="margin-bottom: 32px;">
             <h2 style="font-size: 18px; margin-bottom: 8px;">${form.titulo}</h2>
-            <div>${form.descricao || ""}</div>
+            <div>${form.descricao}</div>
 
             ${form.subItens
               ?.map(
                 (sub) => `
-                  <div style="margin-left: 16px; margin-top: 12px;" class="avoid-break-inside">
+                  <div style="margin-left: 16px; margin-top: 8px;" class="avoid-break-inside">
                     <h3 style="font-size: 15px; margin-bottom: 4px;">${sub.titulo}</h3>
-                    <div>${sub.descricao || ""}</div>
+                    <div>${sub.descricao}</div>
                   </div>
                 `
               )
@@ -897,13 +874,11 @@ const gerarHtmlManual = () => {
 
             ${
               form.anexos?.length
-                ? `<div style="margin-top: 16px;">
+                ? `<div style="margin-top: 12px;">
                     ${form.anexos
                       .map(
                         (anexo) =>
-                          `<div style="margin-top: 8px;">
-                            <img src="${anexo.arquivoUrl}" alt="${anexo.nomeArquivo}" style="max-width: 300px; max-height: 400px;" />
-                          </div>`
+                          `<img src="${anexo.dataUrl}" alt="${anexo.nomeArquivo}" style="max-width: 300px; margin-top: 8px;" />`
                       )
                       .join("")}
                   </div>`
@@ -1053,7 +1028,7 @@ async function converterImagensFirebaseParaBase64(html) {
             }}
           >
             {/* Container principal para alinhar Filtro, Botão e Contador */}
-<Box
+            <Box
   sx={{
     display: "flex",
     alignItems: "center",
@@ -1066,14 +1041,14 @@ async function converterImagensFirebaseParaBase64(html) {
 >
   {/* Caixa de seleção de filtro */}
   <Box
-  sx={{
-    flex: "1 1 300px",
-    display: "flex",
-    alignItems: "center",
-    gap: 2, 
-  }}
->
-
+    sx={{
+      flex: 1,
+      display: "flex",
+      alignItems: "center",
+      gap: 2,
+      minWidth: "300px",
+    }}
+  >
     <Box
       sx={{
         flex: 1,
@@ -1187,7 +1162,7 @@ async function converterImagensFirebaseParaBase64(html) {
             minWidth: "300px",
           }}
         >
-      <Box
+          <Box
         sx={{
           flex: 1,
           backgroundColor: "white",
@@ -1201,29 +1176,29 @@ async function converterImagensFirebaseParaBase64(html) {
         <FilterListIcon sx={{ color: "#757575", mr: 1 }} />
         <Box sx={{ position: "relative", width: "100%" }}>
         <TextField
-          fullWidth
-          placeholder="Pesquisar..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault(); // evita comportamento padrão
-              buscarPalavraNoProjeto(); // 🔥 dispara a função corretamente
-            }
-          }}
-          
-          sx={{
-            backgroundColor: "#f5f5f5",
-            borderRadius: "5px",
-            "& .MuiOutlinedInput-root": {
-              height: "40px",
-              borderRadius: "5px",
-            },
-            "& .MuiOutlinedInput-notchedOutline": {
-              border: "none",
-            },
-          }}
-        />
+  fullWidth
+  placeholder="Pesquisar..."
+  value={searchText}
+  onChange={(e) => setSearchText(e.target.value)}
+  onKeyDown={(e) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // evita comportamento padrão
+      buscarPalavraNoProjeto(); // 🔥 dispara a função corretamente
+    }
+  }}
+  
+  sx={{
+    backgroundColor: "#f5f5f5",
+    borderRadius: "5px",
+    "& .MuiOutlinedInput-root": {
+      height: "40px",
+      borderRadius: "5px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      border: "none",
+    },
+  }}
+/>
 
           {/* Lista de sugestões (caso deseje exibir os resultados) */}
           {searchText.length > 0 && (
@@ -1561,14 +1536,6 @@ async function converterImagensFirebaseParaBase64(html) {
   />
 </Button>
 
-{uploading && (
-  <Typography sx={{ color: "#d32f2f", mt: 1 }}>
-    ⏳ Enviando arquivos, por favor aguarde...
-  </Typography>
-)}
-
-
-
 
   {arquivosUpload.length > 0 && (
     <Box mt={1}>
@@ -1763,25 +1730,6 @@ async function converterImagensFirebaseParaBase64(html) {
 >
   Baixar PDF
 </Button>
-
-
-
-{/** LOADING */}
-{salvando && (
-  <Typography sx={{ color: "#d32f2f", mt: 2 }}>
-    ⏳ Salvando dados e arquivos...
-  </Typography>
-)}
-
-{mensagemSucesso && (
-  <Typography sx={{ color: "#2e7d32", mt: 2 }}>
-    {mensagemSucesso}
-  </Typography>
-)}
-
-
-
-
 
 <Dialog
   open={mostrarDialogPDF}
