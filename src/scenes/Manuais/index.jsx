@@ -298,7 +298,19 @@ const TAMANHO_MAXIMO_BYTES = TAMANHO_MAXIMO_MB * 1024 * 1024;
 
 
 
+//função para upload no Firebase Storage
 
+const uploadFileToFirebase = async (file) => {
+  const timestamp = Date.now();
+  const storageRef = ref(storageFokus360, `csc-anexos/${timestamp}-${file.name}`);
+  await uploadBytes(storageRef, file);
+  const url = await getDownloadURL(storageRef);
+
+  return {
+    nomeArquivo: file.name,
+    arquivoUrl: url,
+  };
+};
 
 
 
@@ -802,30 +814,18 @@ const handleUploadArquivo = async (event) => {
   if (!files.length) return;
 
   const arquivosGrandes = files.filter(file => file.size > TAMANHO_MAXIMO_BYTES);
+  if (arquivosGrandes.length > 0) {
+    alert("❌ Limite máximo de arquivo permitido é de 40MB");
+  }
 
-if (arquivosGrandes.length > 0) {
-  alert("❌ Limite máximo de arquivo permitido é de 40MB");
-}
-
-const arquivosValidos = files.filter(file => file.size <= TAMANHO_MAXIMO_BYTES);
-if (arquivosValidos.length === 0) return;
-
+  const arquivosValidos = files.filter(file => file.size <= TAMANHO_MAXIMO_BYTES);
+  if (arquivosValidos.length === 0) return;
 
   try {
     const uploads = await Promise.all(
       arquivosValidos.map(async (file) => {
-        // 🔄 Converte para base64
-        const base64 = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result); // result = dataURL
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-
-        return {
-          nomeArquivo: file.name,
-          dataUrl: base64, // ✅ salvando base64 direto
-        };
+        const uploadInfo = await uploadFileToFirebase(file);
+        return uploadInfo;
       })
     );
 
@@ -837,12 +837,13 @@ if (arquivosValidos.length === 0) return;
       )
     );
 
-    alert("✅ Arquivos convertidos e anexados com sucesso!");
+    alert("✅ Arquivos enviados e anexados com sucesso!");
   } catch (error) {
-    console.error("❌ Erro ao processar arquivos:", error);
-    alert("❌ Erro ao processar arquivos.");
+    console.error("❌ Erro ao enviar arquivos:", error);
+    alert("❌ Erro ao enviar arquivos.");
   }
 };
+
 
 
 
@@ -861,20 +862,20 @@ const removerArquivoUpload = (nomeArquivo) => {
 const gerarHtmlManual = () => {
   return `
     <div style="padding: 24px; font-family: Arial, sans-serif;">
-      <h1 style="font-size: 24px;">${nomeProjeto}</h1>
+      <h1 style="font-size: 24px; margin-bottom: 24px;">${nomeProjeto}</h1>
       ${formularios
         .map(
           (form) => `
           <div class="manual-section avoid-break-inside" style="margin-bottom: 32px;">
             <h2 style="font-size: 18px; margin-bottom: 8px;">${form.titulo}</h2>
-            <div>${form.descricao}</div>
+            <div>${form.descricao || ""}</div>
 
             ${form.subItens
               ?.map(
                 (sub) => `
-                  <div style="margin-left: 16px; margin-top: 8px;" class="avoid-break-inside">
+                  <div style="margin-left: 16px; margin-top: 12px;" class="avoid-break-inside">
                     <h3 style="font-size: 15px; margin-bottom: 4px;">${sub.titulo}</h3>
-                    <div>${sub.descricao}</div>
+                    <div>${sub.descricao || ""}</div>
                   </div>
                 `
               )
@@ -882,11 +883,13 @@ const gerarHtmlManual = () => {
 
             ${
               form.anexos?.length
-                ? `<div style="margin-top: 12px;">
+                ? `<div style="margin-top: 16px;">
                     ${form.anexos
                       .map(
                         (anexo) =>
-                          `<img src="${anexo.dataUrl}" alt="${anexo.nomeArquivo}" style="max-width: 300px; margin-top: 8px;" />`
+                          `<div style="margin-top: 8px;">
+                            <img src="${anexo.arquivoUrl}" alt="${anexo.nomeArquivo}" style="max-width: 300px; max-height: 400px;" />
+                          </div>`
                       )
                       .join("")}
                   </div>`
