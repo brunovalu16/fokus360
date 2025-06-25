@@ -220,6 +220,10 @@ const Manuais = () => {
   const [allCards, setAllCards] = useState([]); // 🔥 Armazena todos os cards para aplicar os filtros depois
   const [columns, setColumns] = useState([]);
   
+  //estados para loading
+  const [salvando, setSalvando] = useState(false);
+  const [mensagemSucesso, setMensagemSucesso] = useState("");
+
 
 //verifica usuario logado
 const [userRole, setUserRole] = useState("");
@@ -581,6 +585,9 @@ const salvarFormularios = async () => {
     return;
   }
 
+  setSalvando(true);
+  setMensagemSucesso("");
+
   try {
     const docData = {
       nome: nomeProjeto.trim(),
@@ -603,18 +610,20 @@ const salvarFormularios = async () => {
     if (selectedFilter) {
       const docRef = doc(dbFokus360, "csc", selectedFilter);
       await updateDoc(docRef, docData);
-      alert("✅ Projeto atualizado com sucesso!");
     } else {
       await addDoc(collection(dbFokus360, "csc"), docData);
-      alert("✅ Projeto salvo com sucesso!");
     }
 
     setArquivosUpload([]);
+    setMensagemSucesso("✅ Arquivos salvos com sucesso!");
   } catch (error) {
     console.error("❌ Erro ao salvar no Firestore:", error);
     alert("Erro ao salvar dados.");
+  } finally {
+    setSalvando(false);
   }
 };
+
 
 
 
@@ -821,6 +830,8 @@ const handleUploadArquivo = async (event) => {
   const arquivosValidos = files.filter(file => file.size <= TAMANHO_MAXIMO_BYTES);
   if (arquivosValidos.length === 0) return;
 
+  setUploading(true);
+
   try {
     const uploads = await Promise.all(
       arquivosValidos.map(async (file) => {
@@ -841,8 +852,11 @@ const handleUploadArquivo = async (event) => {
   } catch (error) {
     console.error("❌ Erro ao enviar arquivos:", error);
     alert("❌ Erro ao enviar arquivos.");
+  } finally {
+    setUploading(false);
   }
 };
+
 
 
 
@@ -1547,6 +1561,14 @@ async function converterImagensFirebaseParaBase64(html) {
   />
 </Button>
 
+{uploading && (
+  <Typography sx={{ color: "#d32f2f", mt: 1 }}>
+    ⏳ Enviando arquivos, por favor aguarde...
+  </Typography>
+)}
+
+
+
 
   {arquivosUpload.length > 0 && (
     <Box mt={1}>
@@ -1741,6 +1763,25 @@ async function converterImagensFirebaseParaBase64(html) {
 >
   Baixar PDF
 </Button>
+
+
+
+{/** LOADING */}
+{salvando && (
+  <Typography sx={{ color: "#d32f2f", mt: 2 }}>
+    ⏳ Salvando dados e arquivos...
+  </Typography>
+)}
+
+{mensagemSucesso && (
+  <Typography sx={{ color: "#2e7d32", mt: 2 }}>
+    {mensagemSucesso}
+  </Typography>
+)}
+
+
+
+
 
 <Dialog
   open={mostrarDialogPDF}
