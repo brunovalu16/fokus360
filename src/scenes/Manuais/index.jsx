@@ -33,7 +33,7 @@ import { replaceImageUrlsWithBase64 } from "../../utils/replaceImageUrlsWithBase
 
 
 
-import { getDocs, collection, addDoc, getDoc, doc, updateDoc } from "firebase/firestore";
+import { getDocs, collection, addDoc, getDoc, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { dbFokus360 } from "../../data/firebase-config";
 import { storageFokus360 } from "../../data/firebase-config";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -219,7 +219,13 @@ const Manuais = () => {
   const [projects, setProjects] = useState([]); // Todos os projetos
   const [allCards, setAllCards] = useState([]); // 🔥 Armazena todos os cards para aplicar os filtros depois
   const [columns, setColumns] = useState([]);
+
+
   
+  //estados para loading
+  const [salvando, setSalvando] = useState(false);
+  const [mensagemSucesso, setMensagemSucesso] = useState("");
+
 
 //verifica usuario logado
 const [userRole, setUserRole] = useState("");
@@ -270,7 +276,7 @@ const [highlightedMatches, setHighlightedMatches] = useState([]);
 
 
 //controlar o tamanho dos arquivos enviados
-const TAMANHO_MAXIMO_MB = 15;
+const TAMANHO_MAXIMO_MB = 40;
 const TAMANHO_MAXIMO_BYTES = TAMANHO_MAXIMO_MB * 1024 * 1024;
 
   const normalizarTexto = (texto) => {
@@ -298,7 +304,19 @@ const TAMANHO_MAXIMO_BYTES = TAMANHO_MAXIMO_MB * 1024 * 1024;
 
 
 
+//função para upload no Firebase Storage
 
+const uploadFileToFirebase = async (file) => {
+  const timestamp = Date.now();
+  const storageRef = ref(storageFokus360, `csc-anexos/${timestamp}-${file.name}`);
+  await uploadBytes(storageRef, file);
+  const url = await getDownloadURL(storageRef);
+
+  return {
+    nomeArquivo: file.name,
+    arquivoUrl: url,
+  };
+};
 
 
 
@@ -569,6 +587,9 @@ const salvarFormularios = async () => {
     return;
   }
 
+  setSalvando(true);
+  setMensagemSucesso("");
+
   try {
     const docData = {
       nome: nomeProjeto.trim(),
@@ -591,18 +612,20 @@ const salvarFormularios = async () => {
     if (selectedFilter) {
       const docRef = doc(dbFokus360, "csc", selectedFilter);
       await updateDoc(docRef, docData);
-      alert("✅ Projeto atualizado com sucesso!");
     } else {
       await addDoc(collection(dbFokus360, "csc"), docData);
-      alert("✅ Projeto salvo com sucesso!");
     }
 
     setArquivosUpload([]);
+    setMensagemSucesso("✅ Arquivos salvos com sucesso!");
   } catch (error) {
     console.error("❌ Erro ao salvar no Firestore:", error);
     alert("Erro ao salvar dados.");
+  } finally {
+    setSalvando(false);
   }
 };
+
 
 
 
@@ -722,33 +745,48 @@ const carregarProjeto = async (projectId) => {
     };
     
 //função deletar
-  const removerFormulario = (id) => {
+const removerFormulario = (id) => {
   if (!isAdmin) {
     alert("❌ Você não tem permissão para remover.");
     return;
   }
-  setFormularios(prev => prev.filter(form => form.id !== id));
-  if (expandedAccordion === `panel-${id}`) {
+
+  setFormularios((prev) => prev.filter((form) => form.id !== id));
+
+  // Corrigido: comparação deve ser direta com o número do ID
+  if (expandedAccordion === id) {
     setExpandedAccordion(null);
   }
 };
 
 
-    
 //função deletar sub-accordion
 const removerSubItem = (formId, index) => {
   if (!isAdmin) {
     alert("❌ Você não tem permissão para remover.");
     return;
   }
-  setFormularios(prev =>
-    prev.map(form =>
+
+  setFormularios((prev) =>
+    prev.map((form) =>
       form.id === formId
-        ? { ...form, subItens: form.subItens.filter((_, i) => i !== index) }
+        ? {
+            ...form,
+            subItens: form.subItens.filter((_, i) => i !== index),
+          }
         : form
     )
   );
+
+  // Opcional: fecha o subAccordion se ele estiver aberto
+  const subKey = `${formId}-${index}`;
+  setExpandedSubAccordions((prev) => {
+    const copy = { ...prev };
+    delete copy[subKey];
+    return copy;
+  });
 };
+
 
 
 // função scrollToMatch para quando pesquisar uma palavra, a pagina rolar até ela
@@ -801,23 +839,21 @@ const handleUploadArquivo = async (event) => {
   const files = Array.from(event.target.files);
   if (!files.length) return;
 
+  const arquivosGrandes = files.filter(file => file.size > TAMANHO_MAXIMO_BYTES);
+  if (arquivosGrandes.length > 0) {
+    alert("❌ Limite máximo de arquivo permitido é de 40MB");
+  }
+
   const arquivosValidos = files.filter(file => file.size <= TAMANHO_MAXIMO_BYTES);
+  if (arquivosValidos.length === 0) return;
+
+  setUploading(true);
 
   try {
     const uploads = await Promise.all(
       arquivosValidos.map(async (file) => {
-        // 🔄 Converte para base64
-        const base64 = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result); // result = dataURL
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-
-        return {
-          nomeArquivo: file.name,
-          dataUrl: base64, // ✅ salvando base64 direto
-        };
+        const uploadInfo = await uploadFileToFirebase(file);
+        return uploadInfo;
       })
     );
 
@@ -829,12 +865,16 @@ const handleUploadArquivo = async (event) => {
       )
     );
 
-    alert("✅ Arquivos convertidos e anexados com sucesso!");
+    alert("✅ Arquivos enviados e anexados com sucesso!");
   } catch (error) {
-    console.error("❌ Erro ao processar arquivos:", error);
-    alert("❌ Erro ao processar arquivos.");
+    console.error("❌ Erro ao enviar arquivos:", error);
+    alert("❌ Erro ao enviar arquivos.");
+  } finally {
+    setUploading(false);
   }
 };
+
+
 
 
 
@@ -853,20 +893,20 @@ const removerArquivoUpload = (nomeArquivo) => {
 const gerarHtmlManual = () => {
   return `
     <div style="padding: 24px; font-family: Arial, sans-serif;">
-      <h1 style="font-size: 24px;">${nomeProjeto}</h1>
+      <h1 style="font-size: 24px; margin-bottom: 24px;">${nomeProjeto}</h1>
       ${formularios
         .map(
           (form) => `
           <div class="manual-section avoid-break-inside" style="margin-bottom: 32px;">
             <h2 style="font-size: 18px; margin-bottom: 8px;">${form.titulo}</h2>
-            <div>${form.descricao}</div>
+            <div>${form.descricao || ""}</div>
 
             ${form.subItens
               ?.map(
                 (sub) => `
-                  <div style="margin-left: 16px; margin-top: 8px;" class="avoid-break-inside">
+                  <div style="margin-left: 16px; margin-top: 12px;" class="avoid-break-inside">
                     <h3 style="font-size: 15px; margin-bottom: 4px;">${sub.titulo}</h3>
-                    <div>${sub.descricao}</div>
+                    <div>${sub.descricao || ""}</div>
                   </div>
                 `
               )
@@ -874,11 +914,13 @@ const gerarHtmlManual = () => {
 
             ${
               form.anexos?.length
-                ? `<div style="margin-top: 12px;">
+                ? `<div style="margin-top: 16px;">
                     ${form.anexos
                       .map(
                         (anexo) =>
-                          `<img src="${anexo.dataUrl}" alt="${anexo.nomeArquivo}" style="max-width: 300px; margin-top: 8px;" />`
+                          `<div style="margin-top: 8px;">
+                            <img src="${anexo.arquivoUrl}" alt="${anexo.nomeArquivo}" style="max-width: 300px; max-height: 400px;" />
+                          </div>`
                       )
                       .join("")}
                   </div>`
@@ -989,6 +1031,37 @@ async function converterImagensFirebaseParaBase64(html) {
 
 
 
+//função deletar projeto do banco
+
+const deletarProjetoAtual = async () => {
+  if (!isAdmin) {
+    alert("❌ Você não tem permissão para deletar.");
+    return;
+  }
+
+  if (!selectedFilter) {
+    alert("Nenhum projeto selecionado.");
+    return;
+  }
+
+  const confirmar = window.confirm("Tem certeza que deseja deletar este projeto do banco de dados? Essa ação não pode ser desfeita.");
+  if (!confirmar) return;
+
+  try {
+    await deleteDoc(doc(dbFokus360, "csc", selectedFilter));
+    alert("✅ Projeto deletado com sucesso.");
+
+    // Resetar estado local
+    setSelectedFilter(null);
+    setNomeProjeto("");
+    setFormularios([{ id: 1, titulo: "", descricao: "", subItens: [] }]);
+  } catch (error) {
+    console.error("❌ Erro ao deletar projeto:", error);
+    alert("Erro ao deletar projeto.");
+  }
+};
+
+
 
 
 
@@ -1028,7 +1101,7 @@ async function converterImagensFirebaseParaBase64(html) {
             }}
           >
             {/* Container principal para alinhar Filtro, Botão e Contador */}
-            <Box
+<Box
   sx={{
     display: "flex",
     alignItems: "center",
@@ -1041,14 +1114,14 @@ async function converterImagensFirebaseParaBase64(html) {
 >
   {/* Caixa de seleção de filtro */}
   <Box
-    sx={{
-      flex: 1,
-      display: "flex",
-      alignItems: "center",
-      gap: 2,
-      minWidth: "300px",
-    }}
-  >
+  sx={{
+    flex: "1 1 300px",
+    display: "flex",
+    alignItems: "center",
+    gap: 2, 
+  }}
+>
+
     <Box
       sx={{
         flex: 1,
@@ -1162,7 +1235,7 @@ async function converterImagensFirebaseParaBase64(html) {
             minWidth: "300px",
           }}
         >
-          <Box
+      <Box
         sx={{
           flex: 1,
           backgroundColor: "white",
@@ -1176,29 +1249,29 @@ async function converterImagensFirebaseParaBase64(html) {
         <FilterListIcon sx={{ color: "#757575", mr: 1 }} />
         <Box sx={{ position: "relative", width: "100%" }}>
         <TextField
-  fullWidth
-  placeholder="Pesquisar..."
-  value={searchText}
-  onChange={(e) => setSearchText(e.target.value)}
-  onKeyDown={(e) => {
-    if (e.key === "Enter") {
-      e.preventDefault(); // evita comportamento padrão
-      buscarPalavraNoProjeto(); // 🔥 dispara a função corretamente
-    }
-  }}
-  
-  sx={{
-    backgroundColor: "#f5f5f5",
-    borderRadius: "5px",
-    "& .MuiOutlinedInput-root": {
-      height: "40px",
-      borderRadius: "5px",
-    },
-    "& .MuiOutlinedInput-notchedOutline": {
-      border: "none",
-    },
-  }}
-/>
+          fullWidth
+          placeholder="Pesquisar..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault(); // evita comportamento padrão
+              buscarPalavraNoProjeto(); // 🔥 dispara a função corretamente
+            }
+          }}
+          
+          sx={{
+            backgroundColor: "#f5f5f5",
+            borderRadius: "5px",
+            "& .MuiOutlinedInput-root": {
+              height: "40px",
+              borderRadius: "5px",
+            },
+            "& .MuiOutlinedInput-notchedOutline": {
+              border: "none",
+            },
+          }}
+        />
 
           {/* Lista de sugestões (caso deseje exibir os resultados) */}
           {searchText.length > 0 && (
@@ -1314,11 +1387,10 @@ async function converterImagensFirebaseParaBase64(html) {
               : (form.titulo?.trim() || `Item #${form.id}`)}
           </Typography>
 
-          {formularios.length > 1 && (
-            <IconButton onClick={() => removerFormulario(form.id)} size="small" sx={{ ml: 1 }}>
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          )}
+          <IconButton onClick={() => removerFormulario(form.id)} size="small">
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+
         </Box>
       </AccordionSummary>
 
@@ -1536,6 +1608,14 @@ async function converterImagensFirebaseParaBase64(html) {
   />
 </Button>
 
+{uploading && (
+  <Typography sx={{ color: "#d32f2f", mt: 1 }}>
+    ⏳ Enviando arquivos, por favor aguarde...
+  </Typography>
+)}
+
+
+
 
   {arquivosUpload.length > 0 && (
     <Box mt={1}>
@@ -1730,6 +1810,44 @@ async function converterImagensFirebaseParaBase64(html) {
 >
   Baixar PDF
 </Button>
+
+
+<Button
+  variant="outlined"
+  onClick={deletarProjetoAtual}
+  disabled={!isAdmin || !selectedFilter}
+  sx={{
+    textTransform: "none",
+    color: "#d32f2f",
+    borderColor: "#d32f2f",
+    "&:hover": {
+      borderColor: "#b71c1c",
+      backgroundColor: "transparent",
+    },
+  }}
+>
+  Deletar Projeto
+</Button>
+
+
+
+
+{/** LOADING */}
+{salvando && (
+  <Typography sx={{ color: "#d32f2f", mt: 2 }}>
+    ⏳ Salvando dados e arquivos...
+  </Typography>
+)}
+
+{mensagemSucesso && (
+  <Typography sx={{ color: "#2e7d32", mt: 2 }}>
+    {mensagemSucesso}
+  </Typography>
+)}
+
+
+
+
 
 <Dialog
   open={mostrarDialogPDF}
