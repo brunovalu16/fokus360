@@ -7,12 +7,18 @@ import { NotificationProvider } from "../src/context/NotificationContext"; // Im
 
 export const ToggledContext = createContext(null);
 
+// 🔒 Hook de inatividade
+import useInactivityLogout from "./hooks/useInactivityLogout";
+
 function App() {
   const [theme, colorMode] = useMode();
   const [toggled, setToggled] = useState(false);
   const values = { toggled, setToggled };
 
   const location = useLocation(); // Pegando a rota atual
+
+  // ⚠️ Desloga após 2 minutos (120000ms) sem interação
+  useInactivityLogout(120000);
 
   return (
     <ColorModeContext.Provider value={colorMode}>
