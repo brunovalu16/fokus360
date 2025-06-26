@@ -4,8 +4,38 @@ import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import { Link } from 'react-router-dom';
 import capasistema360relatorios from "../../assets/images/capasistema360relatorios.webp";
 
+
+const roleToLabelMap = {
+  "37": "Ajinomoto", 
+  "38": "AB Mauri", 
+  "39": "Adoralle", 
+  "40": "Bettanin", 
+  "41": "Mars Choco", 
+  "42": "Mars Pet", 
+  "43": "M.Dias", 
+  "44": "SCJhonson", 
+  "45": "UAU Ingleza", 
+  "46": "Danone", 
+  "47": "Ypê",
+  "48": "Adoralle",
+  "49": "Fini",
+  "50": "Heinz",
+  "51": "Red Bull",
+};
+
+
 const Home = () => {
   const [userRole, setUserRole] = useState("");
+
+
+
+  //serve para buscar o papel (role) do usuário logado e armazenar esse valor no estado
+  // do componente (userRole), assim que o componente Home for carregado na tela.
+
+   useEffect(() => {
+    const role = localStorage.getItem("userRole"); // Aqui busca o role do usuário logado
+    if (role) setUserRole(role);
+  }, []);
 
   return (
     <>
@@ -71,7 +101,7 @@ const Home = () => {
             }}
           >
             <Link
-              to="/relatorios"
+              to={Object.keys(roleToLabelMap).includes(userRole) ? "/painelindustrias" : "/relatorios"}
               style={{
                 backgroundColor: "transparent",  
                 color: "transparent",
@@ -85,6 +115,7 @@ const Home = () => {
             >
               Novo Projeto
             </Link>
+
           </Box>
 
           <Box
