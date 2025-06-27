@@ -4007,16 +4007,22 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
   </Box>
 )}
 
-                                    <Typography
-                                      variant="subtitle1"
-                                      sx={{
-                                        fontWeight: "bold",
-                                        color: "#f44336",
-                                        flex: 1,
+                                    <TextField
+                                      variant="standard"
+                                      value={tarefa.tituloTarefa}
+                                      onChange={(e) => handleEditTarefa(tarefa.id, "tituloTarefa", e.target.value)}
+                                      InputProps={{
+                                        disableUnderline: true,
+                                        sx: {
+                                          fontWeight: "bold",
+                                          color: "#f44336",
+                                          flex: 1,
+                                          fontSize: "1rem",
+                                        },
                                       }}
-                                    >
-                                      {tarefa.tituloTarefa}
-                                    </Typography>
+                                      fullWidth
+                                    />
+
 
                                     {/* 🔹 Botão de deletar */}
                                     <Button
