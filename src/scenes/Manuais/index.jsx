@@ -1826,7 +1826,7 @@ const deletarProjetoAtual = async () => {
     },
   }}
 >
-  Deletar Projeto
+  Deletar Manual
 </Button>
 
 
