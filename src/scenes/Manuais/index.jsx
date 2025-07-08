@@ -1079,7 +1079,7 @@ const deletarProjetoAtual = async () => {
               title={
                 <Box display="flex" alignItems="center" gap={1}>
                   <HeatPumpIcon sx={{ color: "#d71936", fontSize: 40 }} />
-                  <Typography>CSC do departamento de contabilidade:</Typography>
+                  <Typography>CSC - Centro de Serviços Compartilhados do Grupo Fokus</Typography>
                 </Box>
               }
             />
