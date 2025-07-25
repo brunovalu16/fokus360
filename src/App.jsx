@@ -18,7 +18,7 @@ function App() {
 
 
   // ✅ Chamada segura (hook sempre executado)
-  useInactivityLogout(120000);
+  useInactivityLogout(28800000);
 
   return (
     <ColorModeContext.Provider value={colorMode}>
