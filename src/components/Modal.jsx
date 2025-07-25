@@ -30,6 +30,7 @@ const Modal = ({ open, onClose, onFileUploaded }) => {
   { id: "JURIDICO", nome: "JURÍDICO" },
   { id: "LOGISTICA", nome: "LOGÍSTICA" },
   { id: "MARKETING", nome: "MARKETING" },
+  { id: "TRADE", nome: "TRADE" },
   // Substituindo TRADE por lista de indústrias:
   { id: "37", nome: "Ajinomoto" },
   { id: "38", nome: "AB Mauri" },

@@ -254,7 +254,7 @@ useEffect(() => {
           <Box>
               <Button
                 component={Link}
-                to="/painelindustriastrade"
+                to="/capaarquivos"
                 startIcon={<ExitToAppIcon sx={{ color: "#5f53e5", marginRight: "-7px", marginTop: "-3px" }} />}
                 sx={{
                   padding: "5px 10px",

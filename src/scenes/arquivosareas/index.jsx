@@ -209,7 +209,7 @@ useEffect(() => {
               onClick={() => {
                 if (!area) return alert("Selecione uma área antes de continuar.");
 
-                if (area === "TRADE") {
+                if (area === "INDUSTRIA") {
                   navigate("/PainelIndustriasTrade"); // redireciona para a rota desejada
                 } else {
                   navigate(`/arquivos?area=${area}`);
