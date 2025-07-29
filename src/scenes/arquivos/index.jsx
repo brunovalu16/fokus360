@@ -112,6 +112,13 @@ const fetchFiles = async () => {
 
 
 
+  // Lista de roles para o botão com caminho: /painelindustriastrade
+const rolesRestritos = [
+  "37", "38", "39", "40", "41", "42", "43", "44",
+  "45", "46", "47", "48", "49", "50", "51"
+];
+
+
 
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm("Tem certeza que deseja excluir este arquivo?");
@@ -252,23 +259,46 @@ useEffect(() => {
         
         <Box display="flex" justifyContent="flex-end" mb={2}>
           <Box>
-              <Button
-                component={Link}
-                to="/capaarquivos"
-                startIcon={<ExitToAppIcon sx={{ color: "#5f53e5", marginRight: "-7px", marginTop: "-3px" }} />}
-                sx={{
-                  padding: "5px 10px",
-                  fontSize: "13px",
-                  color: "#858585",
-                  marginRight: "20px",
-                  textTransform: "none",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                }}
-              >
-                Voltar
-              </Button>
+
+            {rolesRestritos.includes(role) && (
+                <Button
+                  component={Link}
+                  to="/painelindustriastrade"
+                  startIcon={<ExitToAppIcon sx={{ color: "#5f53e5", marginRight: "-7px", marginTop: "-3px" }} />}
+                  sx={{
+                    padding: "5px 10px",
+                    fontSize: "13px",
+                    color: "#858585",
+                    marginRight: "20px",
+                    textTransform: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  Voltar
+                </Button>
+              )}
+
+              {!rolesRestritos.includes(role) && (
+                <Button
+                  component={Link}
+                  to="/arquivosareas"
+                  startIcon={<ExitToAppIcon sx={{ color: "#5f53e5", marginRight: "-7px", marginTop: "-3px" }} />}
+                  sx={{
+                    padding: "5px 10px",
+                    fontSize: "13px",
+                    color: "#858585",
+                    marginRight: "20px",
+                    textTransform: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  Voltar
+                </Button>
+              )}
             </Box>
 
 

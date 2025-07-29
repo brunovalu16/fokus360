@@ -64,7 +64,7 @@ const rolesRestritos = [
 const areasDisponiveis = React.useMemo(() => {
   if (!role) return [];
   return rolesRestritos.includes(role)
-    ? [{ id: "TRADE", nome: "TRADE" }]
+    ? [{ id: "INDUSTRIA", nome: "INDUSTRIA" }]
     : areas;
 }, [role]);
 
