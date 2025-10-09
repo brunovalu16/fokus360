@@ -169,7 +169,7 @@ if (loading) return <Box p={5}>Carregando...</Box>;
         gap: "6px",
       }}
     >
-      Voltar
+      VOLTAR PARA PAINEL
     </Button>
   </Box>
 </Box>
