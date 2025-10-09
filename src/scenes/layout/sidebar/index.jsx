@@ -362,7 +362,7 @@ const SideBar = () => {
             src={icon_logo}
             alt="Logo"
             style={{
-              maxWidth: "35px",
+              maxWidth: "30px",
               height: "auto",
             }}
           />
