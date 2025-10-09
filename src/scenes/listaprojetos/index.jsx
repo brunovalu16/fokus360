@@ -54,7 +54,7 @@ const Projetos = () => {
               "&:hover": { backgroundColor: "#3f2cb2" },
             }}
           >
-            NOVO PROJETO
+            NOVO PLANEJAMENTO
           </Button>
         </Box>
       </Box>

@@ -47,7 +47,7 @@ function PlanejamentoGeral() {
           <Box display="flex" justifyContent="flex-end" mb={2}>
           <Button
               component={Link} // Define que o botão será um Link do React Router
-              to="/cadastroprojetos"
+              to="/planejamento"
               variant="contained"
               color="primary"
               onClick={""}
@@ -62,7 +62,7 @@ function PlanejamentoGeral() {
                 "&:hover": { backgroundColor: "#3f2cb2" },
               }}
             >
-              Novo projeto
+              NOVO PLANEJAMENTO
             </Button>
           </Box>
         )}

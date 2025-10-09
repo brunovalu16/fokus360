@@ -68,7 +68,7 @@ const Arquivos = () => {
   const location = useLocation(); // ✅ hook dentro do componente
   const queryParams = new URLSearchParams(location.search);
   const areaFiltrada = queryParams.get("area");
-  const roleFiltrada = queryParams.get("role");
+
 
 
   const [isModalOpen, setModalOpen] = useState(false);
@@ -85,6 +85,13 @@ const [role, setRole] = useState("");
 const [loading, setLoading] = useState(true);
 
 const isRestricted = Object.keys(roleToLabelMap).includes(role);
+
+
+// pegue ambos como você já faz:
+const roleFiltrada = queryParams.get("role");
+
+// escolha o "role efetivo" (URL > Firestore)
+const effectiveRole = String(roleFiltrada ?? role ?? "").trim();
 
 
 
@@ -216,6 +223,8 @@ useEffect(() => {
     },
   ];
 
+  
+
   return (
     <>
       {/* Header */}
@@ -260,45 +269,52 @@ useEffect(() => {
         <Box display="flex" justifyContent="flex-end" mb={2}>
           <Box>
 
-            {rolesRestritos.includes(role) && (
-                <Button
-                  component={Link}
-                  to="/painelindustriastrade"
-                  startIcon={<ExitToAppIcon sx={{ color: "#5f53e5", marginRight: "-7px", marginTop: "-3px" }} />}
-                  sx={{
-                    padding: "5px 10px",
-                    fontSize: "13px",
-                    color: "#858585",
-                    marginRight: "20px",
-                    textTransform: "none",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
-                >
-                  Voltar
-                </Button>
-              )}
+            
+            {!loading && rolesRestritos.includes(effectiveRole) && (
+              <Button
+                component={Link}
+                to="/painelindustriastrade"
+                startIcon={<ExitToAppIcon sx={{ color: "#5f53e5", marginRight: "-7px", marginTop: "-3px" }} />}
+                sx={{
+                  padding: "5px 10px",
+                  fontSize: "13px",
+                  color: "#858585",
+                  marginRight: "20px",
+                  textTransform: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                Voltar
+              </Button>
+            )}
 
-              {!rolesRestritos.includes(role) && (
-                <Button
-                  component={Link}
-                  to="/arquivosareas"
-                  startIcon={<ExitToAppIcon sx={{ color: "#5f53e5", marginRight: "-7px", marginTop: "-3px" }} />}
-                  sx={{
-                    padding: "5px 10px",
-                    fontSize: "13px",
-                    color: "#858585",
-                    marginRight: "20px",
-                    textTransform: "none",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
-                >
-                  Voltar
-                </Button>
-              )}
+
+            {!rolesRestritos.includes(effectiveRole) && (
+              <Button
+                component={Link}
+                to="/arquivosareas"
+                startIcon={<ExitToAppIcon sx={{ color: "#5f53e5", marginRight: "-7px", marginTop: "-3px" }} />}
+                sx={{
+                  padding: "5px 10px",
+                  fontSize: "13px",
+                  color: "#858585",
+                  marginRight: "20px",
+                  textTransform: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                Voltar
+              </Button>
+            )}
+
+
+
+
+              
             </Box>
 
 

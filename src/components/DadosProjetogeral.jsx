@@ -838,7 +838,7 @@ useEffect(() => {
               id: "projetos2",
               title: (
                 <Typography variant="h5" sx={{ marginLeft: "-5px", color: "#fff", fontSize: "15px", textAlign: "left", whiteSpace: "pre-line", whiteSpace: "nowrap" }}>
-                  {`Total de projetos2: ${quantidadeProjetos.toLocaleString("pt-BR")}`}
+                  {`Total de projetos: ${quantidadeProjetos.toLocaleString("pt-BR")}`}
                 </Typography>
               ),
               //subtitle: "Total de projetos",  // Removido, pois não há subtitle aqui

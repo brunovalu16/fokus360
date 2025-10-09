@@ -152,42 +152,26 @@ useEffect(() => {
 //função para deletar o projeto
 
 
- const handleDeleteProjeto = async () => {
-  if (!confirmAlert.projetoId) return;
-
-  try {
-    const projetoRef = doc(db, "projetos2", confirmAlert.projetoId);
-    await deleteDoc(projetoRef);
-
-    // Mostra alerta de sucesso
-    setConfirmAlert({
-      show: true,
-      projetoId: null,
-      message: "Projeto deletado com sucesso!",
-      severity: "success",
-    });
-
-    // Atualiza lista
-    fetchProjetos();
-
-    // Esconde alerta após 2 segundos
-    setTimeout(() => {
+  const handleDeleteProjeto = async () => {
+   
+  
+    if (!confirmAlert.projetoId) {
+      
+      return;
+    }
+  
+    try {
+      const projetoRef = doc(db, "projetos2", confirmAlert.projetoId);
+      await deleteDoc(projetoRef);
+  
+      //console.log(`Projeto ${confirmAlert.projetoId} deletado com sucesso!`);
+  
+      fetchProjetos();
       setConfirmAlert({ show: false, projetoId: null });
-    }, 2000);
-  } catch (error) {
-    console.error("Erro ao deletar o projeto:", error.message);
-    setConfirmAlert({
-      show: true,
-      projetoId: null,
-      message: "Erro ao deletar o projeto.",
-      severity: "error",
-    });
-    setTimeout(() => {
-      setConfirmAlert({ show: false, projetoId: null });
-    }, 3000);
-  }
-};
-
+    } catch (error) {
+      //console.error("Erro ao deletar o projeto:", error.message);
+    }
+  };
   
   
   
