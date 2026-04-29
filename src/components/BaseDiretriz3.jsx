@@ -952,9 +952,6 @@ const areaRolesMap = {
     <Box>
 
 
-      <Typography variant="body2" sx={{ color: "#f2f0f0", mb: 2 }}>
-              Data atual: {getDataHojeFormatada().split("-").reverse().join("/")}
-            </Typography>
       {/* ***************************** */}
       {/* Form para criar EstratÉgica */}
       {/* ***************************** */}
