@@ -1515,6 +1515,105 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
           {/* Título da seção Estratégica */}
         </Box>
 
+
+
+        {/*=================================== LEGENADAS =============================================== */}
+
+        {/* LEGENDA STATUS */}
+<Box
+  sx={{
+    display: "flex",
+    alignItems: "center",
+    gap: 3,
+    flexWrap: "wrap",
+    mb: 2,
+    p: 1.2,
+    borderRadius: "8px",
+    backgroundColor: "rgba(49,39,131,0.05)",
+    border: "1px solid rgba(49,39,131,0.12)",
+  }}
+>
+  <Typography
+    sx={{
+      fontSize: "0.85rem",
+      fontWeight: "bold",
+      color: "#312783",
+      mr: 1,
+    }}
+  >
+    Legenda:
+  </Typography>
+
+  {/* Verde */}
+  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+    <Box
+      sx={{
+        width: 14,
+        height: 14,
+        borderRadius: "50%",
+        backgroundColor: "#00ff08",
+      }}
+    />
+    <Typography sx={{ fontSize: "0.82rem", color: "#555" }}>
+      No prazo
+    </Typography>
+  </Box>
+
+  {/* Vermelho */}
+  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+    <Box
+      sx={{
+        width: 14,
+        height: 14,
+        borderRadius: "50%",
+        backgroundColor: "#ff0000",
+      }}
+    />
+    <Typography sx={{ fontSize: "0.82rem", color: "#555" }}>
+      Em atraso
+    </Typography>
+  </Box>
+
+  {/* Cinza */}
+  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+    <Box
+      sx={{
+        width: 14,
+        height: 14,
+        borderRadius: "50%",
+        backgroundColor: "#9ca3af",
+      }}
+    />
+    <Typography sx={{ fontSize: "0.82rem", color: "#555" }}>
+      Não iniciada
+    </Typography>
+  </Box>
+  <Typography
+    sx={{
+      fontSize: "0.85rem",
+      fontWeight: "bold",
+      color: "#312783",
+      mr: 1,
+    }}
+  >
+    I
+  </Typography>
+
+  <Typography
+    sx={{
+      fontSize: "0.85rem",
+      fontWeight: "bold",
+      color: "#312783",
+      mr: 1,
+    }}
+  >
+   A Lógica de cores é calculada entra a "data de criação" X "data atual" 
+  </Typography>
+</Box>
+
+
+{/*================================================================================== */}
+
         <Box display="flex" alignItems="center" marginBottom="20px">
           <ArrowDropDownCircleIcon
             sx={{ fontSize: 25, color: "#312783", mr: 1 }}
