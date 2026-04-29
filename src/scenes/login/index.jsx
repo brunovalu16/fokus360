@@ -288,7 +288,7 @@ const Login = () => {
             alignItems: "center",
             borderBottomLeftRadius: "50px",
             transform: "scale(0.8)",
-            marginRight: "-95px",
+            marginRight: "-80px",
             height: "35%",
           }}
         >
@@ -313,7 +313,7 @@ const Login = () => {
             maxWidth: 400,
             textAlign: "center",
             transform: "scale(0.8)",
-            marginRight: "370px",
+            marginRight: "390px",
           }}
 
         >
