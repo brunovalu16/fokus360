@@ -115,8 +115,46 @@ const Home = () => {
             >
               Novo Projeto
             </Link>
-
           </Box>
+
+
+
+          {/* inserir relatórios - somente ADMIN role 08 */}
+
+            {userRole === "08" && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: "82%",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <Link
+                  to="#"
+                  style={{
+                    backgroundColor: "transparent",
+                    textDecoration: "none",
+                    fontWeight: "bold",
+                    fontSize: "20px",
+                    color: "#130343",
+                    marginLeft: "150px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <PlayCircleFilledIcon
+                    sx={{
+                      fontSize: 28,
+                      color: "#130343",
+                    }}
+                  />
+
+                  Inserir relatórios
+                </Link>
+              </Box>
+            )}
 
           <Box
             sx={{
