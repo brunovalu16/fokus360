@@ -180,7 +180,7 @@ const SideBar = () => {
   <MenuItem
     component={<Link to="/home" />}
     icon={<AssessmentIcon sx={{ fontSize: 25 }} />}>
-    Relatórios
+    Power BI
   </MenuItem>
 
   
