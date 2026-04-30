@@ -1087,280 +1087,343 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
     // Salvar todas as Diretrizes
     // -------------------------------------
     
-    const handleSalvarEstrategicas = async () => {
-      try {
-        if (!projectId) {
-          alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
-          return;
-        }
-    
-        const getNovosItens = (atuais = [], originais = []) => {
-          const atualSet = new Set(atuais);
-          const originalSet = new Set(originais);
-          return [...atualSet].filter((item) => !originalSet.has(item));
+  const handleSalvarEstrategicas = async () => {
+  try {
+    if (!projectId) {
+      alert("ID do projeto não encontrado. Salve primeiro as informações do projeto.");
+      return;
+    }
+
+    const getNovosItens = (atuais = [], originais = []) => {
+      const atualSet = new Set(atuais);
+      const originalSet = new Set(originais);
+      return [...atualSet].filter((item) => !originalSet.has(item));
+    };
+
+    const calcularStatusCorreto = (status, finalizacao, timeAtual = "") => {
+      if (!status || !finalizacao) {
+        return {
+          statusVisual: "",
+          time: timeAtual || "",
         };
-    
-        const estrategicasAtualizadas = estrategicas.map((est) => {
-          const taticasAtualizadas = (est.taticas || []).map((tatica) => {
-            const operacionaisAtualizadas = (tatica.operacionais || []).map((op) => {
-              const manualEmails = Array.isArray(emailsPorIdOperacional?.[op.id])
-                ? emailsPorIdOperacional[op.id]
-                : String(emailsPorIdOperacional?.[op.id] || "")
-                    .split(",")
-                    .map((e) => e.trim());
-        
-              const responsaveisEmails = Array.isArray(op.quemOperacionais)
-                ? op.quemOperacionais
-                : [];
-        
-                const tarefasAtualizadas = (op.tarefas || []).map((tarefa) => {
-                  const final = tarefa.finalizacao || "";
-                  const status = tarefa.status ?? "";
-                
-                  const hoje = normalizarData(new Date());
-                  const dataFinal = normalizarData(final);
-                
-                  // Se já tem statusVisual (ex: após marcar "em andamento" ou "concluída"), mantém
-                  const visual = tarefa.statusVisual || calcularStatusVisualPorStatus(status, final);
-                
-                  const novoTime =
-                    status === "concluida"
-                      ? tarefa.time || ""
-                      : final
-                        ? hoje <= dataFinal
-                          ? "no prazo"
-                          : "atrasada"
-                        : tarefa.time || "";
-                
-                  return {
-                    ...tarefa,
-                    criacao: tarefa.criacao || "",
-                    finalizacao: final,
-                    tituloTarefa: tarefa.tituloTarefa || "",
-                    status,
-                    statusVisual: visual,
-                    time: novoTime,
-                    planoDeAcao: {
-                      ...tarefa.planoDeAcao,
-                      oQue: tarefa.planoDeAcao?.oQue || "",
-                      porQue: tarefa.planoDeAcao?.porQue || "",
-                      quem: tarefa.planoDeAcao?.quem || [],
-                      quemEmail: tarefa.planoDeAcao?.quemEmail || [],
-                      quando: tarefa.planoDeAcao?.quando || "",
-                      onde: tarefa.planoDeAcao?.onde || "",
-                      como: tarefa.planoDeAcao?.como || "",
-                      valor: tarefa.planoDeAcao?.valor || "",
-                    },
-                  };
-                });
-                
-              return {
-                ...op,
-                finalizacao: op.finalizacao || "",
-                criacao: op.criacao || "",
-                status: op.status ?? "",
-                statusVisual: op.status === "concluida"
-                  ? op.statusVisual
-                  : calcularStatusVisualPorStatus(op.status, op.finalizacao),
-                areasResponsaveis: areasPorIdOperacional[op.id] || [],
-                unidades: unidadesPorIdOperacional?.[op.id] || [],
-                emails: [...manualEmails, ...responsaveisEmails].filter((e) => e.trim() !== ""),
-                tarefas: tarefasAtualizadas
-              };
-            });
-        
+      }
+
+      const hoje = normalizarData(new Date());
+      const prazo = normalizarData(finalizacao);
+      const estaNoPrazo = hoje <= prazo;
+
+      return {
+        statusVisual: estaNoPrazo ? "no_prazo" : "atrasada",
+        time: estaNoPrazo ? "no prazo" : "atrasada",
+      };
+    };
+
+    const estrategicasAtualizadas = estrategicas.map((est) => {
+      const taticasAtualizadas = (est.taticas || []).map((tatica) => {
+        const operacionaisAtualizadas = (tatica.operacionais || []).map((op) => {
+          const manualEmails = Array.isArray(emailsPorIdOperacional?.[op.id])
+            ? emailsPorIdOperacional[op.id]
+            : String(emailsPorIdOperacional?.[op.id] || "")
+                .split(",")
+                .map((e) => e.trim());
+
+          const responsaveisEmails = Array.isArray(op.quemOperacionais)
+            ? op.quemOperacionais
+            : [];
+
+          const tarefasAtualizadas = (op.tarefas || []).map((tarefa) => {
+            const final = tarefa.finalizacao || "";
+            const status = tarefa.status ?? "";
+            const statusCalculado = calcularStatusCorreto(status, final, tarefa.time);
+
             return {
-              ...tatica,
-              finalizacao: tatica.finalizacao || "",
-              criacao: tatica.criacao || "",
-              status: tatica.status ?? "",
-              statusVisual: tatica.status === "concluida"
-                ? tatica.statusVisual
-                : calcularStatusVisualPorStatus(tatica.status, tatica.finalizacao),
-              areasResponsaveis: areasTaticasPorId[tatica.id] || [],
-              unidades: unidadesTaticasPorId[tatica.id] || [],
-              emails: Array.isArray(emailsPorIdTatica[tatica.id])
-                ? emailsPorIdTatica[tatica.id].filter((e) => e.trim() !== "")
-                : String(emailsPorIdTatica[tatica.id] || "")
-                    .split(",")
-                    .map((e) => e.trim())
-                    .filter((e) => e !== ""),
-              operacionais: operacionaisAtualizadas
+              ...tarefa,
+              criacao: tarefa.criacao || "",
+              finalizacao: final,
+              tituloTarefa: tarefa.tituloTarefa || "",
+              status,
+              ...statusCalculado,
+              planoDeAcao: {
+                ...tarefa.planoDeAcao,
+                oQue: tarefa.planoDeAcao?.oQue || "",
+                porQue: tarefa.planoDeAcao?.porQue || "",
+                quem: tarefa.planoDeAcao?.quem || [],
+                quemEmail: tarefa.planoDeAcao?.quemEmail || [],
+                quando: tarefa.planoDeAcao?.quando || "",
+                onde: tarefa.planoDeAcao?.onde || "",
+                como: tarefa.planoDeAcao?.como || "",
+                valor: tarefa.planoDeAcao?.valor || "",
+              },
             };
           });
-        
+
+          const statusOp = calcularStatusCorreto(
+            op.status ?? "",
+            op.finalizacao || "",
+            op.time
+          );
+
           return {
-            ...est,
-            criacao: est.criacao || "",
-            finalizacao: est.finalizacao || "",
-            status: est.status ?? "",
-            statusVisual: est.status === "concluida"
-              ? est.statusVisual
-              : calcularStatusVisualPorStatus(est.status, est.finalizacao),
-            areasResponsaveis: areasPorId[est.id] || [],
-            unidades: unidadesPorId[est.id] || [],
-            emails: Array.isArray(emailsPorIdEstrategica[est.id])
-              ? emailsPorIdEstrategica[est.id].filter((e) => e.trim() !== "")
-              : String(emailsPorIdEstrategica[est.id] || "")
-                  .split(",")
-                  .map((e) => e.trim())
-                  .filter((e) => e !== ""),
-            taticas: taticasAtualizadas
+            ...op,
+            finalizacao: op.finalizacao || "",
+            criacao: op.criacao || "",
+            status: op.status ?? "",
+            ...statusOp,
+            areasResponsaveis: areasPorIdOperacional[op.id] || [],
+            unidades: unidadesPorIdOperacional?.[op.id] || [],
+            emails: [...manualEmails, ...responsaveisEmails].filter(
+              (e) => e.trim() !== ""
+            ),
+            tarefas: tarefasAtualizadas,
           };
         });
-        
-        // Atualiza no Firestore
-        const projetoRef = doc(db, "projetos", projectId);
-        await updateDoc(projetoRef, {
-          estrategicas: estrategicasAtualizadas,
-          updatedAt: new Date(),
-        });
-    
-        // Envia e-mails por nível corretamente
-        for (const est of estrategicasAtualizadas) {
-          // ESTRATÉGICAS
-          const novasAreas = getNovosItens(est.areasResponsaveis, areasOriginaisPorId?.[est.id] || []);
-          const novosEmails = getNovosItens(est.emails, emailsOriginaisPorIdEstrategica?.[est.id] || []);
-    
-          if (novasAreas.length > 0) {
-            const novosUsuarios = await buscarUsuariosPorRole(novasAreas.flatMap((a) => areaRolesMap[a] || []));
-            await Promise.all(novosUsuarios.map((user) =>
+
+        const statusTatica = calcularStatusCorreto(
+          tatica.status ?? "",
+          tatica.finalizacao || "",
+          tatica.time
+        );
+
+        return {
+          ...tatica,
+          finalizacao: tatica.finalizacao || "",
+          criacao: tatica.criacao || "",
+          status: tatica.status ?? "",
+          ...statusTatica,
+          areasResponsaveis: areasTaticasPorId[tatica.id] || [],
+          unidades: unidadesTaticasPorId[tatica.id] || [],
+          emails: Array.isArray(emailsPorIdTatica[tatica.id])
+            ? emailsPorIdTatica[tatica.id].filter((e) => e.trim() !== "")
+            : String(emailsPorIdTatica[tatica.id] || "")
+                .split(",")
+                .map((e) => e.trim())
+                .filter((e) => e !== ""),
+          operacionais: operacionaisAtualizadas,
+        };
+      });
+
+      const statusEstrategica = calcularStatusCorreto(
+        est.status ?? "",
+        est.finalizacao || "",
+        est.time
+      );
+
+      return {
+        ...est,
+        criacao: est.criacao || "",
+        finalizacao: est.finalizacao || "",
+        status: est.status ?? "",
+        ...statusEstrategica,
+        areasResponsaveis: areasPorId[est.id] || [],
+        unidades: unidadesPorId[est.id] || [],
+        emails: Array.isArray(emailsPorIdEstrategica[est.id])
+          ? emailsPorIdEstrategica[est.id].filter((e) => e.trim() !== "")
+          : String(emailsPorIdEstrategica[est.id] || "")
+              .split(",")
+              .map((e) => e.trim())
+              .filter((e) => e !== ""),
+        taticas: taticasAtualizadas,
+      };
+    });
+
+    const projetoRef = doc(db, "projetos", projectId);
+
+    await updateDoc(projetoRef, {
+      estrategicas: estrategicasAtualizadas,
+      updatedAt: new Date(),
+    });
+
+    for (const est of estrategicasAtualizadas) {
+      const novasAreas = getNovosItens(
+        est.areasResponsaveis,
+        areasOriginaisPorId?.[est.id] || []
+      );
+
+      const novosEmails = getNovosItens(
+        est.emails,
+        emailsOriginaisPorIdEstrategica?.[est.id] || []
+      );
+
+      if (novasAreas.length > 0) {
+        const novosUsuarios = await buscarUsuariosPorRole(
+          novasAreas.flatMap((a) => areaRolesMap[a] || [])
+        );
+
+        await Promise.all(
+          novosUsuarios.map((user) =>
+            fetch("https://fokus360-backend.vercel.app/send-task-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: user.email,
+                tituloTarefa: "Nova Diretriz Estratégica",
+                assuntoTarefa:
+                  "Foi criada uma nova diretriz estratégica vinculada à sua área.",
+                prazoTarefa: "Sem prazo",
+              }),
+            })
+          )
+        );
+      }
+
+      if (novosEmails.length > 0) {
+        await Promise.all(
+          novosEmails.map((email) =>
+            fetch("https://fokus360-backend.vercel.app/send-task-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email,
+                tituloTarefa: "Nova Diretriz Estratégica",
+                assuntoTarefa:
+                  "Você foi designado como responsável por uma diretriz Estratégica.",
+                prazoTarefa: "Sem prazo",
+              }),
+            })
+          )
+        );
+      }
+
+      for (const tat of est.taticas || []) {
+        const novasAreasTat = getNovosItens(
+          tat.areasResponsaveis,
+          areasOriginaisTaticasPorId?.[tat.id] || []
+        );
+
+        const novosEmailsTat = getNovosItens(
+          tat.emails,
+          emailsOriginaisPorIdTatica?.[tat.id] || []
+        );
+
+        if (novasAreasTat.length > 0) {
+          const usuariosTaticos = await buscarUsuariosPorRole(
+            novasAreasTat.flatMap((a) => areaRolesMap[a] || [])
+          );
+
+          await Promise.all(
+            usuariosTaticos.map((user) =>
               fetch("https://fokus360-backend.vercel.app/send-task-email", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                   email: user.email,
-                  tituloTarefa: "Nova Diretriz Estratégica",
-                  assuntoTarefa: "Foi criada uma nova diretriz estratégica vinculada à sua área.",
-                  prazoTarefa: "Sem prazo"
+                  tituloTarefa: "Nova Diretriz Tática",
+                  assuntoTarefa:
+                    "Foi criada uma nova diretriz tática vinculada à sua área.",
+                  prazoTarefa: "Sem prazo",
                 }),
               })
-            ));
-          }
-    
-          if (novosEmails.length > 0) {
-            await Promise.all(novosEmails.map((email) =>
+            )
+          );
+        }
+
+        if (novosEmailsTat.length > 0) {
+          await Promise.all(
+            novosEmailsTat.map((email) =>
               fetch("https://fokus360-backend.vercel.app/send-task-email", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                   email,
-                  tituloTarefa: "Nova Diretriz Estratégica",
-                  assuntoTarefa: "Você foi designado como responsável por uma diretriz Estratégica.",
-                  prazoTarefa: "Sem prazo"
+                  tituloTarefa: "Nova Diretriz Tática",
+                  assuntoTarefa:
+                    "Você foi designado como responsável por uma diretriz Tática.",
+                  prazoTarefa: "Sem prazo",
                 }),
               })
-            ));
-          }
-    
-          for (const tat of est.taticas) {
-            // TÁTICAS
-            const novasAreasTat = getNovosItens(tat.areasResponsaveis, areasOriginaisTaticasPorId?.[tat.id] || []);
-            const novosEmailsTat = getNovosItens(tat.emails, emailsOriginaisPorIdTatica?.[tat.id] || []);
-    
-            if (novasAreasTat.length > 0) {
-              const usuariosTaticos = await buscarUsuariosPorRole(novasAreasTat.flatMap((a) => areaRolesMap[a] || []));
-              await Promise.all(usuariosTaticos.map((user) =>
+            )
+          );
+        }
+
+        for (const op of tat.operacionais || []) {
+          const novasAreasOp = getNovosItens(
+            op.areasResponsaveis,
+            areasOriginaisOperacionaisPorId?.[op.id] || []
+          );
+
+          const novosEmailsOp = getNovosItens(
+            op.emails,
+            emailsOriginaisPorIdOperacional?.[op.id] || []
+          );
+
+          if (novasAreasOp.length > 0) {
+            const usuariosOp = await buscarUsuariosPorRole(
+              novasAreasOp.flatMap((a) => areaRolesMap[a] || [])
+            );
+
+            await Promise.all(
+              usuariosOp.map((user) =>
                 fetch("https://fokus360-backend.vercel.app/send-task-email", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
                     email: user.email,
-                    tituloTarefa: "Nova Diretriz Tática",
-                    assuntoTarefa: "Foi criada uma nova diretriz tática vinculada à sua área.",
-                    prazoTarefa: "Sem prazo"
+                    tituloTarefa: "Nova Diretriz Operacional",
+                    assuntoTarefa:
+                      "Foi criada uma nova diretriz operacional vinculada à sua área.",
+                    prazoTarefa: "Sem prazo",
                   }),
                 })
-              ));
-            }
-    
-            if (novosEmailsTat.length > 0) {
-              await Promise.all(novosEmailsTat.map((email) =>
+              )
+            );
+          }
+
+          if (novosEmailsOp.length > 0) {
+            await Promise.all(
+              novosEmailsOp.map((email) =>
                 fetch("https://fokus360-backend.vercel.app/send-task-email", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
                     email,
-                    tituloTarefa: "Nova Diretriz Tática",
-                    assuntoTarefa: "Você foi designado como responsável por uma diretriz Tática.",
-                    prazoTarefa: "Sem prazo"
+                    tituloTarefa: "Nova Diretriz Operacional",
+                    assuntoTarefa:
+                      "Você foi designado como responsável por uma diretriz Operacional.",
+                    prazoTarefa: "Sem prazo",
                   }),
                 })
-              ));
-            }
-    
-            for (const op of tat.operacionais) {
-              // OPERACIONAIS
-              const novasAreasOp = getNovosItens(op.areasResponsaveis, areasOriginaisOperacionaisPorId?.[op.id] || []);
-              const novosEmailsOp = getNovosItens(op.emails, emailsOriginaisPorIdOperacional?.[op.id] || []);
-    
-              if (novasAreasOp.length > 0) {
-                const usuariosOp = await buscarUsuariosPorRole(novasAreasOp.flatMap((a) => areaRolesMap[a] || []));
-                await Promise.all(usuariosOp.map((user) =>
-                  fetch("https://fokus360-backend.vercel.app/send-task-email", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      email: user.email,
-                      tituloTarefa: "Nova Diretriz Operacional",
-                      assuntoTarefa: "Foi criada uma nova diretriz operacional vinculada à sua área.",
-                      prazoTarefa: "Sem prazo"
-                    }),
-                  })
-                ));
-              }
-    
-              if (novosEmailsOp.length > 0) {
-                await Promise.all(novosEmailsOp.map((email) => {
-                  console.log("📩 Enviando e-mail de RESPONSÁVEL OPERACIONAL para:", email);
-                  return fetch("https://fokus360-backend.vercel.app/send-task-email", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      email,
-                      tituloTarefa: "Nova Diretriz Operacional",
-                      assuntoTarefa: "Você foi designado como responsável por uma diretriz Operacional.",
-                      prazoTarefa: "Sem prazo"
-                    }),
-                  });
-                }));
-              }
-            }
+              )
+            );
           }
         }
-    
-        // Envio para quemEmail das tarefas
-        await Promise.all(
-          estrategicasAtualizadas.flatMap((est) =>
-            est.taticas.flatMap((tat) =>
-              tat.operacionais.flatMap((op) =>
-                (op.tarefas || []).flatMap((tarefa) =>
-                  (Array.isArray(tarefa.planoDeAcao?.quemEmail) ? tarefa.planoDeAcao?.quemEmail : []).map((email) => 
-                    fetch("https://fokus360-backend.vercel.app/send-task-email", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        email,
-                        tituloTarefa: tarefa.tituloTarefa || "Nova Tarefa",
-                        assuntoTarefa: "Você foi designado como responsável por uma tarefa operacional.",
-                        prazoTarefa: tarefa.planoDeAcao?.quando || "Sem prazo",
-                      }),
-                    })
-                  )
-                )
+      }
+    }
+
+    await Promise.all(
+      estrategicasAtualizadas.flatMap((est) =>
+        (est.taticas || []).flatMap((tat) =>
+          (tat.operacionais || []).flatMap((op) =>
+            (op.tarefas || []).flatMap((tarefa) =>
+              (
+                Array.isArray(tarefa.planoDeAcao?.quemEmail)
+                  ? tarefa.planoDeAcao.quemEmail
+                  : []
+              ).map((email) =>
+                fetch("https://fokus360-backend.vercel.app/send-task-email", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    email,
+                    tituloTarefa: tarefa.tituloTarefa || "Nova Tarefa",
+                    assuntoTarefa:
+                      "Você foi designado como responsável por uma tarefa operacional.",
+                    prazoTarefa: tarefa.planoDeAcao?.quando || "Sem prazo",
+                  }),
+                })
               )
             )
           )
-        );
-    
-        setEstrategicas(estrategicasAtualizadas);
-        alert("✅ Diretrizes salvas com sucesso e e-mails enviados!");
-      } catch (error) {
-        console.error("❌ Erro ao salvar diretrizes:", error);
-        alert("Erro ao salvar diretrizes. Tente novamente.");
-      }
-    };
-    
+        )
+      )
+    );
+
+    setEstrategicas(estrategicasAtualizadas);
+    alert("✅ Diretrizes salvas com sucesso.");
+  } catch (error) {
+    console.error("❌ Erro ao salvar diretrizes:", error);
+    alert("Erro ao salvar diretrizes. Tente novamente.");
+  }
+};
     
     
     
