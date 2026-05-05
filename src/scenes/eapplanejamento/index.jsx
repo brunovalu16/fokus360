@@ -826,7 +826,12 @@ useEffect(() => {
     .map((tarefa, index) => (
       <Box key={tarefa.id} mb={1}>
         {index === 0 && (
-          <Typography fontWeight={400} sx={{ fontSize: "10px" }}>
+          <Typography
+            fontWeight={400}
+            className="notranslate"
+            translate="no"
+            sx={{ fontSize: "10px" }}
+          >
             Tarefas:
           </Typography>
         )}

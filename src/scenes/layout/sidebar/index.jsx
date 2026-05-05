@@ -260,8 +260,8 @@ const SideBar = () => {
   </MenuItem>
 
   <MenuItem component={<Link to="/capatarefas" />} icon={<AssignmentTurnedInIcon />}>
-    Tarefas
-  </MenuItem>
+  <span className="notranslate" translate="no">Tarefas</span>
+</MenuItem>
 
   <MenuItem component={<Link to="/csc" />} icon={<HeatPumpIcon />}>
     CSC
