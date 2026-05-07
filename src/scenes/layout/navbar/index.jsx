@@ -5,12 +5,26 @@ import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import { ToggledContext } from "../../../App";
 import { authFokus360, dbFokus360 as db } from "../../../data/firebase-config";
-import { Badge, Popover, List, ListItem, ListItemText } from "@mui/material";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { updateDoc } from "firebase/firestore"; // IMPORTAR updateDoc
 import { NotificationContext } from "../../../context/NotificationContext";
-import TaskIcon from '@mui/icons-material/Task';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import {
+  Badge,
+  Popover,
+  List,
+  ListItem,
+  ListItemText,
+  Avatar,
+  Divider,
+  Chip,
+  Tooltip,
+} from "@mui/material";
+
+
+import TaskAltIcon from "@mui/icons-material/TaskAlt";
+import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 
 import { onAuthStateChanged, signOut } from "firebase/auth";
 
@@ -19,7 +33,6 @@ import { doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import fokus360cinza from "../../../assets/images/fokus360cinza.png";
 import { Link } from 'react-router-dom'; // Certifique-se de importar o Link
-import { Avatar } from "@mui/material";
 
 //Importando o contador de data
 import { getDataHojeFormatada } from "../../../utils/formatDate";
@@ -194,6 +207,10 @@ const open = Boolean(anchorEl);
   return (
     <>
 
+
+
+{/* CAIXA DE MENSAGEM */}
+
 <Popover
   open={open}
   anchorEl={anchorEl}
@@ -202,38 +219,206 @@ const open = Boolean(anchorEl);
     vertical: "bottom",
     horizontal: "right",
   }}
->
-<List
-  sx={{
-    width: "300px",
-    maxHeight: "300px",
-    overflowY: "auto",
+  transformOrigin={{
+    vertical: "top",
+    horizontal: "right",
+  }}
+  PaperProps={{
+    sx: {
+      mt: 1.5,
+      width: 390,
+      maxHeight: 460,
+      borderRadius: "18px",
+      overflow: "hidden",
+      boxShadow: "0 18px 45px rgba(15, 23, 42, 0.22)",
+      border: "1px solid rgba(49, 39, 131, 0.10)",
+    },
   }}
 >
-  {notifications.length === 0 ? (
-    <ListItem>
-      <ListItemText primary="Nenhuma notificação" />
-    </ListItem>
-  ) : (
-    notifications.map((noti, index) => (
-      <ListItem
-        key={noti.id}
-        button
-        onClick={() => handleMarkAsRead(noti.id)}
+  <Box
+    sx={{
+      background: "linear-gradient(135deg, #312783 0%, #4f46e5 55%, #00bcd4 130%)",
+      px: 2.3,
+      py: 2,
+      color: "#fff",
+    }}
+  >
+    <Box display="flex" alignItems="center" justifyContent="space-between">
+      <Box display="flex" alignItems="center" gap={1.3}>
+        <Avatar
+          sx={{
+            width: 38,
+            height: 38,
+            bgcolor: "rgba(255,255,255,0.16)",
+            color: "#fff",
+            border: "1px solid rgba(255,255,255,0.25)",
+          }}
+        >
+          <NotificationsActiveIcon fontSize="small" />
+        </Avatar>
+
+        <Box>
+          <Typography sx={{ fontSize: 16, fontWeight: 800, lineHeight: 1 }}>
+            Central de Notificações
+          </Typography>
+
+          <Typography sx={{ fontSize: 12, color: "rgba(255,255,255,0.78)", mt: 0.5 }}>
+            Atualizações recentes do FOKUS 360
+          </Typography>
+        </Box>
+      </Box>
+
+      <Chip
+        label={`${notifications.length} nova${notifications.length === 1 ? "" : "s"}`}
+        size="small"
         sx={{
-          backgroundColor: index % 2 === 0 ? "#ffffff" : "#f5f5f5",
-          "&:hover": {
-            backgroundColor: "#e0e0e0",
-          },
+          bgcolor: "rgba(255,255,255,0.18)",
+          color: "#fff",
+          fontWeight: 700,
+          fontSize: 11,
+          border: "1px solid rgba(255,255,255,0.25)",
+        }}
+      />
+    </Box>
+  </Box>
+
+  <List
+    sx={{
+      p: 0,
+      maxHeight: 360,
+      overflowY: "auto",
+      bgcolor: "#f8fafc",
+      "&::-webkit-scrollbar": {
+        width: "6px",
+      },
+      "&::-webkit-scrollbar-thumb": {
+        backgroundColor: "#cbd5e1",
+        borderRadius: "10px",
+      },
+    }}
+  >
+    {notifications.length === 0 ? (
+      <Box
+        sx={{
+          px: 3,
+          py: 4,
+          textAlign: "center",
+          bgcolor: "#fff",
         }}
       >
-        <TaskIcon sx={{ color: "#5f53e5", marginRight: 1 }} />
-        <ListItemText primary={noti.mensagem} />
-      </ListItem>
-    ))
-  )}
-</List>
+        <Avatar
+          sx={{
+            width: 52,
+            height: 52,
+            mx: "auto",
+            mb: 1.5,
+            bgcolor: "#eef2ff",
+            color: "#312783",
+          }}
+        >
+          <CheckCircleOutlineIcon />
+        </Avatar>
 
+        <Typography sx={{ fontWeight: 800, color: "#1e293b", fontSize: 15 }}>
+          Nenhuma notificação
+        </Typography>
+
+        <Typography sx={{ color: "#64748b", fontSize: 13, mt: 0.5 }}>
+          Você está em dia com suas atualizações.
+        </Typography>
+      </Box>
+    ) : (
+      notifications.map((noti, index) => (
+        <React.Fragment key={noti.id}>
+          <ListItem
+            onClick={() => handleMarkAsRead(noti.id)}
+            sx={{
+              px: 2,
+              py: 1.6,
+              cursor: "pointer",
+              bgcolor: "#fff",
+              transition: "all 0.2s ease",
+              alignItems: "flex-start",
+              "&:hover": {
+                bgcolor: "#f1f5ff",
+                transform: "translateX(2px)",
+              },
+            }}
+          >
+            <Avatar
+              sx={{
+                width: 42,
+                height: 42,
+                mr: 1.5,
+                bgcolor: "#eef2ff",
+                color: "#312783",
+                boxShadow: "0 6px 14px rgba(49, 39, 131, 0.12)",
+              }}
+            >
+              <TaskAltIcon fontSize="small" />
+            </Avatar>
+
+            <ListItemText
+              primary={
+                <Box display="flex" alignItems="center" justifyContent="space-between" gap={1}>
+                  <Typography
+                    sx={{
+                      fontSize: 13.5,
+                      fontWeight: 800,
+                      color: "#1e293b",
+                    }}
+                  >
+                    Nova atualização
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                      color: "#94a3b8",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Agora
+                  </Typography>
+                </Box>
+              }
+              secondary={
+                <Typography
+                  component="span"
+                  sx={{
+                    display: "block",
+                    mt: 0.4,
+                    fontSize: 12.5,
+                    lineHeight: 1.45,
+                    color: "#475569",
+                  }}
+                >
+                  {noti.mensagem}
+                </Typography>
+              }
+            />
+
+            <Tooltip title="Marcar como lida">
+              <CheckCircleOutlineIcon
+                sx={{
+                  ml: 1,
+                  mt: 0.4,
+                  fontSize: 18,
+                  color: "#94a3b8",
+                  "&:hover": {
+                    color: "#312783",
+                  },
+                }}
+              />
+            </Tooltip>
+          </ListItem>
+
+          {index < notifications.length - 1 && <Divider sx={{ borderColor: "#eef2f7" }} />}
+        </React.Fragment>
+      ))
+    )}
+  </List>
 </Popover>
 
 
