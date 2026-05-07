@@ -5,7 +5,6 @@ import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import { ToggledContext } from "../../../App";
 import { authFokus360, dbFokus360 as db } from "../../../data/firebase-config";
-import { collection, query, where, getDocs } from "firebase/firestore";
 import { updateDoc } from "firebase/firestore"; // IMPORTAR updateDoc
 import { NotificationContext } from "../../../context/NotificationContext";
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
@@ -28,7 +27,7 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 
 import { onAuthStateChanged, signOut } from "firebase/auth";
 
-
+import { collection, query, where, getDocs  } from "firebase/firestore";
 import { doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import fokus360cinza from "../../../assets/images/fokus360cinza.png";
@@ -93,7 +92,9 @@ useEffect(() => {
       where("userId", "==", user.uid),
       where("lido", "==", false)
     );
+
     const querySnapshot = await getDocs(q);
+
     setNotifications(
       querySnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -103,21 +104,24 @@ useEffect(() => {
   };
 
   fetchNotifications();
-}, [user]);
+}, [user, setNotifications]);
 
 
 
-
+// função que carrega as notificações na caixa de mensagens
 const handleNotificationsClick = async (event) => {
   setAnchorEl(event.currentTarget);
-  
-  // Recarregar as notificações toda vez que abrir
+
+  if (!user?.uid) return;
+
   const q = query(
     collection(db, "notificacoes"),
     where("userId", "==", user.uid),
     where("lido", "==", false)
   );
+
   const querySnapshot = await getDocs(q);
+
   setNotifications(
     querySnapshot.docs.map((doc) => ({
       id: doc.id,
@@ -125,7 +129,6 @@ const handleNotificationsClick = async (event) => {
     }))
   );
 };
-
 
 
 // Fechar popup
@@ -223,17 +226,19 @@ const open = Boolean(anchorEl);
     vertical: "top",
     horizontal: "right",
   }}
-  PaperProps={{
+  slotProps={{
+  paper: {
     sx: {
       mt: 1.5,
       width: 390,
       maxHeight: 460,
       borderRadius: "18px",
-      overflow: "hidden",
+      overflow: "visible",
       boxShadow: "0 18px 45px rgba(15, 23, 42, 0.22)",
       border: "1px solid rgba(49, 39, 131, 0.10)",
     },
-  }}
+  },
+}}
 >
   <Box
     sx={{
@@ -331,6 +336,7 @@ const open = Boolean(anchorEl);
       notifications.map((noti, index) => (
         <React.Fragment key={noti.id}>
           <ListItem
+          component="button"
             onClick={() => handleMarkAsRead(noti.id)}
             sx={{
               px: 2,
