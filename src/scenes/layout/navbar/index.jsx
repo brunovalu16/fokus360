@@ -226,19 +226,14 @@ const open = Boolean(anchorEl);
     vertical: "top",
     horizontal: "right",
   }}
-  slotProps={{
-  paper: {
+  PaperProps={{
     sx: {
       mt: 1.5,
       width: 390,
       maxHeight: 460,
-      borderRadius: "18px",
-      overflow: "visible",
-      boxShadow: "0 18px 45px rgba(15, 23, 42, 0.22)",
-      border: "1px solid rgba(49, 39, 131, 0.10)",
+      borderRadius: "5px",
     },
-  },
-}}
+  }}
 >
   <Box
     sx={{
@@ -252,7 +247,7 @@ const open = Boolean(anchorEl);
       <Box display="flex" alignItems="center" gap={1.3}>
         <Avatar
           sx={{
-            width: 38,
+             width: 38,
             height: 38,
             bgcolor: "rgba(255,255,255,0.16)",
             color: "#fff",
@@ -281,7 +276,6 @@ const open = Boolean(anchorEl);
           color: "#fff",
           fontWeight: 700,
           fontSize: 11,
-          border: "1px solid rgba(255,255,255,0.25)",
         }}
       />
     </Box>
@@ -345,8 +339,9 @@ const open = Boolean(anchorEl);
               bgcolor: "#fff",
               transition: "all 0.2s ease",
               alignItems: "flex-start",
+              border: "none",
               "&:hover": {
-                bgcolor: "#f1f5ff",
+                bgcolor: "#f1f1f1",
                 transform: "translateX(2px)",
               },
             }}
@@ -358,7 +353,6 @@ const open = Boolean(anchorEl);
                 mr: 1.5,
                 bgcolor: "#eef2ff",
                 color: "#312783",
-                boxShadow: "0 6px 14px rgba(49, 39, 131, 0.12)",
               }}
             >
               <TaskAltIcon fontSize="small" />
@@ -371,7 +365,7 @@ const open = Boolean(anchorEl);
                     sx={{
                       fontSize: 13.5,
                       fontWeight: 800,
-                      color: "#1e293b",
+                      color: "#2d2c7e",
                     }}
                   >
                     Nova atualização
