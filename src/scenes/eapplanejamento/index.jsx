@@ -344,16 +344,37 @@ useEffect(() => {
                 <Button
                   variant="contained"
                   onClick={() => {
+                    // limpa projeto selecionado
                     setSelectedFilter(null);
-                    applyFilter(null);
+
+                    // limpa colunas
+                    setColumns([]);
+
+                    // limpa cards
+                    setAllCards([]);
+
+                    // fecha expansões
+                    setExpandedEstrategicas({});
+                    setExpandedTaticas({});
+                    setExpandedOperacionais({});
+
+                    // limpa áreas selecionadas
+                    setAreaSelecionada({});
+
+                    // limpa item ativo
+                    setAtivo({
+                      estrategicaId: null,
+                      taticaId: null,
+                      operacionalId: null,
+                    });
                   }}
                   sx={{
                     height: "40px",
-                    minWidth: "130px", // 🔥 Define um tamanho mínimo para não sobrepor a caixa de seleção
+                    minWidth: "130px",
                     backgroundColor: "#f44336",
                     color: "white",
-                    whiteSpace: "nowrap", // 🔥 Impede quebra de linha no botão
-                    flexShrink: 0, // 🔥 Impede que o botão diminua ao reduzir a tela
+                    whiteSpace: "nowrap",
+                    flexShrink: 0,
                     "&:hover": {
                       backgroundColor: "#d32f2f",
                       boxShadow: "none",
