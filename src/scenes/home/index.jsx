@@ -43,7 +43,7 @@ const Home = () => {
       <Box
         sx={{
           marginLeft: "40px",
-          marginTop: "10px",
+          marginTop: "25px",
           width: "calc(100% - 80px)", // Para ajustar à tela considerando o margin de 40px
           minHeight: "50vh",
           padding: "15px",
@@ -62,6 +62,47 @@ const Home = () => {
             <Typography
                 color="#858585">FOKUS 360 | RELATÓRIOS POWER BI
             </Typography>
+
+            {/* inserir relatórios - somente ADMIN role 08 */}
+
+            {userRole === "08" && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  left: "87%", // posição fixa horizontal
+                  display: "flex",
+                  alignItems: "center",
+                  zIndex: 10,
+                  backgroundColor: "#2d2c7e",
+                  padding: "5px",
+                  paddingRight: "15px",
+                  borderRadius: 2
+                }}
+              >
+                <Link
+                  to="#"
+                  style={{
+                    backgroundColor: "transparent",
+                    textDecoration: "none",
+                    fontSize: "12px",
+                    color: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <PlayCircleFilledIcon
+                    sx={{
+                      fontSize: 15,
+                      color: "#fff",
+                      marginLeft: 1
+                    }}
+                  />
+
+                  Inserir relatórios
+                </Link>
+              </Box>
+            )}
         </Box>
 
         
@@ -119,42 +160,7 @@ const Home = () => {
 
 
 
-          {/* inserir relatórios - somente ADMIN role 08 */}
-
-            {userRole === "08" && (
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: "82%",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <Link
-                  to="#"
-                  style={{
-                    backgroundColor: "transparent",
-                    textDecoration: "none",
-                    fontWeight: "bold",
-                    fontSize: "20px",
-                    color: "#130343",
-                    marginLeft: "150px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                  }}
-                >
-                  <PlayCircleFilledIcon
-                    sx={{
-                      fontSize: 28,
-                      color: "#130343",
-                    }}
-                  />
-
-                  Inserir relatórios
-                </Link>
-              </Box>
-            )}
+          
 
           <Box
             sx={{
