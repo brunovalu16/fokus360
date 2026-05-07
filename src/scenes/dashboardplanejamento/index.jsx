@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Typography, Box } from "@mui/material";
 import "dayjs/locale/pt-br";
 import Header from "../../components/Header";
-import { getDoc, doc } from "firebase/firestore";
+import { getDoc, doc, getDocs, collection } from "firebase/firestore";
 import { dbFokus360 } from "../../data/firebase-config";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import { useParams } from "react-router-dom";
@@ -22,33 +22,7 @@ function DashboardPlanejamento() {
 
 
 
-  //busca os dados do projeto
-  useEffect(() => {
-    const fetchProjeto = async () => {
-      if (!id) return; // ✅ Evita erro se o ID não estiver na URL
-      try {
-        const docRef = doc(dbFokus360, "projetos", id); // O ID que vem pela rota
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setProjetoData({ id: docSnap.id, ...data });
-  
-          // 🔥 Atualizado: se tiver colaboradores ou usuários no projeto, define o estado de users
-          if (data?.colaboradores) {
-            setUsers(data.colaboradores); // 👈 Se os usuários estão dentro de `colaboradores`
-          } else {
-            setUsers([]); // 👈 Se não tiver nada, evita erro
-          }
-        } else {
-          console.log("Projeto não encontrado");
-        }
-      } catch (error) {
-        console.error("❌ Erro ao buscar projeto:", error);
-      }
-    };
-  
-    fetchProjeto();
-  }, [id]);
+
 
 
 //busca os usuarios

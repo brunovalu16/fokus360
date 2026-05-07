@@ -126,9 +126,70 @@ const handleUpdate = async () => {
     };
 
     const projetoRef = doc(dbFokus360, "projetos", projetoData.id);
-    await setDoc(projetoRef, projetoAtualizado, { merge: true });
 
-    alert("Projeto atualizado com sucesso!");
+await setDoc(projetoRef, projetoAtualizado, { merge: true });
+
+
+
+// =========================
+// BUSCA USUÁRIOS SELECIONADOS
+// =========================
+const colaboradoresSelecionados = users.filter((user) =>
+  formValues.colaboradores.includes(user.id)
+);
+
+// =========================
+// EMAILS
+// =========================
+const emails = colaboradoresSelecionados
+  .map((user) => user.email)
+  .filter(Boolean);
+
+// =========================
+// IDS USUÁRIOS
+// =========================
+const userIds = colaboradoresSelecionados.map((user) => user.id);
+
+
+
+// =========================
+// ENVIA EMAILS
+// =========================
+if (emails.length > 0) {
+  await fetch("https://fokus360-backend.vercel.app/send-project-emails", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      emails,
+      tituloProjeto: formValues.nome,
+      descricaoProjeto: formValues.descricao,
+    }),
+  });
+}
+
+
+
+// =========================
+// ENVIA NOTIFICAÇÕES
+// =========================
+if (userIds.length > 0) {
+  await fetch("https://fokus360-backend.vercel.app/send-project-notifications", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      userIds,
+      mensagem: `Você foi atualizado no projeto: ${formValues.nome}`,
+    }),
+  });
+}
+
+alert("Projeto atualizado com sucesso!");
+
+
   } catch (error) {
     console.error("Erro ao atualizar o projeto:", error);
     alert("Erro ao atualizar o projeto.");
@@ -184,6 +245,7 @@ useEffect(() => {
         id: doc.id,
         username: doc.data().username,
         photoURL: doc.data().photoURL,
+        email: doc.data().email,
       }));  
       setUsers(listaUsuarios);
     } catch (error) {
