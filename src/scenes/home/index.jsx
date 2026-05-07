@@ -68,15 +68,11 @@ const Home = () => {
             {userRole === "08" && (
               <Box
                 sx={{
-                  position: "absolute",
-                  left: "87%", // posição fixa horizontal
-                  display: "flex",
-                  alignItems: "center",
-                  zIndex: 10,
                   backgroundColor: "#2d2c7e",
                   padding: "5px",
                   paddingRight: "15px",
-                  borderRadius: 2
+                  borderRadius: 2,
+                  marginLeft: "auto"
                 }}
               >
                 <Link
