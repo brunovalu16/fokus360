@@ -26,6 +26,7 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
   import { getDataHojeFormatada } from "../utils/formatDate";
  import { normalizarData } from "../utils/normalizarData";
  import { calcularStatusVisualPorStatus } from "../utils/calcularStatusVisualPorStatus";
+ import { Avatar } from "@mui/material";
 
 const BaseDiretriz3 = ({ projectId, estrategicas: propEstrategicas, propOperacional, onUpdate, LimpaEstado }) => {
 
@@ -82,12 +83,19 @@ const [emailsPorIdOperacional, setEmailsPorIdOperacional] = useState({});
   const [emailsTaticasInput, setEmailsTaticasInput] = useState({});
 
   const [emailsOperacionaisInput, setEmailsOperacionaisInput] = useState({});
+
+  const [subareasPorIdEstrategica, setSubareasPorIdEstrategica] = useState({});
+
+  const [subareasPorIdOperacional, setSubareasPorIdOperacional] = useState({});
   
 
   const [novaEstrategica, setNovaEstrategica] = useState("");
   const [descEstrategica, setDescEstrategica] = useState("");
   const [areas, setAreas] = useState([]);
   const [unidades, setUnidades] = useState([]);
+
+  const [subareas, setSubareas] = useState([]);
+  const [subareasPorIdTatica, setSubareasPorIdTatica] = useState({});
 
   const [unidadeSelecionadas, setUnidadeSelecionadas] = useState([]); 
   const [users, setUsers] = useState([]);
@@ -154,34 +162,109 @@ const [emailsPorIdOperacional, setEmailsPorIdOperacional] = useState({});
 
 
 
-
-
   useEffect(() => {
     if (onUpdate) {
       onUpdate(estrategicas); // ✅ Envia atualizações para CadastroProjetos
     }
   }, [estrategicas]);
-  
-  
-     // 🔹 Carregar usuários do Firebase
-     useEffect(() => {
-      const fetchUsers = async () => {
-        try {
-          const querySnapshot = await getDocs(collection(db, "user")); // ✅ Usa `db` diretamente
-          const usersList = querySnapshot.docs.map((doc) => ({
-            id: doc.id,
-            username: doc.data().username,
-            email: doc.data().email,
-          }));
-          setUsers(usersList);
-        } catch (error) {
-          console.error("Erro ao buscar usuários:", error);
-        }
-      };
+
+{/*================================================================================================ */}
+
+  const roleLabelMap = {
+  "01": "Diretoria",
+  "02": "Gerente",
+  "03": "Supervisor",
+  "04": "Vendedor",
+  "06": "Indústria",
+  "07": "Projetos",
+  "08": "Admin",
+
+  "09": "Coordenador Trade",
+  "10": "Gerência Trade",
+  "11": "Analista Trade",
+
+  "12": "Gerência Contabilidade",
+  "13": "Coordenador Contabilidade",
+  "14": "Analista Contabilidade",
+
+  "15": "Gerência Controladoria",
+  "16": "Coordenador Controladoria",
+  "17": "Analista Controladoria",
+  "18": "Analista 2 Controladoria",
+
+  "19": "Gerência Financeiro",
+  "20": "Coordenador Financeiro",
+  "21": "Analista Financeiro",
+
+  "22": "Gerência Jurídico",
+  "23": "Coordenador Jurídico",
+  "24": "Analista Jurídico",
+
+  "25": "Gerência Logística",
+  "26": "Coordenador Logística",
+  "27": "Analista Logística",
+
+  "28": "Gerência Marketing",
+  "29": "Coordenador Marketing",
+  "30": "Analista Marketing",
+
+  "31": "Gerência Recursos Humanos",
+  "32": "Coordenador Recursos Humanos",
+  "33": "Analista Recursos Humanos",
+
+  "34": "Gerência Central de Monitoramento",
+  "35": "Coordenador Central de Monitoramento",
+  "36": "Analista Central de Monitoramento",
+
+  "37": "Ajinomoto",
+  "38": "AB Mauri",
+  "39": "Adoralle",
+  "40": "Bettanin",
+  "41": "Mars",
+  "42": "Mars Pet",
+  "43": "M. Dias",
+  "44": "SCJohnson",
+  "45": "UAU Ingleza",
+  "46": "Danone",
+  "47": "Ypê",
+  "48": "Adoralle",
+  "49": "Fini",
+  "50": "Heinz",
+  "51": "Red Bull",
+};
+
+useEffect(() => {
+  const fetchUsers = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "user"));
+
+      const usersList = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+
+        return {
+          id: doc.id,
+          username: data.username || "",
+          email: data.email || "",
+          unidade: data.unidade || "",
+          role: data.role || "",
+          roleNome:
+            roleLabelMap[data.role] || data.role || "Sem perfil",
+          photoURL: data.photoURL || "",
+        };
+      });
+
+      setUsers(usersList);
+    } catch (error) {
+      console.error("Erro ao buscar usuários:", error);
+    }
+  };
+
+  fetchUsers();
+}, []);
     
-      fetchUsers();
-    }, []);
-    
+
+{/*================================================================================================ */}
+
 
 
 useEffect(() => {
@@ -214,25 +297,45 @@ useEffect(() => {
 
 
 //Buscar dados do Firestore
+
 useEffect(() => {
   const fetchData = async () => {
     try {
+      // Áreas
       const queryAreas = await getDocs(collection(db, "areas"));
+
       const areasList = queryAreas.docs.map((doc) => ({
         id: doc.id,
         nome: doc.data().nome,
+        subareas: doc.data().subareas || [],
       }));
+
       setAreas(areasList);
 
+      // Subáreas
+      const todasSubareas = areasList.flatMap((area) =>
+        (area.subareas || []).map((subarea, index) => ({
+          id: `${area.id}-${index}`,
+          nome: subarea,
+          areaId: area.id,
+          areaNome: area.nome,
+        }))
+      );
+
+      setSubareas(todasSubareas);
+
+      // Unidades
       const queryUnidades = await getDocs(collection(db, "unidade"));
+
       const unidadesList = queryUnidades.docs.map((doc) => ({
         id: doc.id,
         nome: doc.data().nome,
       }));
+
       setUnidades(unidadesList);
 
     } catch (error) {
-      console.error("Erro ao buscar áreas e unidades:", error);
+      console.error("Erro ao buscar áreas, subáreas e unidades:", error);
     }
   };
 
@@ -369,7 +472,7 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
   // -------------------------------------
   //|| !descEstrategica.trim()
 
-  const handleAddEstrategica = () => {
+const handleAddEstrategica = () => {
   if (!novaEstrategica.trim()) {
     alert("Preencha o nome da Diretriz Estratégica!");
     return;
@@ -380,12 +483,12 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
     return;
   }
 
+  const areaSelecionadaObj = areas.find((area) => area.id === selectedArea);
+
   const emails = emailsDigitados
     .split(",")
     .map((email) => email.trim())
     .filter((email) => email !== "");
-
-  const areaSelecionadaObj = areas.find((a) => a.id === selectedArea);
 
   const item = {
     id: Date.now().toString(),
@@ -395,15 +498,19 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
     taticas: [],
     status: "",
     finalizacao: "",
-    areaId: selectedArea, // ✅ adicionado
-    areaNome: areaSelecionadaObj?.nome || "", // já está correto
+    areaId: selectedArea,
+    areaNome: areaSelecionadaObj?.nome || "",
+    areasResponsaveis: [selectedArea],
   };
 
   const atualizado = [...estrategicas, item];
+
   setEstrategicas(atualizado);
+  onUpdate && onUpdate(atualizado);
+
   setNovaEstrategica("");
   setDescEstrategica("");
-  setSelectedArea(""); // limpa a seleção após adicionar
+  setSelectedArea("");
 };
   
   
@@ -441,14 +548,15 @@ const handleAddTarefa = (idEstrategica, idTatica, idOperacional, novaTarefa) => 
     .filter((email) => email !== "");
 
   const novaTatica = {
-    id: Date.now(),
-    titulo,
-    descricao,
-    operacionais: [],
-    emails,
-    areaId,       // <- Anexa a referência da área
-    areaNome,     // <- Nome legível, se quiser exibir nas "pastas"
-  };
+  id: Date.now(),
+  titulo,
+  descricao,
+  operacionais: [],
+  emails,
+  areaId,
+  areaNome,
+  areasResponsaveis: [areaId],
+};
 
   const atualizado = estrategicas.map((est) => {
     if (est.id !== idEstrategica) return est;
@@ -713,7 +821,14 @@ const areaRolesMap = {
       status: tatica.status || "",
       statusVisual: tatica.statusVisual || "",
       time: tatica.time || "",
-      areasResponsaveis: areasPorIdTatica[tatica.id] || [],
+      areasResponsaveis:
+      tatica.areasResponsaveis?.length
+        ? tatica.areasResponsaveis
+        : tatica.areaId
+        ? [tatica.areaId]
+        : [],
+    areaId: tatica.areaId || "",
+    areaNome: tatica.areaNome || "",
       unidades: unidadesPorIdTatica[tatica.id] || [],
       emails: Array.isArray(emailsPorIdTatica[tatica.id])
         ? emailsPorIdTatica[tatica.id].filter((e) => e.trim() !== "")
@@ -726,17 +841,25 @@ const areaRolesMap = {
   });
 
   return {
-    ...estrategica,
-    areasResponsaveis: areasPorIdEstrategica[estrategica.id] || [],
-    unidades: unidadesPorIdEstrategica[estrategica.id] || [],
-    emails: Array.isArray(emailsPorIdEstrategica[estrategica.id])
-      ? emailsPorIdEstrategica[estrategica.id].filter((e) => e.trim() !== "")
-      : String(emailsPorIdEstrategica[estrategica.id] || "")
-          .split(",")
-          .map((e) => e.trim())
-          .filter((e) => e !== ""),
-    taticas: taticasAtualizadas,
-  };
+  ...estrategica,
+  areasResponsaveis:
+    estrategica.areasResponsaveis?.length
+      ? estrategica.areasResponsaveis
+      : estrategica.areaId
+      ? [estrategica.areaId]
+      : [],
+  areaId: estrategica.areaId || "",
+  areaNome: estrategica.areaNome || "",
+  subareas: subareasPorIdEstrategica[estrategica.id] || [],
+  unidades: unidadesPorIdEstrategica[estrategica.id] || [],
+  emails: Array.isArray(emailsPorIdEstrategica[estrategica.id])
+    ? emailsPorIdEstrategica[estrategica.id].filter((e) => e.trim() !== "")
+    : String(emailsPorIdEstrategica[estrategica.id] || "")
+        .split(",")
+        .map((e) => e.trim())
+        .filter((e) => e !== ""),
+  taticas: taticasAtualizadas,
+};
 });
 
   
@@ -1272,38 +1395,139 @@ const areaRolesMap = {
 
           <Box sx={{ display: "flex", width: "100%", gap: 2, flexWrap: "wrap", mt: 2 }}>
   {/* Áreas */}
-  <Box sx={{ flex: 1, minWidth: "300px" }}>
-    <Select
-      multiple
-      value={areasPorIdEstrategica[estrategica.id] || []}
-      onChange={(event) =>
-        setAreasPorIdEstrategica((prev) => ({
-          ...prev,
-          [estrategica.id]: event.target.value,
-        }))
-      }
-      displayEmpty
-      fullWidth
-      sx={{ backgroundColor: "#fff" }}
-      renderValue={(selected) =>
-        selected.length === 0
-          ? "Selecione as áreas responsáveis"
-          : selected
-              .map(
-                (id) =>
-                  areas.find((area) => area.id === id)?.nome || "Desconhecida"
-              )
-              .join(", ")
-      }
-    >
-      {areas.map((area) => (
-        <MenuItem key={area.id} value={area.id}>
-          <Checkbox checked={(areasPorIdEstrategica[estrategica.id] || []).includes(area.id)} />
-          <ListItemText primary={area.nome} />
-        </MenuItem>
-      ))}
-    </Select>
-  </Box>
+  <Box
+  sx={{
+    width: "100%",
+    minHeight: "56px",
+    display: "flex",
+    alignItems: "center",
+    px: 2,
+    borderRadius: "4px",
+    backgroundColor: "#fff",
+    border: "1px solid rgba(0, 0, 0, 0.23)",
+  }}
+>
+  <Typography sx={{ color: estrategica.areaNome ? "#312783" : "#999", fontWeight: 600 }}>
+    {estrategica.areaNome || "Área responsável não definida"}
+  </Typography>
+</Box>
+
+
+{/* subarea estrategica */}
+{/* subarea estratégica */}
+<Box sx={{ flex: 1, minWidth: "300px" }}>
+  <Select
+    multiple
+    displayEmpty
+    value={subareasPorIdEstrategica[estrategica.id] || []}
+    onChange={(event) =>
+      setSubareasPorIdEstrategica((prev) => ({
+        ...prev,
+        [estrategica.id]: event.target.value,
+      }))
+    }
+    renderValue={(selected) =>
+      selected.length === 0
+        ? "Selecione as subáreas"
+        : selected
+            .map(
+              (id) =>
+                subareas.find((sub) => sub.id === id)?.nome || "Desconhecida"
+            )
+            .join(", ")
+    }
+    MenuProps={{
+      PaperProps: {
+        sx: {
+          maxHeight: 260,
+          overflowY: "auto",
+          borderRadius: 2,
+          mt: 0.5,
+        },
+      },
+    }}
+    fullWidth
+    sx={{
+      backgroundColor: "#fff",
+      "& .MuiOutlinedInput-notchedOutline": { borderColor: "#d6d6d6" },
+      "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#d6d6d6" },
+      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#d6d6d6",
+        borderWidth: "1px",
+      },
+      "& .MuiSelect-select": {
+        py: 1,
+        minHeight: "36px !important",
+        display: "flex",
+        alignItems: "center",
+      },
+    }}
+  >
+    {subareas.map((sub) => (
+      <MenuItem
+        key={sub.id}
+        value={sub.id}
+        sx={{
+          py: 1,
+          px: 1.5,
+          borderBottom: "1px solid #f1f1f1",
+          gap: 1,
+          minHeight: "58px",
+          "&:hover": { backgroundColor: "#f8f9fb" },
+        }}
+      >
+        <Checkbox
+          checked={(subareasPorIdEstrategica[estrategica.id] || []).includes(
+            sub.id
+          )}
+          sx={{
+            color: "#312783",
+            p: 0.5,
+            "&.Mui-checked": { color: "#312783" },
+          }}
+        />
+
+        <Box
+          sx={{
+            width: 34,
+            height: 34,
+            borderRadius: "50%",
+            backgroundColor: "#eef2ff",
+            color: "#312783",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: "bold",
+            fontSize: "12px",
+            border: "1px solid #dfe3ff",
+            flexShrink: 0,
+          }}
+        >
+          {sub.nome?.charAt(0)}
+        </Box>
+
+        <Box sx={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          <Typography
+            sx={{
+              fontWeight: 700,
+              color: "#1f1b5c",
+              fontSize: "12px",
+              lineHeight: 1.1,
+            }}
+          >
+            {sub.nome}
+          </Typography>
+
+          <Typography sx={{ fontSize: "10px", color: "#6b7280", mt: 0.3 }}>
+            {sub.areaNome}
+          </Typography>
+        </Box>
+      </MenuItem>
+    ))}
+  </Select>
+</Box>
+
+
 
   {/* Unidades */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
@@ -1343,47 +1567,187 @@ const areaRolesMap = {
 
   {/* responsáveis pela diretriz estrategica */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
-  <Select
-    multiple
-    displayEmpty
-    value={emailsPorIdEstrategica[estrategica.id] || []}
-    onChange={(event) => {
-      const selectedEmails = event.target.value;
+<Select
+  multiple
+  displayEmpty
+  value={emailsPorIdEstrategica[estrategica.id] || []}
+  onChange={(event) => {
+    const selectedEmails = event.target.value;
 
-      setEmailsPorIdEstrategica((prev) => ({
-        ...prev,
-        [estrategica.id]: selectedEmails,
-      }));
+    setEmailsPorIdEstrategica((prev) => ({
+      ...prev,
+      [estrategica.id]: selectedEmails,
+    }));
 
-      // Atualiza dentro da estrutura das estratégias também
-      setEstrategicas((prev) =>
-        prev.map((est) =>
-          est.id === estrategica.id
-            ? { ...est, emails: selectedEmails }
-            : est
-        )
-      );
-      
-    }}
-    renderValue={(selected) =>
-      selected.length === 0
-        ? "Selecione os responsáveis pela diretriz"
-        : selected.join(", ")
+    setEstrategicas((prev) =>
+      prev.map((est) =>
+        est.id === estrategica.id ? { ...est, emails: selectedEmails } : est
+      )
+    );
+  }}
+  renderValue={(selected) => {
+    if (selected.length === 0) {
+      return "Selecione os responsáveis pela diretriz";
     }
-    fullWidth
-    sx={{ backgroundColor: "#fff" }}
-  >
-    {users?.map((user) => (
-      <MenuItem key={user.id} value={user.email}>
-        <Checkbox
-          checked={
-            (emailsPorIdEstrategica[estrategica.id] || []).includes(user.email)
-          }
-        />
-        <ListItemText primary={`${user.username} (${user.email})`} />
-      </MenuItem>
-    ))}
-  </Select>
+
+    return (
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.7, overflowX: "auto" }}>
+        {selected.map((email) => {
+          const usuario = users.find((u) => u.email === email);
+          if (!usuario) return null;
+
+          return (
+            <Box
+              key={email}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                backgroundColor: "#f8f9fb",
+                border: "1px solid #d6d6d6",
+                borderRadius: "20px",
+                px: 0.8,
+                py: 0.3,
+                minWidth: "fit-content",
+              }}
+            >
+              <Avatar
+                src={usuario.photoURL || ""}
+                alt={usuario.username}
+                sx={{
+                  width: 22,
+                  height: 22,
+                  fontSize: "10px",
+                  backgroundColor: "#312783",
+                  fontWeight: "bold",
+                }}
+              >
+                {usuario.username?.charAt(0)}
+              </Avatar>
+
+              <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#1f1b5c" }}>
+                {usuario.username}
+              </Typography>
+            </Box>
+          );
+        })}  
+      </Box>
+    );
+  }}
+  MenuProps={{
+    PaperProps: {
+      sx: {
+        maxHeight: 450,
+        overflowY: "auto",
+        borderRadius: 3,
+        mt: 1,
+      },
+    },
+  }}
+  fullWidth
+  sx={{
+    backgroundColor: "#fff",
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#d6d6d6",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#d6d6d6",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#d6d6d6",
+      borderWidth: "1px",
+    },
+    "& .MuiSelect-select": {
+      py: 1,
+      minHeight: "36px !important",
+      display: "flex",
+      alignItems: "center",
+    },
+  }}
+>
+  {users?.map((user) => (
+    <MenuItem
+      key={user.id}
+      value={user.email}
+      sx={{
+        py: 1.5,
+        px: 2,
+        borderBottom: "1px solid #eef0f6",
+        alignItems: "flex-start",
+        gap: 1.5,
+        "&:hover": {
+          backgroundColor: "transparent",
+        },
+      }}
+    >
+      <Checkbox
+        checked={(emailsPorIdEstrategica[estrategica.id] || []).includes(user.email)}
+        sx={{
+          mt: 0.5,
+          color: "#312783",
+          "&.Mui-checked": {
+            color: "#312783",
+          },
+        }}
+      />
+
+      <Avatar
+        src={user.photoURL || ""}
+        alt={user.username}
+        sx={{
+          width: 48,
+          height: 48,
+          mt: 0.3,
+          border: "2px solid #eef2ff",
+          fontWeight: "bold",
+          backgroundColor: "#312783",
+        }}
+      >
+        {user.username?.charAt(0)}
+      </Avatar>
+
+      <Box sx={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
+        <Typography sx={{ fontWeight: 700, color: "#1f1b5c", fontSize: "14px" }}>
+          {user.username}
+        </Typography>
+
+        <Typography sx={{ fontSize: "12px", color: "#6b7280", mt: 0.3 }}>
+          {user.email}
+        </Typography>
+
+        <Box sx={{ mt: 1, display: "flex", gap: 1, flexWrap: "wrap" }}>
+          <Box
+            sx={{
+              px: 1.2,
+              py: 0.4,
+              borderRadius: "20px",
+              backgroundColor: "#eef2ff",
+              color: "#312783",
+              fontSize: "11px",
+              fontWeight: 700,
+            }}
+          >
+            {user.unidade || "Sem unidade"}
+          </Box>
+
+          <Box
+            sx={{
+              px: 1.2,
+              py: 0.4,
+              borderRadius: "20px",
+              backgroundColor: "#e0f2fe",
+              color: "#0369a1",
+              fontSize: "11px",
+              fontWeight: 700,
+            }}
+          >
+            {user.roleNome || "Sem perfil"}
+          </Box>
+        </Box>
+      </Box>
+    </MenuItem>
+  ))}
+</Select>
 </Box>
 
 </Box>
@@ -1668,37 +2032,168 @@ const areaRolesMap = {
                   <Box sx={{ display: "flex", width: "100%", gap: 2, flexWrap: "wrap", marginTop: "20px"}}>
   {/* Áreas */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
-  <Select
-  multiple
-  displayEmpty
-  value={areasPorIdTatica[tatica.id] || []}
-  onChange={(event) =>
-    setAreasPorIdTatica((prev) => ({
-      ...prev,
-      [tatica.id]: event.target.value,
-    }))
-  }
-  renderValue={(selected) =>
-    selected.length === 0
-      ? "Selecione as áreas responsáveis"
-      : selected
-          .map((id) => areas.find((a) => a.id === id)?.nome || "Desconhecida")
-          .join(", ")
-  }
-  fullWidth
-  sx={{ backgroundColor: "#fff" }}
+  <Box
+  sx={{
+    width: "100%",
+    minHeight: "56px",
+    display: "flex",
+    alignItems: "center",
+    px: 2,
+    borderRadius: "4px",
+    backgroundColor: "#fff",
+    border: "1px solid rgba(0, 0, 0, 0.23)",
+  }}
 >
-  {areas.map((area) => (
-    <MenuItem key={area.id} value={area.id}>
-      <Checkbox checked={(areasPorIdTatica[tatica.id] || []).includes(area.id)} />
-      <ListItemText primary={area.nome} />
-    </MenuItem>
-  ))}
-</Select>
+  <Typography
+    sx={{
+      color: tatica.areaNome ? "#4caf50" : "#999",
+      fontWeight: 600,
+    }}
+  >
+    {tatica.areaNome || "Área responsável não definida"}
+  </Typography>
+</Box>
+</Box>
 
-  </Box>
 
-  {/* Unidades */}
+ {/* subarea tática */}
+<Box sx={{ flex: 1, minWidth: "300px" }}>
+  <Select
+    multiple
+    displayEmpty
+    value={subareasPorIdTatica[tatica.id] || []}
+    onChange={(event) =>
+      setSubareasPorIdTatica((prev) => ({
+        ...prev,
+        [tatica.id]: event.target.value,
+      }))
+    }
+    renderValue={(selected) =>
+      selected.length === 0
+        ? "Selecione as subáreas"
+        : selected
+            .map(
+              (id) =>
+                subareas.find((sub) => sub.id === id)?.nome || "Desconhecida"
+            )
+            .join(", ")
+    }
+    MenuProps={{
+      PaperProps: {
+        sx: {
+          maxHeight: 260,
+          overflowY: "auto",
+          borderRadius: 2,
+          mt: 0.5,
+        },
+      },
+    }}
+    fullWidth
+    sx={{
+      backgroundColor: "#fff",
+
+      "& .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#d6d6d6",
+      },
+
+      "&:hover .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#d6d6d6",
+      },
+
+      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#d6d6d6",
+        borderWidth: "1px",
+      },
+
+      "& .MuiSelect-select": {
+        py: 1,
+        minHeight: "36px !important",
+        display: "flex",
+        alignItems: "center",
+      },
+    }}
+  >
+    {subareas.map((sub) => (
+      <MenuItem
+        key={sub.id}
+        value={sub.id}
+        sx={{
+          py: 1,
+          px: 1.5,
+          borderBottom: "1px solid #f1f1f1",
+          gap: 1,
+          minHeight: "58px",
+
+          "&:hover": {
+            backgroundColor: "#f8f9fb",
+          },
+        }}
+      >
+        <Checkbox
+          checked={(subareasPorIdTatica[tatica.id] || []).includes(sub.id)}
+          sx={{
+            color: "#312783",
+            p: 0.5,
+
+            "&.Mui-checked": {
+              color: "#312783",
+            },
+          }}
+        />
+
+        <Box
+          sx={{
+            width: 34,
+            height: 34,
+            borderRadius: "50%",
+            backgroundColor: "#eef2ff",
+            color: "#312783",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: "bold",
+            fontSize: "12px",
+            border: "1px solid #dfe3ff",
+            flexShrink: 0,
+          }}
+        >
+          {sub.nome?.charAt(0)}
+        </Box>
+
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+          }}
+        >
+          <Typography
+            sx={{
+              fontWeight: 700,
+              color: "#1f1b5c",
+              fontSize: "12px",
+              lineHeight: 1.1,
+            }}
+          >
+            {sub.nome}
+          </Typography>
+
+          <Typography
+            sx={{
+              fontSize: "10px",
+              color: "#6b7280",
+              mt: 0.3,
+            }}
+          >
+            {sub.areaNome}
+          </Typography>
+        </Box>
+      </MenuItem>
+    ))}
+  </Select>
+</Box>
+
+  {/* Unidades tática */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
   <Select
   multiple
@@ -1727,52 +2222,198 @@ const areaRolesMap = {
     </MenuItem>
   ))}
 </Select>
+</Box>
 
-  </Box>
+
 
 {/* Responsáveis pela Tática (quemTaticas) */}
 <Box sx={{ flex: 1, minWidth: "300px" }}>
-  <Select
-    multiple
-    displayEmpty
-    value={emailsPorIdTatica[tatica.id] || []}
-    onChange={(event) => {
-      const selectedEmails = event.target.value;
+<Select
+  multiple
+  displayEmpty
+  value={emailsPorIdTatica[tatica.id] || []}
+  onChange={(event) => {
+    const selectedEmails = event.target.value;
 
-      setEmailsPorIdTatica((prev) => ({
-        ...prev,
-        [tatica.id]: selectedEmails,
-      }));
+    setEmailsPorIdTatica((prev) => ({
+      ...prev,
+      [tatica.id]: selectedEmails,
+    }));
 
-      // Atualiza campo 'quemTaticas' dentro da estrutura
-      setEstrategicas((prev) =>
-        prev.map((est) => ({
-          ...est,
-          taticas: est.taticas.map((tat) =>
-            tat.id === tatica.id
-              ? { ...tat, quemTaticas: selectedEmails }
-              : tat
-          ),
-        }))
-      );
-    }}
-    renderValue={(selected) =>
-      selected.length === 0
-        ? "Selecione os responsáveis pela tática"
-        : selected.join(", ")
+    setEstrategicas((prev) =>
+      prev.map((est) => ({
+        ...est,
+        taticas: est.taticas.map((tat) =>
+          tat.id === tatica.id
+            ? { ...tat, quemTaticas: selectedEmails, emails: selectedEmails }
+            : tat
+        ),
+      }))
+    );
+  }}
+  renderValue={(selected) => {
+    if (selected.length === 0) {
+      return "Selecione os responsáveis pela tática";
     }
-    fullWidth
-    sx={{ backgroundColor: "#fff" }}
-  >
-    {users?.map((user) => (
-      <MenuItem key={user.id} value={user.email}>
-        <Checkbox
-          checked={(emailsPorIdTatica[tatica.id] || []).includes(user.email)}
-        />
-        <ListItemText primary={`${user.username} (${user.email})`} />
-      </MenuItem>
-    ))}
-  </Select>
+
+    return (
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.7, overflowX: "auto" }}>
+        {selected.map((email) => {
+          const usuario = users.find((u) => u.email === email);
+          if (!usuario) return null;
+
+          return (
+            <Box
+              key={email}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                backgroundColor: "#f8f9fb",
+                border: "1px solid #d6d6d6",
+                borderRadius: "20px",
+                px: 0.8,
+                py: 0.3,
+                minWidth: "fit-content",
+              }}
+            >
+              <Avatar
+                src={usuario.photoURL || ""}
+                alt={usuario.username}
+                sx={{
+                  width: 22,
+                  height: 22,
+                  fontSize: "10px",
+                  backgroundColor: "#312783",
+                  fontWeight: "bold",
+                }}
+              >
+                {usuario.username?.charAt(0)}
+              </Avatar>
+
+              <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#1f1b5c" }}>
+                {usuario.username}
+              </Typography>
+            </Box>
+          );
+        })}
+      </Box>
+    );
+  }}
+  MenuProps={{
+    PaperProps: {
+      sx: {
+        maxHeight: 450,
+        overflowY: "auto",
+        borderRadius: 3,
+        mt: 1,
+      },
+    },
+  }}
+  fullWidth
+  sx={{
+    backgroundColor: "#fff",
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#d6d6d6",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#d6d6d6",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#d6d6d6",
+      borderWidth: "1px",
+    },
+    "& .MuiSelect-select": {
+      py: 1,
+      minHeight: "36px !important",
+      display: "flex",
+      alignItems: "center",
+    },
+  }}
+>
+  {users?.map((user) => (
+    <MenuItem
+      key={user.id}
+      value={user.email}
+      sx={{
+        py: 1.5,
+        px: 2,
+        borderBottom: "1px solid #eef0f6",
+        alignItems: "flex-start",
+        gap: 1.5,
+        "&:hover": {
+          backgroundColor: "transparent",
+        },
+      }}
+    >
+      <Checkbox
+        checked={(emailsPorIdTatica[tatica.id] || []).includes(user.email)}
+        sx={{
+          mt: 0.5,
+          color: "#312783",
+          "&.Mui-checked": {
+            color: "#312783",
+          },
+        }}
+      />
+
+      <Avatar
+        src={user.photoURL || ""}
+        alt={user.username}
+        sx={{
+          width: 48,
+          height: 48,
+          mt: 0.3,
+          border: "2px solid #eef2ff",
+          fontWeight: "bold",
+          backgroundColor: "#312783",
+        }}
+      >
+        {user.username?.charAt(0)}
+      </Avatar>
+
+      <Box sx={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
+        <Typography sx={{ fontWeight: 700, color: "#1f1b5c", fontSize: "14px" }}>
+          {user.username}
+        </Typography>
+
+        <Typography sx={{ fontSize: "12px", color: "#6b7280", mt: 0.3 }}>
+          {user.email}
+        </Typography>
+
+        <Box sx={{ mt: 1, display: "flex", gap: 1, flexWrap: "wrap" }}>
+          <Box
+            sx={{
+              px: 1.2,
+              py: 0.4,
+              borderRadius: "20px",
+              backgroundColor: "#eef2ff",
+              color: "#312783",
+              fontSize: "11px",
+              fontWeight: 700,
+            }}
+          >
+            {user.unidade || "Sem unidade"}
+          </Box>
+
+          <Box
+            sx={{
+              px: 1.2,
+              py: 0.4,
+              borderRadius: "20px",
+              backgroundColor: "#e0f2fe",
+              color: "#0369a1",
+              fontSize: "11px",
+              fontWeight: 700,
+            }}
+          >
+            {user.roleNome || "Sem perfil"}
+          </Box>
+        </Box>
+      </Box>
+    </MenuItem>
+  ))}
+</Select>
 </Box>
 
 </Box>
@@ -2121,10 +2762,145 @@ const areaRolesMap = {
                         
 
 
-                      <Box sx={{ display: "flex", width: "100%", gap: 2, flexWrap: "wrap", mt: 2 }}>
+<Box sx={{ display: "flex", width: "100%", gap: 2, flexWrap: "wrap", mt: 2 }}>
+
+{/* subarea operacional */}
+<Box sx={{ flex: 1, minWidth: "300px" }}>
+  <Select
+    multiple
+    displayEmpty
+    value={subareasPorIdOperacional[operacional.id] || []}
+    onChange={(event) =>
+      setSubareasPorIdOperacional((prev) => ({
+        ...prev,
+        [operacional.id]: event.target.value,
+      }))
+    }
+    renderValue={(selected) =>
+      selected.length === 0
+        ? "Selecione as subáreas"
+        : selected
+            .map(
+              (id) =>
+                subareas.find((sub) => sub.id === id)?.nome || "Desconhecida"
+            )
+            .join(", ")
+    }
+    MenuProps={{
+      PaperProps: {
+        sx: {
+          maxHeight: 260,
+          overflowY: "auto",
+          borderRadius: 2,
+          mt: 0.5,
+        },
+      },
+    }}
+    fullWidth
+    sx={{
+      backgroundColor: "#fff",
+      "& .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#d6d6d6",
+      },
+      "&:hover .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#d6d6d6",
+      },
+      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#d6d6d6",
+        borderWidth: "1px",
+      },
+      "& .MuiSelect-select": {
+        py: 1,
+        minHeight: "36px !important",
+        display: "flex",
+        alignItems: "center",
+      },
+    }}
+  >
+    {subareas.map((sub) => (
+      <MenuItem
+        key={sub.id}
+        value={sub.id}
+        sx={{
+          py: 1,
+          px: 1.5,
+          borderBottom: "1px solid #f1f1f1",
+          gap: 1,
+          minHeight: "58px",
+          "&:hover": {
+            backgroundColor: "#f8f9fb",
+          },
+        }}
+      >
+        <Checkbox
+          checked={(subareasPorIdOperacional[operacional.id] || []).includes(
+            sub.id
+          )}
+          sx={{
+            color: "#312783",
+            p: 0.5,
+            "&.Mui-checked": {
+              color: "#312783",
+            },
+          }}
+        />
+
+        <Box
+          sx={{
+            width: 34,
+            height: 34,
+            borderRadius: "50%",
+            backgroundColor: "#eef2ff",
+            color: "#312783",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: "bold",
+            fontSize: "12px",
+            border: "1px solid #dfe3ff",
+            flexShrink: 0,
+          }}
+        >
+          {sub.nome?.charAt(0)}
+        </Box>
+
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+          }}
+        >
+          <Typography
+            sx={{
+              fontWeight: 700,
+              color: "#1f1b5c",
+              fontSize: "12px",
+              lineHeight: 1.1,
+            }}
+          >
+            {sub.nome}
+          </Typography>
+
+          <Typography
+            sx={{
+              fontSize: "10px",
+              color: "#6b7280",
+              mt: 0.3,
+            }}
+          >
+            {sub.areaNome}
+          </Typography>
+        </Box>
+      </MenuItem>
+    ))}
+  </Select>
+</Box>
+
+
+
   {/* Áreas Responsáveis */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
-    {/* Áreas Responsáveis */}
 <Select
   multiple
   value={areasOperacionaisPorId[operacional.id] || []}
@@ -2195,47 +2971,242 @@ const areaRolesMap = {
 
 {/* responsáveis pela tarefa (quemOperacionais) */}
 <Box sx={{ flex: 1, minWidth: "300px" }}>
-  <Select
-    multiple
-    displayEmpty
-    value={operacional.quemOperacionais || []}
-    onChange={(event) => {
-      const selected = event.target.value;
+ <Select
+  multiple
+  displayEmpty
+  value={operacional.quemOperacionais || []}
+  onChange={(event) => {
+    const selected = event.target.value;
 
-      // Atualiza no estado geral das estratégias
-      setEstrategicas((prev) =>
-        prev.map((est) => ({
-          ...est,
-          taticas: est.taticas.map((tat) => ({
-            ...tat,
-            operacionais: tat.operacionais.map((op) =>
-              op.id === operacional.id
-                ? { ...op, quemOperacionais: selected }
-                : op
-            ),
-          })),
-        }))
-      );
-    }}
-    renderValue={(selected) =>
-      selected.length === 0
-        ? "Selecione os responsáveis pela operacional"
-        : selected.join(", ")
+    setEstrategicas((prev) =>
+      prev.map((est) => ({
+        ...est,
+        taticas: est.taticas.map((tat) => ({
+          ...tat,
+          operacionais: tat.operacionais.map((op) =>
+            op.id === operacional.id
+              ? {
+                  ...op,
+                  quemOperacionais: selected,
+                  emails: selected,
+                }
+              : op
+          ),
+        })),
+      }))
+    );
+  }}
+  renderValue={(selected) => {
+    if (selected.length === 0) {
+      return "Selecione os responsáveis pela operacional";
     }
-    fullWidth
-    sx={{ backgroundColor: "#fff" }}
-  >
-    {users?.map((user) => (
-      <MenuItem key={user.id} value={user.email}>
-        <Checkbox
-          checked={
-            (operacional.quemOperacionais || []).includes(user.email)
-          }
-        />
-        <ListItemText primary={`${user.username} (${user.email})`} />
-      </MenuItem>
-    ))}
-  </Select>
+
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 0.7,
+          overflowX: "auto",
+        }}
+      >
+        {selected.map((email) => {
+          const usuario = users.find((u) => u.email === email);
+
+          if (!usuario) return null;
+
+          return (
+            <Box
+              key={email}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                backgroundColor: "#f8f9fb",
+                border: "1px solid #d6d6d6",
+                borderRadius: "20px",
+                px: 0.8,
+                py: 0.3,
+                minWidth: "fit-content",
+              }}
+            >
+              <Avatar
+                src={usuario.photoURL || ""}
+                alt={usuario.username}
+                sx={{
+                  width: 22,
+                  height: 22,
+                  fontSize: "10px",
+                  backgroundColor: "#312783",
+                  fontWeight: "bold",
+                }}
+              >
+                {usuario.username?.charAt(0)}
+              </Avatar>
+
+              <Typography
+                sx={{
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  color: "#1f1b5c",
+                }}
+              >
+                {usuario.username}
+              </Typography>
+            </Box>
+          );
+        })}
+      </Box>
+    );
+  }}
+  MenuProps={{
+    PaperProps: {
+      sx: {
+        maxHeight: 450,
+        overflowY: "auto",
+        borderRadius: 3,
+        mt: 1,
+      },
+    },
+  }}
+  fullWidth
+  sx={{
+    backgroundColor: "#fff",
+
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#d6d6d6",
+    },
+
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#d6d6d6",
+    },
+
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#d6d6d6",
+      borderWidth: "1px",
+    },
+
+    "& .MuiSelect-select": {
+      py: 1,
+      minHeight: "36px !important",
+      display: "flex",
+      alignItems: "center",
+    },
+  }}
+>
+  {users?.map((user) => (
+    <MenuItem
+      key={user.id}
+      value={user.email}
+      sx={{
+        py: 1.5,
+        px: 2,
+        borderBottom: "1px solid #eef0f6",
+        alignItems: "flex-start",
+        gap: 1.5,
+
+        "&:hover": {
+          backgroundColor: "transparent",
+        },
+      }}
+    >
+      <Checkbox
+        checked={(operacional.quemOperacionais || []).includes(
+          user.email
+        )}
+        sx={{
+          mt: 0.5,
+          color: "#312783",
+
+          "&.Mui-checked": {
+            color: "#312783",
+          },
+        }}
+      />
+
+      <Avatar
+        src={user.photoURL || ""}
+        alt={user.username}
+        sx={{
+          width: 48,
+          height: 48,
+          mt: 0.3,
+          border: "2px solid #eef2ff",
+          fontWeight: "bold",
+          backgroundColor: "#312783",
+        }}
+      >
+        {user.username?.charAt(0)}
+      </Avatar>
+
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          minWidth: 0,
+        }}
+      >
+        <Typography
+          sx={{
+            fontWeight: 700,
+            color: "#1f1b5c",
+            fontSize: "14px",
+          }}
+        >
+          {user.username}
+        </Typography>
+
+        <Typography
+          sx={{
+            fontSize: "12px",
+            color: "#6b7280",
+            mt: 0.3,
+          }}
+        >
+          {user.email}
+        </Typography>
+
+        <Box
+          sx={{
+            mt: 1,
+            display: "flex",
+            gap: 1,
+            flexWrap: "wrap",
+          }}
+        >
+          <Box
+            sx={{
+              px: 1.2,
+              py: 0.4,
+              borderRadius: "20px",
+              backgroundColor: "#eef2ff",
+              color: "#312783",
+              fontSize: "11px",
+              fontWeight: 700,
+            }}
+          >
+            {user.unidade || "Sem unidade"}
+          </Box>
+
+          <Box
+            sx={{
+              px: 1.2,
+              py: 0.4,
+              borderRadius: "20px",
+              backgroundColor: "#e0f2fe",
+              color: "#0369a1",
+              fontSize: "11px",
+              fontWeight: 700,
+            }}
+          >
+            {user.roleNome || "Sem perfil"}
+          </Box>
+        </Box>
+      </Box>
+    </MenuItem>
+  ))}
+</Select>
 </Box>
 
 </Box>
@@ -2865,40 +3836,102 @@ function NovaOperacionalForm({ onAdd }) {
 
   return (
     <Box display="flex" flexDirection="column" gap={2} mb={2}>
-      <Box display="flex" flexDirection="row" gap={2} flexWrap="wrap">
-        <Box sx={{ flex: 1, minWidth: "300px" }}>
-          <TextField
-            label="Nome da Diretriz Operacional..."
-            value={titulo}
-            onChange={(e) => setTitulo(e.target.value)}
-            fullWidth
-          />
-        </Box>
-<Button
-  onClick={() => {
-    const areaNome = selectedArea
-      ? areas.find((a) => a.id === selectedArea)?.nome || ""
-      : "";
-    onAdd(titulo, desc, selectedArea || "", areaNome);
-    setTitulo("");
-    setDesc("");
-    setSelectedArea("");
-  }}
-
-        disableRipple
-        sx={{
-          alignSelf: "flex-start",
-          backgroundColor: "transparent",
-          "&:hover": { backgroundColor: "transparent", boxShadow: "none" },
-          "&:focus": { outline: "none" },
-        }}
-      >
-        <AddCircleOutlineIcon sx={{ fontSize: 25, color: "#f44336" }} />
-      </Button>
-        
-      </Box>
-
-      
+  <Box display="flex" flexDirection="row" gap={2} flexWrap="wrap">
+    
+    <Box sx={{ flex: 1, minWidth: "300px", maxWidth: "90%" }}>
+      <TextField
+        label="Nome da Diretriz Operacional..."
+        value={titulo}
+        onChange={(e) => setTitulo(e.target.value)}
+        fullWidth
+      />
     </Box>
+
+    <Box sx={{ flex: 1, minWidth: "270px", maxWidth: "270px" }}>
+      <Select
+        value={selectedArea}
+        onChange={(event) => setSelectedArea(event.target.value)}
+        displayEmpty
+        fullWidth
+        sx={{
+          backgroundColor: "#fff",
+
+          "& .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#d6d6d6",
+          },
+
+          "&:hover .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#d6d6d6",
+          },
+
+          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#d6d6d6",
+          },
+        }}
+        renderValue={(selected) =>
+          !selected
+            ? "Selecione uma área responsável"
+            : areas.find((area) => area.id === selected)?.nome ||
+              "Desconhecida"
+        }
+      >
+        <MenuItem disabled value="">
+          <em>Selecione uma área responsável</em>
+        </MenuItem>
+
+        {areas.map((area) => (
+          <MenuItem key={area.id} value={area.id}>
+            <ListItemText primary={area.nome} />
+          </MenuItem>
+        ))}
+      </Select>
+    </Box>
+
+    <Button
+      onClick={() => {
+        if (!titulo.trim()) {
+          alert("Preencha o nome da Diretriz Operacional!");
+          return;
+        }
+
+        if (!selectedArea) {
+          alert("Selecione uma área responsável");
+          return;
+        }
+
+        const areaNome =
+          areas.find((a) => a.id === selectedArea)?.nome || "";
+
+        onAdd(titulo, desc, selectedArea, areaNome);
+
+        setTitulo("");
+        setDesc("");
+        setSelectedArea("");
+      }}
+      disableRipple
+      sx={{
+        alignSelf: "flex-start",
+        backgroundColor: "transparent",
+
+        "&:hover": {
+          backgroundColor: "transparent",
+          boxShadow: "none",
+        },
+
+        "&:focus": {
+          outline: "none",
+        },
+      }}
+    >
+      <AddCircleOutlineIcon
+        sx={{
+          fontSize: 25,
+          color: "#f44336",
+          marginTop: "10px"
+        }}
+      />
+    </Button>
+  </Box>
+</Box>
   );
 }

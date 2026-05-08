@@ -372,7 +372,7 @@ const handleEdit = (id) => {
             "&:hover": { backgroundColor: "#3f2cb2" },
           }}
         >
-          CRIAR ÁREAS
+          CRIAR ÁREAS / UNIDADES
         </Button>
       </Box>
 

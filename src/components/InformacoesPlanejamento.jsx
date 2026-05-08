@@ -16,10 +16,9 @@ import {
 import { dbFokus360 } from "../data/firebase-config"; // ✅ Usa a instância correta
 import { getDocs, collection, addDoc } from "firebase/firestore";
 import { getApps } from "firebase/app";
-
-
 import { storageFokus360 } from "../data/firebase-config"; 
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
 
 
 
@@ -108,6 +107,54 @@ useEffect(() => {
     };
     fetchUsers();
   }, []);
+
+
+
+  // Carregar áreas do Firebase
+useEffect(() => {
+  const fetchAreas = async () => {
+    try {
+      const querySnapshot = await getDocs(
+        collection(dbFokus360, "areas")
+      );
+
+      const areasList = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setAreas(areasList);
+    } catch (error) {
+      console.error("Erro ao buscar áreas:", error);
+    }
+  };
+
+  fetchAreas();
+}, []);
+
+
+
+// Carregar unidades do Firebase
+useEffect(() => {
+  const fetchUnidades = async () => {
+    try {
+      const querySnapshot = await getDocs(
+        collection(dbFokus360, "unidade")
+      );
+
+      const unidadesList = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setUnidade(unidadesList);
+    } catch (error) {
+      console.error("Erro ao buscar unidades:", error);
+    }
+  };
+
+  fetchUnidades();
+}, []);
 
  
 
@@ -360,17 +407,23 @@ useEffect(() => {
                 value={formValues.unidade}
                 onChange={handleChange}
                 displayEmpty
-                sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}
+                sx={{
+                  flex: "1 1 calc(33.33% - 16px)",
+                  minWidth: "200px",
+                }}
               >
                 <MenuItem value="" disabled>
                   Selecione a unidade do projeto
                 </MenuItem>
-                <MenuItem value="BRASÍLIA">BRASÍLIA</MenuItem>
-                <MenuItem value="GOIÁS">GOIÁS</MenuItem>
-                <MenuItem value="MATOGROSSO">MATO GROSSO</MenuItem>
-                <MenuItem value="MATOGROSSODOSUL">MATO GROSSO DO SUL</MenuItem>
-                <MenuItem value="PARA">PARÁ</MenuItem>
-                <MenuItem value="TOCANTINS">TOCANTINS</MenuItem>
+
+                {unidade.map((item) => (
+                  <MenuItem
+                    key={item.id}
+                    value={item.nome}
+                  >
+                    {item.nome}
+                  </MenuItem>
+                ))}
               </Select>
 
               {/* Solicitante */}
@@ -397,25 +450,23 @@ useEffect(() => {
                 value={formValues.categoria}
                 onChange={handleChange}
                 displayEmpty
-                sx={{ flex: "1 1 calc(33.33% - 16px)", minWidth: "200px" }}
+                sx={{
+                  flex: "1 1 calc(33.33% - 16px)",
+                  minWidth: "200px",
+                }}
               >
                 <MenuItem value="" disabled>
                   Selecione área responsável
                 </MenuItem>
-                <MenuItem value="ADMINISTRATIVO">ADMINISTRATIVO</MenuItem>
-                <MenuItem value="COMERCIAL">COMERCIAL</MenuItem>
-                <MenuItem value="CONTABILIDADE">CONTABILIDADE</MenuItem>
-                <MenuItem value="CONTROLADORIA">CONTROLADORIA</MenuItem>
-                <MenuItem value="DEPARTAMENTOPESSOAL">
-                  DEPARTAMENTO PESSOAL
-                </MenuItem>
-                <MenuItem value="DIRETORIA">DIRETORIA</MenuItem>
-                <MenuItem value="ESTRATEGIADENEGOCIOS">
-                  ESTRATÉGIA DE NEGÓCIOS
-                </MenuItem>
-                <MenuItem value="FINANCEIRO">FINANCEIRO</MenuItem>
-                <MenuItem value="RECURSOSHUMANOS">RECURSOS HUMANOS</MenuItem>
-                <MenuItem value="LOGISTICA">LOGÍSTICA</MenuItem>
+
+                {areas.map((area) => (
+                  <MenuItem
+                    key={area.id}
+                    value={area.nome}
+                  >
+                    {area.nome}
+                  </MenuItem>
+                ))}
               </Select>
 
               {/* Colaboradores (múltipla seleção) */}

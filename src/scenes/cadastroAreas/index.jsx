@@ -1,198 +1,501 @@
-import React, { useState } from "react";
-import { 
-  Box, Button, TextField, Select, MenuItem, InputLabel, 
-  Avatar, FormControl, Checkbox, ListItemText 
+import React, { useEffect, useState } from "react";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  IconButton,
+  Paper,
+  Divider,
+  Chip,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import {
+  Add,
+  Delete,
+  Edit,
+  Save,
+  Close,
+  AccountTree,
+  Business,
+} from "@mui/icons-material";
 
-import { dbFokus360, storageFokus360 } from "../../data/firebase-config";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+} from "firebase/firestore";
 
-import { authFokus360 } from "../../data/firebase-config";
+import {
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+} from "@mui/material";
 
-import { doc, setDoc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { collection, addDoc } from "firebase/firestore";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
-
-// ✅ Importando imagens corretamente
-import logoImage from "../../assets/images/icone_logo.png";
+import { dbFokus360 } from "../../data/firebase-config";
 
 const CadastroAreas = () => {
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState("");
-  const [areasSelecionadas, setAreasSelecionadas] = useState([]);
-  const [unidadesSelecionadas , setUnidadesSelecionadas ] = useState([]);
+  const [areaMatriz, setAreaMatriz] = useState("");
+  const [subareas, setSubareas] = useState([""]);
+  const [areasCadastradas, setAreasCadastradas] = useState([]);
+
   const [unidade, setUnidade] = useState("");
-  const [area, setArea] = useState("");
-  const [avatar, setAvatar] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState(""); 
-  const navigate = useNavigate();
+  const [unidadesCadastradas, setUnidadesCadastradas] = useState([]);
 
+  const [editandoId, setEditandoId] = useState(null);
+  const [editAreaMatriz, setEditAreaMatriz] = useState("");
+  const [editSubareas, setEditSubareas] = useState([""]);
 
-  const areas = [
-    { id: "CONTABILIDADE", nome: "CONTABILIDADE" },
-    { id: "CONTROLADORIA", nome: "CONTROLADORIA" },
-    { id: "FINANCEIRO", nome: "FINANCEIRO" },
-    { id: "JURIDICO", nome: "JURÍDICO" },
-    { id: "LOGISTICA", nome: "LOGÍSTICA" },
-    { id: "MARKETING", nome: "MARKETING" },
-    { id: "TRADE", nome: "TRADE" },
-    { id: "RECURSOSHUMANOS", nome: "RECURSOS HUMANOS" },
-    { id: "TI", nome: "TI" },
-    { id: "COMERCIAL", nome: "COMERCIAL" }
-  ];
-
-  // Função para atualizar o preview do avatar
-  const handleAvatarChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setAvatar(file);
-      setAvatarPreview(URL.createObjectURL(file)); // Gera preview da imagem
-    }
+  const carregarAreas = async () => {
+    const snapshot = await getDocs(collection(dbFokus360, "areas"));
+    const lista = snapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      ...docSnap.data(),
+    }));
+    setAreasCadastradas(lista);
   };
 
-  // Upload de foto no Firebase Storage
-  const handleUploadPhoto = async () => {
-    if (!avatar) return "";
-
-    try {
-      const storageRef = ref(storageFokus360, `users/${Date.now()}_${avatar.name}`);
-      await uploadBytes(storageRef, avatar);
-      return await getDownloadURL(storageRef);
-    } catch (error) {
-      console.error("Erro ao carregar a foto:", error);
-      return "";
-    }
+  const carregarUnidades = async () => {
+    const snapshot = await getDocs(collection(dbFokus360, "unidade"));
+    const lista = snapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      ...docSnap.data(),
+    }));
+    setUnidadesCadastradas(lista);
   };
 
-  // Cadastro de Areas e unidades
+  useEffect(() => {
+    carregarAreas();
+    carregarUnidades();
+  }, []);
 
-  const handleCadastro = async (e) => {
-    e.preventDefault();
-    try {
-      // Verifica se pelo menos uma unidade ou área foi selecionada
-      if (unidadesSelecionadas.length === 0 && areasSelecionadas.length === 0) {
-        alert("Selecione ao menos uma Unidade ou uma Área para cadastrar.");
-        return;
-      }
-  
-      // Cadastra Unidades (se houver)
-      if (unidadesSelecionadas.length > 0) {
-        await Promise.all(
-          unidadesSelecionadas.map(async (unidade) => {
-            await addDoc(collection(dbFokus360, "unidade"), { nome: unidade });
-          })
-        );
-      }
-  
-      // Cadastra Áreas (se houver)
-      if (areasSelecionadas.length > 0) {
-        await Promise.all(
-          areasSelecionadas.map(async (area) => {
-            await addDoc(collection(dbFokus360, "areas"), { nome: area });
-          })
-        );
-      }
-  
-      alert("Cadastro realizado com sucesso!");
-  
-      // ✅ Limpa os estados
-      setUnidadesSelecionadas([]);
-      setAreasSelecionadas([]);
-    } catch (error) {
-      console.error("Erro ao cadastrar:", error.message);
-      alert("Erro ao cadastrar unidades e áreas.");
+  const gerarAreaMatriz = async () => {
+    if (!areaMatriz.trim()) {
+      alert("Digite o nome da Área Matriz.");
+      return;
     }
+
+    const subareasLimpas = subareas
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    await addDoc(collection(dbFokus360, "areas"), {
+      nome: areaMatriz.trim().toUpperCase(),
+      subareas: subareasLimpas,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    setAreaMatriz("");
+    setSubareas([""]);
+    carregarAreas();
   };
-  
-  
-  
-  
+
+  const criarUnidade = async () => {
+    if (!unidade.trim()) {
+      alert("Digite o nome da unidade.");
+      return;
+    }
+
+    await addDoc(collection(dbFokus360, "unidade"), {
+      nome: unidade.trim().toUpperCase(),
+      createdAt: serverTimestamp(),
+    });
+
+    setUnidade("");
+    carregarUnidades();
+  };
+
+  const deletarArea = async (id) => {
+    if (!window.confirm("Deseja deletar esta Área Matriz?")) return;
+
+    await deleteDoc(doc(dbFokus360, "areas", id));
+    carregarAreas();
+  };
+
+  const deletarUnidade = async (id) => {
+    if (!window.confirm("Deseja deletar esta unidade?")) return;
+
+    await deleteDoc(doc(dbFokus360, "unidade", id));
+    carregarUnidades();
+  };
+
+  const adicionarSubarea = () => {
+    setSubareas([...subareas, ""]);
+  };
+
+  const alterarSubarea = (index, valor) => {
+    const lista = [...subareas];
+    lista[index] = valor;
+    setSubareas(lista);
+  };
+
+  const removerSubarea = (index) => {
+    const lista = subareas.filter((_, i) => i !== index);
+    setSubareas(lista.length ? lista : [""]);
+  };
+
+  const iniciarEdicao = (area) => {
+    setEditandoId(area.id);
+    setEditAreaMatriz(area.nome || "");
+    setEditSubareas(area.subareas?.length ? area.subareas : [""]);
+  };
+
+  const cancelarEdicao = () => {
+    setEditandoId(null);
+    setEditAreaMatriz("");
+    setEditSubareas([""]);
+  };
+
+  const adicionarSubareaEdicao = () => {
+    setEditSubareas([...editSubareas, ""]);
+  };
+
+  const alterarSubareaEdicao = (index, valor) => {
+    const lista = [...editSubareas];
+    lista[index] = valor;
+    setEditSubareas(lista);
+  };
+
+  const removerSubareaEdicao = (index) => {
+    const lista = editSubareas.filter((_, i) => i !== index);
+    setEditSubareas(lista.length ? lista : [""]);
+  };
+
+  const salvarEdicao = async (id) => {
+    if (!editAreaMatriz.trim()) {
+      alert("Digite o nome da Área Matriz.");
+      return;
+    }
+
+    const subareasLimpas = editSubareas
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    await updateDoc(doc(dbFokus360, "areas", id), {
+      nome: editAreaMatriz.trim().toUpperCase(),
+      subareas: subareasLimpas,
+      updatedAt: serverTimestamp(),
+    });
+
+    cancelarEdicao();
+    carregarAreas();
+  };
 
   return (
-    <Box sx={{ transform: "scale(0.8)", transformOrigin: "top center" }}>
-      <Box 
-        display="flex" flexDirection="row" alignItems="center" justifyContent="center"
-        sx={{ backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat", width: "80vw", minHeight: "90vh" }}
-      >
-        
+    <Box
+      sx={{
+        minHeight: "90vh",
+        p: 4,
+        background: "linear-gradient(135deg, #f5f7fb 0%, #ffffff 100%)",
+      }}
+    >
+      <Box sx={{ maxWidth: 1100, mx: "auto" }}>
+        <Typography
+          variant="h4"
+          fontWeight="bold"
+          sx={{ color: "#312783", mb: 1 }}
+        >
+          Cadastro de Áreas e Unidades
+        </Typography>
 
-        {/* Formulário de Cadastro */}
-        <Box sx={{ borderTopRightRadius: "50px", backgroundColor: "white", padding: 5, boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)", width: "90%", maxWidth: 400, textAlign: "center" }}>
-          <Box component="form" onSubmit={handleCadastro} sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-            
-          
+        <Typography sx={{ color: "#777", mb: 4 }}>
+          Gerencie as Áreas Matriz, subáreas e unidades do Grupo Fokus.
+        </Typography>
 
-        
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: "1.4fr 1fr" },
+            gap: 3,
+          }}
+        >
+          {/* ÁREAS */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              borderRadius: 4,
+              border: "1px solid #e7e7ef",
+              boxShadow: "0 10px 30px rgba(49,39,131,0.08)",
+            }}
+          >
+            <Box display="flex" alignItems="center" gap={1} mb={2}>
+              <AccountTree sx={{ color: "#312783" }} />
+              <Typography variant="h6" fontWeight="bold">
+                Áreas Matriz
+              </Typography>
+            </Box>
 
-          <FormControl fullWidth>
-            <InputLabel id="areas-label">Cadastrar Áreas do Grupo Fokus</InputLabel>
-            <Select
-              labelId="areas-label"
-              multiple
-              value={areasSelecionadas}
-              onChange={(event) => setAreasSelecionadas(event.target.value)}
-              renderValue={(selected) =>
-                selected.length === 0
-                  ? "Selecione as áreas responsáveis"
-                  : selected.map(
-                      (id) => areas.find((area) => area.id === id)?.nome || "Desconhecida"
-                    ).join(", ")
-              }
+            <TextField
+              fullWidth
+              label="Nome da Área Matriz"
+              value={areaMatriz}
+              onChange={(e) => setAreaMatriz(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+
+            {subareas.map((item, index) => (
+              <Box key={index} display="flex" gap={1} mb={1}>
+                <TextField
+                  fullWidth
+                  label={`Subárea ${index + 1}`}
+                  value={item}
+                  onChange={(e) => alterarSubarea(index, e.target.value)}
+                />
+
+                <IconButton
+                  onClick={() => removerSubarea(index)}
+                  sx={{ color: "#d32f2f" }}
+                >
+                  <Delete />
+                </IconButton>
+              </Box>
+            ))}
+
+            <Button
+              startIcon={<Add />}
+              onClick={adicionarSubarea}
+              sx={{ color: "#312783", fontWeight: "bold", mb: 2 }}
             >
-              {areas.map((area) => (
-                <MenuItem key={area.id} value={area.id}>
-                  <Checkbox checked={areasSelecionadas.includes(area.id)} />
-                  <ListItemText primary={area.nome} />
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <FormControl fullWidth>
-            <InputLabel id="unidade-label">Cadastrar Unidades do Grupo Fokus</InputLabel>
-            <Select
-              labelId="unidade-label"
-              multiple
-              value={unidadesSelecionadas}
-              onChange={(event) => setUnidadesSelecionadas(event.target.value)}
-              renderValue={(selected) =>
-                selected.length === 0
-                  ? "Selecione as unidades"
-                  : selected.join(", ")
-              }
-            >
-              {[
-                "BRASÍLIA",
-                "GOIÁS",
-                "MATO GROSSO",
-                "MATO GROSSO DO SUL",
-                "PARÁ",
-                "TOCANTINS",
-                "COMERCIAL"
-              ].map((nome) => (
-                <MenuItem key={nome} value={nome}>
-                  <Checkbox checked={unidadesSelecionadas.includes(nome)} />
-                  <ListItemText primary={nome} />
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-
-
-            
-
-            <Button 
-              variant="contained" type="submit" fullWidth
-              sx={{ borderRadius: 2, backgroundColor: "#312783", color: "white", boxShadow: "none", "&:hover": { backgroundColor: "#868dfb", boxShadow: "none" } }}
-            >
-              CADASTRAR
+              Adicionar Subárea
             </Button>
-          </Box>
+
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={gerarAreaMatriz}
+              sx={{
+                backgroundColor: "#312783",
+                borderRadius: 2,
+                py: 1.3,
+                fontWeight: "bold",
+                "&:hover": { backgroundColor: "#241c66" },
+              }}
+            >
+              Gerar Área Matriz
+            </Button>
+
+            <Divider sx={{ my: 3 }} />
+
+            <Typography fontWeight="bold" mb={2}>
+              Áreas cadastradas
+            </Typography>
+
+            {areasCadastradas.map((area) => (
+              <Accordion
+                key={area.id}
+                disableGutters
+                elevation={0}
+                sx={{
+                  mb: 2,
+                  borderRadius: "14px !important",
+                  border: "1px solid #e6e3f5",
+                  backgroundColor: "#fafafe",
+                  overflow: "hidden",
+                  "&:before": { display: "none" },
+                }}
+              >
+                <AccordionSummary
+                  expandIcon={<ExpandMoreIcon sx={{ color: "#312783" }} />}
+                  sx={{
+                    px: 2,
+                    minHeight: 58,
+                    "& .MuiAccordionSummary-content": {
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    },
+                  }}
+                >
+                  <Typography fontWeight="bold" color="#312783">
+                    {area.nome}
+                  </Typography>
+
+                  <Box
+                    onClick={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.stopPropagation()}
+                  >
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        iniciarEdicao(area);
+                      }}
+                    >
+                      <Edit />
+                    </IconButton>
+
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deletarArea(area.id);
+                      }}
+                      sx={{ color: "#d32f2f" }}
+                    >
+                      <Delete />
+                    </IconButton>
+                  </Box>
+                </AccordionSummary>
+
+                <AccordionDetails sx={{ pt: 0, px: 2, pb: 2 }}>
+                  {editandoId === area.id ? (
+                    <>
+                      <Typography fontWeight="bold" color="#312783" mb={1}>
+                        Editar subáreas
+                      </Typography>
+
+                      {editSubareas.map((sub, index) => (
+                        <Box key={index} display="flex" gap={1} mb={1}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            label={`Subárea ${index + 1}`}
+                            value={sub}
+                            onChange={(e) =>
+                              alterarSubareaEdicao(index, e.target.value)
+                            }
+                          />
+
+                          <IconButton
+                            onClick={() => removerSubareaEdicao(index)}
+                            sx={{ color: "#d32f2f" }}
+                          >
+                            <Delete />
+                          </IconButton>
+                        </Box>
+                      ))}
+
+                      <Button
+                        startIcon={<Add />}
+                        onClick={adicionarSubareaEdicao}
+                        sx={{
+                          color: "#312783",
+                          fontWeight: "bold",
+                          mb: 2,
+                        }}
+                      >
+                        Adicionar Subárea
+                      </Button>
+
+                      <Box display="flex" gap={1}>
+                        <Button
+                          variant="contained"
+                          startIcon={<Save />}
+                          onClick={() => salvarEdicao(area.id)}
+                          sx={{
+                            backgroundColor: "#2e7d32",
+                            "&:hover": { backgroundColor: "#1b5e20" },
+                          }}
+                        >
+                          Salvar
+                        </Button>
+
+                        <Button
+                          variant="outlined"
+                          startIcon={<Close />}
+                          onClick={cancelarEdicao}
+                        >
+                          Cancelar
+                        </Button>
+                      </Box>
+                    </>
+                  ) : (
+                    <Box display="flex" flexWrap="wrap" gap={1}>
+                      {(area.subareas || []).map((sub, index) => (
+                        <Chip
+                          key={index}
+                          label={sub}
+                          size="small"
+                          sx={{
+                            backgroundColor: "#edeaff",
+                            color: "#312783",
+                            fontWeight: "bold",
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  )}
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </Paper>
+
+          {/* UNIDADES */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              borderRadius: 4,
+              border: "1px solid #e7e7ef",
+              boxShadow: "0 10px 30px rgba(49,39,131,0.08)",
+            }}
+          >
+            <Box display="flex" alignItems="center" gap={1} mb={2}>
+              <Business sx={{ color: "#312783" }} />
+              <Typography variant="h6" fontWeight="bold">
+                Unidades
+              </Typography>
+            </Box>
+
+            <TextField
+              fullWidth
+              label="Nome da Unidade"
+              value={unidade}
+              onChange={(e) => setUnidade(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={criarUnidade}
+              sx={{
+                backgroundColor: "#312783",
+                borderRadius: 2,
+                py: 1.3,
+                fontWeight: "bold",
+                "&:hover": { backgroundColor: "#241c66" },
+              }}
+            >
+              Gerar Unidade
+            </Button>
+
+            <Divider sx={{ my: 3 }} />
+
+            <Typography fontWeight="bold" mb={2}>
+              Unidades cadastradas
+            </Typography>
+
+            {unidadesCadastradas.map((item) => (
+              <Paper
+                key={item.id}
+                elevation={0}
+                sx={{
+                  p: 2,
+                  mb: 1.5,
+                  borderRadius: 3,
+                  border: "1px solid #ececf5",
+                  backgroundColor: "#fafafe",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Typography fontWeight="bold">{item.nome}</Typography>
+
+                <IconButton
+                  onClick={() => deletarUnidade(item.id)}
+                  sx={{ color: "#d32f2f" }}
+                >
+                  <Delete />
+                </IconButton>
+              </Paper>
+            ))}
+          </Paper>
         </Box>
       </Box>
     </Box>
