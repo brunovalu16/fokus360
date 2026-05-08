@@ -4,11 +4,22 @@ import {
   Avatar, FormControl 
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 
-import { dbFokus360, storageFokus360 } from "../../data/firebase-config";
+import { initializeApp, deleteApp, getApp, getApps } from "firebase/app";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  signOut,
+} from "firebase/auth";
 
-import { authFokus360 } from "../../data/firebase-config";
+import {
+  dbFokus360,
+  storageFokus360,
+  firebaseConfigFokus360,
+} from "../../data/firebase-config";
+
+
 
 import { doc, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -50,33 +61,68 @@ const Cadastro = () => {
   };
 
   // Cadastro de usuário
-  const handleCadastro = async (e) => {
-    e.preventDefault();
-    try {
-      const userCredential = await createUserWithEmailAndPassword(authFokus360, email, password);
-      await sendEmailVerification(userCredential.user);
+const handleCadastro = async (e) => {
+  e.preventDefault();
 
-      let photoURL = "";
-      if (avatar) {
-        photoURL = await handleUploadPhoto();
-      }
+  const secondaryAppName = "Fokus360Secondary";
 
-      const userData = {
-        username,
-        email,
-        role,
-        unidade,
-        photoURL
-      };
+  try {
+    const secondaryApp = getApps().some((app) => app.name === secondaryAppName)
+      ? getApp(secondaryAppName)
+      : initializeApp(firebaseConfigFokus360, secondaryAppName);
 
-      await setDoc(doc(dbFokus360, "user", userCredential.user.uid), userData);
+    const secondaryAuth = getAuth(secondaryApp);
 
-      alert("Usuário cadastrado com sucesso! Verifique seu e-mail para confirmar.");
-      navigate("/cadastro");
-    } catch (error) {
-      alert(`Erro ao cadastrar usuário, email já cadastrado.`);
+    const userCredential = await createUserWithEmailAndPassword(
+      secondaryAuth,
+      email,
+      password
+    );
+
+    await sendEmailVerification(userCredential.user);
+
+    let photoURL = "";
+    if (avatar) {
+      photoURL = await handleUploadPhoto();
     }
-  };
+
+    const userData = {
+      username,
+      email,
+      role,
+      unidade,
+      photoURL,
+      emailVerified: false,
+      createdAt: new Date(),
+      createdBy: localStorage.getItem("userId"),
+    };
+
+    await setDoc(doc(dbFokus360, "user", userCredential.user.uid), userData);
+
+    await signOut(secondaryAuth);
+    await deleteApp(secondaryApp);
+
+    alert("Usuário cadastrado com sucesso! Verifique o e-mail para confirmar.");
+
+    setUsername("");
+    setEmail("");
+    setPassword("");
+    setRole("");
+    setUnidade("");
+    setAvatar(null);
+    setAvatarPreview("");
+
+  } catch (error) {
+    console.error("Erro ao cadastrar usuário:", error);
+
+    if (error.code === "auth/email-already-in-use") {
+      alert("Erro: este e-mail já está cadastrado.");
+      return;
+    }
+
+    alert("Erro ao cadastrar usuário.");
+  }
+};
 
   return (
     <Box sx={{ transform: "scale(0.8)", transformOrigin: "top center" }}>

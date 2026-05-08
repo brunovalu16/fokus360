@@ -41,6 +41,11 @@ const storageGpsTracker = getStorage(appGpsTracker);
 
 // 🔹 Exportando apenas as instâncias necessárias
 export { 
-  authFokus360, dbFokus360, storageFokus360, 
-  authGpsTracker, dbGpsTracker, storageGpsTracker 
+  firebaseConfigFokus360,
+  authFokus360,
+  dbFokus360,
+  storageFokus360, 
+  authGpsTracker,
+  dbGpsTracker,
+  storageGpsTracker 
 };
