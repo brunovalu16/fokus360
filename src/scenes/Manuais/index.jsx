@@ -27,7 +27,6 @@ import html2pdf from 'html2pdf.js';
 
 import Dialog from "@mui/material/Dialog";
 import { convertImagesToDataURL } from "../../utils/convertImagesToDataURL";
-import { replaceImageUrlsWithBase64 } from "../../utils/replaceImageUrlsWithBase64(html)";
 
 
 
@@ -554,6 +553,29 @@ const destacarNoHtml = (texto) => {
       prev.map(f => (f.id === id ? { ...f, [campo]: valor } : f))
     );
   };
+
+
+  const atualizarSubItem = (formId, subIndex, campo, valor) => {
+  setFormularios((prev) =>
+    prev.map((form) => {
+      if (form.id !== formId) return form;
+
+      const novosSubItens = (form.subItens || []).map((sub, index) =>
+        index === subIndex
+          ? {
+              ...sub,
+              [campo]: valor,
+            }
+          : sub
+      );
+
+      return {
+        ...form,
+        subItens: novosSubItens,
+      };
+    })
+  );
+};
 
 //função apra adcionar sub-accordion com posição definida
 const adicionarSubItem = (formId, posicao) => {
