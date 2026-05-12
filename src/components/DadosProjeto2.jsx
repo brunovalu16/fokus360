@@ -625,7 +625,6 @@ const [tooltip, setTooltip] = useState(null);
     position: "relative",
     overflow: "visible",
     flexShrink: 0,
-    marginLeft: "140px"
   }}
 >
   {tooltip && (
