@@ -2764,6 +2764,32 @@ const areaRolesMap = {
 
 <Box sx={{ display: "flex", width: "100%", gap: 2, flexWrap: "wrap", mt: 2 }}>
 
+
+  <Box sx={{ flex: 1, minWidth: "300px" }}>
+  <Box
+  sx={{
+    marginTop: "1px",
+    width: "100%",
+    minHeight: "51px",
+    display: "flex",
+    alignItems: "center",
+    px: 2,
+    borderRadius: "4px",
+    backgroundColor: "#fff",
+    border: "1px solid rgba(0, 0, 0, 0.23)",
+  }}
+>
+  <Typography
+    sx={{
+      color: operacional.areaNome ? "#f44336" : "#999",
+      fontWeight: 600,
+    }}
+  >
+    {operacional.areaNome || "Área responsável não definida"}
+  </Typography>
+</Box>
+</Box>
+
 {/* subarea operacional */}
 <Box sx={{ flex: 1, minWidth: "300px" }}>
   <Select
@@ -2899,40 +2925,7 @@ const areaRolesMap = {
 
 
 
-  {/* Áreas Responsáveis */}
-  <Box sx={{ flex: 1, minWidth: "300px" }}>
-<Select
-  multiple
-  value={areasOperacionaisPorId[operacional.id] || []}
-  onChange={(event) =>
-    setAreasOperacionaisPorId((prev) => ({
-      ...prev,
-      [operacional.id]: event.target.value,
-    }))
-  }
-  displayEmpty
-  fullWidth
-  sx={{ backgroundColor: "#fff" }}
-  renderValue={(selected) =>
-    selected.length === 0
-      ? "Selecione as áreas responsáveis"
-      : selected
-          .map(
-            (id) => areas.find((area) => area.id === id)?.nome || "Desconhecida"
-          )
-          .join(", ")
-  }
->
-  {areas.map((area) => (
-    <MenuItem key={area.id} value={area.id}>
-      <Checkbox
-        checked={(areasOperacionaisPorId[operacional.id] || []).includes(area.id)}
-      />
-      <ListItemText primary={area.nome} />
-    </MenuItem>
-  ))}
-</Select>
-  </Box>
+ 
 
   {/* Unidades */}
   <Box sx={{ flex: 1, minWidth: "300px" }}>
@@ -3449,71 +3442,217 @@ const areaRolesMap = {
 
                           {/* 🔹 Campo "Quem" com múltipla seleção */}
                           {/* Responsáveis pela tarefa (quemOperacionais) */}
-                          <Box sx={{ flex: 1, minWidth: "300px" }}>
-                            <Select
-                              multiple
-                              displayEmpty
-                              value={tarefa.planoDeAcao.quemEmail || []}
-                              onChange={(event) => {
-                                const selectedEmails = event.target.value;
 
-                                // Atualiza o estado das tarefas na estrutura de estratégicas
-                                setEstrategicas((prev) =>
-                                  prev.map((est) => ({
-                                    ...est,
-                                    taticas: est.taticas.map((tat) => ({
-                                      ...tat,
-                                      operacionais: tat.operacionais.map((op) => ({
-                                        ...op,
-                                        tarefas: op.tarefas.map((t) =>
-                                          t.id === tarefa.id
-                                            ? {
-                                                ...t,
-                                                planoDeAcao: {
-                                                  ...t.planoDeAcao,
-                                                  quemEmail: selectedEmails,
-                                                },
-                                              }
-                                            : t
-                                        ),
-                                      })),
-                                    })),
-                                  }))
-                                );
-                              }}
-                              renderValue={(selected) =>
-                                selected.length === 0
-                                  ? "Selecione os responsáveis pela tarefa"
-                                  : selected.join(", ")
-                              }
-                              fullWidth
-                              sx={{ backgroundColor: "#fff" }}
-                            >
-                              {users?.map((user) => (
-                                <MenuItem key={user.id} value={user.email}>
-                                  <Checkbox
-                                    checked={(tarefa.planoDeAcao.quemEmail || []).includes(user.email)}
-                                  />
-                                  <ListItemText primary={`${user.username} (${user.email})`} />
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </Box>
+<Box sx={{ flex: 1, minWidth: "300px" }}>
+  <Select
+    multiple
+    displayEmpty
+    value={tarefa.planoDeAcao.quemEmail || []}
+    onChange={(event) => {
+      const selectedEmails = event.target.value;
+
+      setEstrategicas((prev) =>
+        prev.map((est) => ({
+          ...est,
+          taticas: est.taticas.map((tat) => ({
+            ...tat,
+            operacionais: tat.operacionais.map((op) => ({
+              ...op,
+              tarefas: op.tarefas.map((t) =>
+                t.id === tarefa.id
+                  ? {
+                      ...t,
+                      planoDeAcao: {
+                        ...t.planoDeAcao,
+                        quemEmail: selectedEmails,
+                      },
+                    }
+                  : t
+              ),
+            })),
+          })),
+        }))
+      );
+    }}
+    renderValue={(selected) => {
+      if (selected.length === 0) {
+        return "Selecione os responsáveis pela tarefa";
+      }
+
+      return (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.7, overflowX: "auto" }}>
+          {selected.map((email) => {
+            const usuario = users.find((u) => u.email === email);
+            if (!usuario) return null;
+
+            return (
+              <Box
+                key={email}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                  backgroundColor: "#f8f9fb",
+                  border: "1px solid #d6d6d6",
+                  borderRadius: "20px",
+                  px: 0.8,
+                  py: 0.3,
+                  minWidth: "fit-content",
+                }}
+              >
+                <Avatar
+                  src={usuario.photoURL || ""}
+                  alt={usuario.username}
+                  sx={{
+                    width: 22,
+                    height: 22,
+                    fontSize: "10px",
+                    backgroundColor: "#312783",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {usuario.username?.charAt(0)}
+                </Avatar>
+
+                <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#1f1b5c" }}>
+                  {usuario.username}
+                </Typography>
+              </Box>
+            );
+          })}
+        </Box>
+      );
+    }}
+    MenuProps={{
+      PaperProps: {
+        sx: {
+          maxHeight: 450,
+          overflowY: "auto",
+          borderRadius: 3,
+          mt: 1,
+        },
+      },
+    }}
+    fullWidth
+    sx={{
+      backgroundColor: "#fff",
+      "& .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#d6d6d6",
+      },
+      "&:hover .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#d6d6d6",
+      },
+      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#d6d6d6",
+        borderWidth: "1px",
+      },
+      "& .MuiSelect-select": {
+        py: 1,
+        minHeight: "36px !important",
+        display: "flex",
+        alignItems: "center",
+      },
+    }}
+  >
+    {users?.map((user) => (
+      <MenuItem
+        key={user.id}
+        value={user.email}
+        sx={{
+          py: 1.5,
+          px: 2,
+          borderBottom: "1px solid #eef0f6",
+          alignItems: "flex-start",
+          gap: 1.5,
+          "&:hover": {
+            backgroundColor: "transparent",
+          },
+        }}
+      >
+        <Checkbox
+          checked={(tarefa.planoDeAcao.quemEmail || []).includes(user.email)}
+          sx={{
+            mt: 0.5,
+            color: "#312783",
+            "&.Mui-checked": {
+              color: "#312783",
+            },
+          }}
+        />
+
+        <Avatar
+          src={user.photoURL || ""}
+          alt={user.username}
+          sx={{
+            width: 48,
+            height: 48,
+            mt: 0.3,
+            border: "2px solid #eef2ff",
+            fontWeight: "bold",
+            backgroundColor: "#312783",
+          }}
+        >
+          {user.username?.charAt(0)}
+        </Avatar>
+
+        <Box sx={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
+          <Typography sx={{ fontWeight: 700, color: "#1f1b5c", fontSize: "14px" }}>
+            {user.username}
+          </Typography>
+
+          <Typography sx={{ fontSize: "12px", color: "#6b7280", mt: 0.3 }}>
+            {user.email}
+          </Typography>
+
+          <Box sx={{ mt: 1, display: "flex", gap: 1, flexWrap: "wrap" }}>
+            <Box
+              sx={{
+                px: 1.2,
+                py: 0.4,
+                borderRadius: "20px",
+                backgroundColor: "#eef2ff",
+                color: "#312783",
+                fontSize: "11px",
+                fontWeight: 700,
+              }}
+            >
+              {user.unidade || "Sem unidade"}
+            </Box>
+
+            <Box
+              sx={{
+                px: 1.2,
+                py: 0.4,
+                borderRadius: "20px",
+                backgroundColor: "#e0f2fe",
+                color: "#0369a1",
+                fontSize: "11px",
+                fontWeight: 700,
+              }}
+            >
+              {user.roleNome || "Sem perfil"}
+            </Box>
+          </Box>
+        </Box>
+      </MenuItem>
+    ))}
+  </Select>
+
+</Box>
 
                                       <TextField
-                                        label="E-mail dos responsáveis"
-                                        name="quemEmail" // Nome associado ao estado para o e-mail do solicitante
-                                        value={
-                                          tarefa.planoDeAcao.quemEmail ?? []
-                                        }
-                                        onChange={(e) =>
-                                          handleEditTarefa(
-                                            tarefa.id,
-                                            "quemEmail",
-                                            e.target.value
-                                          )
-                                        }
-                                      />
+  label="E-mail dos responsáveis"
+  value={(tarefa.planoDeAcao?.quemEmail || []).join(", ")}
+  fullWidth
+  disabled
+  sx={{
+    backgroundColor: "#f8f9fb",
+    "& .MuiInputBase-input.Mui-disabled": {
+      WebkitTextFillColor: "#374151",
+      fontWeight: 500,
+    },
+  }}
+/>
 
                                       <TextField
                                         label="Quando?"

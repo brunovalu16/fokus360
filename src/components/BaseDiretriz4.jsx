@@ -128,7 +128,7 @@
   const [emailsPorIdOperacional, setEmailsPorIdOperacional] = useState({});
 
 
-    
+    const [areasSelecionadasOperacionalPorTatica, setAreasSelecionadasOperacionalPorTatica] = useState({});
     
 
 
@@ -911,9 +911,21 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
     // -------------------------------------
     //|| !descricao.trim()) 
 
-  const handleAddOperacional = (idEstrategica, idTatica, titulo, descricao) => {
+ const handleAddOperacional = (
+  idEstrategica,
+  idTatica,
+  titulo,
+  descricao,
+  areaId,
+  areaNome
+) => {
   if (!titulo.trim()) {
     alert("Preencha o nome da Diretriz Operacional!");
+    return;
+  }
+
+  if (!areaId || !areaNome) {
+    alert("Selecione uma área para a Diretriz Operacional!");
     return;
   }
 
@@ -929,8 +941,8 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
     descricao,
     tarefas: [],
     emails,
-    areaNome: selectedAreaNome || "", // se não houver área selecionada, fica vazio
-    areaId: selectedAreaId || "",
+    areaNome,
+    areaId,
     status: "",
     time: new Date() <= new Date(projetoData.prazoPrevisto) ? "no prazo" : "atrasada",
     statusVisual: calcularStatusVisual(
@@ -959,11 +971,6 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
 
   setEstrategicas(atualizado);
   onUpdate && onUpdate({ estrategicas: atualizado });
-
-  setEmailsOperacionaisInput((prev) => ({
-    ...prev,
-    [idTatica]: "",
-  }));
 };
 
 
@@ -2302,69 +2309,25 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
               marginBottom:"20px"
             }}
           >
-  {/* Áreas */}
-  <Box sx={{ flex: 1, minWidth: "300px", marginTop: "10px" }}>
-    <fieldset style={{ 
-      borderRadius: "8px", 
-      borderColor: "#c4c4c4", 
-      borderWidth: "1px",
-      padding: "18px 8px",
-      position: "relative",
-      display: "flex",
-      alignItems: "center",
-      height: "48px"
-    }}>
-      <legend style={{ 
-        color: "#757575", 
-        fontSize: "0.70rem", 
-        padding: "0 4px",
-      }}>
-        Áreas Responsáveis
-      </legend>
-
-      <Select
-        multiple
-        displayEmpty
-        value={areasPorId[estrategica.id] || []}
-        onChange={(event) => {
-          const value = event.target.value;
-          setAreasPorId((prev) => ({
-            ...prev,
-            [estrategica.id]: value,
-          }));
-        }}
-        renderValue={(selected) =>
-          selected.length === 0
-            ? <span style={{ color: "#757575", fontSize: "0.85rem" }}>Selecione as áreas responsáveis</span>
-            : selected
-                .map((id) => areas.find((area) => area.id === id)?.nome || "Desconhecida")
-                .join(", ")
-        }
-        fullWidth
-        sx={{ 
-          backgroundColor: "transparent", 
-          border: "none",
-          height: "100%",
-          '& .MuiOutlinedInput-notchedOutline': {
-            border: 'none'
-          },
-          '& .MuiSelect-select': {
-            padding: "4px",
-            display: "flex",
-            alignItems: "center",
-          }
-        }}
-      >
-        {areas.map((area) => (
-          <MenuItem key={area.id} value={area.id}>
-            <Checkbox checked={(areasPorId[estrategica.id] || []).includes(area.id)} />
-            <ListItemText primary={area.nome} />
-          </MenuItem>
-        ))}
-      </Select>
-    </fieldset>
-  </Box>
-
+  
+{/* Áreas */}
+  <Box
+  sx={{
+    marginTop: "17px",
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    padding: "18px 8px",
+    px: 2,
+    borderRadius: "8px", 
+    height: "48px",
+    border: "1px solid rgba(0, 0, 0, 0.23)",
+  }}
+>
+  <Typography sx={{ color: estrategica.areaNome ? "#312783" : "#999", fontWeight: 600 }}>
+    {estrategica.areaNome || "Área responsável não definida"}
+  </Typography>
+</Box>
 
 
 
@@ -3126,65 +3089,32 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
   <Box sx={{ display: 'flex', gap: 2, width: '100%', marginTop: "10px" }}>
     {/* Áreas */}
     <Box sx={{ flex: 1, minWidth: "300px" }}>
-    <fieldset style={{ 
-      borderRadius: "8px", 
-      borderColor: "#c4c4c4", 
-      borderWidth: "1px",
-      padding: "18px 8px",
-      position: "relative",
-      display: "flex",
-      alignItems: "center",
-      height: "48px"
-    }}>
-      <legend style={{ 
-        color: "#757575", 
-        fontSize: "0.75rem", 
-        padding: "0 4px",
-      }}>
-        Áreas Responsáveis
-      </legend>
 
-      <Select
-        multiple
-        value={areasTaticasPorId[tatica.id] || []}
-        onChange={(event) => {
-          const value = event.target.value;
-          setAreasTaticasPorId((prev) => ({
-            ...prev,
-            [tatica.id]: value,
-          }));
-        }}
-        displayEmpty
-        fullWidth
-        sx={{ 
-          backgroundColor: "transparent", 
-          border: "none",
-          height: "100%",
-          '& .MuiOutlinedInput-notchedOutline': {
-            border: 'none'
-          },
-          '& .MuiSelect-select': {
-            padding: "4px",
-            display: "flex",
-            alignItems: "center",
-          }
-        }}
-        renderValue={(selected) =>
-          selected.length === 0
-            ? <span style={{ color: "#757575", fontSize: "0.85rem" }}>Selecione as áreas responsáveis</span>
-            : selected
-                .map((id) => areas.find((area) => area.id === id)?.nome || 'Desconhecida')
-                .join(', ')
-        }
-      >
-        {areas.map((area) => (
-          <MenuItem key={area.id} value={area.id}>
-            <Checkbox checked={(areasTaticasPorId[tatica.id] || []).includes(area.id)} />
-            <ListItemText primary={area.nome} />
-          </MenuItem>
-        ))}
-      </Select>
-    </fieldset>
+       {/* Áreas */}
+  <Box sx={{ flex: 1, minWidth: "300px" }}>
+  <Box
+  sx={{
+    marginTop: "8px",
+    width: "100%",
+    minHeight: "47px",
+    display: "flex",
+    alignItems: "center",
+    px: 2,
+    borderRadius: "8px",
+    border: "1px solid rgba(0, 0, 0, 0.23)",
+  }}
+>
+  <Typography
+    sx={{
+      color: tatica.areaNome ? "#4caf50" : "#999",
+      fontWeight: 600,
+    }}
+  >
+    {tatica.areaNome || "Área responsável não definida"}
+  </Typography>
+</Box>
+</Box>
+    
   </Box>
 
 
@@ -3373,18 +3303,74 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
                       >
                         Diretriz Operacional
                       </Typography>
+
+
+                      {/* ============================ FILTRO OPERACIONAL ============================ */}
+
+                    <Box sx={{ flex: 1, minWidth: "250px", maxWidth: "300px", marginLeft: "20px" }}>
+                      <Select
+                        fullWidth
+                        displayEmpty
+                        value={areasSelecionadasOperacionalPorTatica[tatica.id]?.id || ""}
+                        onChange={(event) => {
+                          const id = event.target.value;
+                          const nome = areas.find((area) => area.id === id)?.nome || "";
+
+                          setAreasSelecionadasOperacionalPorTatica((prev) => ({
+                            ...prev,
+                            [tatica.id]: { id, nome },
+                          }));
+                        }}
+                        renderValue={(selected) => {
+                          if (!selected) {
+                            return <em>Selecione Operacionais por áreas</em>;
+                          }
+
+                          const nome = areas.find((area) => area.id === selected)?.nome;
+                          return nome || "Desconhecida";
+                        }}
+                        sx={{
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "transparent",
+                          },
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "transparent",
+                          },
+                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "transparent",
+                          },
+                          backgroundColor: "#f44336",
+                          borderRadius: "4px",
+                          color: "#fff",
+                        }}
+                      >
+                        <MenuItem disabled value="">
+                          <em>Selecione Operacionais por áreas</em>
+                        </MenuItem>
+
+                        {areas.map((area) => (
+                          <MenuItem key={area.id} value={area.id}>
+                            <ListItemText primary={area.nome} />
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </Box>
+                   {/* ========================================================================= */}
                     </Box>
 
                     
 
                     {/* Form para adicionar Operacional */}
                     <NovaOperacionalForm
-                      onAdd={(titulo, desc) =>
+                      areas={areas}
+                      onAdd={(titulo, desc, areaId, areaNome) =>
                         handleAddOperacional(
                           estrategica.id,
                           tatica.id,
                           titulo,
-                          desc
+                          desc,
+                          areaId,
+                          areaNome
                         )
                       }
                     />
@@ -3496,7 +3482,16 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
                     
 
                     {/* Lista de Operacionais */}
-                    {(tatica.operacionais || []).map((operacional) => (
+                    {(tatica.operacionais || [])
+                      .filter((operacional) => {
+                        const areaSelecionada =
+                          areasSelecionadasOperacionalPorTatica[tatica.id]?.nome;
+
+                        if (!areaSelecionada) return false;
+
+                        return operacional.areaNome === areaSelecionada;
+                      })
+                      .map((operacional) => (
                       <Accordion
                         key={operacional.id}
                         disableGutters
@@ -3955,65 +3950,30 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
     marginBottom: "10px",
   }}
 >
-  {/* Áreas Responsáveis */}
-  <Box sx={{ flex: 1, minWidth: "200px" }}>
-    <fieldset style={{
-      borderRadius: "8px",
-      borderColor: "#c4c4c4",
-      borderWidth: "1px",
-      padding: "18px 8px",
-      position: "relative",
-      display: "flex",
-      alignItems: "center",
-      height: "48px",
-      width: "100%",
-    }}>
-      <legend style={{
-        color: "#757575",
-        fontSize: "0.75rem",
-        padding: "0 4px"
-      }}>
-        Áreas Responsáveis
-      </legend>
-
-      <Select
-        multiple
-        fullWidth
-        displayEmpty
-        value={areasPorIdOperacional[operacional.id] || []}
-        onChange={(event) => {
-          const value = event.target.value;
-          setAreasPorIdOperacional((prev) => ({
-            ...prev,
-            [operacional.id]: value,
-          }));
-        }}
-        sx={{
-          backgroundColor: "transparent",
-          border: "none",
-          height: "100%",
-          '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-          '& .MuiSelect-select': {
-            padding: "4px",
-            display: "flex",
-            alignItems: "center",
-          }
-        }}
-        renderValue={(selected) =>
-          selected.length === 0
-            ? <span style={{ color: "#757575", fontSize: "0.85rem" }}>Selecione as áreas responsáveis</span>
-            : selected.map((id) => areas.find((area) => area.id === id)?.nome || 'Desconhecida').join(', ')
-        }
-      >
-        {areas.map((area) => (
-          <MenuItem key={area.id} value={area.id}>
-            <Checkbox checked={(areasPorIdOperacional[operacional.id] || []).includes(area.id)} />
-            <ListItemText primary={area.nome} />
-          </MenuItem>
-        ))}
-      </Select>
-    </fieldset>
-  </Box>
+       {/* Áreas */}
+  <Box sx={{ flex: 1, minWidth: "300px" }}>
+  <Box
+  sx={{
+    marginTop: "8px",
+    width: "100%",
+    minHeight: "47px",
+    display: "flex",
+    alignItems: "center",
+    px: 2,
+    borderRadius: "8px",
+    border: "1px solid rgba(0, 0, 0, 0.23)",
+  }}
+>
+  <Typography
+    sx={{
+      color: operacional.areaNome ? "#f44336" : "#999",
+      fontWeight: 600,
+    }}
+  >
+    {operacional.areaNome || "Área responsável não definida"}
+  </Typography>
+</Box>
+</Box>
 
   {/* Unidades */}
   <Box sx={{ flex: 1, minWidth: "200px" }}>
@@ -4955,33 +4915,68 @@ function NovaTaticaForm({ areas, onAdd }) {
 
 
 
-function NovaOperacionalForm({ onAdd }) {
+function NovaOperacionalForm({ areas, onAdd }) {
   const [titulo, setTitulo] = useState("");
   const [desc, setDesc] = useState("");
+  const [selectedArea, setSelectedArea] = useState("");
 
   return (
     <Box display="flex" flexDirection="column" gap={2} mb={2}>
-      <TextField
-        label="Nome da Diretriz Operacional..."
-        value={titulo}
-        onChange={(e) => setTitulo(e.target.value)}
-        fullWidth
-      />
-      {/** 
-      <TextField
-        label="Descrição da Diretriz Operacional..."
-        value={desc}
-        onChange={(e) => setDesc(e.target.value)}
-        fullWidth
-        multiline
-        rows={2}
-      />
-      */}
+      <Box display="flex" flexDirection="row" gap={2} flexWrap="wrap">
+        <Box sx={{ flex: 1, minWidth: "300px" }}>
+          <TextField
+            label="Nome da Diretriz Operacional..."
+            value={titulo}
+            onChange={(e) => setTitulo(e.target.value)}
+            fullWidth
+          />
+        </Box>
+
+        <Box sx={{ flex: 1, minWidth: "200px", maxWidth: "300px" }}>
+          <Select
+            value={selectedArea}
+            onChange={(event) => setSelectedArea(event.target.value)}
+            displayEmpty
+            fullWidth
+            sx={{ backgroundColor: "transparent" }}
+            renderValue={(selected) =>
+              !selected
+                ? "Selecione uma área para Operacional"
+                : areas.find((area) => area.id === selected)?.nome || "Desconhecida"
+            }
+          >
+            <MenuItem disabled value="">
+              <em>Selecione uma área responsável</em>
+            </MenuItem>
+
+            {areas.map((area) => (
+              <MenuItem key={area.id} value={area.id}>
+                <ListItemText primary={area.nome} />
+              </MenuItem>
+            ))}
+          </Select>
+        </Box>
+      </Box>
+
       <Button
         onClick={() => {
-          onAdd(titulo, desc);
+          if (!titulo.trim()) {
+            alert("Preencha o nome da Diretriz Operacional!");
+            return;
+          }
+
+          if (!selectedArea) {
+            alert("Selecione uma área responsável!");
+            return;
+          }
+
+          const selectedAreaObj = areas.find((a) => a.id === selectedArea);
+
+          onAdd(titulo, desc, selectedArea, selectedAreaObj?.nome || "");
+
           setTitulo("");
           setDesc("");
+          setSelectedArea("");
         }}
         disableRipple
         sx={{
@@ -5001,3 +4996,4 @@ function NovaOperacionalForm({ onAdd }) {
     </Box>
   );
 }
+    
