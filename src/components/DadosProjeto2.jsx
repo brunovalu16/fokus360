@@ -614,12 +614,18 @@ const [tooltip, setTooltip] = useState(null);
         {/*=====================================grafico matriz===================================================== */}
 <Box
   sx={{
+    width: "440px",
+    minWidth: "440px",
+    maxWidth: "440px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    gap: 2,
+    gap: 1.5,
     position: "relative",
+    overflow: "visible",
+    flexShrink: 0,
+    marginLeft: "140px"
   }}
 >
   {tooltip && (
@@ -668,337 +674,340 @@ const [tooltip, setTooltip] = useState(null);
   {/* ÁREAS */}
   <Box
     sx={{
+      width: "440px",
       display: "grid",
       gridTemplateColumns: "130px 280px",
       alignItems: "center",
-      gap: 1.5,
+      gap: "30px",
     }}
   >
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.8 }}>
+    <Box sx={{ width: "130px", display: "flex", flexDirection: "column", gap: 0.8 }}>
       {semicirculo.map((area) => (
-        <Box key={area.areaNome} sx={{ display: "flex", alignItems: "center", gap: 0.7 }}>
+        <Box
+          key={area.areaNome}
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "10px 1fr 20px",
+            alignItems: "center",
+            gap: 0.7,
+          }}
+        >
           <Box sx={{ width: 8, height: 8, borderRadius: "50%", background: area.color }} />
-          <Typography sx={{ fontSize: "9px", color: "#667085", flex: 1 }}>{area.areaNome}</Typography>
-          <Typography sx={{ fontSize: "10px", fontWeight: 900, color: area.color }}>{area.total}</Typography>
+          <Typography sx={{ fontSize: "9px", color: "#667085", whiteSpace: "nowrap" }}>
+            {area.areaNome}
+          </Typography>
+          <Typography sx={{ fontSize: "10px", fontWeight: 900, color: area.color, textAlign: "right" }}>
+            {area.total}
+          </Typography>
         </Box>
       ))}
     </Box>
 
-    {/* COLE AQUI O SEU GRÁFICO POR ÁREAS ATUAL */}
-    {/* GRÁFICO POR ÁREAS */}
-  <Box
-    sx={{
-      position: "relative",
-      width: { xs: 190, md: 280 },
-      height: { xs: 190, md: 280 },
-      mx: "auto",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-    }}
-  >
-    <svg viewBox="0 0 320 320" width="100%" height="100%">
-      {(() => {
-        const cx = 160;
-        const cy = 160;
-        const outerR = 150;
-        const innerR = 74;
-        let startAngle = -90;
-
-        const polarToCartesian = (angle, radius) => {
-          const rad = (angle * Math.PI) / 180;
-          return {
-            x: cx + radius * Math.cos(rad),
-            y: cy + radius * Math.sin(rad),
-          };
-        };
-
-        const createSlice = (start, end) => {
-          const startOuter = polarToCartesian(start, outerR);
-          const endOuter = polarToCartesian(end, outerR);
-          const startInner = polarToCartesian(start, innerR);
-          const endInner = polarToCartesian(end, innerR);
-          const largeArcFlag = end - start > 180 ? 1 : 0;
-
-          return `
-            M ${startOuter.x} ${startOuter.y}
-            A ${outerR} ${outerR} 0 ${largeArcFlag} 1 ${endOuter.x} ${endOuter.y}
-            L ${endInner.x} ${endInner.y}
-            A ${innerR} ${innerR} 0 ${largeArcFlag} 0 ${startInner.x} ${startInner.y}
-            Z
-          `;
-        };
-
-        return semicirculo.map((area) => {
-          const sliceAngle = totalGeral > 0 ? (area.total / totalGeral) * 360 : 0;
-          const endAngle = startAngle + sliceAngle;
-          const path = createSlice(startAngle, endAngle);
-
-          const midAngle = startAngle + sliceAngle / 2;
-          const labelRadius = 94;
-          const label = polarToCartesian(midAngle, labelRadius);
-
-          startAngle = endAngle;
-
-          return (
-            <g key={area.areaNome}>
-              <path
-                d={path}
-                fill={area.color}
-                style={{
-                  cursor: "pointer",
-                  transition: "0.2s",
-                }}
-                onMouseEnter={(e) =>
-                  setTooltip({
-                    x: e.nativeEvent.offsetX,
-                    y: e.nativeEvent.offsetY,
-                    color: area.color,
-                    title: area.areaNome,
-                    items: [
-                      { label: "Estratégicas", value: area.estrategicas },
-                      { label: "Táticas", value: area.taticas },
-                      { label: "Operacionais", value: area.operacionais },
-                      { label: "Tarefas", value: area.tarefas },
-                      { label: "Total", value: area.total },
-                    ],
-                  })
-                }
-                onMouseMove={(e) =>
-                  setTooltip((prev) =>
-                    prev
-                      ? {
-                          ...prev,
-                          x: e.nativeEvent.offsetX,
-                          y: e.nativeEvent.offsetY,
-                        }
-                      : prev
-                  )
-                }
-                onMouseLeave={() => setTooltip(null)}
-              />
-
-              <text
-                x={label.x}
-                y={label.y}
-                fill="#fff"
-                fontSize="12"
-                fontWeight="900"
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fontFamily="Arial"
-              >
-                {area.total}
-              </text>
-            </g>
-          );
-        });
-      })()}
-
-      <circle cx="160" cy="160" r="74" fill="#fff" />
-    </svg>
-
     <Box
       sx={{
-        position: "absolute",
-        width: { xs: 80, md: 95 },
-        height: { xs: 80, md: 95 },
-        borderRadius: "50%",
-        background: "#fff",
+        position: "relative",
+        width: "280px",
+        height: "280px",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        flexDirection: "column",
-        textAlign: "center",
+        flexShrink: 0,
       }}
     >
-      <Typography sx={{ fontSize: { xs: "13px", md: "15px" }, fontWeight: 900, color: "#5f6368", lineHeight: 1 }}>
-        ÁREAS
-      </Typography>
+      <svg viewBox="0 0 320 320" width="280" height="280">
+        {(() => {
+          const cx = 160;
+          const cy = 160;
+          const outerR = 150;
+          const innerR = 74;
+          let startAngle = -90;
 
-      <Typography sx={{ fontSize: { xs: "15px", md: "18px" }, fontWeight: 900, color: "#5f6368", lineHeight: 1 }}>
-        {totalGeral}
-      </Typography>
+          const polarToCartesian = (angle, radius) => {
+            const rad = (angle * Math.PI) / 180;
+            return {
+              x: cx + radius * Math.cos(rad),
+              y: cy + radius * Math.sin(rad),
+            };
+          };
 
-      <Typography sx={{ fontSize: "10px", fontWeight: 700, color: "#8b8b8b", mt: 0.3 }}>
-        TOTAL DE ITENS
-      </Typography>
+          const createSlice = (start, end) => {
+            const startOuter = polarToCartesian(start, outerR);
+            const endOuter = polarToCartesian(end, outerR);
+            const startInner = polarToCartesian(start, innerR);
+            const endInner = polarToCartesian(end, innerR);
+            const largeArcFlag = end - start > 180 ? 1 : 0;
+
+            return `
+              M ${startOuter.x} ${startOuter.y}
+              A ${outerR} ${outerR} 0 ${largeArcFlag} 1 ${endOuter.x} ${endOuter.y}
+              L ${endInner.x} ${endInner.y}
+              A ${innerR} ${innerR} 0 ${largeArcFlag} 0 ${startInner.x} ${startInner.y}
+              Z
+            `;
+          };
+
+          return semicirculo.map((area) => {
+            const sliceAngle = totalGeral > 0 ? (area.total / totalGeral) * 360 : 0;
+            const endAngle = startAngle + sliceAngle;
+            const path = createSlice(startAngle, endAngle);
+
+            const midAngle = startAngle + sliceAngle / 2;
+            const labelRadius = 94;
+            const label = polarToCartesian(midAngle, labelRadius);
+
+            startAngle = endAngle;
+
+            return (
+              <g key={area.areaNome}>
+                <path
+                  d={path}
+                  fill={area.color}
+                  style={{ cursor: "pointer", transition: "0.2s" }}
+                  onMouseEnter={(e) =>
+                    setTooltip({
+                      x: e.nativeEvent.offsetX + 160,
+                      y: e.nativeEvent.offsetY,
+                      color: area.color,
+                      title: area.areaNome,
+                      items: [
+                        { label: "Estratégicas", value: area.estrategicas },
+                        { label: "Táticas", value: area.taticas },
+                        { label: "Operacionais", value: area.operacionais },
+                        { label: "Tarefas", value: area.tarefas },
+                        { label: "Total", value: area.total },
+                      ],
+                    })
+                  }
+                  onMouseMove={(e) =>
+                    setTooltip((prev) =>
+                      prev
+                        ? { ...prev, x: e.nativeEvent.offsetX + 160, y: e.nativeEvent.offsetY }
+                        : prev
+                    )
+                  }
+                  onMouseLeave={() => setTooltip(null)}
+                />
+
+                <text
+                  x={label.x}
+                  y={label.y}
+                  fill="#fff"
+                  fontSize="12"
+                  fontWeight="900"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontFamily="Arial"
+                >
+                  {area.total}
+                </text>
+              </g>
+            );
+          });
+        })()}
+
+        <circle cx="160" cy="160" r="74" fill="#fff" />
+      </svg>
+
+      <Box
+        sx={{
+          position: "absolute",
+          width: 95,
+          height: 95,
+          borderRadius: "50%",
+          background: "#fff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+          textAlign: "center",
+        }}
+      >
+        <Typography sx={{ fontSize: "15px", fontWeight: 900, color: "#5f6368", lineHeight: 1 }}>
+          ÁREAS
+        </Typography>
+
+        <Typography sx={{ fontSize: "18px", fontWeight: 900, color: "#5f6368", lineHeight: 1 }}>
+          {totalGeral}
+        </Typography>
+
+        <Typography sx={{ fontSize: "10px", fontWeight: 700, color: "#8b8b8b", mt: 0.3 }}>
+          TOTAL DE ITENS
+        </Typography>
+      </Box>
     </Box>
   </Box>
-  </Box>
 
-  
-
-  
-
-  
- {/* DIRETRIZES */}
+  {/* DIRETRIZES */}
   <Box
     sx={{
+      width: "440px",
       display: "grid",
       gridTemplateColumns: "130px 230px",
       alignItems: "center",
-      gap: 1.5,
+      gap: "30px",
       mt: -1,
     }}
   >
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.8 }}>
+    <Box sx={{ width: "130px", display: "flex", flexDirection: "column", gap: 0.8 }}>
       {[
         ["Estratégicas", totalEstrategicasGrafico, "#ff3f8e"],
         ["Táticas", totalTaticasGrafico, "#63bd00"],
         ["Operacionais", totalOperacionaisGrafico, "#009fe3"],
         ["Tarefas", totalTarefasGrafico, "#ffb000"],
       ].map(([label, value, color]) => (
-        <Box key={label} sx={{ display: "flex", alignItems: "center", gap: 0.7 }}>
+        <Box
+          key={label}
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "10px 1fr 20px",
+            alignItems: "center",
+            gap: 0.7,
+          }}
+        >
           <Box sx={{ width: 8, height: 8, borderRadius: "50%", background: color }} />
-          <Typography sx={{ fontSize: "9px", color: "#667085", flex: 1 }}>{label}</Typography>
-          <Typography sx={{ fontSize: "10px", fontWeight: 900, color }}>{value}</Typography>
+          <Typography sx={{ fontSize: "9px", color: "#667085", whiteSpace: "nowrap" }}>
+            {label}
+          </Typography>
+          <Typography sx={{ fontSize: "10px", fontWeight: 900, color, textAlign: "right" }}>
+            {value}
+          </Typography>
         </Box>
       ))}
     </Box>
 
-    {/* COLE AQUI O SEU GRÁFICO POR DIRETRIZES ATUAL */}
-    {/* GRÁFICO POR DIRETRIZES */}
-  <Box
-    sx={{
-      position: "relative",
-      width: { xs: 170, md: 230 },
-      height: { xs: 170, md: 230 },
-      mx: "auto",
-      mt: -1,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-    }}
-  >
-    <svg viewBox="0 0 320 320" width="100%" height="100%">
-      {(() => {
-        const cx = 160;
-        const cy = 160;
-        const outerR = 135;
-        const innerR = 82;
-        let startAngle = -90;
-
-        const polarToCartesian = (angle, radius) => {
-          const rad = (angle * Math.PI) / 180;
-          return {
-            x: cx + radius * Math.cos(rad),
-            y: cy + radius * Math.sin(rad),
-          };
-        };
-
-        const createSlice = (start, end) => {
-          const startOuter = polarToCartesian(start, outerR);
-          const endOuter = polarToCartesian(end, outerR);
-          const startInner = polarToCartesian(start, innerR);
-          const endInner = polarToCartesian(end, innerR);
-          const largeArcFlag = end - start > 180 ? 1 : 0;
-
-          return `
-            M ${startOuter.x} ${startOuter.y}
-            A ${outerR} ${outerR} 0 ${largeArcFlag} 1 ${endOuter.x} ${endOuter.y}
-            L ${endInner.x} ${endInner.y}
-            A ${innerR} ${innerR} 0 ${largeArcFlag} 0 ${startInner.x} ${startInner.y}
-            Z
-          `;
-        };
-
-        return graficoNiveis.map((item) => {
-          const sliceAngle = totalGrafico > 0 ? (item.total / totalGrafico) * 360 : 0;
-          const endAngle = startAngle + sliceAngle;
-          const path = createSlice(startAngle, endAngle);
-
-          const midAngle = startAngle + sliceAngle / 2;
-          const labelRadius = 109;
-          const label = polarToCartesian(midAngle, labelRadius);
-
-          startAngle = endAngle;
-
-          return (
-            <g key={item.nome}>
-              <path
-                d={path}
-                fill={item.color}
-                style={{
-                  cursor: "pointer",
-                  transition: "0.2s",
-                }}
-                onMouseEnter={(e) =>
-                  setTooltip({
-                    x: e.nativeEvent.offsetX,
-                    y: e.nativeEvent.offsetY + 280,
-                    color: item.color,
-                    title: item.nome,
-                    items: [
-                      { label: "Quantidade", value: item.total },
-                      {
-                        label: "Participação",
-                        value: `${totalGrafico > 0 ? Math.round((item.total / totalGrafico) * 100) : 0}%`,
-                      },
-                    ],
-                  })
-                }
-                onMouseMove={(e) =>
-                  setTooltip((prev) =>
-                    prev
-                      ? {
-                          ...prev,
-                          x: e.nativeEvent.offsetX,
-                          y: e.nativeEvent.offsetY + 280,
-                        }
-                      : prev
-                  )
-                }
-                onMouseLeave={() => setTooltip(null)}
-              />
-
-              <text
-                x={label.x}
-                y={label.y}
-                fill="#fff"
-                fontSize="12"
-                fontWeight="900"
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fontFamily="Arial"
-              >
-                {item.total}
-              </text>
-            </g>
-          );
-        });
-      })()}
-
-      <circle cx="160" cy="160" r="82" fill="#fff" />
-    </svg>
-
     <Box
       sx={{
-        position: "absolute",
-        width: { xs: 78, md: 92 },
-        height: { xs: 78, md: 92 },
-        borderRadius: "50%",
-        background: "#fff",
+        position: "relative",
+        width: "230px",
+        height: "230px",
+        mt: -1,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        flexDirection: "column",
-        textAlign: "center",
+        flexShrink: 0,
       }}
     >
-      <Typography sx={{ fontSize: { xs: "9px", md: "11px" }, fontWeight: 900, color: "#5f6368", lineHeight: 1 }}>
-        DIRETRIZES
-      </Typography>
+      <svg viewBox="0 0 320 320" width="230" height="230">
+        {(() => {
+          const cx = 160;
+          const cy = 160;
+          const outerR = 135;
+          const innerR = 82;
+          let startAngle = -90;
 
-      <Typography sx={{ fontSize: { xs: "17px", md: "22px" }, fontWeight: 900, color: "#5f6368", lineHeight: 1 }}>
-        {totalGrafico}
-      </Typography>
+          const polarToCartesian = (angle, radius) => {
+            const rad = (angle * Math.PI) / 180;
+            return {
+              x: cx + radius * Math.cos(rad),
+              y: cy + radius * Math.sin(rad),
+            };
+          };
 
-      <Typography sx={{ fontSize: "10px", fontWeight: 700, color: "#8b8b8b", mt: 0.3 }}>
-        TOTAL GERAL
-      </Typography>
+          const createSlice = (start, end) => {
+            const startOuter = polarToCartesian(start, outerR);
+            const endOuter = polarToCartesian(end, outerR);
+            const startInner = polarToCartesian(start, innerR);
+            const endInner = polarToCartesian(end, innerR);
+            const largeArcFlag = end - start > 180 ? 1 : 0;
+
+            return `
+              M ${startOuter.x} ${startOuter.y}
+              A ${outerR} ${outerR} 0 ${largeArcFlag} 1 ${endOuter.x} ${endOuter.y}
+              L ${endInner.x} ${endInner.y}
+              A ${innerR} ${innerR} 0 ${largeArcFlag} 0 ${startInner.x} ${startInner.y}
+              Z
+            `;
+          };
+
+          return graficoNiveis.map((item) => {
+            const sliceAngle = totalGrafico > 0 ? (item.total / totalGrafico) * 360 : 0;
+            const endAngle = startAngle + sliceAngle;
+            const path = createSlice(startAngle, endAngle);
+
+            const midAngle = startAngle + sliceAngle / 2;
+            const labelRadius = 109;
+            const label = polarToCartesian(midAngle, labelRadius);
+
+            startAngle = endAngle;
+
+            return (
+              <g key={item.nome}>
+                <path
+                  d={path}
+                  fill={item.color}
+                  style={{ cursor: "pointer", transition: "0.2s" }}
+                  onMouseEnter={(e) =>
+                    setTooltip({
+                      x: e.nativeEvent.offsetX + 160,
+                      y: e.nativeEvent.offsetY + 285,
+                      color: item.color,
+                      title: item.nome,
+                      items: [
+                        { label: "Quantidade", value: item.total },
+                        {
+                          label: "Participação",
+                          value: `${totalGrafico > 0 ? Math.round((item.total / totalGrafico) * 100) : 0}%`,
+                        },
+                      ],
+                    })
+                  }
+                  onMouseMove={(e) =>
+                    setTooltip((prev) =>
+                      prev
+                        ? { ...prev, x: e.nativeEvent.offsetX + 160, y: e.nativeEvent.offsetY + 285 }
+                        : prev
+                    )
+                  }
+                  onMouseLeave={() => setTooltip(null)}
+                />
+
+                <text
+                  x={label.x}
+                  y={label.y}
+                  fill="#fff"
+                  fontSize="12"
+                  fontWeight="900"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontFamily="Arial"
+                >
+                  {item.total}
+                </text>
+              </g>
+            );
+          });
+        })()}
+
+        <circle cx="160" cy="160" r="82" fill="#fff" />
+      </svg>
+
+      <Box
+        sx={{
+          position: "absolute",
+          width: 92,
+          height: 92,
+          borderRadius: "50%",
+          background: "#fff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+          textAlign: "center",
+        }}
+      >
+        <Typography sx={{ fontSize: "11px", fontWeight: 900, color: "#5f6368", lineHeight: 1 }}>
+          DIRETRIZES
+        </Typography>
+
+        <Typography sx={{ fontSize: "22px", fontWeight: 900, color: "#5f6368", lineHeight: 1 }}>
+          {totalGrafico}
+        </Typography>
+
+        <Typography sx={{ fontSize: "10px", fontWeight: 700, color: "#8b8b8b", mt: 0.3 }}>
+          TOTAL GERAL
+        </Typography>
+      </Box>
     </Box>
-  </Box>
   </Box>
 </Box>
 
