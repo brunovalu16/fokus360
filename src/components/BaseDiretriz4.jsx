@@ -74,6 +74,8 @@
 
      const [selectedArea, setSelectedArea] = useState("");
 
+     const [areaFiltroEstrategica, setAreaFiltroEstrategica] = useState("");
+
 
     const [areasResponsaveistaticas, setAreasResponsaveistaticas] = useState([]);
 
@@ -1570,11 +1572,61 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
     // -------------------------------------
     return (
       <Box>
+<Box display="flex" alignItems="center" marginBottom="20px">
+  <SubdirectoryArrowRightIcon
+    sx={{ fontSize: 30, color: "#312783", mr: 1 }}
+  />
 
-      <Typography variant="body2" sx={{ color: "#f2f0f0", mb: 2 }}>
-        Data atual: {getDataHojeFormatada().split("-").reverse().join("/")}
-      </Typography>
+  <Typography
+    variant="h6"
+    fontWeight="bold"
+    sx={{ color: "#312783", marginTop: 1 }}
+  >
+    Filtrar Estratégicas por Área
+  </Typography>
 
+  <Box sx={{ flex: 1, minWidth: "250px", maxWidth: "300px", marginLeft: "20px" }}>
+    <Select
+      fullWidth
+      displayEmpty
+      value={areaFiltroEstrategica}
+      onChange={(event) => setAreaFiltroEstrategica(event.target.value)}
+      renderValue={(selected) => {
+        if (!selected) {
+          return <em>Selecione Estratégicas por área</em>;
+        }
+
+        const nome = areas.find((area) => area.id === selected)?.nome;
+        return nome || "Desconhecida";
+      }}
+      sx={{
+        "& .MuiOutlinedInput-notchedOutline": {
+          borderColor: "transparent",
+        },
+        "&:hover .MuiOutlinedInput-notchedOutline": {
+          borderColor: "transparent",
+        },
+        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+          borderColor: "transparent",
+        },
+        backgroundColor: "#312783",
+        borderRadius: "4px",
+        color: "#fff",
+      }}
+    >
+      <MenuItem value="">
+        <em>Todas as Estratégicas</em>
+      </MenuItem>
+
+      {areas.map((area) => (
+        <MenuItem key={area.id} value={area.id}>
+          <ListItemText primary={area.nome} />
+        </MenuItem>
+      ))}
+    </Select>
+  </Box>
+</Box>
+      
         {/* ***************************** */}
         {/* Form para criar EstratÉgica */}
         {/* ***************************** */}
@@ -1881,7 +1933,17 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
         {/* ************************************ */}
         {/* Accordion p/ cada Diretriz Estratégica */}
         {/* ************************************ */}
-        {estrategicas.map((estrategica) => {
+        {estrategicas
+  .filter((estrategica) => {
+    if (!areaFiltroEstrategica) return false;
+
+    const areaSelecionada = areas.find(
+      (area) => area.id === areaFiltroEstrategica
+    )?.nome;
+
+    return estrategica.areaNome === areaSelecionada;
+  })
+  .map((estrategica) => {
           const areaSelecionada = areasSelecionadasPorEstrategica[estrategica.id]?.nome;
 
           const taticasFiltradas = (estrategica.taticas || []).filter(

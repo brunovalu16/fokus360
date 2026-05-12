@@ -625,7 +625,6 @@ const [tooltip, setTooltip] = useState(null);
     position: "relative",
     overflow: "visible",
     flexShrink: 0,
-    marginLeft: "150px"
   }}
 >
   {tooltip && (
@@ -679,7 +678,6 @@ const [tooltip, setTooltip] = useState(null);
       gridTemplateColumns: "130px 280px",
       alignItems: "center",
       gap: "30px",
-      width: "100%",
     }}
   >
     <Box sx={{ width: "130px", display: "flex", flexDirection: "column", gap: 0.8 }}>
@@ -845,9 +843,8 @@ const [tooltip, setTooltip] = useState(null);
       display: "grid",
       gridTemplateColumns: "130px 230px",
       alignItems: "center",
-      gap: "55px",
+      gap: "30px",
       mt: -1,
-      width: "100%",
     }}
   >
     <Box sx={{ width: "130px", display: "flex", flexDirection: "column", gap: 0.8 }}>
@@ -1019,19 +1016,7 @@ const [tooltip, setTooltip] = useState(null);
 
         {/*======================================CAIXAS LATERAIS==================================== */}
 
-        <Box
-  sx={{
-    width: "620px",
-    minWidth: "620px",
-    maxWidth: "620px",
-    display: "flex",
-    flexDirection: "column",
-    gap: 2,
-    marginTop: "-40px",
-    flexShrink: 0,
-    marginRight: "70px"
-  }}
->
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, marginTop: "-40px" }}>
   {dados.map((area) => {
     const cfg = configAreas[area.areaNome] || {
       color: "#7b2cff",
@@ -1053,6 +1038,8 @@ const [tooltip, setTooltip] = useState(null);
           p: 3.5,
           pl: 3,
           boxShadow: "0 8px 18px rgba(15,23,42,0.05)",
+          marginLeft: "-150px",
+          marginRight: "110px",
           overflow: "hidden",
 
           "&::before": {
