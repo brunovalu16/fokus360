@@ -740,14 +740,14 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
     // -------------------------------------
     //|| !descEstrategica.trim()
 
-   const handleAddEstrategica = () => {
+  const handleAddEstrategica = () => {
   if (!novaEstrategica.trim()) {
     alert("Preencha o nome da Diretriz Estratégica!");
     return;
   }
 
-  if (!selectedArea) {
-    alert("Selecione uma área responsável para a Estratégica!");
+  if (!selectedArea || selectedArea.length === 0) {
+    alert("Selecione uma ou mais áreas responsáveis para a Estratégica!");
     return;
   }
 
@@ -756,7 +756,11 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
     .map((email) => email.trim())
     .filter((email) => email !== "");
 
-  const areaSelecionadaObj = areas.find((a) => a.id === selectedArea);
+  const areasSelecionadasObjs = areas.filter((area) =>
+    selectedArea.includes(area.id)
+  );
+
+  const areaNomes = areasSelecionadasObjs.map((area) => area.nome);
 
   const item = {
     id: Date.now().toString(),
@@ -765,16 +769,29 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
     emails,
     taticas: [],
     status: "",
+    statusVisual: "",
+    time: "",
+    criacao: "",
     finalizacao: "",
     createdAt: new Date().toISOString(),
-    areaNome: areaSelecionadaObj?.nome || "", // ✅ nome da área
+
+    areaId: selectedArea,
+    areaNome: areaNomes.join(", "),
+    areaNomes,
+    areasResponsaveis: selectedArea,
+
+    unidades: [],
+    subareas: [],
   };
 
   const atualizado = [...estrategicas, item];
+
   setEstrategicas(atualizado);
+  onUpdate && onUpdate({ estrategicas: atualizado });
+
   setNovaEstrategica("");
   setDescEstrategica("");
-  setSelectedArea(""); // limpa a seleção após adicionar
+  setSelectedArea([]);
 };
 
     
@@ -814,14 +831,14 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
     // -------------------------------------
     //|| !descricao.trim()
 
- const handleAddTatica = async (estrategicaId, titulo, descricao, areaId, areaNome) => {
-  if (!areaId || !areaNome) {
-    alert("Selecione uma área antes de adicionar uma Tática.");
+const handleAddTatica = async (estrategicaId, titulo, descricao, areaId, areaNome) => {
+  if (!titulo || !titulo.trim()) {
+    alert("Nome da tática é obrigatório.");
     return;
   }
 
-  if (!titulo || typeof titulo !== "string" || !titulo.trim()) {
-    alert("Nome da tática é obrigatório.");
+  if (!areaId || !areaNome) {
+    alert("Selecione uma área antes de adicionar uma Tática.");
     return;
   }
 
@@ -831,34 +848,29 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
     descricao,
     operacionais: [],
     emails: [],
-    areaNome: areaNome,
-    status: "nao_iniciada",
-    statusVisual: "nao_iniciada",
+    areaId,
+    areaNome,
+    areasResponsaveis: [areaId],
+    status: "",
+    statusVisual: "",
+    time: "",
+    criacao: "",
+    finalizacao: "",
     createdAt: new Date().toISOString(),
+    unidades: [],
   };
 
-  const atualizado = estrategicas.map((est) => {
-    if (est.id !== estrategicaId) return est;
-
-    return {
-      ...est,
-      taticas: [...est.taticas, novaTatica],
-    };
-  });
+  const atualizado = estrategicas.map((est) =>
+    est.id !== estrategicaId
+      ? est
+      : {
+          ...est,
+          taticas: [...(est.taticas || []), novaTatica],
+        }
+  );
 
   setEstrategicas(atualizado);
   onUpdate && onUpdate({ estrategicas: atualizado });
-
-  try {
-    const projetoRef = doc(db, "projetos", projectId);
-    await updateDoc(projetoRef, {
-      estrategicas: atualizado,
-      updatedAt: new Date(),
-    });
-    console.log("✅ Tática salva no Firestore.");
-  } catch (error) {
-    console.error("❌ Erro ao salvar tática:", error);
-  }
 };
 
 
@@ -913,7 +925,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
     // -------------------------------------
     //|| !descricao.trim()) 
 
- const handleAddOperacional = (
+const handleAddOperacional = (
   idEstrategica,
   idTatica,
   titulo,
@@ -931,50 +943,43 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
     return;
   }
 
-  const emails =
-    (emailsOperacionaisInput[idTatica] || "")
-      .split(",")
-      .map((email) => email.trim())
-      .filter((email) => email !== "");
-
   const novaOperacional = {
     id: Date.now().toString(),
     titulo,
     descricao,
     tarefas: [],
-    emails,
-    areaNome,
+    emails: [],
     areaId,
+    areaNome,
+    areasResponsaveis: [areaId],
+    unidades: [],
     status: "",
-    time: new Date() <= new Date(projetoData.prazoPrevisto) ? "no prazo" : "atrasada",
-    statusVisual: calcularStatusVisual(
-      projetoData.prazoPrevisto,
-      new Date().toISOString(),
-      ""
-    ),
+    statusVisual: "",
+    time: "",
+    criacao: "",
+    finalizacao: "",
     createdAt: new Date().toISOString(),
   };
 
-  const atualizado = estrategicas.map((estrategica) => {
-    if (estrategica.id !== idEstrategica) return estrategica;
-
-    return {
-      ...estrategica,
-      taticas: estrategica.taticas.map((tatica) => {
-        if (tatica.id !== idTatica) return tatica;
-
-        return {
-          ...tatica,
-          operacionais: [...(tatica.operacionais || []), novaOperacional],
-        };
-      }),
-    };
-  });
+  const atualizado = estrategicas.map((est) =>
+    est.id !== idEstrategica
+      ? est
+      : {
+          ...est,
+          taticas: est.taticas.map((tat) =>
+            tat.id !== idTatica
+              ? tat
+              : {
+                  ...tat,
+                  operacionais: [...(tat.operacionais || []), novaOperacional],
+                }
+          ),
+        }
+  );
 
   setEstrategicas(atualizado);
   onUpdate && onUpdate({ estrategicas: atualizado });
 };
-
 
     
 
@@ -1614,9 +1619,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
         color: "#fff",
       }}
     >
-      <MenuItem value="">
-        <em>Todas as Estratégicas</em>
-      </MenuItem>
+     
 
       {areas.map((area) => (
         <MenuItem key={area.id} value={area.id}>
@@ -1653,22 +1656,28 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
             {/* Select menor ao lado */}
             <Box sx={{ flex: 1, minWidth: "200px" }}>
               <Select
-                value={selectedArea}
-                onChange={(event) => setSelectedArea(event.target.value)}
+                multiple
+                value={Array.isArray(selectedArea) ? selectedArea : []}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setSelectedArea(typeof value === "string" ? value.split(",") : value);
+                }}
                 displayEmpty
                 fullWidth
                 sx={{ backgroundColor: "transparent" }}
-                renderValue={(selected) =>
-                  !selected
-                    ? "Selecione uma área para Estratégica"
-                    : areas.find((area) => area.id === selected)?.nome || "Desconhecida"
-                }
+                renderValue={(selected) => {
+                  if (!selected || selected.length === 0) {
+                    return "Selecione uma ou mais áreas para Estratégica";
+                  }
+
+                  return selected
+                    .map((id) => areas.find((area) => area.id === id)?.nome || "Desconhecida")
+                    .join(", ");
+                }}
               >
-                <MenuItem disabled value="">
-                  <em>Selecione uma área responsável</em>
-                </MenuItem>
                 {areas.map((area) => (
                   <MenuItem key={area.id} value={area.id}>
+                    <Checkbox checked={(selectedArea || []).includes(area.id)} />
                     <ListItemText primary={area.nome} />
                   </MenuItem>
                 ))}
@@ -1941,7 +1950,12 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
       (area) => area.id === areaFiltroEstrategica
     )?.nome;
 
-    return estrategica.areaNome === areaSelecionada;
+    return (
+  estrategica.areasResponsaveis?.includes(areaFiltroEstrategica) ||
+  estrategica.areaId?.includes?.(areaFiltroEstrategica) ||
+  estrategica.areaNomes?.includes(areaSelecionada) ||
+  estrategica.areaNome?.split(",").map((a) => a.trim()).includes(areaSelecionada)
+);
   })
   .map((estrategica) => {
           const areaSelecionada = areasSelecionadasPorEstrategica[estrategica.id]?.nome;
@@ -4878,7 +4892,7 @@ export default BaseDiretriz4;
 function NovaTaticaForm({ areas, onAdd }) {
   const [titulo, setTitulo] = useState("");
   const [desc, setDesc] = useState("");
-  const [selectedArea, setSelectedArea] = useState("");
+  const [selectedArea, setSelectedArea] = useState([]);
 
   return (
     <Box display="flex" flexDirection="column" gap={2} mb={2}>
@@ -4980,7 +4994,7 @@ function NovaTaticaForm({ areas, onAdd }) {
 function NovaOperacionalForm({ areas, onAdd }) {
   const [titulo, setTitulo] = useState("");
   const [desc, setDesc] = useState("");
-  const [selectedArea, setSelectedArea] = useState("");
+  const [selectedArea, setSelectedArea] = useState([]);
 
   return (
     <Box display="flex" flexDirection="column" gap={2} mb={2}>

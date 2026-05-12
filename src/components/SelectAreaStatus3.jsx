@@ -8,10 +8,21 @@ import React, { useMemo } from "react";
 
 const SelectAreaStatus3 = ({ estrategica, areas, value, onChangeArea }) => {
   const taticasDaArea = useMemo(() => {
-    return estrategica.taticas.filter(
-      (t) => value && t.areaNome?.toLowerCase() === value.toLowerCase()
+  if (!value) return [];
+
+  return (estrategica.taticas || []).filter((t) => {
+    return (
+      t.areaNome?.toLowerCase() === value.toLowerCase() ||
+      t.areaNomes?.some?.(
+        (nome) => nome?.toLowerCase() === value.toLowerCase()
+      ) ||
+      t.areasResponsaveis?.some?.((areaId) => {
+        const areaObj = areas.find((area) => area.id === areaId);
+        return areaObj?.nome?.toLowerCase() === value.toLowerCase();
+      })
     );
-  }, [value, estrategica]);
+  });
+}, [value, estrategica, areas]);
 
   const progressoTatica = useMemo(() => {
     if (taticasDaArea.length === 0) return 0;
@@ -36,42 +47,83 @@ const SelectAreaStatus3 = ({ estrategica, areas, value, onChangeArea }) => {
   }, [taticasDaArea]);
 
   return (
-    <Box sx={{ minWidth: 220, display: "flex", alignItems: "center", gap: 2 }}>
-      <Select
-        size="small"
-        value={value || ""}
-        onChange={(e) => onChangeArea(e.target.value)}
-        onClick={(e) => e.stopPropagation()}
-        displayEmpty
-        sx={{
-          minWidth: 105,
-          fontSize: "0.75rem",
-          backgroundColor: "#f2f0f0",
-          borderRadius: 2,
-          color: "#969696",
-          height: 30,
-          padding: 0,
-          '& .MuiOutlinedInput-input': {
-            padding: '4px 8px',
-          },
-          '& .MuiOutlinedInput-notchedOutline': {
-            border: 'none',
-          },
-          '& .MuiSelect-icon': {
-            color: '#a7a7a7',
-            fontSize: '1rem',
-          },
-        }}
-      >
-        <MenuItem value="" disabled>
-          Progresso:
-        </MenuItem>
-        {areas.map((area) => (
-          <MenuItem key={area.id} value={area.nome}>
-            {area.nome}
-          </MenuItem>
-        ))}
-      </Select>
+    <Box sx={{ minWidth: 220, display: "flex", alignItems: "center", gap: 1 }}>
+      <Box
+  sx={{
+    minWidth: 320,
+    marginLeft: "-50px",
+    display: "flex",
+    alignItems: "center",
+    gap: 1.2,
+    px: 1.4,
+    py: 0.8,
+    borderRadius: "14px",
+    background: "#312783",
+    border: "1px solid #e5e7eb",
+    boxShadow: "0 8px 20px rgba(15, 23, 42, 0.08)",
+  }}
+>
+  <Typography
+    sx={{
+      fontSize: "0.72rem",
+      fontWeight: 400,
+      color: "#fff  ",
+      whiteSpace: "nowrap",
+      letterSpacing: "0.3px",
+    }}
+  >
+    Selecione Táticas por áreas
+  </Typography>
+
+  <Select
+    size="small"
+    value={value || ""}
+    onChange={(e) => onChangeArea(e.target.value)}
+    onClick={(e) => e.stopPropagation()}
+    displayEmpty
+    sx={{
+      minWidth: 130,
+      height: 32,
+      fontSize: "0.75rem",
+      fontWeight: 700,
+      backgroundColor: "#f2f0f0",
+      borderRadius: "10px",
+      color: value ? "#312783" : "#969696",
+
+      "& .MuiOutlinedInput-input": {
+        padding: "5px 28px 5px 10px",
+      },
+
+      "& .MuiOutlinedInput-notchedOutline": {
+        border: "1px solid #e5e7eb",
+      },
+
+      "&:hover .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#c7c9d9",
+      },
+
+      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#312783",
+        borderWidth: "1px",
+      },
+
+      "& .MuiSelect-icon": {
+        color: "#312783",
+        fontSize: "1.1rem",
+      },
+    }}
+  >
+    <MenuItem value="" disabled>
+      Escolha a área
+    </MenuItem>
+
+    {(areas || []).map((area) => (
+      <MenuItem key={area.id} value={area.nome}>
+        {area.nome}
+      </MenuItem>
+    ))}
+  </Select>
+</Box>
 
       {/* Gráficos lado a lado */}
       {value && (

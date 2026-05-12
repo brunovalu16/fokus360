@@ -478,12 +478,15 @@ const handleAddEstrategica = () => {
     return;
   }
 
-  if (!selectedArea) {
-    alert("Selecione uma área responsável para a Estratégica!");
-    return;
-  }
+ if (!selectedArea || selectedArea.length === 0) {
+  alert("Selecione uma ou mais áreas responsáveis para a Estratégica!");
+  return;
+}
+  const areasSelecionadasObjs = areas.filter((area) =>
+  selectedArea.includes(area.id)
+);
 
-  const areaSelecionadaObj = areas.find((area) => area.id === selectedArea);
+const areaNomes = areasSelecionadasObjs.map((area) => area.nome);
 
   const emails = emailsDigitados
     .split(",")
@@ -499,8 +502,9 @@ const handleAddEstrategica = () => {
     status: "",
     finalizacao: "",
     areaId: selectedArea,
-    areaNome: areaSelecionadaObj?.nome || "",
-    areasResponsaveis: [selectedArea],
+    areaNome: areaNomes.join(", "),
+    areaNomes,
+    areasResponsaveis: selectedArea,
   };
 
   const atualizado = [...estrategicas, item];
@@ -510,7 +514,7 @@ const handleAddEstrategica = () => {
 
   setNovaEstrategica("");
   setDescEstrategica("");
-  setSelectedArea("");
+  setSelectedArea([]);
 };
   
   
@@ -1100,28 +1104,34 @@ const areaRolesMap = {
         
                     {/* Select menor ao lado */}
                     <Box sx={{ flex: 1, minWidth: "200px" }}>
-                      <Select
-                        value={selectedArea}
-                        onChange={(event) => setSelectedArea(event.target.value)}
-                        displayEmpty
-                        fullWidth
-                        sx={{ backgroundColor: "transparent" }}
-                        renderValue={(selected) =>
-                          !selected
-                            ? "Selecione uma área para Estratégica"
-                            : areas.find((area) => area.id === selected)?.nome || "Desconhecida"
+                    <Select
+                      multiple
+                      value={Array.isArray(selectedArea) ? selectedArea : []}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setSelectedArea(typeof value === "string" ? value.split(",") : value);
+                      }}
+                      displayEmpty
+                      fullWidth
+                      sx={{ backgroundColor: "transparent" }}
+                      renderValue={(selected) => {
+                        if (!selected || selected.length === 0) {
+                          return "Selecione uma ou mais áreas para Estratégica";
                         }
-                      >
-                        <MenuItem disabled value="">
-                          <em>Selecione uma área responsável</em>
+
+                        return selected
+                          .map((id) => areas.find((area) => area.id === id)?.nome || "Desconhecida")
+                          .join(", ");
+                      }}
+                    >
+                      {areas.map((area) => (
+                        <MenuItem key={area.id} value={area.id}>
+                          <Checkbox checked={(selectedArea || []).includes(area.id)} />
+                          <ListItemText primary={area.nome} />
                         </MenuItem>
-                        {areas.map((area) => (
-                          <MenuItem key={area.id} value={area.id}>
-                            <ListItemText primary={area.nome} />
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </Box>
+                      ))}
+                    </Select>
+                  </Box>
                   </Box>
 
         <Box
@@ -3833,7 +3843,7 @@ function NovaTaticaForm({
   const [titulo, setTitulo] = useState("");
   const [desc, setDesc] = useState("");
   const [areas, setAreas] = useState([]);
-  const [selectedArea, setSelectedArea] = useState("");
+  const [selectedArea, setSelectedArea] = useState([]);
 
   useEffect(() => {
     const fetchAreas = async () => {
@@ -3955,7 +3965,7 @@ function NovaOperacionalForm({ onAdd }) {
   const [titulo, setTitulo] = useState("");
   const [desc, setDesc] = useState("");
   const [areas, setAreas] = useState([]);
-  const [selectedArea, setSelectedArea] = useState("");
+  const [selectedArea, setSelectedArea] = useState([]);
 
   useEffect(() => {
     const fetchAreas = async () => {

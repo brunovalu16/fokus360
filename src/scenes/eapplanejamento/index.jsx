@@ -225,6 +225,23 @@ useEffect(() => {
       if (tipo === "Operacionais") return ativo.operacionalId && ativo.operacionalId !== id;
       return false;
     };
+
+
+
+    const getAreasDaEstrategica = (estrategica) => {
+  if (Array.isArray(estrategica.areaNomes) && estrategica.areaNomes.length > 0) {
+    return estrategica.areaNomes;
+  }
+
+  if (typeof estrategica.areaNome === "string" && estrategica.areaNome.trim()) {
+    return estrategica.areaNome
+      .split(",")
+      .map((area) => area.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+};
     
 
   
@@ -508,7 +525,7 @@ useEffect(() => {
 
   <Box display="flex" gap={4} mt={4} sx={{ marginBottom: "40px" }}>
   {/* Estratégicas */}
- <Box minWidth="200px" sx={{ marginTop: "90px" }}>
+ <Box minWidth="200px" sx={{ marginTop: "190px" }}>
   {columns.find(col => col.title === "Estratégicas")?.cards.map((estrategica, index) => {
     const estrategicaAtualizada = columns
       .find(col => col.title === "Estratégicas")
@@ -552,7 +569,8 @@ useEffect(() => {
 
           } else {
             // Fecha todas e abre só a nova
-            const novaArea = estrategica.areaNome || ""; // ou um valor padrão se necessário
+            const areasDaEstrategica = getAreasDaEstrategica(estrategica);
+            const novaArea = areasDaEstrategica[0] || "";// ou um valor padrão se necessário
 
             setExpandedEstrategicas({ [estrategica.id]: true });
             setExpandedTaticas({});
@@ -578,7 +596,18 @@ useEffect(() => {
     .map(estrategica => {
       const area = areaSelecionada[estrategica.id];
       const todasTaticas = estrategica.taticas || [];
-      const taticas = area ? todasTaticas.filter(t => t.areaNome === area) : [];
+      const taticas = area
+        ? todasTaticas.filter((t) => {
+            return (
+              t.areaNome === area ||
+              t.areaNomes?.includes?.(area) ||
+              t.areasResponsaveis?.some?.((areaId) => {
+                const areaObj = areas.find((a) => a.id === areaId);
+                return areaObj?.nome === area;
+              })
+            );
+          })
+        : [];
 
       return (
         <Box key={estrategica.id} sx={{ mb: 3 }}>
@@ -604,12 +633,21 @@ useEffect(() => {
               estrategica={estrategica}
               areas={areas}
               value={areaSelecionada[estrategica.id] || ""}
-              onChangeArea={(novaArea) =>
-                setAreaSelecionada((prev) => ({
-                  ...prev,
-                  [estrategica.id]: novaArea
-                }))
-              }
+              onChangeArea={(novaArea) => {
+              setAreaSelecionada((prev) => ({
+                ...prev,
+                [estrategica.id]: novaArea,
+              }));
+
+              setExpandedTaticas({});
+              setExpandedOperacionais({});
+
+              setAtivo({
+                estrategicaId: estrategica.id,
+                taticaId: null,
+                operacionalId: null,
+              });
+            }}
             />
           </Box>
 
@@ -722,7 +760,7 @@ useEffect(() => {
 
 
   {/* Operacionais (somente das táticas expandidas) */}
-<Box minWidth="100px" maxWidth="250px" sx={{ marginTop: "90px" }}>
+<Box minWidth="100px" maxWidth="250px" sx={{ marginTop: "185px" }}>
   {columns.find(col => col.title === "Estratégicas")?.cards
     .flatMap(e => e.taticas || [])
     .filter(t => expandedTaticas[t.id])
