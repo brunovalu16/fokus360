@@ -9,6 +9,7 @@ import { dbFokus360 } from "../data/firebase-config";
 
 const GraficosDiretrizes = () => {
   const [diretrizesGlobais, setDiretrizesGlobais] = useState([]);
+  const [subareasGlobais, setSubareasGlobais] = useState([]);
   const [quantidadeProjetos, setQuantidadeProjetos] = useState(0);
   const [tooltip, setTooltip] = useState(null);
 
@@ -31,32 +32,54 @@ const GraficosDiretrizes = () => {
   };
 
   useEffect(() => {
-    const buscarProjetos = async () => {
-      const querySnapshot = await getDocs(collection(dbFokus360, "projetos"));
+    const buscarDados = async () => {
+      try {
+        const projetosSnapshot = await getDocs(
+          collection(dbFokus360, "projetos")
+        );
 
-      const projetos = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+        const projetos = projetosSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
 
-      const todasEstrategicas = projetos.flatMap(
-        (projeto) => projeto.estrategicas || []
-      );
+        const todasEstrategicas = projetos.flatMap(
+          (projeto) => projeto.estrategicas || []
+        );
 
-      setQuantidadeProjetos(projetos.length);
-      setDiretrizesGlobais(todasEstrategicas);
+        setQuantidadeProjetos(projetos.length);
+        setDiretrizesGlobais(todasEstrategicas);
+
+        const areasSnapshot = await getDocs(collection(dbFokus360, "areas"));
+
+        const areasList = areasSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          nome: doc.data().nome || "",
+          subareas: doc.data().subareas || [],
+        }));
+
+        const todasSubareas = areasList.flatMap((area) =>
+          (area.subareas || []).map((subarea, index) => ({
+            id: `${area.id}-${index}`,
+            nome: subarea,
+            areaId: area.id,
+            areaNome: area.nome,
+          }))
+        );
+
+        setSubareasGlobais(todasSubareas);
+      } catch (error) {
+        console.error("Erro ao buscar dados dos gráficos:", error);
+      }
     };
 
-    buscarProjetos();
+    buscarDados();
   }, []);
 
   const normalizarArea = (nome) => {
     if (!nome) return "SEM ÁREA";
-
     if (nome === "ADMIN/FINAN") return "ADM/FINAN";
-
     if (nome.includes("ADM/FINAN, COMERCIAL")) return null;
-
     return nome;
   };
 
@@ -65,16 +88,18 @@ const GraficosDiretrizes = () => {
     totalGeral,
     graficoNiveis,
     totalGrafico,
+    cardsSubareas,
   } = useMemo(() => {
-    const resumo = {};
+    const resumoAreas = {};
+    const resumoSubareas = {};
 
     const criarArea = (nome) => {
       const areaNome = normalizarArea(nome);
 
       if (!areaNome) return null;
 
-      if (!resumo[areaNome]) {
-        resumo[areaNome] = {
+      if (!resumoAreas[areaNome]) {
+        resumoAreas[areaNome] = {
           areaNome,
           estrategicas: 0,
           taticas: 0,
@@ -84,12 +109,42 @@ const GraficosDiretrizes = () => {
         };
       }
 
-      return resumo[areaNome];
+      return resumoAreas[areaNome];
+    };
+
+    const criarSubarea = (subareaId) => {
+      if (!subareaId) return null;
+
+      const subareaEncontrada = subareasGlobais.find(
+        (sub) => sub.id === subareaId
+      );
+
+      const nomeSubarea = subareaEncontrada?.nome || subareaId;
+      const areaNome = subareaEncontrada?.areaNome || "SEM ÁREA";
+
+      if (!resumoSubareas[subareaId]) {
+        resumoSubareas[subareaId] = {
+          id: subareaId,
+          nome: nomeSubarea,
+          areaNome,
+          estrategicas: 0,
+          taticas: 0,
+          operacionais: 0,
+          tarefas: 0,
+          total: 0,
+          color: "#7b2cff",
+          icon: <BarChartIcon />,
+          desc: `Subárea vinculada à área ${areaNome}.`,
+        };
+      }
+
+      return resumoSubareas[subareaId];
     };
 
     diretrizesGlobais.forEach((estrategica) => {
       const areasDaEstrategica =
-        Array.isArray(estrategica.areaNomes) && estrategica.areaNomes.length > 0
+        Array.isArray(estrategica.areaNomes) &&
+        estrategica.areaNomes.length > 0
           ? estrategica.areaNomes
           : [estrategica.areaNome];
 
@@ -101,43 +156,79 @@ const GraficosDiretrizes = () => {
         areaEst.total += 1;
       });
 
-      estrategica.taticas?.forEach((tatica) => {
+      (estrategica.subareas || []).forEach((subareaId) => {
+        const subEst = criarSubarea(subareaId);
+        if (!subEst) return;
+
+        subEst.estrategicas += 1;
+        subEst.total += 1;
+      });
+
+      (estrategica.taticas || []).forEach((tatica) => {
         const areaTat = criarArea(tatica.areaNome || estrategica.areaNome);
-        if (!areaTat) return;
+        if (areaTat) {
+          areaTat.taticas += 1;
+          areaTat.total += 1;
+        }
 
-        areaTat.taticas += 1;
-        areaTat.total += 1;
+        (tatica.subareas || []).forEach((subareaId) => {
+          const subTat = criarSubarea(subareaId);
+          if (!subTat) return;
 
-        tatica.operacionais?.forEach((operacional) => {
+          subTat.taticas += 1;
+          subTat.total += 1;
+        });
+
+        (tatica.operacionais || []).forEach((operacional) => {
           const areaOp = criarArea(
             operacional.areaNome || tatica.areaNome || estrategica.areaNome
           );
-          if (!areaOp) return;
 
-          areaOp.operacionais += 1;
-          areaOp.total += 1;
+          if (areaOp) {
+            areaOp.operacionais += 1;
+            areaOp.total += 1;
+          }
 
-          operacional.tarefas?.forEach((tarefa) => {
+          (operacional.subareas || []).forEach((subareaId) => {
+            const subOp = criarSubarea(subareaId);
+            if (!subOp) return;
+
+            subOp.operacionais += 1;
+            subOp.total += 1;
+          });
+
+          (operacional.tarefas || []).forEach((tarefa) => {
             const areaTar = criarArea(
               tarefa.areaNome ||
                 operacional.areaNome ||
                 tatica.areaNome ||
                 estrategica.areaNome
             );
-            if (!areaTar) return;
 
-            areaTar.tarefas += 1;
-            areaTar.total += 1;
+            if (areaTar) {
+              areaTar.tarefas += 1;
+              areaTar.total += 1;
+            }
+
+            (operacional.subareas || []).forEach((subareaId) => {
+              const subTar = criarSubarea(subareaId);
+              if (!subTar) return;
+
+              subTar.tarefas += 1;
+              subTar.total += 1;
+            });
           });
         });
       });
     });
 
-    const dados = Object.values(resumo).filter((area) => area.total > 0);
+    const dadosAreas = Object.values(resumoAreas).filter(
+      (area) => area.total > 0
+    );
 
-    const totalGeral = dados.reduce((acc, area) => acc + area.total, 0);
+    const totalGeral = dadosAreas.reduce((acc, area) => acc + area.total, 0);
 
-    const semicirculo = dados.map((area) => {
+    const semicirculo = dadosAreas.map((area) => {
       const cfg = configAreas[area.areaNome] || {
         color: "#7b2cff",
         icon: <BarChartIcon />,
@@ -152,22 +243,22 @@ const GraficosDiretrizes = () => {
       };
     });
 
-    const totalEstrategicasGrafico = dados.reduce(
+    const totalEstrategicasGrafico = dadosAreas.reduce(
       (acc, area) => acc + area.estrategicas,
       0
     );
 
-    const totalTaticasGrafico = dados.reduce(
+    const totalTaticasGrafico = dadosAreas.reduce(
       (acc, area) => acc + area.taticas,
       0
     );
 
-    const totalOperacionaisGrafico = dados.reduce(
+    const totalOperacionaisGrafico = dadosAreas.reduce(
       (acc, area) => acc + area.operacionais,
       0
     );
 
-    const totalTarefasGrafico = dados.reduce(
+    const totalTarefasGrafico = dadosAreas.reduce(
       (acc, area) => acc + area.tarefas,
       0
     );
@@ -200,13 +291,18 @@ const GraficosDiretrizes = () => {
       0
     );
 
+    const cardsSubareas = Object.values(resumoSubareas).filter(
+      (subarea) => subarea.total > 0
+    );
+
     return {
       semicirculo,
       totalGeral,
       graficoNiveis,
       totalGrafico,
+      cardsSubareas,
     };
-  }, [diretrizesGlobais]);
+  }, [diretrizesGlobais, subareasGlobais]);
 
   const renderDonut = ({
     data,
@@ -260,7 +356,7 @@ const GraficosDiretrizes = () => {
           startAngle = endAngle;
 
           return (
-            <g key={item.areaNome || item.nome}>
+            <g key={item.id || item.areaNome || item.nome}>
               <path
                 d={path}
                 fill={item.color}
@@ -271,25 +367,32 @@ const GraficosDiretrizes = () => {
                     y: e.clientY,
                     color: item.color,
                     title: item.areaNome || item.nome,
-                    items: item.areaNome
-                      ? [
-                          { label: "Estratégicas", value: item.estrategicas },
-                          { label: "Táticas", value: item.taticas },
-                          { label: "Operacionais", value: item.operacionais },
-                          { label: "Tarefas", value: item.tarefas },
-                          { label: "Total", value: item.total },
-                        ]
-                      : [
-                          { label: "Quantidade", value: item.total },
-                          {
-                            label: "Participação",
-                            value: `${
-                              total > 0
-                                ? Math.round((item.total / total) * 100)
-                                : 0
-                            }%`,
-                          },
-                        ],
+                    items:
+                      item.estrategicas !== undefined
+                        ? [
+                            {
+                              label: "Estratégicas",
+                              value: item.estrategicas,
+                            },
+                            { label: "Táticas", value: item.taticas },
+                            {
+                              label: "Operacionais",
+                              value: item.operacionais,
+                            },
+                            { label: "Tarefas", value: item.tarefas },
+                            { label: "Total", value: item.total },
+                          ]
+                        : [
+                            { label: "Quantidade", value: item.total },
+                            {
+                              label: "Participação",
+                              value: `${
+                                total > 0
+                                  ? Math.round((item.total / total) * 100)
+                                  : 0
+                              }%`,
+                            },
+                          ],
                   })
                 }
                 onMouseMove={(e) =>
@@ -323,6 +426,165 @@ const GraficosDiretrizes = () => {
         });
       })()}
     </svg>
+  );
+
+  const renderCardResumo = (item, tipo = "area") => (
+    <Box
+      key={item.id || item.areaNome}
+      sx={{
+        minWidth: 0,
+        position: "relative",
+        borderRadius: "16px",
+        border: "1px solid #e8ecf4",
+        background: "#fff",
+        p: 1,
+        pl: 1.6,
+        minHeight: 108,
+        boxShadow: "0 8px 18px rgba(15,23,42,0.05)",
+        overflow: "hidden",
+        boxSizing: "border-box",
+
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          left: 0,
+          top: 0,
+          width: "8px",
+          height: "100%",
+          background: item.color,
+        },
+      }}
+    >
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "34px minmax(0, 1fr) 42px",
+          gap: 0.8,
+          alignItems: "center",
+        }}
+      >
+        <Box
+          sx={{
+            width: 26,
+            height: 26,
+            borderRadius: "8px",
+            background: item.color,
+            color: "#fff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: `0 8px 14px ${item.color}40`,
+            "& svg": { fontSize: 19 },
+          }}
+        >
+          {item.icon}
+        </Box>
+
+        <Box sx={{ minWidth: 0 }}>
+          <Typography
+            sx={{
+              fontSize: "12px",
+              fontWeight: 900,
+              color: item.color,
+              lineHeight: 1,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {tipo === "subarea" ? item.nome : item.areaNome}
+          </Typography>
+
+          <Typography
+            sx={{
+              fontSize: "9px",
+              color: "#667085",
+              lineHeight: 1.2,
+              mt: 0.35,
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
+            {item.desc}
+          </Typography>
+        </Box>
+
+        <Box sx={{ textAlign: "right" }}>
+          <Typography
+            sx={{
+              fontSize: "18px",
+              fontWeight: 900,
+              color: "#09003f",
+              lineHeight: 1,
+            }}
+          >
+            {item.total}
+          </Typography>
+
+          <Typography
+            sx={{
+              fontSize: "10px",
+              fontWeight: 800,
+              color: item.color,
+            }}
+          >
+            {tipo === "subarea" ? "SUB" : `${item.percent}%`}
+          </Typography>
+        </Box>
+      </Box>
+
+      <Box
+        sx={{
+          mt: 0.9,
+          pt: 0.8,
+          borderTop: "1px solid #edf0f5",
+          display: "grid",
+          gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+          textAlign: "center",
+        }}
+      >
+        {[
+          ["Estratégicas", item.estrategicas],
+          ["Táticas", item.taticas],
+          ["Operacionais", item.operacionais],
+          ["Tarefas", item.tarefas],
+        ].map(([label, value], idx) => (
+          <Box
+            key={label}
+            sx={{
+              borderRight: idx < 3 ? "1px solid #e1e5ee" : "none",
+              minWidth: 0,
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: "9px",
+                fontWeight: 900,
+                color: item.color,
+                lineHeight: 1,
+              }}
+            >
+              {value}
+            </Typography>
+
+            <Typography
+              sx={{
+                fontSize: "9px",
+                color: "#667085",
+                mt: 0.25,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {label}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+    </Box>
   );
 
   return (
@@ -406,12 +668,11 @@ const GraficosDiretrizes = () => {
         </Typography>
 
         <Typography sx={{ fontSize: "13px", color: "#2d2c7e" }}>
-          Visão geral das diretrizes, áreas e tarefas de todos os projetos do
-          sistema
+          Visão geral das diretrizes, áreas, subáreas e tarefas de todos os
+          projetos do sistema
         </Typography>
       </Box>
 
-      {/* GRÁFICOS */}
       <Box
         sx={{
           display: "grid",
@@ -424,7 +685,6 @@ const GraficosDiretrizes = () => {
           mb: 3,
         }}
       >
-        {/* GRÁFICO ÁREAS */}
         <Box
           sx={{
             borderRadius: "22px",
@@ -457,13 +717,7 @@ const GraficosDiretrizes = () => {
               gap: 1.5,
             }}
           >
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 0.7,
-              }}
-            >
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.7 }}>
               {semicirculo.map((area) => (
                 <Box
                   key={area.areaNome}
@@ -582,7 +836,6 @@ const GraficosDiretrizes = () => {
           </Box>
         </Box>
 
-        {/* GRÁFICO DIRETRIZES */}
         <Box
           sx={{
             borderRadius: "22px",
@@ -615,13 +868,7 @@ const GraficosDiretrizes = () => {
               gap: 1.5,
             }}
           >
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 0.9,
-              }}
-            >
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.9 }}>
               {graficoNiveis.map((item) => (
                 <Box
                   key={item.nome}
@@ -739,7 +986,6 @@ const GraficosDiretrizes = () => {
         </Box>
       </Box>
 
-      {/* CARDS - 3 COLUNAS FORÇADAS */}
       <Box
         sx={{
           display: "grid",
@@ -752,7 +998,6 @@ const GraficosDiretrizes = () => {
           width: "100%",
         }}
       >
-        {/* CARD TOTAL PROJETOS */}
         <Box
           sx={{
             minWidth: 0,
@@ -798,164 +1043,11 @@ const GraficosDiretrizes = () => {
           </Typography>
         </Box>
 
-        {semicirculo.map((area) => (
-          <Box
-            key={area.areaNome}
-            sx={{
-              minWidth: 0,
-              position: "relative",
-              borderRadius: "16px",
-              border: "1px solid #e8ecf4",
-              background: "#fff",
-              p: 1,
-              pl: 1.6,
-              minHeight: 108,
-              boxShadow: "0 8px 18px rgba(15,23,42,0.05)",
-              overflow: "hidden",
-              boxSizing: "border-box",
+        {semicirculo.map((area) => renderCardResumo(area, "area"))}
 
-              "&::before": {
-                content: '""',
-                position: "absolute",
-                left: 0,
-                top: 0,
-                width: "8px",
-                height: "100%",
-                background: area.color,
-              },
-            }}
-          >
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "34px minmax(0, 1fr) 42px",
-                gap: 0.8,
-                alignItems: "center",
-              }}
-            >
-              <Box
-                sx={{
-                  width: 26,
-                  height: 26,
-                  borderRadius: "8px",
-                  background: area.color,
-                  color: "#fff",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxShadow: `0 8px 14px ${area.color}40`,
-                  "& svg": { fontSize: 19 },
-                }}
-              >
-                {area.icon}
-              </Box>
-
-              <Box sx={{ minWidth: 0 }}>
-                <Typography
-                  sx={{
-                    fontSize: "12px",
-                    fontWeight: 900,
-                    color: area.color,
-                    lineHeight: 1,
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {area.areaNome}
-                </Typography>
-
-                <Typography
-                  sx={{
-                    fontSize: "9px",
-                    color: "#667085",
-                    lineHeight: 1.2,
-                    mt: 0.35,
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                  }}
-                >
-                  {area.desc}
-                </Typography>
-              </Box>
-
-              <Box sx={{ textAlign: "right" }}>
-                <Typography
-                  sx={{
-                    fontSize: "18px",
-                    fontWeight: 900,
-                    color: "#09003f",
-                    lineHeight: 1,
-                  }}
-                >
-                  {area.total}
-                </Typography>
-
-                <Typography
-                  sx={{
-                    fontSize: "10px",
-                    fontWeight: 800,
-                    color: area.color,
-                  }}
-                >
-                  {area.percent}%
-                </Typography>
-              </Box>
-            </Box>
-
-            <Box
-              sx={{
-                mt: 0.9,
-                pt: 0.8,
-                borderTop: "1px solid #edf0f5",
-                display: "grid",
-                gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-                textAlign: "center",
-              }}
-            >
-              {[
-                ["Estratégicas", area.estrategicas],
-                ["Táticas", area.taticas],
-                ["Operacionais", area.operacionais],
-                ["Tarefas", area.tarefas],
-              ].map(([label, value], idx) => (
-                <Box
-                  key={label}
-                  sx={{
-                    borderRight: idx < 3 ? "1px solid #e1e5ee" : "none",
-                    minWidth: 0,
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontSize: "9px",
-                      fontWeight: 900,
-                      color: area.color,
-                      lineHeight: 1,
-                    }}
-                  >
-                    {value}
-                  </Typography>
-
-                  <Typography
-                    sx={{
-                      fontSize: "9px",
-                      color: "#667085",
-                      mt: 0.25,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {label}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Box>
-        ))}
+        {cardsSubareas.map((subarea) =>
+          renderCardResumo(subarea, "subarea")
+        )}
       </Box>
     </Box>
   );

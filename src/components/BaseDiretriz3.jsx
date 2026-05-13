@@ -560,6 +560,8 @@ const areaNomes = areasSelecionadasObjs.map((area) => area.nome);
   areaId,
   areaNome,
   areasResponsaveis: [areaId],
+  subareas: [],
+  unidades: [],
 };
 
   const atualizado = estrategicas.map((est) => {
@@ -631,6 +633,9 @@ const areaNomes = areasSelecionadasObjs.map((area) => area.nome);
     emails,
     areaId,
     areaNome,
+    subareas: [],
+    unidades: [],
+    areasResponsaveis: areaId ? [areaId] : [],
   };
 
   const atualizadas = estrategicas.map((est) => {
@@ -812,8 +817,9 @@ const areaRolesMap = {
         status: op.status || "",
         statusVisual: op.statusVisual || "",
         time: op.time || "",
-        areasResponsaveis: areasOperacionaisPorId[op.id] || [],
-        unidades: unidadesPorIdOperacional?.[op.id] || [],
+        areasResponsaveis: areasOperacionaisPorId[op.id] || op.areasResponsaveis || [],
+        unidades: unidadesPorIdOperacional?.[op.id] || op.unidades || [],
+        subareas: subareasPorIdOperacional[op.id] || op.subareas || [],
         emails: [...manualEmails, ...responsaveisEmails].filter((e) => e.trim() !== ""),
       };
     });
@@ -826,14 +832,15 @@ const areaRolesMap = {
       statusVisual: tatica.statusVisual || "",
       time: tatica.time || "",
       areasResponsaveis:
-      tatica.areasResponsaveis?.length
-        ? tatica.areasResponsaveis
-        : tatica.areaId
-        ? [tatica.areaId]
-        : [],
-    areaId: tatica.areaId || "",
-    areaNome: tatica.areaNome || "",
-      unidades: unidadesPorIdTatica[tatica.id] || [],
+        tatica.areasResponsaveis?.length
+          ? tatica.areasResponsaveis
+          : tatica.areaId
+          ? [tatica.areaId]
+          : [],
+      areaId: tatica.areaId || "",
+      areaNome: tatica.areaNome || "",
+      unidades: unidadesPorIdTatica[tatica.id] || tatica.unidades || [],
+      subareas: subareasPorIdTatica[tatica.id] || tatica.subareas || [],
       emails: Array.isArray(emailsPorIdTatica[tatica.id])
         ? emailsPorIdTatica[tatica.id].filter((e) => e.trim() !== "")
         : String(emailsPorIdTatica[tatica.id] || "")
