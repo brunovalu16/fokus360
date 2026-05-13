@@ -106,6 +106,10 @@
   const [emailsOriginaisPorIdOperacional, setEmailsOriginaisPorIdOperacional] = useState({});
 
 
+  const [subareas, setSubareas] = useState([]);
+  const [subareasPorIdEstrategica, setSubareasPorIdEstrategica] = useState({});
+  const [subareasPorIdTatica, setSubareasPorIdTatica] = useState({});
+  const [subareasPorIdOperacional, setSubareasPorIdOperacional] = useState({});
 
     
 
@@ -393,6 +397,7 @@ const enviarNotificacaoInternaPorEmails = async (emails = [], mensagem) => {
                   : dataAtual.getTime() <= prazoO.getTime()
                   ? "no prazo"
                   : "atrasada";
+
     
               return {
                 ...op,
@@ -442,20 +447,27 @@ const enviarNotificacaoInternaPorEmails = async (emails = [], mensagem) => {
         const novosEmailsPorIdEstrategica = {};
         const novosEmailsPorIdTatica = {};
         const novosEmailsPorIdOperacional = {};
+
+        const novasSubareasPorIdEstrategica = {};
+        const novasSubareasPorIdTatica = {};
+        const novasSubareasPorIdOperacional = {};
     
         estrategicasCorrigidas.forEach((est) => {
+          novasSubareasPorIdEstrategica[est.id] = est.subareas || [];
           novaAreasPorId[est.id] = est.areasResponsaveis;
           novasUnidadesPorId[est.id] = est.unidades;
           novosEmailsPorId[est.id] = est.emails;
           novosEmailsPorIdEstrategica[est.id] = est.emails;
     
           est.taticas?.forEach((tat) => {
+            novasSubareasPorIdTatica[tat.id] = tat.subareas || [];
             novaAreasTaticasPorId[tat.id] = tat.areasResponsaveis;
             novasUnidadesTaticasPorId[tat.id] = tat.unidades;
             novosEmailsTaticasPorId[tat.id] = tat.emails;
             novosEmailsPorIdTatica[tat.id] = tat.emails;
     
             tat.operacionais?.forEach((op) => {
+              novasSubareasPorIdOperacional[op.id] = op.subareas || [];
               novaAreasOperacionaisPorId[op.id] = op.areasResponsaveis;
               novasUnidadesOperacionaisPorId[op.id] = op.unidades;
               novosEmailsOperacionaisPorId[op.id] = op.emails;
@@ -467,6 +479,10 @@ const enviarNotificacaoInternaPorEmails = async (emails = [], mensagem) => {
         setAreasPorId(novaAreasPorId);
         setUnidadesPorId(novasUnidadesPorId);
         setEmailsPorId(novosEmailsPorId);
+
+        setSubareasPorIdEstrategica(novasSubareasPorIdEstrategica);
+        setSubareasPorIdTatica(novasSubareasPorIdTatica);
+        setSubareasPorIdOperacional(novasSubareasPorIdOperacional);
     
         setAreasTaticasPorId(novaAreasTaticasPorId);
         setUnidadesTaticasPorId(novasUnidadesTaticasPorId);
@@ -554,34 +570,55 @@ const enviarNotificacaoInternaPorEmails = async (emails = [], mensagem) => {
 
 
   //Buscar dados do Firestore
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const queryAreas = await getDocs(collection(db, "areas"));
-        const areasList = queryAreas.docs.map((doc) => ({
-          id: doc.id,
-          nome: doc.data().nome,
-        }));
-        setAreas(areasList);
-        console.log("🔥 Áreas carregadas:", areasList);
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      // ÁREAS + SUBÁREAS
+      const queryAreas = await getDocs(collection(db, "areas"));
+
+      const areasList = queryAreas.docs.map((doc) => ({
+        id: doc.id,
+        nome: doc.data().nome || "",
+        subareas: doc.data().subareas || [],
+      }));
+
+      setAreas(areasList);
+
+      const todasSubareas = areasList.flatMap((area) =>
+        (area.subareas || []).map((subarea, index) => ({
+          id: `${area.id}-${index}`,
+          nome: subarea,
+          areaId: area.id,
+          areaNome: area.nome,
+        }))
+      );
+
+      setSubareas(todasSubareas);
+
+      console.log("🔥 Áreas carregadas:", areasList);
+      console.log("🔥 Subáreas carregadas:", todasSubareas);
+
+      // UNIDADES
+      const queryUnidades = await getDocs(collection(db, "unidade"));
+
+      const unidadesList = queryUnidades.docs.map((doc) => ({
+        id: doc.id,
+        nome: doc.data().nome || "",
+      }));
+
+      setUnidades(unidadesList);
+
+      console.log("🔥 Unidades carregadas:", unidadesList);
+    } catch (error) {
+      console.error("Erro ao buscar áreas, subáreas e unidades:", error);
+    }
+  };
+
+  fetchData();
+}, []);
 
 
-        const queryUnidades = await getDocs(collection(db, "unidade"));
-        const unidadesList = queryUnidades.docs.map((doc) => ({
-          id: doc.id,
-          nome: doc.data().nome,
-        }));
-        setUnidades(unidadesList);
-        console.log("🔥 Unidades carregadas:", unidadesList);
 
-
-      } catch (error) {
-        console.error("Erro ao buscar áreas e unidades:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
 
 
 
@@ -1178,9 +1215,7 @@ const handleAddOperacional = (
 
       return fetch("https://fokus360-backend.vercel.app/send-project-notifications", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userIds,
           mensagem,
@@ -1195,7 +1230,8 @@ const handleAddOperacional = (
             ? emailsPorIdOperacional[op.id]
             : String(emailsPorIdOperacional?.[op.id] || "")
                 .split(",")
-                .map((e) => e.trim());
+                .map((e) => e.trim())
+                .filter(Boolean);
 
           const responsaveisEmails = Array.isArray(op.quemOperacionais)
             ? op.quemOperacionais
@@ -1244,8 +1280,9 @@ const handleAddOperacional = (
             criacao: op.criacao || "",
             status: op.status ?? "",
             ...statusOp,
-            areasResponsaveis: areasPorIdOperacional[op.id] || [],
-            unidades: unidadesPorIdOperacional?.[op.id] || [],
+            areasResponsaveis: areasPorIdOperacional[op.id] || op.areasResponsaveis || [],
+            unidades: unidadesPorIdOperacional?.[op.id] || op.unidades || [],
+            subareas: subareasPorIdOperacional[op.id] || op.subareas || [],
             emails: [...manualEmails, ...responsaveisEmails].filter((e) => e.trim() !== ""),
             tarefas: tarefasAtualizadas,
           };
@@ -1263,8 +1300,9 @@ const handleAddOperacional = (
           criacao: tatica.criacao || "",
           status: tatica.status ?? "",
           ...statusTatica,
-          areasResponsaveis: areasTaticasPorId[tatica.id] || [],
-          unidades: unidadesTaticasPorId[tatica.id] || [],
+          areasResponsaveis: areasTaticasPorId[tatica.id] || tatica.areasResponsaveis || [],
+          unidades: unidadesTaticasPorId[tatica.id] || tatica.unidades || [],
+          subareas: subareasPorIdTatica[tatica.id] || tatica.subareas || [],
           emails: Array.isArray(emailsPorIdTatica[tatica.id])
             ? emailsPorIdTatica[tatica.id].filter((e) => e.trim() !== "")
             : String(emailsPorIdTatica[tatica.id] || "")
@@ -1287,8 +1325,9 @@ const handleAddOperacional = (
         finalizacao: est.finalizacao || "",
         status: est.status ?? "",
         ...statusEstrategica,
-        areasResponsaveis: areasPorId[est.id] || [],
-        unidades: unidadesPorId[est.id] || [],
+        areasResponsaveis: areasPorId[est.id] || est.areasResponsaveis || [],
+        unidades: unidadesPorId[est.id] || est.unidades || [],
+        subareas: subareasPorIdEstrategica[est.id] || est.subareas || [],
         emails: Array.isArray(emailsPorIdEstrategica[est.id])
           ? emailsPorIdEstrategica[est.id].filter((e) => e.trim() !== "")
           : String(emailsPorIdEstrategica[est.id] || "")
@@ -1483,11 +1522,15 @@ const handleAddOperacional = (
     setEstrategicas(estrategicasAtualizadas);
 
     setAreasOriginaisPorId(
-      Object.fromEntries(estrategicasAtualizadas.map((est) => [est.id, est.areasResponsaveis || []]))
+      Object.fromEntries(
+        estrategicasAtualizadas.map((est) => [est.id, est.areasResponsaveis || []])
+      )
     );
 
     setEmailsOriginaisPorIdEstrategica(
-      Object.fromEntries(estrategicasAtualizadas.map((est) => [est.id, est.emails || []]))
+      Object.fromEntries(
+        estrategicasAtualizadas.map((est) => [est.id, est.emails || []])
+      )
     );
 
     const novasAreasOriginaisTaticas = {};
@@ -1518,7 +1561,6 @@ const handleAddOperacional = (
     alert("Erro ao salvar diretrizes. Tente novamente.");
   }
 };
-    
     
     
     
@@ -2373,7 +2415,129 @@ const handleAddOperacional = (
 
 
 
+
+
+
   </Box>
+
+
+
+  {/*=================================subarea estratégica===================================== */}
+
+{/* subarea estratégica */}
+<Box sx={{ flex: 1, minWidth: "300px", marginTop: "15px" }}>
+  <Select
+    multiple
+    displayEmpty
+    value={subareasPorIdEstrategica[estrategica.id] || []}
+    onChange={(event) =>
+      setSubareasPorIdEstrategica((prev) => ({
+        ...prev,
+        [estrategica.id]: event.target.value,
+      }))
+    }
+    renderValue={(selected) =>
+      selected.length === 0
+        ? "Selecione as subáreas"
+        : selected
+            .map(
+              (id) =>
+                subareas.find((sub) => sub.id === id)?.nome || "Desconhecida"
+            )
+            .join(", ")
+    }
+    MenuProps={{
+      PaperProps: {
+        sx: {
+          maxHeight: 260,
+          overflowY: "auto",
+          borderRadius: 2,
+          mt: 0.5,
+        },
+      },
+    }}
+    fullWidth
+    sx={{
+      
+      "& .MuiOutlinedInput-notchedOutline": { borderColor: "#d6d6d6" },
+      "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#d6d6d6" },
+      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#d6d6d6",
+        borderWidth: "1px",
+      },
+      "& .MuiSelect-select": {
+        py: 1,
+        minHeight: "36px !important",
+        display: "flex",
+        alignItems: "center",
+      },
+    }}
+  >
+    {subareas.map((sub) => (
+      <MenuItem
+        key={sub.id}
+        value={sub.id}
+        sx={{
+          py: 1,
+          px: 1.5,
+          borderBottom: "1px solid #f1f1f1",
+          gap: 1,
+          minHeight: "58px",
+          "&:hover": { backgroundColor: "#f8f9fb" },
+        }}
+      >
+        <Checkbox
+          checked={(subareasPorIdEstrategica[estrategica.id] || []).includes(
+            sub.id
+          )}
+          sx={{
+            color: "#312783",
+            p: 0.5,
+            "&.Mui-checked": { color: "#312783" },
+          }}
+        />
+
+        <Box
+          sx={{
+            width: 34,
+            height: 34,
+            borderRadius: "50%",
+            backgroundColor: "#eef2ff",
+            color: "#312783",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: "bold",
+            fontSize: "12px",
+            border: "1px solid #dfe3ff",
+            flexShrink: 0,
+          }}
+        >
+          {sub.nome?.charAt(0)}
+        </Box>
+
+        <Box sx={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          <Typography
+            sx={{
+              fontWeight: 700,
+              color: "#1f1b5c",
+              fontSize: "12px",
+              lineHeight: 1.1,
+            }}
+          >
+            {sub.nome}
+          </Typography>
+
+          <Typography sx={{ fontSize: "10px", color: "#6b7280", mt: 0.3 }}>
+            {sub.areaNome}
+          </Typography>
+        </Box>
+      </MenuItem>
+    ))}
+  </Select>
+</Box>
+
+{/*============================================================================================ */}
 
 
             <Box
@@ -3150,7 +3314,119 @@ const handleAddOperacional = (
 />       
   </Box>
         
-              
+{/*=================================subarea táticas===================================== */}
+
+{/* subarea tática */}
+<Box sx={{ flex: 1, minWidth: "300px", marginTop: "15px" }}>
+  <Select
+    multiple
+    displayEmpty
+    value={subareasPorIdTatica[tatica.id] || []}
+    onChange={(event) =>
+      setSubareasPorIdTatica((prev) => ({
+        ...prev,
+        [tatica.id]: event.target.value,
+      }))
+    }
+    renderValue={(selected) =>
+      selected.length === 0
+        ? "Selecione as subáreas"
+        : selected
+            .map(
+              (id) =>
+                subareas.find((sub) => sub.id === id)?.nome || "Desconhecida"
+            )
+            .join(", ")
+    }
+    MenuProps={{
+      PaperProps: {
+        sx: {
+          maxHeight: 260,
+          overflowY: "auto",
+          borderRadius: 2,
+          mt: 0.5,
+        },
+      },
+    }}
+    fullWidth
+    sx={{
+      "& .MuiOutlinedInput-notchedOutline": { borderColor: "#d6d6d6" },
+      "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#d6d6d6" },
+      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#d6d6d6",
+        borderWidth: "1px",
+      },
+      "& .MuiSelect-select": {
+        py: 1,
+        minHeight: "36px !important",
+        display: "flex",
+        alignItems: "center",
+      },
+    }}
+  >
+    {subareas.map((sub) => (
+      <MenuItem
+        key={sub.id}
+        value={sub.id}
+        sx={{
+          py: 1,
+          px: 1.5,
+          borderBottom: "1px solid #f1f1f1",
+          gap: 1,
+          minHeight: "58px",
+          "&:hover": { backgroundColor: "#f8f9fb" },
+        }}
+      >
+        <Checkbox
+          checked={(subareasPorIdTatica[tatica.id] || []).includes(sub.id)}
+          sx={{
+            color: "#00c48c",
+            p: 0.5,
+            "&.Mui-checked": { color: "#00c48c" },
+          }}
+        />
+
+        <Box
+          sx={{
+            width: 34,
+            height: 34,
+            borderRadius: "50%",
+            backgroundColor: "#e6fff6",
+            color: "#00c48c",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: "bold",
+            fontSize: "12px",
+            border: "1px solid #c9f7e8",
+            flexShrink: 0,
+          }}
+        >
+          {sub.nome?.charAt(0)}
+        </Box>
+
+        <Box sx={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          <Typography
+            sx={{
+              fontWeight: 700,
+              color: "#075f49",
+              fontSize: "12px",
+              lineHeight: 1.1,
+            }}
+          >
+            {sub.nome}
+          </Typography>
+
+          <Typography sx={{ fontSize: "10px", color: "#6b7280", mt: 0.3 }}>
+            {sub.areaNome}
+          </Typography>
+        </Box>
+      </MenuItem>
+    ))}
+  </Select>
+</Box>
+
+{/*============================================================================================ */}
 
               <Box
                 sx={{
@@ -4003,16 +4279,124 @@ const handleAddOperacional = (
   }}
 />
 
-
-
-
-
-
-
 </Box>
 
 
+{/*=================================subarea operacionais===================================== */}
 
+{/* subarea operacional */}
+<Box sx={{ flex: 1, minWidth: "300px", marginTop: "15px" }}>
+  <Select
+    multiple
+    displayEmpty
+    value={subareasPorIdOperacional[operacional.id] || []}
+    onChange={(event) =>
+      setSubareasPorIdOperacional((prev) => ({
+        ...prev,
+        [operacional.id]: event.target.value,
+      }))
+    }
+    renderValue={(selected) =>
+      selected.length === 0
+        ? "Selecione as subáreas"
+        : selected
+            .map(
+              (id) =>
+                subareas.find((sub) => sub.id === id)?.nome || "Desconhecida"
+            )
+            .join(", ")
+    }
+    MenuProps={{
+      PaperProps: {
+        sx: {
+          maxHeight: 260,
+          overflowY: "auto",
+          borderRadius: 2,
+          mt: 0.5,
+        },
+      },
+    }}
+    fullWidth
+    sx={{
+      "& .MuiOutlinedInput-notchedOutline": { borderColor: "#d6d6d6" },
+      "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#d6d6d6" },
+      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#d6d6d6",
+        borderWidth: "1px",
+      },
+      "& .MuiSelect-select": {
+        py: 1,
+        minHeight: "36px !important",
+        display: "flex",
+        alignItems: "center",
+      },
+    }}
+  >
+    {subareas.map((sub) => (
+      <MenuItem
+        key={sub.id}
+        value={sub.id}
+        sx={{
+          py: 1,
+          px: 1.5,
+          borderBottom: "1px solid #f1f1f1",
+          gap: 1,
+          minHeight: "58px",
+          "&:hover": { backgroundColor: "#f8f9fb" },
+        }}
+      >
+        <Checkbox
+          checked={(subareasPorIdOperacional[operacional.id] || []).includes(
+            sub.id
+          )}
+          sx={{
+            color: "#f44336",
+            p: 0.5,
+            "&.Mui-checked": { color: "#f44336" },
+          }}
+        />
+
+        <Box
+          sx={{
+            width: 34,
+            height: 34,
+            borderRadius: "50%",
+            backgroundColor: "#fff1f0",
+            color: "#f44336",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: "bold",
+            fontSize: "12px",
+            border: "1px solid #ffd6d2",
+            flexShrink: 0,
+          }}
+        >
+          {sub.nome?.charAt(0)}
+        </Box>
+
+        <Box sx={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          <Typography
+            sx={{
+              fontWeight: 700,
+              color: "#7f1d1d",
+              fontSize: "12px",
+              lineHeight: 1.1,
+            }}
+          >
+            {sub.nome}
+          </Typography>
+
+          <Typography sx={{ fontSize: "10px", color: "#6b7280", mt: 0.3 }}>
+            {sub.areaNome}
+          </Typography>
+        </Box>
+      </MenuItem>
+    ))}
+  </Select>
+</Box>
+
+{/*============================================================================================ */}
 
 
                         
