@@ -4,6 +4,14 @@ import StatusProgresso4 from "./StatusProgresso4";
 import { calcularProgressoTatica } from "../utils/progressoUtils";
 
 const StatusProgressoPorArea = ({ estrategicas = [] }) => {
+  const coresAreas = {
+    "ADMIN/FINAN": "#4254fb",
+    "ADM/FINAN": "#4254fb",
+    "ADM/FINAN, COMERCIAL, LOGÍSTICA": "#4254fb",
+    "LOGÍSTICA": "#00c48c",
+    "LOGISTICA": "#00c48c",
+    "COMERCIAL": "#fa4f58",
+  };
 
   const progressoPorArea = useMemo(() => {
 
@@ -104,12 +112,7 @@ const StatusProgressoPorArea = ({ estrategicas = [] }) => {
               width: "100%",
               height: "4px",
 
-              background:
-                progresso >= 80
-                  ? "linear-gradient(90deg, #4caf50, #66bb6a)"
-                  : progresso >= 50
-                  ? "linear-gradient(90deg, #ff9800, #ffb74d)"
-                  : "linear-gradient(90deg, #f44336, #ef5350)",
+              background: `linear-gradient(90deg, ${coresAreas[area]}, ${coresAreas[area]})`,
             },
           }}
         >

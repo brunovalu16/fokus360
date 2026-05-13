@@ -218,7 +218,7 @@ useEffect(() => {
     } else if (progresso >= 70) {
       return "#ffb600"; // Amarelo se ≥ 70% do orçamento
     } else {
-      return "#4caf50"; // Verde se < 70% do orçamento
+      return "#00c48c"; // Verde se < 70% do orçamento
     }
   };
   

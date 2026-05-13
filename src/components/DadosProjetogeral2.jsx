@@ -950,7 +950,7 @@ useEffect(() => {
                   ? "#0048ff" // Azul se é exatamente igual
                   : custoTotal >= orcamentoTotal * 0.8
                   ? "#ffb600" // Laranja/Amarelo se acima de 80%
-                  : "#4caf50", // Verde abaixo de 80% do orçamento
+                  : "#00c48c", // Verde abaixo de 80% do orçamento
             },
           ].map((item, index) => (
             <Box
@@ -1210,7 +1210,7 @@ useEffect(() => {
                           width: `${item.percentual}%`, // Proporção da barra
                           backgroundColor:
                             index % 4 === 0
-                              ? "#4caf50"
+                              ? "#00c48c"
                               : index % 4 === 1
                               ? "#ff9800"
                               : index % 4 === 2
@@ -1227,7 +1227,7 @@ useEffect(() => {
                             height: "15px",
                             backgroundColor:
                               index % 4 === 0
-                                ? "#4caf50"
+                                ? "#00c48c"
                                 : index % 4 === 1
                                 ? "#ff9800"
                                 : index % 4 === 2
@@ -1249,7 +1249,7 @@ useEffect(() => {
                         minWidth: "25px",
                         backgroundColor:
                           index % 4 === 0
-                            ? "#4caf50"
+                            ? "#00c48c"
                             : index % 4 === 1
                             ? "#ff9800"
                             : index % 4 === 2
@@ -1370,7 +1370,7 @@ useEffect(() => {
                           width: `${item.percentual}%`, // Proporção da barra
                           backgroundColor:
                             index % 4 === 0
-                              ? "#4caf50"
+                              ? "#00c48c"
                               : index % 4 === 1
                               ? "#ff9800"
                               : index % 4 === 2
@@ -1387,7 +1387,7 @@ useEffect(() => {
                             height: "10px",
                             backgroundColor:
                               index % 4 === 0
-                                ? "#4caf50"
+                                ? "#00c48c"
                                 : index % 4 === 1
                                 ? "#ff9800"
                                 : index % 4 === 2
@@ -1410,7 +1410,7 @@ useEffect(() => {
                         minWidth: "25px",
                         backgroundColor:
                           index % 4 === 0
-                            ? "#4caf50"
+                            ? "#00c48c"
                             : index % 4 === 1
                             ? "#ff9800"
                             : index % 4 === 2
@@ -1530,7 +1530,7 @@ useEffect(() => {
                           width: `${item.percentual}%`, // Proporção da barra
                           backgroundColor:
                             index % 4 === 0
-                              ? "#4caf50"
+                              ? "#00c48c"
                               : index % 4 === 1
                               ? "#ff9800"
                               : index % 4 === 2
@@ -1547,7 +1547,7 @@ useEffect(() => {
                             height: "10px",
                             backgroundColor:
                               index % 4 === 0
-                                ? "#4caf50"
+                                ? "#00c48c"
                                 : index % 4 === 1
                                 ? "#ff9800"
                                 : index % 4 === 2
@@ -1570,7 +1570,7 @@ useEffect(() => {
                         minWidth: "25px",
                         backgroundColor:
                           index % 4 === 0
-                            ? "#4caf50"
+                            ? "#00c48c"
                             : index % 4 === 1
                             ? "#ff9800"
                             : index % 4 === 2

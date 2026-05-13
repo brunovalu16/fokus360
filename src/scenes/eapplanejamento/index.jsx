@@ -174,7 +174,7 @@ useEffect(() => {
         case 1:
           return "#60a5fa";
         case 2:
-          return "#4caf50";
+          return "#00c48c";
         case 3:
           return "#fa4f58";
         case 4:
@@ -666,7 +666,7 @@ useEffect(() => {
 
               {/* Barra + botão + checkbox */}
               <Box display="flex" justifyContent="space-between" alignItems="center">
-                <Box sx={{ width: "100%", height: "10px", backgroundColor: "#4caf50", borderRadius: "2px" }} />
+                <Box sx={{ width: "100%", height: "10px", backgroundColor: "#00c48c", borderRadius: "2px" }} />
 
                 <IconButton
                   size="small"
