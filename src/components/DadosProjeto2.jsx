@@ -471,6 +471,11 @@ const GraficoResumoPorArea = ({ diretrizes = [] }) => {
       icon: <LocalShippingIcon />,
       desc: "Gestão de processos logísticos, distribuição e operação.",
     },
+    "ADM/FINAN": {
+      color: "#4254fb",
+      icon: <AccountBalanceWalletIcon />,
+      desc: "Atividades administrativas, financeiras e controle corporativo.",
+    },
     "ADMIN/FINAN": {
       color: "#4254fb",
       icon: <AccountBalanceWalletIcon />,
@@ -478,92 +483,114 @@ const GraficoResumoPorArea = ({ diretrizes = [] }) => {
     },
   };
 
+  const normalizarArea = (nome) => {
+    if (!nome) return "SEM ÁREA";
 
-  {/*=====================================CALCULO============================================== */}
+    if (nome === "ADMIN/FINAN") return "ADM/FINAN";
 
-const resumo = {};
+    if (nome.includes("ADM/FINAN, COMERCIAL")) return null;
 
-const criarArea = (nome) => {
-  const areaNome = nome || "SEM ÁREA";
+    return nome;
+  };
 
-  if (!resumo[areaNome]) {
-    resumo[areaNome] = {
-      areaNome,
-      estrategicas: 0,
-      taticas: 0,
-      operacionais: 0,
-      tarefas: 0,
-      total: 0,
-    };
-  }
+  const resumo = {};
 
-  return resumo[areaNome];
-};
+  const criarArea = (nome) => {
+    const areaNome = normalizarArea(nome);
 
-diretrizes.forEach((estrategica) => {
-  const areaEst = criarArea(estrategica.areaNome);
-  areaEst.estrategicas += 1;
-  areaEst.total += 1;
+    if (!areaNome) return null;
 
-  estrategica.taticas?.forEach((tatica) => {
-    const areaTatNome = tatica.areaNome || estrategica.areaNome;
-    const areaTat = criarArea(areaTatNome);
-    areaTat.taticas += 1;
-    areaTat.total += 1;
+    if (!resumo[areaNome]) {
+      resumo[areaNome] = {
+        areaNome,
+        estrategicas: 0,
+        taticas: 0,
+        operacionais: 0,
+        tarefas: 0,
+        total: 0,
+      };
+    }
 
-    tatica.operacionais?.forEach((operacional) => {
-      const areaOpNome =
-        operacional.areaNome || tatica.areaNome || estrategica.areaNome;
+    return resumo[areaNome];
+  };
 
-      const areaOp = criarArea(areaOpNome);
-      areaOp.operacionais += 1;
-      areaOp.total += 1;
+  diretrizes.forEach((estrategica) => {
+    const areasDaEstrategica =
+      Array.isArray(estrategica.areaNomes) && estrategica.areaNomes.length > 0
+        ? estrategica.areaNomes
+        : [estrategica.areaNome];
 
-      operacional.tarefas?.forEach((tarefa) => {
-        const areaTarefaNome =
-          tarefa.areaNome ||
-          operacional.areaNome ||
-          tatica.areaNome ||
-          estrategica.areaNome;
+    areasDaEstrategica.forEach((nomeArea) => {
+      const areaEst = criarArea(nomeArea);
+      if (!areaEst) return;
 
-        const areaTar = criarArea(areaTarefaNome);
+      areaEst.estrategicas += 1;
+      areaEst.total += 1;
+    });
 
-        areaTar.tarefas += 1;
-        areaTar.total += 1;
+    estrategica.taticas?.forEach((tatica) => {
+      const areaTat = criarArea(tatica.areaNome || estrategica.areaNome);
+      if (!areaTat) return;
+
+      areaTat.taticas += 1;
+      areaTat.total += 1;
+
+      tatica.operacionais?.forEach((operacional) => {
+        const areaOp = criarArea(
+          operacional.areaNome || tatica.areaNome || estrategica.areaNome
+        );
+
+        if (!areaOp) return;
+
+        areaOp.operacionais += 1;
+        areaOp.total += 1;
+
+        operacional.tarefas?.forEach((tarefa) => {
+          const areaTar = criarArea(
+            tarefa.areaNome ||
+              operacional.areaNome ||
+              tatica.areaNome ||
+              estrategica.areaNome
+          );
+
+          if (!areaTar) return;
+
+          areaTar.tarefas += 1;
+          areaTar.total += 1;
+        });
       });
     });
   });
-});
 
-const dados = Object.values(resumo).filter((area) => area.total > 0);
+  const dados = Object.values(resumo).filter((area) => area.total > 0);
 
-const totalGeral = dados.reduce((acc, area) => acc + area.total, 0);
+  const totalGeral = dados.reduce((acc, area) => acc + area.total, 0);
 
-const semicirculo = dados.map((area) => {
-  const cfg = configAreas[area.areaNome] || {
-    color: "#7b2cff",
-    icon: <BarChartIcon />,
-    desc: "Itens sem área definida.",
-  };
+  const semicirculo = dados.map((area) => {
+    const cfg = configAreas[area.areaNome] || {
+      color: "#7b2cff",
+      icon: <BarChartIcon />,
+      desc: "Itens sem área definida.",
+    };
 
-  const percent =
-    totalGeral > 0 ? Math.round((area.total / totalGeral) * 100) : 0;
+    const percent =
+      totalGeral > 0 ? Math.round((area.total / totalGeral) * 100) : 0;
 
-  return {
-    ...area,
-    ...cfg,
-    percent,
-  };
-});
+    return {
+      ...area,
+      ...cfg,
+      percent,
+    };
+  });
 
-const areasValidasGrafico = semicirculo.filter(
-  (area) => !area.areaNome?.includes("ADM/FINAN, COMERCIAL")
-);
+  const areasValidasGrafico = semicirculo.filter(
+    (area) => !area.areaNome?.includes("ADM/FINAN, COMERCIAL")
+  );
 
-const totalGeralAreasValidas = areasValidasGrafico.reduce(
-  (acc, area) => acc + Number(area.total || 0),
-  0
-);
+  const totalGeralAreasValidas = areasValidasGrafico.reduce(
+    (acc, area) => acc + Number(area.total || 0),
+    0
+  );
 
 {/*============================================================================================ */}
 const totalEstrategicasGrafico = dados.reduce((acc, area) => acc + area.estrategicas, 0);
