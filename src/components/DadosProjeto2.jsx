@@ -467,7 +467,7 @@ const GraficoResumoPorArea = ({ diretrizes = [] }) => {
       desc: "Diretrizes, táticas, operacionais e tarefas da área comercial.",
     },
     LOGÍSTICA: {
-      color: "#4caf50",
+      color: "#00c48c",
       icon: <LocalShippingIcon />,
       desc: "Gestão de processos logísticos, distribuição e operação.",
     },
@@ -572,10 +572,10 @@ const totalOperacionaisGrafico = dados.reduce((acc, area) => acc + area.operacio
 const totalTarefasGrafico = dados.reduce((acc, area) => acc + area.tarefas, 0);
 
 const graficoNiveis = [
-  { nome: "Estratégicas", total: totalEstrategicasGrafico, color: "#ff3f8e" },
-  { nome: "Táticas", total: totalTaticasGrafico, color: "#63bd00" },
-  { nome: "Operacionais", total: totalOperacionaisGrafico, color: "#009fe3" },
-  { nome: "Tarefas", total: totalTarefasGrafico, color: "#ffb000" },
+  { nome: "Estratégicas", total: totalEstrategicasGrafico, color: "#7b2cff" },
+  { nome: "Táticas", total: totalTaticasGrafico, color: "#00C48C" },
+  { nome: "Operacionais", total: totalOperacionaisGrafico, color: "#fa4f58" },
+  { nome: "Tarefas", total: totalTarefasGrafico, color: "#FF9F43" },
 ].filter((item) => item.total > 0);
 
 const totalGrafico = graficoNiveis.reduce((acc, item) => acc + item.total, 0);
@@ -940,11 +940,11 @@ const [tooltip, setTooltip] = useState(null);
               }}
             >
               {[
-                ["Estratégicas", totalEstrategicasGrafico, "#ff3f8e"],
-                ["Táticas", totalTaticasGrafico, "#63bd00"],
-                ["Operacionais", totalOperacionaisGrafico, "#009fe3"],
-                ["Tarefas", totalTarefasGrafico, "#ffb000"],
-              ].map(([label, value, color]) => (
+                  ["Estratégicas", totalEstrategicasGrafico, "#5B8DEF"], // azul premium
+                  ["Táticas", totalTaticasGrafico, "#00C48C"], // verde moderno
+                  ["Operacionais", totalOperacionaisGrafico, "#7B61FF"], // roxo elegante
+                  ["Tarefas", totalTarefasGrafico, "#FF9F43"], // laranja sofisticado
+                ].map(([label, value, color]) => (
                 <Box
                   key={label}
                   sx={{

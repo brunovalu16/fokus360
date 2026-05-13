@@ -2562,12 +2562,12 @@ const handleAddOperacional = (
 
           <Box display="flex" alignItems="center" marginBottom="20px">
                 <SubdirectoryArrowRightIcon
-                  sx={{ fontSize: 30, color: "#4caf50", mr: 1 }}
+                  sx={{ fontSize: 30, color: "#00c48c", mr: 1 }}
                 />
                 <Typography
                       variant="h6"
                       fontWeight="bold"
-                      sx={{ color: "#29c42e", marginTop: 1 }}
+                      sx={{ color: "#00c48c", marginTop: 1 }}
                     >
                       Diretriz Tática
                     </Typography>
@@ -2602,7 +2602,7 @@ const handleAddOperacional = (
                         '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                           borderColor: 'transparent',
                         },
-                        backgroundColor: '#4caf50',
+                        backgroundColor: '#00c48c',
                         borderRadius: '4px',
                         color: "#fff"
                       }}
@@ -2641,12 +2641,12 @@ const handleAddOperacional = (
                 marginTop="30px"
               >
                 <ArrowDropDownCircleIcon
-                  sx={{ fontSize: 20, color: "#4caf50", mr: 1, marginTop: 1 }}
+                  sx={{ fontSize: 20, color: "#00c48c", mr: 1, marginTop: 1 }}
                 />
                 <Typography
                   variant="h6"
                   fontWeight="bold"
-                  sx={{ color: "#29c42e", marginTop: 1 }}
+                  sx={{ color: "#00c48c", marginTop: 1 }}
                 >
                   Diretriz Tática
                 </Typography>
@@ -2766,7 +2766,7 @@ const handleAddOperacional = (
                     expandIcon={<ExpandMoreIcon sx={{ color: "#b7b7b7" }} />}
                     sx={{
                       borderRadius: "8px",
-                      backgroundColor: "#4caf50",
+                      backgroundColor: "#00c48c",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
@@ -2788,7 +2788,7 @@ const handleAddOperacional = (
             borderRadius: "50%",
             backgroundColor:
               tatica.status === "concluida"
-                ? (tatica.statusVisual === "no_prazo" ? "#00ff08" : "#ff0000")
+                ? (tatica.statusVisual === "no_prazo" ? "#73ff00" : "#ff0000")
                 : tatica.time === "no prazo"
                 ? "#00ff08"
                 : tatica.time === "atrasada"
@@ -3182,7 +3182,7 @@ const handleAddOperacional = (
 >
   <Typography
     sx={{
-      color: tatica.areaNome ? "#4caf50" : "#999",
+      color: tatica.areaNome ? "#00c48c" : "#999",
       fontWeight: 600,
     }}
   >
@@ -4963,7 +4963,7 @@ function NovaTaticaForm({ areas, onAdd }) {
           },
         }}
       >
-        <AddCircleOutlineIcon sx={{ fontSize: 25, color: "#4caf50" }} />
+        <AddCircleOutlineIcon sx={{ fontSize: 25, color: "#00c48c" }} />
       </Button>
     </Box>
   );
