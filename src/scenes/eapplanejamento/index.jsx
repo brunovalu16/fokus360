@@ -625,7 +625,11 @@ useEffect(() => {
            }}>
 
            <Box sx={{ maxWidth: "210px", borderRadius: "10px", marginBottom: "15px" }}>
-            <StatusProgressoPorArea estrategica={estrategica} />
+            <StatusProgressoPorArea
+              estrategicas={
+                columns.find(col => col.title === "Estratégicas")?.cards || []
+              }
+            />
            </Box>
 
 
