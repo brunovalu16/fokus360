@@ -39,6 +39,7 @@ import Eapplanejamento from "./scenes/eapplanejamento";
 import ManuaisCSC from "./scenes/ManuaisCSC";
 import Manuais from "./scenes/Manuais";
 import VendastotalTrade from "./scenes/vendastotaltrade";
+import AcompanhamentoGrupo from "./scenes/acompanhamentogrupo";
 import Capatarefas from "./scenes/capatarefas";
 import Capaarquivos from "./scenes/capaarquivos";
 import Csc from "./scenes/csc";
@@ -88,6 +89,7 @@ const router = createBrowserRouter(
         { path: "/planejamento", element: <PrivateRoute><Planejamento /></PrivateRoute> },
         { path: "/user", element: <PrivateRoute><User /></PrivateRoute> },
         { path: "/painelindustrias", element: <PrivateRoute><PainelIndustrias /></PrivateRoute> },
+        { path: "/AcompanhamentoGrupo", element: <PrivateRoute><AcompanhamentoGrupo /></PrivateRoute> },
         { path: "/dashboardprojeto/:id", element: <PrivateRoute><DashboardProjeto /></PrivateRoute> },
         { path: "/vendasdevolucao", element: <PrivateRoute><VendasDevolucao /></PrivateRoute> },
         { path: "/relatoriotrade", element: <PrivateRoute><RelatorioTrade /></PrivateRoute> },

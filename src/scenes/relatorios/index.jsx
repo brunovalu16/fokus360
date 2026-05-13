@@ -429,6 +429,15 @@ const Relatorios = () => {
                 >
                   VENDAS TOTAL
                 </Button>
+                <Button
+                  component={Link} // Define que o botão será um Link do React Router
+                  to="/AcompanhamentoGrupo"
+                  fullWidth
+                  variant="contained"
+                  sx={mainButtonStyle}
+                >
+                  ACOMPANHAMENTO GRUPO
+                </Button>
                 
               </>
             )}
