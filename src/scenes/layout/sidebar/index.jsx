@@ -161,32 +161,7 @@ const SideBar = () => {
             alignItems="center"
             justifyContent={collapsed ? "center" : "space-between"}
           >
-            {!collapsed && (
-              <Box>
-                <Typography
-                  sx={{
-                    fontSize: 11,
-                    fontWeight: 900,
-                    color: "#94a3b8",
-                    letterSpacing: "0.12em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Sistema
-                </Typography>
-
-                <Typography
-                  sx={{
-                    fontSize: 18,
-                    fontWeight: 950,
-                    color: "#0f172a",
-                    lineHeight: 1.1,
-                  }}
-                >
-                  FOKUS 360
-                </Typography>
-              </Box>
-            )}
+            
 
             <IconButton
               onClick={() => setCollapsed(!collapsed)}
@@ -195,7 +170,7 @@ const SideBar = () => {
                 height: 42,
                 borderRadius: "14px",
                 color: "#312783",
-                backgroundColor: "rgba(49,39,131,0.08)",
+                
                 border: "1px solid rgba(49,39,131,0.12)",
                 "&:hover": {
                   backgroundColor: "rgba(49,39,131,0.14)",
@@ -223,9 +198,8 @@ const SideBar = () => {
                   width: "180px",
                   minHeight: 92,
                   borderRadius: "24px",
-                  background:
-                    "linear-gradient(135deg, rgba(49,39,131,0.06), rgba(109,93,252,0.10))",
-                  border: "1px solid rgba(226,232,240,0.85)",
+                  
+                 
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -236,7 +210,7 @@ const SideBar = () => {
                   src={logo}
                   alt="Logo"
                   style={{
-                    width: "135px",
+                    width: "180px",
                     height: "auto",
                   }}
                 />
@@ -309,7 +283,7 @@ const SideBar = () => {
                       ...menuButtonStyle,
                     },
                     SubMenuExpandIcon: {
-                      color: "#64748b",
+                      color: "#312783",
                     },
                   }}
                 >
