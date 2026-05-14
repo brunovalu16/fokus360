@@ -240,7 +240,7 @@ const Relatorios = () => {
                     lineHeight: 1.1,
                   }}
                 >
-                  Central Executiva FOKUS 360
+                 POWER BI
                 </Typography>
               </Box>
             </Box>
@@ -282,7 +282,7 @@ const Relatorios = () => {
           >
             <Box display="flex" alignItems="center" gap={1.5}>
               <PlayCircleFilledIcon sx={{ color: "#6d5dfc", fontSize: 28 }} />
-
+              
               <Box>
                 <Typography
                   sx={{
@@ -293,21 +293,14 @@ const Relatorios = () => {
                     textTransform: "uppercase",
                   }}
                 >
-                  Relatórios disponíveis
+                  Relatórios disponíveis Power BI
                 </Typography>
-
-                <Typography
-                  sx={{
-                    fontSize: "15px",
-                    color: "#94a3b8",
-                    fontWeight: 500,
-                  }}
-                >
-                  Acesso controlado conforme perfil do usuário
-                </Typography>
+                
+                
               </Box>
+              
             </Box>
-
+                  {/** 
             <Chip
               icon={<LocalGroceryStoreIcon sx={{ color: "#312783 !important" }} />}
               label={`Perfil ${userRole || "--"}`}
@@ -321,6 +314,7 @@ const Relatorios = () => {
                 border: "1px solid rgba(49,39,131,0.16)",
               }}
             />
+            */}
           </Box>
 
           <Divider sx={{ mb: 3, borderColor: "rgba(148,163,184,0.25)" }} />

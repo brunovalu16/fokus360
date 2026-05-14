@@ -1,20 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { Box, Button, Typography } from "@mui/material";
-import { Header } from "../../components"; // Certifique-se de que o caminho está correto
-import LocalGroceryStoreIcon from '@mui/icons-material/LocalGroceryStore';
-import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
-import { Divider } from "@mui/material";
-
-import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import { Menu, MenuItem, Sidebar, SubMenu  } from "react-pro-sidebar";
-
+import React, { useState, useEffect, useMemo } from "react";
+import { Box, Button, Typography, Divider, Chip, Paper, Stack } from "@mui/material";
+import { Header } from "../../components";
 import { Link } from "react-router-dom";
 
+import LocalGroceryStoreIcon from "@mui/icons-material/LocalGroceryStore";
+import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import FactoryIcon from "@mui/icons-material/Factory";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import InsertChartOutlinedIcon from "@mui/icons-material/InsertChartOutlined";
+import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
+import LockOpenIcon from "@mui/icons-material/LockOpen";
 
-
-
-
-//condição de visualização para industrias
 const roleToLabelMap = {
   "37": "Ajinomoto",
   "38": "AB Mauri",
@@ -33,469 +30,571 @@ const roleToLabelMap = {
   "51": "Red Bull",
 };
 
-//condição de visualização para usuarios internos
 const rolesComAcessoCompleto = [
-  "01", "02", "03", "04", "05", "06", "08", "09", "10", "11", 
-  "19", "20", "21", "25", "26", "27", "34", "35", "36"
+  "01", "02", "03", "04", "05", "06", "08", "09", "10", "11",
+  "19", "20", "21", "25", "26", "27", "34", "35", "36",
 ];
 
-
-//condição para esconder o botão dos roles logados
 const rolesQueEscondemBotaoVoltar = [
   "37", "38", "39", "40", "41", "42", "43", "44",
-  "45", "46", "47", "48", "49", "50", "51"
+  "45", "46", "47", "48", "49", "50", "51",
 ];
 
+const industryColors = {
+  Ajinomoto: "#dc2626",
+  "AB Mauri": "#7c3aed",
+  Adoralle: "#f97316",
+  Bettanin: "#2563eb",
+  "Mars Choco": "#92400e",
+  "Mars Pet": "#059669",
+  "M.Dias": "#312783",
+  SCJhonson: "#0284c7",
+  "UAU Ingleza": "#db2777",
+  Danone: "#1d4ed8",
+  Ypê: "#16a34a",
+  Fini: "#e11d48",
+  Heinz: "#b91c1c",
+  "Red Bull": "#1e3a8a",
+};
 
-
+const industryReports = {
+  "AB Mauri": [
+    { title: "Vendas x Devolução", status: "Disponível", path: null },
+    { title: "Relatório Geral", status: "Em breve", path: null },
+    { title: "Em Construção", status: "Em breve", path: null },
+  ],
+  Adoralle: [
+    { title: "Teste 1 Financeiro", status: "Em breve", path: null },
+    { title: "Teste 2 Financeiro", status: "Em breve", path: null },
+    { title: "Teste 3 Financeiro", status: "Em breve", path: null },
+  ],
+  Ajinomoto: [
+    { title: "Ajinomoto 1", status: "Em breve", path: null },
+    { title: "Ajinomoto 2", status: "Em breve", path: null },
+    { title: "Ajinomoto 3", status: "Em breve", path: null },
+  ],
+  Bettanin: [
+    { title: "Teste 7 Central", status: "Em breve", path: null },
+    { title: "Teste 8 Central", status: "Em breve", path: null },
+    { title: "Teste 9 Central", status: "Em breve", path: null },
+  ],
+  "M.Dias": [
+    { title: "Teste 11 Trade", status: "Em breve", path: null },
+    { title: "Teste 12 Trade", status: "Em breve", path: null },
+    { title: "Teste 13 Trade", status: "Em breve", path: null },
+  ],
+  "Mars Choco": [
+    { title: "Teste 14 Indústria", status: "Em breve", path: null },
+    { title: "Teste 15 Indústria", status: "Em breve", path: null },
+    { title: "Teste 16 Indústria", status: "Em breve", path: null },
+  ],
+  "Mars Pet": [
+    { title: "Teste 14 Indústria", status: "Em breve", path: null },
+    { title: "Teste 15 Indústria", status: "Em breve", path: null },
+    { title: "Teste 16 Indústria", status: "Em breve", path: null },
+  ],
+  SCJhonson: [
+    { title: "Teste 14 Indústria", status: "Em breve", path: null },
+    { title: "Teste 15 Indústria", status: "Em breve", path: null },
+    { title: "Teste 16 Indústria", status: "Em breve", path: null },
+  ],
+  Ypê: [
+    { title: "Teste 14 Indústria", status: "Em breve", path: null },
+    { title: "Teste 15 Indústria", status: "Em breve", path: null },
+    { title: "Teste 16 Indústria", status: "Em breve", path: null },
+  ],
+  "UAU Ingleza": [
+    { title: "Teste 14 Indústria", status: "Em breve", path: null },
+    { title: "Teste 15 Indústria", status: "Em breve", path: null },
+    { title: "Teste 16 Indústria", status: "Em breve", path: null },
+  ],
+  Danone: [
+    { title: "Teste 14 Indústria", status: "Em breve", path: null },
+    { title: "Teste 15 Indústria", status: "Em breve", path: null },
+    { title: "Teste 16 Indústria", status: "Em breve", path: null },
+  ],
+  Fini: [
+    { title: "Teste 14 Indústria", status: "Em breve", path: null },
+    { title: "Teste 15 Indústria", status: "Em breve", path: null },
+    { title: "Teste 16 Indústria", status: "Em breve", path: null },
+  ],
+  Heinz: [
+    { title: "Teste 14 Indústria", status: "Em breve", path: null },
+    { title: "Teste 15 Indústria", status: "Em breve", path: null },
+    { title: "Teste 16 Indústria", status: "Em breve", path: null },
+  ],
+  "Red Bull": [
+    { title: "Teste 14 Indústria", status: "Em breve", path: null },
+    { title: "Teste 15 Indústria", status: "Em breve", path: null },
+    { title: "Teste 16 Indústria", status: "Em breve", path: null },
+  ],
+};
 
 const PainelIndustrias = () => {
-  // Estado para rastrear qual conteúdo está ativo
   const [activeContent, setActiveContent] = useState("");
-
   const [userRole, setUserRole] = useState("");
   const [allowedLabel, setAllowedLabel] = useState("");
 
-//isso é uma flag
   const podeVerTudo = rolesComAcessoCompleto.includes(userRole);
+  const deveExibirBotaoVoltar = !rolesQueEscondemBotaoVoltar.includes(userRole);
 
+  useEffect(() => {
+    const role = localStorage.getItem("userRole");
 
-//pega o role do usuario logado
-useEffect(() => {
-  const role = localStorage.getItem("userRole");
-  if (role) {
-    setUserRole(role);
-    const label = roleToLabelMap[role];
-    if (label) setAllowedLabel(label);
-  }
-}, []);
+    if (role) {
+      const roleFormatado = String(role).padStart(2, "0");
+      const label = roleToLabelMap[roleFormatado];
 
+      setUserRole(roleFormatado);
 
-//flag para esconder o botão voltar dos roles definidos
-const deveExibirBotaoVoltar = !rolesQueEscondemBotaoVoltar.includes(userRole);
+      if (label) {
+        setAllowedLabel(label);
+        setActiveContent(label);
+      }
 
+      if (rolesComAcessoCompleto.includes(roleFormatado)) {
+        const primeiraIndustria = Object.values(roleToLabelMap)[0];
+        setActiveContent(primeiraIndustria);
+      }
+    }
+  }, []);
+
+  const industriasPermitidas = useMemo(() => {
+    if (podeVerTudo) {
+      return [...new Set(Object.values(roleToLabelMap))];
+    }
+
+    return allowedLabel ? [allowedLabel] : [];
+  }, [podeVerTudo, allowedLabel]);
+
+  const activeColor = industryColors[activeContent] || "#312783";
+  const activeReports = industryReports[activeContent] || [];
 
   return (
     <>
-       {/* Header */}
-       <Box
-            sx={{
-              marginLeft: "40px",
-              paddingTop: "50px",
-            }}
-          >
-          <Header
-            title={
-              <Box display="flex" alignItems="center" gap={1}>
-                <LocalGroceryStoreIcon sx={{ color: "#5f53e5", fontSize: 40 }} />
-                  <Typography>
-                      GERENCIADOR DE RELATÓRIOS  |  INDÚSTRIAS
-                  </Typography>
-                
+      <Box sx={{ px: { xs: 2, md: 5 }, pt: 5 }}>
+        <Header
+          title={
+            <Box display="flex" alignItems="center" gap={1.5}>
+              <Box
+                sx={{
+                  width: 42,
+                  height: 42,
+                  borderRadius: "14px",
+                  background: "linear-gradient(135deg, #312783, #6d5dfc)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 12px 28px rgba(49,39,131,0.28)",
+                }}
+              >
+                <LocalGroceryStoreIcon sx={{ color: "#fff", fontSize: 26 }} />
               </Box>
-            }
-          />
+
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: "13px",
+                    fontWeight: 800,
+                    color: "#64748b",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Gerenciador de Relatórios
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontSize: { xs: "22px", md: "28px" },
+                    fontWeight: 900,
+                    color: "#0f172a",
+                    lineHeight: 1.1,
+                  }}
+                >
+                  Central de Indústrias
+                </Typography>
+              </Box>
+            </Box>
+          }
+        />
       </Box>
 
       <Box
-        m="40px"
-        width="90%"
-        minHeight="50vh"
-        bgcolor="#f2f0f0"
         sx={{
-          overflowX: "hidden", // Remove a rolagem horizontal
-          padding: "15px",
-          paddingLeft: "30px",
-          borderRadius: "20px",
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)", // Efeito de sombra para o container
-          marginTop: "-15px",
+          mx: { xs: 2, md: 5 },
+          mt: 2,
+          minHeight: "68vh",
+          borderRadius: "28px",
+          overflow: "hidden",
+          position: "relative",
+          background:
+            "linear-gradient(135deg, rgba(255,255,255,0.96), rgba(246,247,251,0.98))",
+          boxShadow: "0 24px 70px rgba(15,23,42,0.12)",
+          border: "1px solid rgba(226,232,240,0.9)",
         }}
       >
-        
- <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
-  {/* Relatórios à esquerda */}
-  <Box display="flex" alignItems="center" gap={1}>
-    <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
-    <Typography color="#858585">RELATÓRIOS</Typography>
-  </Box>
-
-  {/* Voltar à direita como botão com Link */}
-  <Box>
-    {deveExibirBotaoVoltar && (
-      <Button
-        component={Link}
-        to="/relatorios"
-        startIcon={<ExitToAppIcon sx={{ color: "#5f53e5", marginRight: "-7px", marginTop: "-3px" }} />}
-        sx={{
-          padding: "5px 10px",
-          fontSize: "13px",
-          color: "#858585",
-          marginRight: "20px",
-          textTransform: "none",
-          display: "flex",
-          alignItems: "center",
-          gap: "6px",
-        }}
-      >
-        Voltar
-      </Button>
-    )}
-
-  </Box>
-</Box>
-
-
-
-
-
-     
-
-
-
         <Box
-            sx={{
-              position: "relative", // Permite posicionar o ícone sobre o divisor
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "90%", // Largura do divisor
-              marginBottom: "10px",
-              marginTop: "15px",
-            }}
-          >
-            {/* Divider */}
-            <Divider
-              sx={{
-                position: "absolute", // Para garantir que o ícone fique sobre o divisor
-                width: "100%",
-                height: "1px",
-                backgroundColor: "#ccc", // Cor do divisor
-              }}
-            />
-
-            {/* Ícone */}
-            <LocalGroceryStoreIcon
-              sx={{
-                color: "#5f53e5",
-                fontSize: 25,
-                zIndex: 1, // Garante que o ícone fique acima do divisor
-                backgroundColor: "#f2f0f0", // Fundo branco para destacar o ícone
-                padding: "0 4px", // Espaçamento para o fundo branco
-                marginLeft: "103%",
-              }}
-            />
-        </Box>
-        
-
-        {/* Conteúdo Principal */}
-        <Box
-          display="flex"
-          flexDirection={{ xs: "column", md: "row" }}
-          width="100%"
-          minHeight="calc(60vh - 80px)" // Ajuste para considerar a altura do Header
           sx={{
-            overflowX: "hidden", // Garante que nenhum conteúdo cause rolagem horizontal
+            height: 8,
+            background: "linear-gradient(90deg, #312783, #6d5dfc, #00c48c)",
           }}
-        >
-          {/* Div de Menus */}
+        />
+
+        <Box sx={{ p: { xs: 2.5, md: 4 } }}>
           <Box
             sx={{
-              width: { xs: "100%", md: "30%" },
-              backgroundColor: "#f2f0f0",
-              padding: { xs: 2, md: 3 },
-              borderRight: "1px solid #d6d6d6",
+              display: "flex",
+              alignItems: { xs: "flex-start", md: "center" },
+              justifyContent: "space-between",
+              gap: 2,
+              flexDirection: { xs: "column", md: "row" },
+              mb: 3,
             }}
           >
-            {podeVerTudo
-  ? Object.values(roleToLabelMap).map((label) => (
-      <Button
-        key={label}
-        fullWidth
-        variant="contained"
-        onClick={() => setActiveContent(label)}
-        sx={{
-          mb: 3,
-          borderRadius: "10px",
-          border: "1px solid",
-          boxShadow: "none",
-          backgroundColor: activeContent === label ? "#312783" : "#f2f0f0",
-          textTransform: "none",
-          borderColor: "#e0e0e0",
-          color: activeContent === label ? "#fff" : "#858585",
-          "&:hover": {
-            backgroundColor: "#312783",
-            color: "#fff",
-            boxShadow: "none",
-          },
-        }}
-      >
-        {label}
-      </Button>
-    ))
-  : allowedLabel && (
-      <Button
-        key={allowedLabel}
-        fullWidth
-        variant="contained"
-        onClick={() => setActiveContent(allowedLabel)}
-        sx={{
-          mb: 3,
-          borderRadius: "10px",
-          border: "1px solid",
-          boxShadow: "none",
-          backgroundColor: activeContent === allowedLabel ? "#312783" : "#f2f0f0",
-          textTransform: "none",
-          borderColor: "#e0e0e0",
-          color: activeContent === allowedLabel ? "#fff" : "#858585",
-          "&:hover": {
-            backgroundColor: "#312783",
-            color: "#fff",
-            boxShadow: "none",
-          },
-        }}
-      >
-        {allowedLabel}
-      </Button>
-    )}
+            <Box display="flex" alignItems="center" gap={1.5}>
+              <PlayCircleFilledIcon sx={{ color: "#6d5dfc", fontSize: 28 }} />
 
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: "12px",
+                    fontWeight: 800,
+                    color: "#64748b",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Relatórios Power BI por indústria
+                </Typography>
 
+              
+              </Box>
+            </Box>
+
+            <Box display="flex" alignItems="center" gap={1.2}>
+              
+
+              {deveExibirBotaoVoltar && (
+                <Button
+                  component={Link}
+                  to="/relatorios"
+                  startIcon={<ExitToAppIcon />}
+                  sx={{
+                    height: 38,
+                    px: 2,
+                    borderRadius: "12px",
+                    textTransform: "none",
+                    fontWeight: 800,
+                    color: "#64748b",
+                    backgroundColor: "#fff",
+                    border: "1px solid rgba(226,232,240,0.95)",
+                    boxShadow: "0 8px 22px rgba(15,23,42,0.05)",
+                    "&:hover": {
+                      color: "#312783",
+                      backgroundColor: "rgba(49,39,131,0.06)",
+                      boxShadow: "0 12px 28px rgba(15,23,42,0.08)",
+                    },
+                  }}
+                >
+                  Voltar
+                </Button>
+              )}
+            </Box>
           </Box>
 
-          {/* Main Content */}
+          <Divider sx={{ mb: 3, borderColor: "rgba(148,163,184,0.25)" }} />
+
           <Box
-            flex={1}
-            padding={{ xs: 2, md: 3 }}
-            display="flex"
-            flexDirection="column"
-            justifyContent="flex-start"
-            alignItems="center"
             sx={{
-              mb: 1,
-              boxShadow: "none", // Garante que não há sombra no hover
-              color: "#727681",
-              textTransform: "none",
-              maxWidth: "60%", // Certifica-se de que o conteúdo se ajuste
-              minWidth: "60%",
-              overflow: "auto",
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", lg: "340px 1fr" },
+              gap: 3,
             }}
           >
-            {activeContent === "AB Mauri" && (
-              <>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  VENDAS X DEVOLUÇÃO
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  RELATÓRIO GERAL
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  EM CONSTRUÇÃO
-                </Button>
-              </>
-            )}
-            {activeContent === "Adoralle" && (
-              <>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 1 financeiro
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 2 financeiro
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 3 financeiro
-                </Button>
-              </>
-            )}
-            {activeContent === "Ajinomoto" && (
-              <>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  ajinomoto 1
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  ajinomoto 2
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  ajinomoto 3
-                </Button>
-              </>
-            )}
-            {activeContent === "Bettanin" && (
-              <>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 7 Central
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 8 Central
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 9 Central
-                </Button>
-              </>
-            )}
-            {activeContent === "M.Dias" && (
-              <>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 11 trade
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 12 trade
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 13 trade
-                </Button>
-              </>
-            )}
-            {activeContent === "Mars Choco" && (
-              <>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 14 indústria
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 15 indústria
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 16 indústria
-                </Button>
-              </>
-            )}
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2,
+                borderRadius: "24px",
+                border: "1px solid rgba(226,232,240,0.9)",
+                backgroundColor: "rgba(255,255,255,0.82)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
+              }}
+            >
+              <Typography
+                sx={{
+                  px: 1,
+                  mb: 2,
+                  fontSize: "12px",
+                  fontWeight: 900,
+                  color: "#94a3b8",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                }}
+              >
+                Indústrias
+              </Typography>
 
-            {activeContent === "Mars Pet" && (
-              <>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 14 indústria
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 15 indústria
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 16 indústria
-                </Button>
-              </>
-            )}  
+              <Stack spacing={1.2}>
+                {industriasPermitidas.map((label) => {
+                  const selected = activeContent === label;
+                  const color = industryColors[label] || "#312783";
 
-            {activeContent === "SCJhonson" && (
-              <>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 14 indústria
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 15 indústria
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 16 indústria
-                </Button>
-              </>
-            )} 
+                  return (
+                    <Button
+                      key={label}
+                      fullWidth
+                      onClick={() => setActiveContent(label)}
+                      sx={{
+                        minHeight: 64,
+                        px: 2,
+                        justifyContent: "space-between",
+                        borderRadius: "18px",
+                        textTransform: "none",
+                        color: selected ? "#fff" : "#334155",
+                        background: selected
+                          ? `linear-gradient(135deg, ${color}, #6d5dfc)`
+                          : "#fff",
+                        border: selected
+                          ? "1px solid transparent"
+                          : "1px solid rgba(226,232,240,0.9)",
+                        boxShadow: selected
+                          ? `0 16px 34px ${color}38`
+                          : "0 8px 22px rgba(15,23,42,0.04)",
+                        "&:hover": {
+                          background: `linear-gradient(135deg, ${color}, #6d5dfc)`,
+                          color: "#fff",
+                          transform: "translateY(-1px)",
+                          boxShadow: `0 18px 38px ${color}38`,
+                        },
+                        transition: "all 0.25s ease",
+                      }}
+                    >
+                      <Box display="flex" alignItems="center" gap={1.4}>
+                        <Box
+                          sx={{
+                            width: 38,
+                            height: 38,
+                            borderRadius: "13px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: selected ? "rgba(255,255,255,0.18)" : `${color}14`,
+                            color: selected ? "#fff" : color,
+                          }}
+                        >
+                          <FactoryIcon />
+                        </Box>
 
-            {activeContent === "Ypê" && (
-              <>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 14 indústria
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 15 indústria
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 16 indústria
-                </Button>
-              </>
-            )} 
+                        <Box textAlign="left">
+                          <Typography sx={{ fontWeight: 900, fontSize: 14 }}>
+                            {label}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontSize: 11,
+                              color: selected ? "rgba(255,255,255,0.75)" : "#94a3b8",
+                            }}
+                          >
+                            Relatórios industriais
+                          </Typography>
+                        </Box>
+                      </Box>
 
-            {activeContent === "UAU Ingleza" && (
-              <>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 14 indústria
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 15 indústria
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 16 indústria
-                </Button>
-              </>
-            )} 
+                      <ArrowForwardIosIcon sx={{ fontSize: 14, opacity: 0.8 }} />
+                    </Button>
+                  );
+                })}
+              </Stack>
+            </Paper>
 
-            {activeContent === "Danone" && (
-              <>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 14 indústria
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 15 indústria
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 16 indústria
-                </Button>
-              </>
-            )} 
+            <Paper
+              elevation={0}
+              sx={{
+                p: { xs: 2.2, md: 3 },
+                borderRadius: "24px",
+                border: "1px solid rgba(226,232,240,0.9)",
+                background:
+                  "radial-gradient(circle at top right, rgba(109,93,252,0.10), transparent 35%), #fff",
+                minHeight: 420,
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: { xs: "flex-start", md: "center" },
+                  justifyContent: "space-between",
+                  flexDirection: { xs: "column", md: "row" },
+                  gap: 2,
+                  mb: 3,
+                }}
+              >
+                <Box display="flex" alignItems="center" gap={1.5}>
+                  <Box
+                    sx={{
+                      width: 54,
+                      height: 54,
+                      borderRadius: "18px",
+                      background: `linear-gradient(135deg, ${activeColor}, #6d5dfc)`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#fff",
+                      boxShadow: `0 18px 36px ${activeColor}35`,
+                    }}
+                  >
+                    <BusinessCenterIcon />
+                  </Box>
 
-            {activeContent === "Fini" && (
-              <>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 14 indústria
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 15 indústria
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 16 indústria
-                </Button>
-              </>
-            )} 
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontSize: { xs: 20, md: 24 },
+                        fontWeight: 950,
+                        color: "#0f172a",
+                        lineHeight: 1.1,
+                      }}
+                    >
+                      {activeContent || "Nenhuma indústria selecionada"}
+                    </Typography>
 
-            {activeContent === "Heinz" && (
-              <>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 14 indústria
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 15 indústria
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 16 indústria
-                </Button>
-              </>
-            )} 
+                    <Typography sx={{ color: "#64748b", fontSize: 14, mt: 0.5 }}>
+                      Painel executivo de relatórios industriais
+                    </Typography>
+                  </Box>
+                </Box>
 
+                <Chip
+                  label={`${activeReports.length} relatório(s)`}
+                  sx={{
+                    borderRadius: "12px",
+                    fontWeight: 800,
+                    color: activeColor,
+                    backgroundColor: `${activeColor}12`,
+                    border: `1px solid ${activeColor}24`,
+                  }}
+                />
+              </Box>
 
-            {activeContent === "Red Bull" && (
-              <>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 14 indústria
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 15 indústria
-                </Button>
-                <Button fullWidth variant="contained" sx={mainButtonStyle}>
-                  teste 16 indústria
-                </Button>
-              </>
-            )} 
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    md: "repeat(2, minmax(0, 1fr))",
+                    xl: "repeat(3, minmax(0, 1fr))",
+                  },
+                  gap: 2,
+                }}
+              >
+                {activeReports.map((report) => {
+                  const disabled = !report.path;
 
+                  const card = (
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2.3,
+                        minHeight: 150,
+                        borderRadius: "22px",
+                        border: "1px solid rgba(226,232,240,0.95)",
+                        background: disabled
+                          ? "linear-gradient(135deg, #f8fafc, #fff)"
+                          : "linear-gradient(135deg, #ffffff, #f8f7ff)",
+                        cursor: disabled ? "default" : "pointer",
+                        opacity: disabled ? 0.72 : 1,
+                        transition: "all 0.25s ease",
+                        "&:hover": disabled
+                          ? {}
+                          : {
+                              transform: "translateY(-4px)",
+                              boxShadow: "0 20px 45px rgba(15,23,42,0.12)",
+                              borderColor: `${activeColor}55`,
+                            },
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: "15px",
+                          backgroundColor: disabled
+                            ? "rgba(148,163,184,0.12)"
+                            : `${activeColor}14`,
+                          color: disabled ? "#94a3b8" : activeColor,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          mb: 2,
+                        }}
+                      >
+                        <InsertChartOutlinedIcon />
+                      </Box>
 
+                      <Typography
+                        sx={{
+                          fontSize: 15,
+                          fontWeight: 950,
+                          color: "#0f172a",
+                          textTransform: "uppercase",
+                          lineHeight: 1.25,
+                          mb: 1,
+                        }}
+                      >
+                        {report.title}
+                      </Typography>
 
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          mt: 2,
+                        }}
+                      >
+                        <Chip
+                          size="small"
+                          label={report.status}
+                          sx={{
+                            height: 24,
+                            fontSize: 11,
+                            fontWeight: 800,
+                            borderRadius: "8px",
+                            color: disabled ? "#64748b" : "#047857",
+                            backgroundColor: disabled
+                              ? "rgba(148,163,184,0.12)"
+                              : "rgba(16,185,129,0.12)",
+                          }}
+                        />
 
+                        {!disabled && (
+                          <ArrowForwardIosIcon sx={{ fontSize: 14, color: activeColor }} />
+                        )}
+                      </Box>
+                    </Paper>
+                  );
+
+                  if (disabled) return <Box key={report.title}>{card}</Box>;
+
+                  return (
+                    <Box
+                      key={report.title}
+                      component={Link}
+                      to={report.path}
+                      sx={{ textDecoration: "none", color: "inherit" }}
+                    >
+                      {card}
+                    </Box>
+                  );
+                })}
+              </Box>
+            </Paper>
           </Box>
         </Box>
       </Box>
     </>
   );
-};
-
-// Estilo padrão dos botões principais
-const mainButtonStyle = {
-  mb: 2,
-  backgroundColor: "#312783",
-  color: "#fff",
-  textTransform: "none",
-  maxWidth: "50%",
-  minWidth: "50%",
-  marginLeft: "-50%",
-  borderRadius: "10px",
-  boxShadow: "none",
-  "&:hover": {
-    backgroundColor: "#d6d6d6",
-    boxShadow: "none",
-  },
 };
 
 export default PainelIndustrias;
