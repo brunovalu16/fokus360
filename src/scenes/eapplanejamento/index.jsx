@@ -880,7 +880,7 @@ useEffect(() => {
 
 
   {/* Tarefas (somente das operacionais expandidas) */}
-  <Box minWidth="200px" sx={{ marginTop: "100px" }}>
+  <Box minWidth="200px" sx={{ marginTop: "195px" }}>
   {columns.find(col => col.title === "Estratégicas")?.cards
     .flatMap(e => e.taticas || [])
     .flatMap(t => t.operacionais || [])
