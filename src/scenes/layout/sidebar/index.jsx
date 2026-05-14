@@ -4,32 +4,26 @@ import {
   IconButton,
   Button,
   Divider,
-  useTheme,
   Tooltip,
   Typography,
 } from "@mui/material";
 
-import { Menu, MenuItem, Sidebar, SubMenu } from "react-pro-sidebar";
-import {
-  MenuOutlined,
-  Assessment as AssessmentIcon,
-  PieChart as PieChartIcon,
-  Source as SourceIcon,
-  AssignmentTurnedIn as AssignmentTurnedInIcon,
-  PowerSettingsNew as LogoutIcon,
-} from "@mui/icons-material";
-
+import { MenuOutlined } from "@mui/icons-material";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import PieChartIcon from "@mui/icons-material/PieChart";
+import SourceIcon from "@mui/icons-material/Source";
+import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
+import LogoutIcon from "@mui/icons-material/PowerSettingsNew";
 import HeatPumpIcon from "@mui/icons-material/HeatPump";
 import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
-import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
-import { useNavigate, Link } from "react-router-dom";
-import { useTheme as useMuiTheme } from "@mui/material/styles";
+import { Sidebar } from "react-pro-sidebar";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 
 import logo from "../../../assets/images/icone_logo.png";
 import icon_logo from "../../../assets/images/icon_logo.png";
 
-import { tokens } from "../../../theme";
 import { authFokus360, dbFokus360 as db } from "../../../data/firebase-config";
 import { ToggledContext } from "../../../App";
 import { signOut, onAuthStateChanged } from "firebase/auth";
@@ -43,9 +37,8 @@ const SideBar = () => {
 
   const { toggled, setToggled } = useContext(ToggledContext);
 
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(authFokus360, async (currentUser) => {
@@ -85,26 +78,50 @@ const SideBar = () => {
     }
   };
 
-  const menuButtonStyle = {
-    color: "#334155",
-    backgroundColor: "transparent",
-    borderRadius: "14px",
-    margin: "4px 10px",
-    height: "46px",
-    fontSize: "14px",
-    fontWeight: 800,
-    transition: "all 0.25s ease",
-    "&:hover": {
-      color: "#312783",
-      backgroundColor: "rgba(49,39,131,0.08)",
-      transform: "translateX(3px)",
-    },
-    [`&.ps-active`]: {
-      color: "#fff",
-      background: "linear-gradient(135deg, #312783, #6d5dfc)",
-      boxShadow: "0 12px 28px rgba(49,39,131,0.28)",
-    },
+  const isActive = (paths = []) => {
+    return paths.some((path) => location.pathname === path);
   };
+
+  const menuItems = [
+    {
+      label: "Power BI",
+      subtitle: "Indicadores e relatórios executivos",
+      icon: <AssessmentIcon />,
+      path: "/home",
+      color: "#312783",
+      bg: "rgba(49,39,131,0.10)",
+      paths: ["/home"],
+    },
+    {
+      label: "Arquivos",
+      subtitle: "Biblioteca e documentos internos",
+      icon: <SourceIcon />,
+      path: "/capaarquivos",
+      color: "#2563eb",
+      bg: "rgba(37,99,235,0.10)",
+      paths: ["/capaarquivos", "/arquivosareas", "/arquivos", "/painelindustriastrade"],
+    },
+    {
+      label: "Tarefas",
+      subtitle: "Kanban e gestão operacional",
+      icon: <AssignmentTurnedInIcon />,
+      path: "/capatarefas",
+      color: "#059669",
+      bg: "rgba(5,150,105,0.10)",
+      paths: ["/capatarefas"],
+    },
+    {
+      label: "CSC",
+      subtitle: "Centro de Serviços Compartilhados",
+      icon: <HeatPumpIcon />,
+      path: "/csc",
+      color: "#dc2626",
+      bg: "rgba(220,38,38,0.10)",
+      paths: ["/csc"],
+    },
+  ];
+
+  const projetosActive = isActive(["/projetos", "/projetos2"]);
 
   return (
     <Sidebar
@@ -112,349 +129,174 @@ const SideBar = () => {
       rootStyles={{
         border: 0,
         height: "100vh",
-        width: collapsed ? "78px" : "280px",
-        minWidth: collapsed ? "78px" : "280px",
-        transition: "all 0.3s ease",
-        boxShadow: "18px 0 45px rgba(15,23,42,0.10)",
+        width: collapsed ? "78px" : "292px",
+        minWidth: collapsed ? "78px" : "292px",
+        maxWidth: collapsed ? "78px" : "292px",
+        transition: "all 0.28s ease",
         background:
-          "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.96))",
+          "linear-gradient(180deg, rgba(255,255,255,0.99), rgba(248,250,252,0.98))",
         borderRight: "1px solid rgba(226,232,240,0.95)",
+        boxShadow: "18px 0 45px rgba(15,23,42,0.08)",
+        overflow: "hidden",
       }}
       collapsed={collapsed}
       onBackdropClick={() => setToggled(false)}
       toggled={toggled}
       breakPoint="md"
     >
-      <Box
-        sx={{
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            width: 180,
-            height: 180,
-            borderRadius: "50%",
-            background: "rgba(109,93,252,0.10)",
-            top: -70,
-            right: -90,
-            pointerEvents: "none",
-          }}
-        />
+      <Box sx={sidebarShellStyle}>
+        <Box sx={decorCircleTopStyle} />
+        <Box sx={decorCircleBottomStyle} />
 
-        <Box
-          sx={{
-            px: collapsed ? 1 : 2,
-            pt: 2,
-            pb: 1,
-            position: "relative",
-            zIndex: 1,
-          }}
-        >
+        <Box sx={topAreaStyle(collapsed)}>
           <Box
-            display="flex"
-            alignItems="center"
-            justifyContent={collapsed ? "center" : "space-between"}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: collapsed ? "center" : "space-between",
+            }}
           >
-            
-
-            <IconButton
-              onClick={() => setCollapsed(!collapsed)}
-              sx={{
-                width: 42,
-                height: 42,
-                borderRadius: "14px",
-                color: "#312783",
+            {!collapsed && (
+              <Box>
                 
-                border: "1px solid rgba(49,39,131,0.12)",
-                "&:hover": {
-                  backgroundColor: "rgba(49,39,131,0.14)",
-                  transform: "scale(1.03)",
-                },
-                transition: "all 0.25s ease",
-              }}
-            >
-              {collapsed ? <MenuOutlined /> : <KeyboardDoubleArrowLeftIcon />}
-            </IconButton>
+              
+              </Box>
+            )}
+
+            <Tooltip title={collapsed ? "Abrir menu" : "Fechar menu"} placement="right" arrow>
+              <IconButton onClick={() => setCollapsed(!collapsed)} sx={collapseButtonStyle}>
+                {collapsed ? <MenuOutlined /> : <KeyboardDoubleArrowLeftIcon />}
+              </IconButton>
+            </Tooltip>
           </Box>
 
           {!collapsed && (
-            <Box
-              display="flex"
-              justifyContent="center"
-              sx={{
-                mt: 3,
-                mb: 2,
-                transition: "all 0.4s ease",
-              }}
-            >
-              <Box
-                sx={{
-                  width: "180px",
-                  minHeight: 92,
-                  borderRadius: "24px",
-                  
-                 
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8)",
+            <Box sx={logoCardStyle}>
+              <img
+                src={logo}
+                alt="Logo Fokus"
+                style={{
+                  width: "178px",
+                  height: "auto",
+                  display: "block",
                 }}
-              >
-                <img
-                  src={logo}
-                  alt="Logo"
-                  style={{
-                    width: "180px",
-                    height: "auto",
-                  }}
-                />
-              </Box>
+              />
             </Box>
           )}
 
-          <Divider
-            sx={{
-              borderColor: "rgba(148,163,184,0.20)",
-              my: 2,
-            }}
-          />
+          <Divider sx={dividerStyle} />
         </Box>
 
-        <Box
-          sx={{
-            flex: 1,
-            px: collapsed ? 0.5 : 1,
-            overflowY: "auto",
-            overflowX: "hidden",
-            position: "relative",
-            zIndex: 1,
-            "&::-webkit-scrollbar": {
-              width: "5px",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              backgroundColor: "rgba(148,163,184,0.35)",
-              borderRadius: "10px",
-            },
-          }}
-        >
-          <Menu
-            menuItemStyles={{
-              button: menuButtonStyle,
-              icon: {
-                color: "inherit",
-                minWidth: collapsed ? "100%" : "35px",
-                display: "flex",
-                justifyContent: "center",
-              },
-              label: {
-                fontWeight: 800,
-              },
-              subMenuContent: {
-                backgroundColor: "transparent",
-              },
-            }}
-          >
-            <Tooltip title={collapsed ? "Power BI" : ""} placement="right" arrow>
-              <MenuItem
-                component={<Link to="/home" />}
-                icon={<AssessmentIcon sx={{ fontSize: 24 }} />}
-              >
-                Power BI
-              </MenuItem>
-            </Tooltip>
+        <Box sx={menuScrollStyle(collapsed)}>
+          
+
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+            {menuItems.slice(0, 1).map((item) => (
+              <PremiumMenuItem
+                key={item.label}
+                item={item}
+                collapsed={collapsed}
+                active={isActive(item.paths)}
+              />
+            ))}
 
             <Box
               onMouseEnter={() => setOpenProjetos(true)}
               onMouseLeave={() => setOpenProjetos(false)}
+              sx={{ position: "relative" }}
             >
-              {!collapsed ? (
-                <SubMenu
-                  open={openProjetos}
-                  label="Projetos"
-                  icon={<PieChartIcon sx={{ fontSize: 24 }} />}
-                  menuItemStyles={{
-                    button: {
-                      ...menuButtonStyle,
-                    },
-                    SubMenuExpandIcon: {
-                      color: "#312783",
-                    },
+              <Tooltip title={collapsed ? "Projetos" : ""} placement="right" arrow>
+                <Box
+                  onClick={() => {
+                    if (collapsed) navigate("/projetos2");
+                    else setOpenProjetos((prev) => !prev);
                   }}
+                  sx={premiumItemStyle({
+                    collapsed,
+                    active: projetosActive,
+                    color: "#7c3aed",
+                    bg: "rgba(124,58,237,0.10)",
+                  })}
                 >
-                  <MenuItem
-                    component={<Link to="/projetos2" />}
-                    style={{
-                      margin: "4px 16px 4px 45px",
-                      padding: "8px 12px",
-                      borderRadius: "12px",
-                      fontSize: "13px",
-                      fontWeight: 800,
-                      color: "#475569",
-                    }}
+                  <Box sx={iconBoxStyle({ active: projetosActive, color: "#7c3aed" })}>
+                    <PieChartIcon sx={{ fontSize: 22 }} />
+                  </Box>
+
+                  {!collapsed && (
+                    <>
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Typography sx={menuLabelStyle(projetosActive)}>Projetos</Typography>
+                        <Typography sx={menuSubtitleStyle(projetosActive)}>
+                          Planejamento e execução estratégica
+                        </Typography>
+                      </Box>
+
+                      <ArrowForwardIosIcon
+                        sx={{
+                          fontSize: 14,
+                          color: projetosActive ? "#fff" : "#94a3b8",
+                          transform: openProjetos ? "rotate(90deg)" : "rotate(0deg)",
+                          transition: "all 0.22s ease",
+                        }}
+                      />
+                    </>
+                  )}
+                </Box>
+              </Tooltip>
+
+              {!collapsed && openProjetos && (
+                <Box sx={submenuBoxStyle}>
+                  <Box
+                    component={Link}
+                    to="/projetos2"
+                    sx={submenuItemStyle(location.pathname === "/projetos2")}
                   >
                     Projetos
-                  </MenuItem>
+                  </Box>
 
-                  <MenuItem
-                    component={<Link to="/projetos" />}
-                    style={{
-                      margin: "4px 16px 4px 45px",
-                      padding: "8px 12px",
-                      borderRadius: "12px",
-                      fontSize: "13px",
-                      fontWeight: 800,
-                      color: "#312783",
-                    }}
+                  <Box
+                    component={Link}
+                    to="/projetos"
+                    sx={submenuItemStyle(location.pathname === "/projetos")}
                   >
                     Planejamento Estratégico
-                  </MenuItem>
-                </SubMenu>
-              ) : (
-                <Tooltip
-                  title={
-                    <Box display="flex" flexDirection="column" gap={0.5}>
-                      <Link
-                        to="/projetos2"
-                        style={{
-                          color: "#fff",
-                          textDecoration: "none",
-                          padding: "6px 8px",
-                          fontWeight: 700,
-                        }}
-                      >
-                        Projetos
-                      </Link>
-
-                      <Link
-                        to="/projetos"
-                        style={{
-                          color: "#fff",
-                          textDecoration: "none",
-                          padding: "6px 8px",
-                          fontWeight: 700,
-                        }}
-                      >
-                        Planejamento Estratégico
-                      </Link>
-                    </Box>
-                  }
-                  placement="right"
-                  arrow
-                >
-                  <MenuItem icon={<PieChartIcon sx={{ fontSize: 24 }} />} />
-                </Tooltip>
+                  </Box>
+                </Box>
               )}
             </Box>
 
-            <Tooltip title={collapsed ? "Arquivos" : ""} placement="right" arrow>
-              <MenuItem
-                component={<Link to="/capaarquivos" />}
-                icon={<SourceIcon sx={{ fontSize: 24 }} />}
-              >
-                Arquivos
-              </MenuItem>
-            </Tooltip>
-
-            <Tooltip title={collapsed ? "Tarefas" : ""} placement="right" arrow>
-              <MenuItem
-                component={<Link to="/capatarefas" />}
-                icon={<AssignmentTurnedInIcon sx={{ fontSize: 24 }} />}
-              >
-                <span className="notranslate" translate="no">
-                  Tarefas
-                </span>
-              </MenuItem>
-            </Tooltip>
-
-            <Tooltip title={collapsed ? "CSC" : ""} placement="right" arrow>
-              <MenuItem
-                component={<Link to="/csc" />}
-                icon={<HeatPumpIcon sx={{ fontSize: 24 }} />}
-              >
-                CSC
-              </MenuItem>
-            </Tooltip>
-          </Menu>
+            {menuItems.slice(1).map((item) => (
+              <PremiumMenuItem
+                key={item.label}
+                item={item}
+                collapsed={collapsed}
+                active={isActive(item.paths)}
+              />
+            ))}
+          </Box>
         </Box>
 
-        <Box
-          sx={{
-            p: collapsed ? 1 : 2,
-            position: "relative",
-            zIndex: 1,
-          }}
-        >
+        <Box sx={bottomAreaStyle(collapsed)}>
           
 
           <Tooltip title={collapsed ? "Sair" : ""} placement="right" arrow>
-            <Button
-              fullWidth
-              onClick={handleLogout}
-              sx={{
-                height: 44,
-                borderRadius: "15px",
-                color: "#dc2626",
-                backgroundColor: "rgba(220,38,38,0.08)",
-                border: "1px solid rgba(220,38,38,0.14)",
-                textTransform: "none",
-                fontWeight: 900,
-                display: "flex",
-                justifyContent: collapsed ? "center" : "center",
-                gap: 1,
-                minWidth: collapsed ? 0 : "auto",
-                px: collapsed ? 0 : 2,
-                "&:hover": {
-                  backgroundColor: "rgba(220,38,38,0.14)",
-                  transform: "translateY(-1px)",
-                  boxShadow: "0 12px 26px rgba(220,38,38,0.16)",
-                },
-                transition: "all 0.25s ease",
-              }}
-            >
-              <LogoutIcon sx={{ fontSize: 24 }} />
+            <Button fullWidth onClick={handleLogout} sx={logoutButtonStyle(collapsed)}>
+              <LogoutIcon sx={{ fontSize: 23 }} />
               {!collapsed && "Sair"}
             </Button>
           </Tooltip>
 
-          <Divider
-            sx={{
-              borderColor: "rgba(148,163,184,0.20)",
-              my: 1.5,
-            }}
-          />
+          <Divider sx={dividerStyle} />
 
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              pb: 0.5,
-            }}
-          >
-            <Box
-              sx={{
-                width: 38,
-                height: 38,
-                borderRadius: "14px",
-                backgroundColor: "#fff",
-                border: "1px solid rgba(226,232,240,0.95)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: "0 8px 20px rgba(15,23,42,0.06)",
-              }}
-            >
+          <Box sx={miniLogoWrapperStyle}>
+            <Box sx={miniLogoStyle}>
               <img
                 src={icon_logo}
                 alt="Logo"
                 style={{
                   maxWidth: "24px",
                   height: "auto",
+                  display: "block",
                 }}
               />
             </Box>
@@ -463,6 +305,315 @@ const SideBar = () => {
       </Box>
     </Sidebar>
   );
+};
+
+const PremiumMenuItem = ({ item, collapsed, active }) => {
+  return (
+    <Tooltip title={collapsed ? item.label : ""} placement="right" arrow>
+      <Box
+        component={Link}
+        to={item.path}
+        sx={premiumItemStyle({
+          collapsed,
+          active,
+          color: item.color,
+          bg: item.bg,
+        })}
+      >
+        <Box sx={iconBoxStyle({ active, color: item.color })}>{item.icon}</Box>
+
+        {!collapsed && (
+          <>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography sx={menuLabelStyle(active)}>{item.label}</Typography>
+              <Typography sx={menuSubtitleStyle(active)}>{item.subtitle}</Typography>
+            </Box>
+
+            <ArrowForwardIosIcon
+              sx={{
+                fontSize: 14,
+                color: active ? "#fff" : "#94a3b8",
+              }}
+            />
+          </>
+        )}
+      </Box>
+    </Tooltip>
+  );
+};
+
+const sidebarShellStyle = {
+  height: "100%",
+  width: "100%",
+  display: "flex",
+  flexDirection: "column",
+  position: "relative",
+  overflow: "hidden",
+};
+
+const decorCircleTopStyle = {
+  position: "absolute",
+  width: 210,
+  height: 210,
+  borderRadius: "50%",
+
+  top: -92,
+  right: -110,
+  pointerEvents: "none",
+};
+
+const decorCircleBottomStyle = {
+  position: "absolute",
+  width: 180,
+  height: 180,
+  borderRadius: "50%",
+  background: "rgba(0,196,140,0.07)",
+  bottom: -90,
+  left: -110,
+  pointerEvents: "none",
+};
+
+const topAreaStyle = (collapsed) => ({
+  px: collapsed ? 1 : 2,
+  pt: 2,
+  pb: 1,
+  position: "relative",
+  zIndex: 1,
+});
+
+const eyebrowStyle = {
+  fontSize: 10,
+  fontWeight: 950,
+  color: "#94a3b8",
+  letterSpacing: "0.14em",
+  textTransform: "uppercase",
+};
+
+const systemTitleStyle = {
+  fontSize: 18,
+  fontWeight: 950,
+  color: "#0f172a",
+  lineHeight: 1.1,
+};
+
+const collapseButtonStyle = {
+  width: 42,
+  height: 42,
+  borderRadius: "14px",
+  color: "#312783",
+ 
+  border: "1px solid rgba(49,39,131,0.12)",
+  "&:hover": {
+
+    transform: "scale(1.03)",
+  },
+  transition: "all 0.25s ease",
+};
+
+const logoCardStyle = {
+  mt: 3,
+  mb: 2,
+  mx: "auto",
+  width: 210,
+  minHeight: 96,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+const dividerStyle = {
+  borderColor: "rgba(148,163,184,0.20)",
+  my: 2,
+};
+
+const menuScrollStyle = (collapsed) => ({
+  flex: 1,
+  px: collapsed ? 0.8 : 1.5,
+  overflowY: "auto",
+  overflowX: "hidden",
+  position: "relative",
+  zIndex: 1,
+  "&::-webkit-scrollbar": {
+    width: "5px",
+  },
+  "&::-webkit-scrollbar-thumb": {
+    
+    borderRadius: "10px",
+  },
+});
+
+const sectionTitleStyle = {
+  px: 1,
+  mb: 1.2,
+  fontSize: 11,
+  fontWeight: 950,
+
+  textTransform: "uppercase",
+  letterSpacing: "0.12em",
+};
+
+const premiumItemStyle = ({ collapsed, active, color, bg }) => ({
+  minHeight: collapsed ? 48 : 62,
+  width: "100%",
+  px: collapsed ? 0 : 1.5,
+  py: 0.8,
+  borderRadius: "18px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: collapsed ? "center" : "space-between",
+  gap: 1.4,
+  textDecoration: "none",
+  cursor: "pointer",
+  color: active ? "#fff" : "#334155",
+  background: active ? `linear-gradient(135deg, ${color}, #6d5dfc)` : "#fff",
+  border: active ? "1px solid transparent" : "1px solid rgba(226,232,240,0.95)",
+  boxShadow: active ? `0 16px 34px ${color}38` : "0 8px 20px rgba(15,23,42,0.04)",
+  transition: "all 0.24s ease",
+  overflow: "hidden",
+  "&:hover": {
+    color: "#fff",
+    background: `linear-gradient(135deg, ${color}, #6d5dfc)`,
+    transform: collapsed ? "translateY(-1px)" : "translateX(3px)",
+    boxShadow: `0 18px 38px ${color}38`,
+  },
+  "&:hover .sidebar-icon-box": {
+    backgroundColor: "rgba(255,255,255,0.18)",
+    color: "#fff",
+  },
+});
+
+const iconBoxStyle = ({ active, color }) => ({
+  className: "sidebar-icon-box",
+  width: 40,
+  height: 40,
+  minWidth: 40,
+  borderRadius: "14px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  color: active ? "#fff" : color,
+  transition: "all 0.24s ease",
+  "& svg": {
+    fontSize: 22,
+  },
+});
+
+const menuLabelStyle = (active) => ({
+  fontSize: 13.5,
+  fontWeight: 950,
+  color: active ? "#fff" : "#0f172a",
+  lineHeight: 1.15,
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+});
+
+const menuSubtitleStyle = (active) => ({
+  mt: 0.3,
+  fontSize: 10.5,
+  fontWeight: 700,
+  color: active ? "rgba(255,255,255,0.78)" : "#94a3b8",
+  lineHeight: 1.2,
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+});
+
+const submenuBoxStyle = {
+  ml: 2,
+  mr: 0.4,
+  mt: 0.8,
+  mb: 0.8,
+  p: 0.8,
+  borderRadius: "16px",
+  backgroundColor: "rgba(248,250,252,0.96)",
+  border: "1px solid rgba(226,232,240,0.9)",
+};
+
+const submenuItemStyle = (active) => ({
+  display: "block",
+  px: 1.4,
+  py: 1,
+  borderRadius: "12px",
+  textDecoration: "none",
+  color: active ? "#312783" : "#475569",
+  backgroundColor: active ? "rgba(49,39,131,0.08)" : "transparent",
+  fontSize: 12.5,
+  fontWeight: 900,
+  transition: "all 0.2s ease",
+  "&:hover": {
+    color: "#312783",
+    backgroundColor: "rgba(49,39,131,0.08)",
+  },
+});
+
+const bottomAreaStyle = (collapsed) => ({
+  p: collapsed ? 1 : 2,
+  position: "relative",
+  zIndex: 1,
+});
+
+const profileCardStyle = {
+  mb: 1.5,
+  p: 1.6,
+  borderRadius: "18px",
+  background:
+    "linear-gradient(135deg, rgba(49,39,131,0.08), rgba(109,93,252,0.08))",
+  border: "1px solid rgba(49,39,131,0.12)",
+};
+
+const profileLabelStyle = {
+  fontSize: 10,
+  fontWeight: 950,
+  color: "#64748b",
+  textTransform: "uppercase",
+  letterSpacing: "0.10em",
+};
+
+const profileValueStyle = {
+  mt: 0.3,
+  fontSize: 14,
+  fontWeight: 950,
+  color: "#0f172a",
+};
+
+const logoutButtonStyle = (collapsed) => ({
+  height: 44,
+  borderRadius: "15px",
+  color: "#dc2626",
+  backgroundColor: "rgba(220,38,38,0.08)",
+  border: "1px solid rgba(220,38,38,0.14)",
+  textTransform: "none",
+  fontWeight: 950,
+  display: "flex",
+  justifyContent: "center",
+  gap: 1,
+  minWidth: collapsed ? 0 : "auto",
+  px: collapsed ? 0 : 2,
+  "&:hover": {
+    backgroundColor: "rgba(220,38,38,0.14)",
+    transform: "translateY(-1px)",
+    boxShadow: "0 12px 26px rgba(220,38,38,0.16)",
+  },
+  transition: "all 0.25s ease",
+});
+
+const miniLogoWrapperStyle = {
+  display: "flex",
+  justifyContent: "center",
+  pb: 0.5,
+};
+
+const miniLogoStyle = {
+  width: 38,
+  height: 38,
+  borderRadius: "14px",
+  backgroundColor: "#fff",
+  border: "1px solid rgba(226,232,240,0.95)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  boxShadow: "0 8px 20px rgba(15,23,42,0.06)",
 };
 
 export default SideBar;
