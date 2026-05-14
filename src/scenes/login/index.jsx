@@ -9,6 +9,12 @@ import {
   Collapse,
   IconButton,
 } from "@mui/material";
+
+import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import InputAdornment from "@mui/material/InputAdornment";
+
+
 import { useNavigate } from "react-router-dom";
 import {
   signInWithEmailAndPassword,
@@ -273,12 +279,11 @@ const Login = () => {
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          // backgroundAttachment: "fixed", // ❌ REMOVA ISSO!
           width: "100vw",
           minHeight: "100vh",
         }}
       >
-
+        
         <Box
           sx={{
             padding: "30px",
@@ -288,13 +293,11 @@ const Login = () => {
             alignItems: "center",
             borderBottomLeftRadius: "50px",
             transform: "scale(0.8)",
-            marginRight: "-80px",
+            marginRight: "-50px",
             height: "35%",
           }}
         >
           <img
-            src={logo}
-            alt="Logo"
             style={{
               width: "380px",
               height: "auto",
@@ -323,86 +326,106 @@ const Login = () => {
             sx={{ display: "flex", flexDirection: "column", gap: 1 }}
           >
             <TextField
-              label="E-mail"
-              type="email"
-              variant="outlined"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              fullWidth
-              required
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: '#aaaaaa',
-                    borderRadius: "20px",
-                  },
-                  '&:hover fieldset': {
-                    borderColor: '#aaaaaa',
-                    borderRadius: "20px",
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#aaaaaa',
-                  },
-                  color: '#aaaaaa',
-                },
-                '& .MuiInputLabel-root': {
-                  color: '#b6b6b6',
-                  
-                },
-                '& .MuiInputLabel-root.Mui-focused': {
-                  color: '#b6b6b6',
-                  
-                },
-                '& .MuiOutlinedInput-input': {
-                  color: '#b6b6b6',
-                  
-                },
-                '& .MuiInputBase-input::placeholder': {
-                  color: '#b6b6b6',
-                  opacity: 1,
-                  
-                },
-              }}
-            />
+  label="E-mail"
+  type="email"
+  variant="outlined"
+  value={email}
+  onChange={(e) => setEmail(e.target.value)}
+  fullWidth
+  required
+  InputProps={{
+    startAdornment: (
+      <InputAdornment position="start">
+        <EmailOutlinedIcon
+          sx={{
+            color: "#312783",
+            fontSize: 22,
+          }}
+        />
+      </InputAdornment>
+    ),
+  }}
+  sx={{
+    '& .MuiOutlinedInput-root': {
+      '& fieldset': {
+        borderColor: '#aaaaaa',
+        borderRadius: "20px",
+      },
+      '&:hover fieldset': {
+        borderColor: '#868dfb',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: '#312783',
+      },
+      color: '#aaaaaa',
+      height: "58px",
+      background: "#fff",
+    },
 
-            <TextField
-              label="Senha"
-              type="password"
-              variant="outlined"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              fullWidth
-              required
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: '#aaaaaa',
-                    borderRadius: "20px",
-                  },
-                  '&:hover fieldset': {
-                    borderColor: '#aaaaaa',
-                    borderRadius: "20px",
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#aaaaaa',
-                  },
-                  color: '#b6b6b6',
-                },
-                '& .MuiInputLabel-root': {
-                  color: '#b6b6b6',
-                },
-                '& .MuiInputLabel-root.Mui-focused': {
-                  color: '#b6b6b6',
-                },
-                '& .MuiOutlinedInput-input': {
-                  color: '#b6b6b6',
-                },
-                '& .MuiInputBase-input::placeholder': {
-                  color: '#b6b6b6',
-                  opacity: 1,
-                },
-              }}
-            />
+    '& .MuiInputLabel-root': {
+      color: '#b6b6b6',
+    },
+
+    '& .MuiInputLabel-root.Mui-focused': {
+      color: '#312783',
+    },
+
+    '& .MuiOutlinedInput-input': {
+      color: '#6b6b6b',
+    },
+  }}
+/>
+
+           <TextField
+  label="Senha"
+  type="password"
+  variant="outlined"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+  fullWidth
+  required
+  InputProps={{
+    startAdornment: (
+      <InputAdornment position="start">
+        <LockOutlinedIcon
+          sx={{
+            color: "#312783",
+            fontSize: 22,
+          }}
+        />
+      </InputAdornment>
+    ),
+  }}
+  sx={{
+    '& .MuiOutlinedInput-root': {
+      '& fieldset': {
+        borderColor: '#aaaaaa',
+        borderRadius: "20px",
+      },
+      '&:hover fieldset': {
+        borderColor: '#868dfb',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: '#312783',
+      },
+      color: '#aaaaaa',
+      height: "58px",
+      background: "#fff",
+    },
+
+    '& .MuiInputLabel-root': {
+      color: '#b6b6b6',
+    },
+
+    '& .MuiInputLabel-root.Mui-focused': {
+      color: '#312783',
+    },
+
+    '& .MuiOutlinedInput-input': {
+      color: '#6b6b6b',
+    },
+  }}
+/>
 
 
             <Button
