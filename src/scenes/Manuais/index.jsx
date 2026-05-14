@@ -22,12 +22,10 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
 
 import MuiAccordion from "@mui/material/Accordion";
-import MuiAccordionSummary, {
-  accordionSummaryClasses,
-} from "@mui/material/AccordionSummary";
+import MuiAccordionSummary from "@mui/material/AccordionSummary";
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 
-import { styled } from "@mui/material/styles";
+
 import { onAuthStateChanged } from "firebase/auth";
 import {
   getDocs,
@@ -51,45 +49,57 @@ import {
   storageFokus360,
 } from "../../data/firebase-config";
 
-const Accordion = styled((props) => (
-  <MuiAccordion disableGutters elevation={0} square {...props} />
-))(() => ({
-  border: "1px solid rgba(226,232,240,0.95)",
-  borderRadius: "20px",
-  overflow: "hidden",
-  boxShadow: "0 12px 32px rgba(15,23,42,0.06)",
-  "&:not(:last-child)": {
-    marginBottom: "16px",
-  },
-  "&::before": {
-    display: "none",
-  },
-}));
+const Accordion = (props) => (
+  <MuiAccordion
+    disableGutters
+    elevation={0}
+    square={false}
+    {...props}
+    sx={{
+      border: "1px solid rgba(226,232,240,0.95)",
+      borderRadius: "20px !important",
+      overflow: "hidden",
+      boxShadow: "0 12px 32px rgba(15,23,42,0.06)",
+      mb: 2,
+      "&:before": {
+        display: "none",
+      },
+      ...(props.sx || {}),
+    }}
+  />
+);
 
-const AccordionSummary = styled((props) => (
+const AccordionSummary = (props) => (
   <MuiAccordionSummary
     expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}
     {...props}
+    sx={{
+      backgroundColor: "#fff",
+      flexDirection: "row-reverse",
+      minHeight: "58px",
+      "& .MuiAccordionSummary-expandIconWrapper.Mui-expanded": {
+        transform: "rotate(90deg)",
+      },
+      "& .MuiAccordionSummary-content": {
+        marginLeft: "12px",
+        minWidth: 0,
+      },
+      ...(props.sx || {}),
+    }}
   />
-))(() => ({
-  backgroundColor: "#fff",
-  flexDirection: "row-reverse",
-  minHeight: "58px",
-  [`& .${accordionSummaryClasses.expandIconWrapper}.${accordionSummaryClasses.expanded}`]:
-    {
-      transform: "rotate(90deg)",
-    },
-  [`& .${accordionSummaryClasses.content}`]: {
-    marginLeft: "12px",
-    minWidth: 0,
-  },
-}));
+);
 
-const AccordionDetails = styled(MuiAccordionDetails)(() => ({
-  padding: "18px",
-  borderTop: "1px solid rgba(226,232,240,0.95)",
-  backgroundColor: "#fff",
-}));
+const AccordionDetails = (props) => (
+  <MuiAccordionDetails
+    {...props}
+    sx={{
+      padding: "18px",
+      borderTop: "1px solid rgba(226,232,240,0.95)",
+      backgroundColor: "#fff",
+      ...(props.sx || {}),
+    }}
+  />
+);
 
 function waitForImagesToLoad(element, callback) {
   const images = element.querySelectorAll("img");

@@ -1,6 +1,5 @@
 import React, {  useRef } from "react";
 import { Box, Typography, Grid, Divider, InputBase, Button } from "@mui/material";
-import { styled } from "@mui/system";
 import { jsPDF } from "jspdf";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
@@ -11,55 +10,33 @@ import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para 
 import DadosProjeto from "./DadosProjeto";
 
 
-const StyledInput = styled(InputBase)(({ theme }) => ({
-  backgroundColor: "transparent",
-  color: "#b7b7b7",
-  padding: "10px 10px",
-  borderBottom: "1px solid #b7b7b7",
-  borderLeft: "1px solid #b7b7b7",
-  fontWeight: "bold",
-  textAlign: "center",
-  width: "100%",
-  marginTop: "30px",
-}));
+const StyledInput = (props) => (
+  <InputBase
+    {...props}
+    sx={{
+      backgroundColor: "transparent",
+      color: "#b7b7b7",
+      padding: "10px 10px",
+      borderBottom: "1px solid #b7b7b7",
+      borderLeft: "1px solid #b7b7b7",
+      fontWeight: "bold",
+      textAlign: "center",
+      width: "100%",
+      marginTop: "30px",
+      ...(props.sx || {}),
 
-const CircleProgress = ({ percentage }) => {
-  const circleColor =
-    percentage === 100
-      ? "#4caf50"
-      : percentage >= 50
-      ? "#ffc107"
-      : "#f44336";
+      "& input": {
+        textAlign: "center",
+        fontWeight: "bold",
+      },
 
-  return (
-    <Box
-      sx={{
-        position: "relative",
-        display: "inline-flex",
-        justifyContent: "center",
-        alignItems: "center",
-        width: "40px",
-        height: "40px",
-      }}
-    >
-      <Box
-        sx={{
-          position: "relative",
-          display: "inline-flex",
-          justifyContent: "center",
-          alignItems: "center",
-          width: "25px",
-          height: "25px",
-          borderRadius: "50%",
-          border: `6px solid ${circleColor}`,
-          backgroundColor: "#fff",
-          zIndex: 1,
-          marginTop: "30px",
-        }}
-      ></Box>
-    </Box>
-  );
-};
+      "& .MuiInputBase-input.Mui-disabled": {
+        WebkitTextFillColor: "#fff",
+        opacity: 1,
+      },
+    }}
+  />
+);
 
 const FluxoGrama = ({ projectId  }) => {
   const [project, setProject] = useState(null);
