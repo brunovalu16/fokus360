@@ -309,7 +309,7 @@ const SideBar = () => {
                       borderRadius: "12px",
                       fontSize: "13px",
                       fontWeight: 800,
-                      color: "#475569",
+                      color: "#312783",
                     }}
                   >
                     Planejamento Estratégico
