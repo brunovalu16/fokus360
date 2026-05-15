@@ -8,7 +8,7 @@ import {
   Typography,
 } from "@mui/material";
 
-import { MenuOutlined } from "@mui/icons-material";
+import { Margin, MenuOutlined } from "@mui/icons-material";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import PieChartIcon from "@mui/icons-material/PieChart";
 import SourceIcon from "@mui/icons-material/Source";
@@ -145,8 +145,8 @@ const SideBar = () => {
       breakPoint="md"
     >
       <Box sx={sidebarShellStyle}>
-        <Box sx={decorCircleTopStyle} />
-        <Box sx={decorCircleBottomStyle} />
+       
+       
 
         <Box sx={topAreaStyle(collapsed)}>
           <Box
@@ -351,27 +351,8 @@ const sidebarShellStyle = {
   overflow: "hidden",
 };
 
-const decorCircleTopStyle = {
-  position: "absolute",
-  width: 210,
-  height: 210,
-  borderRadius: "50%",
 
-  top: -92,
-  right: -110,
-  pointerEvents: "none",
-};
 
-const decorCircleBottomStyle = {
-  position: "absolute",
-  width: 180,
-  height: 180,
-  borderRadius: "50%",
-  background: "rgba(0,196,140,0.07)",
-  bottom: -90,
-  left: -110,
-  pointerEvents: "none",
-};
 
 const topAreaStyle = (collapsed) => ({
   px: collapsed ? 1 : 2,
@@ -381,20 +362,7 @@ const topAreaStyle = (collapsed) => ({
   zIndex: 1,
 });
 
-const eyebrowStyle = {
-  fontSize: 10,
-  fontWeight: 950,
-  color: "#94a3b8",
-  letterSpacing: "0.14em",
-  textTransform: "uppercase",
-};
 
-const systemTitleStyle = {
-  fontSize: 18,
-  fontWeight: 950,
-  color: "#0f172a",
-  lineHeight: 1.1,
-};
 
 const collapseButtonStyle = {
   width: 42,
@@ -442,15 +410,6 @@ const menuScrollStyle = (collapsed) => ({
   },
 });
 
-const sectionTitleStyle = {
-  px: 1,
-  mb: 1.2,
-  fontSize: 11,
-  fontWeight: 950,
-
-  textTransform: "uppercase",
-  letterSpacing: "0.12em",
-};
 
 const premiumItemStyle = ({ collapsed, active, color, bg }) => ({
   minHeight: collapsed ? 48 : 62,
@@ -461,7 +420,7 @@ const premiumItemStyle = ({ collapsed, active, color, bg }) => ({
   display: "flex",
   alignItems: "center",
   justifyContent: collapsed ? "center" : "space-between",
-  gap: 1.4,
+  gap: 1,
   textDecoration: "none",
   cursor: "pointer",
   color: active ? "#fff" : "#334155",
@@ -484,8 +443,8 @@ const premiumItemStyle = ({ collapsed, active, color, bg }) => ({
 
 const iconBoxStyle = ({ active, color }) => ({
   className: "sidebar-icon-box",
-  width: 40,
-  height: 40,
+  width: 20,
+  height: 20,
   minWidth: 40,
   borderRadius: "14px",
   display: "flex",
@@ -494,14 +453,14 @@ const iconBoxStyle = ({ active, color }) => ({
   color: active ? "#fff" : color,
   transition: "all 0.24s ease",
   "& svg": {
-    fontSize: 22,
+    fontSize: 25,
   },
 });
 
 const menuLabelStyle = (active) => ({
-  fontSize: 13.5,
+  fontSize: 14,
   fontWeight: 950,
-  color: active ? "#fff" : "#0f172a",
+  color: active ? "#fff" : "#888888",
   lineHeight: 1.15,
   whiteSpace: "nowrap",
   overflow: "hidden",
