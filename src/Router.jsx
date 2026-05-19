@@ -47,6 +47,8 @@ import Arquivosareas from "./scenes/arquivosareas";
 import Relatoriotrade2 from "./scenes/relatoriostrade";
 import PainelIndustriasTrade from "./scenes/painel-industriasTrade";
 import MonitoramentoVendedor from "./scenes/monitoramentovendedor";
+import CadastroRelatorios from "./scenes/cadastrorelatorios";
+import RelatorioPowerBI from "./scenes/relatoriopowerbi";
 import {
   Team,
   Invoices,
@@ -71,6 +73,15 @@ const router = createBrowserRouter(
       element: <App />,
       children: [
         { path: "/cadastro", element: <PrivateRoute><Cadastro /></PrivateRoute> },
+        { path: "/cadastrorelatorios", element: <PrivateRoute><CadastroRelatorios /></PrivateRoute> },
+        {
+          path: "/relatoriopowerbi/:id",
+          element: (
+            <PrivateRoute>
+              <RelatorioPowerBI />
+            </PrivateRoute>
+          ),
+        },
         { path: "/home", element: <PrivateRoute><Home /></PrivateRoute> },
         { path: "/planejamentogeral", element: <PrivateRoute><PlanejamentoGeral /></PrivateRoute> },
         { path: "/arquivosareas", element: <PrivateRoute><Arquivosareas /></PrivateRoute> },

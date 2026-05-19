@@ -84,7 +84,7 @@ const SideBar = () => {
 
   const menuItems = [
     {
-      label: "Power BI",
+      label: "Relatórios",
       subtitle: "Indicadores e relatórios executivos",
       icon: <AssessmentIcon />,
       path: "/home",

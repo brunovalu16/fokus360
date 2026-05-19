@@ -66,36 +66,52 @@ const Home = () => {
             {/* inserir relatórios - somente ADMIN role 08 */}
 
             {userRole === "08" && (
-              <Box
-                sx={{
-                  backgroundColor: "#2d2c7e",
-                  padding: "5px",
-                  paddingRight: "15px",
-                  borderRadius: 2,
-                  marginLeft: "auto"
-                }}
-              >
+              <Box sx={{ marginLeft: "auto", flexShrink: 0 }}>
                 <Link
-                  to="#"
+                  to="/cadastrorelatorios"
                   style={{
-                    backgroundColor: "transparent",
                     textDecoration: "none",
-                    fontSize: "12px",
-                    color: "#fff",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
                   }}
                 >
-                  <PlayCircleFilledIcon
+                  <Box
                     sx={{
-                      fontSize: 15,
+                      height: 42,
+                      px: 2,
+                      borderRadius: "16px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
                       color: "#fff",
-                      marginLeft: 1
+                      fontSize: "12px",
+                      fontWeight: 900,
+                      letterSpacing: "0.02em",
+                      background: "linear-gradient(135deg, #312783, #6d5dfc)",
+                      boxShadow: "0 14px 30px rgba(49,39,131,0.28)",
+                      border: "1px solid rgba(255,255,255,0.18)",
+                      transition: "all 0.25s ease",
+                      "&:hover": {
+                        transform: "translateY(-2px)",
+                        boxShadow: "0 18px 38px rgba(49,39,131,0.36)",
+                        background: "linear-gradient(135deg, #241d66, #5c4df2)",
+                      },
                     }}
-                  />
+                  >
+                    <Box
+                      sx={{
+                        width: 26,
+                        height: 26,
+                        borderRadius: "10px",
+                        backgroundColor: "rgba(255,255,255,0.18)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <PlayCircleFilledIcon sx={{ fontSize: 17, color: "#fff" }} />
+                    </Box>
 
-                  Inserir relatórios
+                    Inserir relatórios
+                  </Box>
                 </Link>
               </Box>
             )}

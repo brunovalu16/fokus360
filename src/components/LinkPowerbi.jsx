@@ -11,24 +11,13 @@ import { Link } from "react-router-dom";
 export const LinkPowerbi=({ url, title, descripton}) => {
     return(
         <>
-      {/* Cabeçalho */}
-      <Box sx={{ marginLeft: "40px", paddingTop: "50px" }}>
-        <Header
-          title={
-            <Box display="flex" alignItems="center" gap={1}>
-              <AssessmentIcon sx={{ color: "#5f53e5", fontSize: 40 }} />
-              <Typography>GERENCIADOR DE RELATÓRIOS</Typography>
-            </Box>
-          }
-        />
-      </Box>
-
+   
       {/* Conteúdo Principal */}
       <Box
         sx={{
-          marginLeft: "40px",
-          marginTop: "-15px",
-          width: "calc(100% - 80px)", // Para ajustar à tela considerando o margin de 40px
+          
+          marginTop: "20px",
+          width: "calc(107% - 80px)", // Para ajustar à tela considerando o margin de 40px
           minHeight: "50vh",
           padding: "15px",
           paddingLeft: "30px",
@@ -44,29 +33,10 @@ export const LinkPowerbi=({ url, title, descripton}) => {
   {/* Texto e ícone à esquerda */}
   <Box display="flex" alignItems="center" gap={1}>
     <PlayCircleFilledIcon sx={{ color: "#5f53e5", fontSize: 25 }} />
-    <Typography color="#858585">RELATÓRIOS | {descripton}</Typography>
+    <Typography>GERENCIADOR DE RELATÓRIOS</Typography>
   </Box>
 
-  {/* Botão Voltar à direita */}
-  <Box>
-    <Button
-      component={Link}
-      to="/relatorios"
-      startIcon={<ExitToAppIcon sx={{ color: "#5f53e5", marginRight: "-7px", marginTop: "-3px" }} />}
-      sx={{
-        padding: "5px 10px",
-        fontSize: "13px",
-        color: "#858585",
-        marginRight: "20px",
-        textTransform: "none",
-        display: "flex",
-        alignItems: "center",
-        gap: "6px",
-      }}
-    >
-      Voltar
-    </Button>
-  </Box>
+ 
 </Box>
 
 

@@ -564,7 +564,7 @@ const open = Boolean(anchorEl);
             padding: "0", // Remove o padding
           },
           alignSelf: "center",
-          backgroundColor: "#312783",
+          background: "linear-gradient(90deg, #312783, #6d5dfc)",
           width: "100%",
         }}
       >
