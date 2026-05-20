@@ -23,7 +23,7 @@ function PlanejamentoGeral() {
 
   return (
     <Box sx={pageStyle}>
-      <Box sx={pageInnerStyle}>
+      
         <Box sx={headerStyle}>
           <Header
             title={
@@ -58,19 +58,13 @@ function PlanejamentoGeral() {
 
         <Box sx={mainCardStyle}>
           <Box sx={topBarStyle} />
-
-          <Box sx={contentStyle}>
-            <Box sx={hardViewportStyle}>
-              <Box sx={safeContentStyle}>
                 <DadosProjetogeral2
                   solicitanteFiltrado={solicitanteFiltrado}
                   setSolicitanteFiltrado={setSolicitanteFiltrado}
                 />
-              </Box>
-            </Box>
-          </Box>
+          
         </Box>
-      </Box>
+
     </Box>
   );
 }
@@ -90,16 +84,6 @@ const pageStyle = {
   pb: 4,
 };
 
-const pageInnerStyle = {
-  width: "100%",
-  maxWidth: "100%",
-  minWidth: 0,
-  display: "grid",
-  gridTemplateColumns: "minmax(0, 1fr)",
-  overflow: "hidden",
-  boxSizing: "border-box",
-  contain: "inline-size layout paint",
-};
 
 const headerStyle = {
   width: "100%",
@@ -192,49 +176,5 @@ const topBarStyle = {
   background: "linear-gradient(90deg, #312783, #6d5dfc, #00c48c)",
 };
 
-const contentStyle = {
-  p: { xs: 1.5, sm: 2, md: 4 },
-  width: "100%",
-  maxWidth: "100%",
-  minWidth: 0,
-  boxSizing: "border-box",
-  overflow: "hidden",
-  display: "grid",
-  gridTemplateColumns: "minmax(0, 1fr)",
-  contain: "inline-size layout paint",
-};
-
-const hardViewportStyle = {
-  width: "100%",
-  maxWidth: "100%",
-  minWidth: 0,
-  overflow: "hidden",
-  display: "grid",
-  gridTemplateColumns: "minmax(0, 1fr)",
-  boxSizing: "border-box",
-  contain: "inline-size layout paint",
-};
-
-const safeContentStyle = {
-  width: "100%",
-  maxWidth: "100%",
-  minWidth: 0,
-  overflowX: "auto",
-  overflowY: "hidden",
-  boxSizing: "border-box",
-  WebkitOverflowScrolling: "touch",
-  scrollbarGutter: "stable",
-  "& > *": {
-    maxWidth: "100%",
-    minWidth: "0 !important",
-    boxSizing: "border-box",
-  },
-  "& table": {
-    maxWidth: "100%",
-  },
-  "& svg": {
-    maxWidth: "100%",
-  },
-};
 
 export default PlanejamentoGeral;

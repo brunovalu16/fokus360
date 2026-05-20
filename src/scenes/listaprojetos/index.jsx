@@ -17,6 +17,7 @@ import DashboardCustomizeIcon from "@mui/icons-material/DashboardCustomize";
 
 import Lista from "../../components/Lista";
 import FluxoGrama from "../../components/FluxoGrama";
+import { Margin } from "@mui/icons-material";
 
 const Projetos = () => {
   return (
@@ -80,24 +81,12 @@ const Projetos = () => {
             </Box>
 
             <Divider sx={{ mb: 3, borderColor: "rgba(148,163,184,0.25)" }} />
-
-            <Paper elevation={0} sx={listCardStyle}>
-              <Box sx={hardViewportStyle}>
-                <Box sx={safeContentStyle}>
-                  <Lista />
-                </Box>
-              </Box>
-            </Paper>
+            <Lista />
+            
           </Box>
         </Box>
 
-        <Box sx={flowCardStyle}>
-          <Box sx={hardViewportStyle}>
-            <Box sx={safeContentStyle}>
-              <FluxoGrama />
-            </Box>
-          </Box>
-        </Box>
+        
       </Box>
     </Box>
   );
@@ -151,6 +140,9 @@ const titleGroupStyle = {
   maxWidth: "100%",
   overflow: "hidden",
 };
+
+
+
 
 const mainIconStyle = {
   width: { xs: 44, md: 48 },

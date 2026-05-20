@@ -851,14 +851,11 @@ useEffect(() => {
       {/* Container Principal */}
       <Box
         sx={{
-          marginLeft: "40px",
-          width: "calc(100% - 90px)",
+          marginLeft: "20px",
+          marginTop: "10px",
+          width: "calc(100% - 45px)",
           minHeight: "50vh",
-          padding: "15px",
           borderRadius: "20px",
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-          bgcolor: "#f2f0f0",
-          overflow: "visible",
           marginBottom: "30px",
         }}
       >
@@ -956,7 +953,7 @@ useEffect(() => {
             <Box
               key={index}
               boxShadow={3}
-              borderRadius="5px"
+              borderRadius="20px"
               gridColumn="span 15"
               bgcolor={item.backgroundColor} // Cor dinâmica
               display="flex"

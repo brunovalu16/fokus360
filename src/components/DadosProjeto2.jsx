@@ -1,20 +1,9 @@
 import React, { useRef, useState, useEffect  } from "react";
-import { Box, Typography, CircularProgress, TextField  } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import PaidIcon from "@mui/icons-material/Paid";
-import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
-
-import FlagIcon from '@mui/icons-material/Flag';
-import TrackChangesIcon from '@mui/icons-material/TrackChanges';
-import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
-import DoubleArrowIcon from '@mui/icons-material/DoubleArrow';
-import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
-
-
 import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import BarChartIcon from "@mui/icons-material/BarChart";
 
 
@@ -43,14 +32,8 @@ import TabPanel from '@mui/lab/TabPanel';
 
 const DadosProjeto2 = ({
   orcamento,
-  valorGasto,
   estrategicas,
-  totalDiretrizes,
-  tarefasConcluidas,
-  totalTarefas,
   diretrizes,
-  dataInicio,
-  prazoPrevisto,
   projetoData
 }) => {
 
@@ -614,19 +597,33 @@ const [tooltip, setTooltip] = useState(null);
     <Box
       sx={{
         width: "100%",
+        maxWidth: "100%",
+        minWidth: 0,
+        boxSizing: "border-box",
         background: "#fff",
         borderRadius: "28px",
         p: { xs: 2, md: 4 },
         boxShadow: "0 20px 45px rgba(15, 23, 42, 0.08)",
         border: "1px solid #eef1f7",
+        overflow: "hidden",
       }}
     >
       <Box sx={{ mb: 4 }}>
         <Typography
           sx={{
-            fontSize: { xs: "22px", md: "30px" },
-            fontWeight: 900,
-            color: "#2d2c7e",
+          width: "100%",
+          maxWidth: "100%",
+          minWidth: 0,
+          boxSizing: "border-box",
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            lg: "430px minmax(0, 1fr)",
+          },
+          gap: 4,
+          alignItems: "center",
+          marginLeft: 0,
+          overflow: "hidden",
           }}
         >
           Resumo Executivo por Área
@@ -641,37 +638,28 @@ const [tooltip, setTooltip] = useState(null);
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: { xs: "1fr", lg: "1.35fr 0.9fr" },
-          gap: 4,
+          gridTemplateColumns: { xs: "1fr", lg: "0.4fr 0.9fr" },
           alignItems: "center",
+          marginLeft: "20px"
         }}
       >
         {/*=====================================grafico matriz===================================================== */}
         <Box
           sx={{
-            width: "440px",
-            minWidth: "440px",
-            maxWidth: "440px",
             display: "flex",
             flexDirection: "column",
-            alignItems: "center",
             justifyContent: "center",
             gap: 1,
-            position: "relative",
-            overflow: "visible",
-            flexShrink: 0,
           }}
         >
           {tooltip && (
             <Box
               sx={{
                 position: "absolute",
-                top: tooltip.y,
-                left: tooltip.x,
                 transform: "translate(14px, -50%)",
                 background: "#fff",
                 borderRadius: "14px",
-                p: 1.4,
+                p: 1,
                 minWidth: 170,
                 zIndex: 999,
                 boxShadow: "0 14px 35px rgba(15,23,42,0.18)",
@@ -721,7 +709,6 @@ const [tooltip, setTooltip] = useState(null);
           {/* ÁREAS */}
           <Box
             sx={{
-              width: "300px",
               display: "grid",
               gridTemplateColumns: "130px 280px",
               alignItems: "center",
@@ -730,7 +717,6 @@ const [tooltip, setTooltip] = useState(null);
           >
             <Box
               sx={{
-                width: "130px",
                 display: "flex",
                 flexDirection: "column",
                 gap: 0.8,
@@ -948,18 +934,15 @@ const [tooltip, setTooltip] = useState(null);
           {/* DIRETRIZES */}
           <Box
             sx={{
-              width: "250px",
               display: "grid",
               gridTemplateColumns: "130px 230px",
               alignItems: "center",
               gap: "50px",
               mt: 1,
-              marginLeft: "-35px"
             }}
           >
             <Box
               sx={{
-                width: "130px",
                 display: "flex",
                 flexDirection: "column",
                 gap: 0.8,
@@ -1183,9 +1166,6 @@ const [tooltip, setTooltip] = useState(null);
     display: "flex",
     flexDirection: "column",
     gap: 2,
-    marginTop: "10px",
-    marginRight: "30px",
-    marginLeft: "-40px"
   }}
 >
   {dados
