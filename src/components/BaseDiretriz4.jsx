@@ -5,6 +5,7 @@
     Button,
     Typography,
     Accordion,
+    IconButton,
     List,
     Select,
     Avatar,
@@ -15,6 +16,8 @@
     AccordionSummary,
     AccordionDetails,
   } from "@mui/material";
+  import AttachFileIcon from "@mui/icons-material/AttachFile";
+import DownloadIcon from "@mui/icons-material/Download";
   import { FormControlLabel } from "@mui/material"
   import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
   import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
@@ -26,6 +29,9 @@
   import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para Fokus360
 
   import SelectAreaStatus from "./SelectAreaStatus";
+
+  import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+  import { storageFokus360 } from "../data/firebase-config";
 
 
   import { calcularStatusVisualPorStatus } from "../utils/calcularStatusVisualPorStatus";
@@ -81,6 +87,14 @@
 
     
     const [areasResponsaveisoperacional , setAreasResponsaveisoperacional ] = useState([]);
+
+
+    //Estados para upload
+    const [uploadingTarefaId, setUploadingTarefaId] = useState(null);
+    const TAMANHO_MAXIMO_MB = 40;
+    const TAMANHO_MAXIMO_BYTES = TAMANHO_MAXIMO_MB * 1024 * 1024;
+
+
 
   // ESTRATEGICAS
     const [areasPorId, setAreasPorId] = useState({});
@@ -725,6 +739,7 @@ const handleAddTarefa = async (idEstrategica, idTatica, idOperacional, novaTaref
         onde: "",
         como: "",
         valor: "",
+        anexos: [],
       },
     };
 
@@ -1264,6 +1279,9 @@ const handleAddOperacional = (
                 onde: tarefa.planoDeAcao?.onde || "",
                 como: tarefa.planoDeAcao?.como || "",
                 valor: tarefa.planoDeAcao?.valor || "",
+                anexos: Array.isArray(tarefa.planoDeAcao?.anexos)
+                  ? tarefa.planoDeAcao.anexos
+                  : [],
               },
             };
           });
@@ -1610,6 +1628,128 @@ const handleAddOperacional = (
 
     console.log("📅 Data do navegador:", dataAtual);
   }, []);
+
+
+
+
+  // -------------------------------------
+    // função de upload para tarefa
+    // -------------------------------------
+
+    const uploadFileTarefaToFirebase = async (file, tarefaId) => {
+  const timestamp = Date.now();
+
+  const storageRef = ref(
+    storageFokus360,
+    `projetos/${projectId}/tarefas/${tarefaId}/${timestamp}-${file.name}`
+  );
+
+  await uploadBytes(storageRef, file);
+
+  const url = await getDownloadURL(storageRef);
+
+  return {
+    nomeArquivo: file.name,
+    arquivoUrl: url,
+    tipoArquivo: file.type || "",
+    tamanhoArquivo: file.size || 0,
+    enviadoEm: new Date().toISOString(),
+  };
+};
+
+//+++++++++++++++++++++++
+
+const handleUploadAnexosTarefa = async (event, tarefaId) => {
+  const files = Array.from(event.target.files || []);
+
+  if (!files.length) return;
+
+  const arquivosGrandes = files.filter(
+    (file) => file.size > TAMANHO_MAXIMO_BYTES
+  );
+
+  if (arquivosGrandes.length > 0) {
+    alert("❌ Limite máximo permitido: 40MB por arquivo.");
+  }
+
+  const arquivosValidos = files.filter(
+    (file) => file.size <= TAMANHO_MAXIMO_BYTES
+  );
+
+  if (arquivosValidos.length === 0) return;
+
+  setUploadingTarefaId(tarefaId);
+
+  try {
+    const uploads = await Promise.all(
+      arquivosValidos.map((file) => uploadFileTarefaToFirebase(file, tarefaId))
+    );
+
+    setEstrategicas((prev) =>
+      prev.map((estrategica) => ({
+        ...estrategica,
+        taticas: estrategica.taticas.map((tatica) => ({
+          ...tatica,
+          operacionais: tatica.operacionais.map((operacional) => ({
+            ...operacional,
+            tarefas: operacional.tarefas.map((tarefa) => {
+              if (tarefa.id !== tarefaId) return tarefa;
+
+              return {
+                ...tarefa,
+                planoDeAcao: {
+                  ...tarefa.planoDeAcao,
+                  anexos: [
+                    ...(tarefa.planoDeAcao?.anexos || []),
+                    ...uploads,
+                  ],
+                },
+              };
+            }),
+          })),
+        })),
+      }))
+    );
+
+    alert("✅ Arquivo anexado à tarefa com sucesso!");
+  } catch (error) {
+    console.error("❌ Erro ao enviar arquivo da tarefa:", error);
+    alert("❌ Erro ao enviar arquivo.");
+  } finally {
+    setUploadingTarefaId(null);
+    event.target.value = "";
+  }
+};
+
+
+//+++++++++++++++++++++++++++
+
+const handleRemoveAnexoTarefa = (tarefaId, indexAnexo) => {
+  setEstrategicas((prev) =>
+    prev.map((estrategica) => ({
+      ...estrategica,
+      taticas: estrategica.taticas.map((tatica) => ({
+        ...tatica,
+        operacionais: tatica.operacionais.map((operacional) => ({
+          ...operacional,
+          tarefas: operacional.tarefas.map((tarefa) => {
+            if (tarefa.id !== tarefaId) return tarefa;
+
+            return {
+              ...tarefa,
+              planoDeAcao: {
+                ...tarefa.planoDeAcao,
+                anexos: (tarefa.planoDeAcao?.anexos || []).filter(
+                  (_, index) => index !== indexAnexo
+                ),
+              },
+            };
+          }),
+        })),
+      })),
+    }))
+  );
+};
 
 
     
@@ -5131,13 +5271,264 @@ const handleAddOperacional = (
                                           );
                                         }}
                                       />
+
+                                      {/* 🔹 Upload de arquivos da tarefa */}
+<Box
+  sx={{
+    mt: 2,
+    display: "grid",
+    gridTemplateColumns: { xs: "1fr", md: "360px minmax(0, 1fr)" },
+    gap: 2,
+    alignItems: "flex-start",
+  }}
+>
+  {/* Card de Upload */}
+  <Box
+    sx={{
+      p: 2,
+      borderRadius: "18px",
+      backgroundColor: "#fff",
+      border: "1px solid rgba(226,232,240,0.95)",
+      boxShadow: "0 12px 30px rgba(15,23,42,0.06)",
+    }}
+  >
+    <Typography
+      sx={{
+        fontWeight: 900,
+        color: "#0f172a",
+        mb: 0.5,
+      }}
+    >
+      Upload de arquivos
+    </Typography>
+
+    <Typography
+      sx={{
+        color: "#64748b",
+        fontSize: "13px",
+        mb: 2,
+      }}
+    >
+      Limite máximo permitido: 40MB por arquivo.
+    </Typography>
+
+    <Button
+      variant="contained"
+      component="label"
+      size="small"
+      disabled={uploadingTarefaId === tarefa.id}
+      startIcon={<AttachFileIcon />}
+      sx={{
+        height: 42,
+        px: 2.4,
+        borderRadius: "14px",
+        textTransform: "none",
+        fontWeight: 900,
+        color: "#fff",
+        background: "linear-gradient(135deg, #312783, #6d5dfc)",
+        boxShadow: "0 12px 26px rgba(49,39,131,0.24)",
+        "&:hover": {
+          background: "linear-gradient(135deg, #241d66, #5c4df2)",
+        },
+      }}
+    >
+      {uploadingTarefaId === tarefa.id ? "Enviando..." : "Enviar Arquivos"}
+
+      <input
+        type="file"
+        multiple
+        hidden
+        accept=".jpg,.jpeg,.png,.webp,.xlsx,.xlsm,.xlsb,.xls,.pptx,.pptm,.ppt,.ppsx,.doc,.docx,.docm,.dotx,.pdf"
+        onChange={(event) => handleUploadAnexosTarefa(event, tarefa.id)}
+      />
+    </Button>
+
+    {uploadingTarefaId === tarefa.id && (
+      <Typography sx={{ color: "#d32f2f", mt: 1, fontSize: 13 }}>
+        ⏳ Enviando arquivos, por favor aguarde...
+      </Typography>
+    )}
+  </Box>
+
+  {/* Card de Anexos */}
+  {(tarefa.planoDeAcao?.anexos || []).length > 0 ? (
+    <Box
+      sx={{
+        p: 2,
+        borderRadius: "18px",
+        backgroundColor: "#fff",
+        border: "1px solid rgba(226,232,240,0.95)",
+        boxShadow: "0 12px 30px rgba(15,23,42,0.06)",
+        overflowX: "auto",
+      }}
+    >
+      <Typography
+        sx={{
+          mb: 2,
+          color: "#0f172a",
+          fontWeight: 900,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        <AttachFileIcon sx={{ fontSize: 20, color: "#f44336" }} />
+        Anexos da tarefa
+      </Typography>
+
+      <Box
+        component="table"
+        sx={{
+          width: "100%",
+          minWidth: 520,
+          borderCollapse: "collapse",
+          backgroundColor: "#fff",
+          borderRadius: "14px",
+          overflow: "hidden",
+        }}
+      >
+        <thead>
+          <Box
+            component="tr"
+            sx={{
+              background: "linear-gradient(135deg, #f44336, #ff6b6b)",
+            }}
+          >
+            <Box
+              component="th"
+              sx={{
+                p: 1.5,
+                textAlign: "left",
+                fontWeight: 900,
+                color: "#fff",
+                fontSize: 13,
+              }}
+            >
+              Nome do Arquivo
+            </Box>
+
+            <Box
+              component="th"
+              sx={{
+                p: 1.5,
+                width: "110px",
+                textAlign: "center",
+                fontWeight: 900,
+                color: "#fff",
+                fontSize: 13,
+              }}
+            >
+              Download
+            </Box>
+
+            <Box
+              component="th"
+              sx={{
+                p: 1.5,
+                width: "110px",
+                textAlign: "center",
+                fontWeight: 900,
+                color: "#fff",
+                fontSize: 13,
+              }}
+            >
+              Excluir
+            </Box>
+          </Box>
+        </thead>
+
+        <tbody>
+          {(tarefa.planoDeAcao?.anexos || []).map((arquivo, index) => (
+            <tr
+              key={`${tarefa.id}-${index}`}
+              style={{ borderTop: "1px solid #e2e8f0" }}
+            >
+              <td
+                style={{
+                  padding: "14px",
+                  fontSize: "0.875rem",
+                  maxWidth: 420,
+                  wordBreak: "break-word",
+                }}
+              >
+                {arquivo.nomeArquivo}
+              </td>
+
+              <td
+                style={{
+                  padding: "12px",
+                  textAlign: "center",
+                }}
+              >
+                <IconButton
+                  href={arquivo.arquivoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  size="small"
+                >
+                  <DownloadIcon
+                    fontSize="small"
+                    sx={{ color: "#f44336" }}
+                  />
+                </IconButton>
+              </td>
+
+              <td
+                style={{
+                  padding: "12px",
+                  textAlign: "center",
+                }}
+              >
+                <IconButton
+                  size="small"
+                  onClick={() => handleRemoveAnexoTarefa(tarefa.id, index)}
+                >
+                  <DeleteForeverIcon
+                    fontSize="small"
+                    sx={{ color: "#f44336" }}
+                  />
+                </IconButton>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Box>
+    </Box>
+  ) : (
+    <Box
+      sx={{
+        p: 2,
+        borderRadius: "18px",
+        backgroundColor: "#fff",
+        border: "1px dashed rgba(148,163,184,0.8)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "110px",
+      }}
+    >
+      <Typography
+        sx={{
+          color: "#64748b",
+          fontSize: "13px",
+          fontWeight: 700,  
+        }}
+      >
+        Nenhum anexo enviado para esta tarefa.
+      </Typography>
+    </Box>
+  )}
+</Box>
                                     </Box>
+                                    
                                   </AccordionDetails>
                                 </Accordion>
                               ))}
                             </List>
                           )}
+                          
                         </Box>
+                        
                       </AccordionDetails>
                     </Accordion>
                   ))}
