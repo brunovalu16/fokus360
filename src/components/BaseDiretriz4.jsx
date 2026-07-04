@@ -16,6 +16,7 @@
     AccordionSummary,
     AccordionDetails,
   } from "@mui/material";
+  import VisibilityIcon from "@mui/icons-material/Visibility";
   import AttachFileIcon from "@mui/icons-material/AttachFile";
 import DownloadIcon from "@mui/icons-material/Download";
   import { FormControlLabel } from "@mui/material"
@@ -30,7 +31,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 
   import SelectAreaStatus from "./SelectAreaStatus";
 
-  import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+  import { ref, uploadBytes, getDownloadURL, getBlob } from "firebase/storage";
   import { storageFokus360 } from "../data/firebase-config";
 
 
@@ -1649,8 +1650,9 @@ const handleAddOperacional = (
   const url = await getDownloadURL(storageRef);
 
   return {
-    nomeArquivo: file.name,
+     nomeArquivo: file.name,
     arquivoUrl: url,
+    storagePath: storageRef.fullPath,
     tipoArquivo: file.type || "",
     tamanhoArquivo: file.size || 0,
     enviadoEm: new Date().toISOString(),
@@ -1750,6 +1752,123 @@ const handleRemoveAnexoTarefa = (tarefaId, indexAnexo) => {
     }))
   );
 };
+
+//++++++++++++++++++
+
+const getPreviewUrlArquivo = (arquivo) => {
+  const url = arquivo?.arquivoUrl || "";
+  const nome = (arquivo?.nomeArquivo || "").toLowerCase();
+  const tipo = (arquivo?.tipoArquivo || "").toLowerCase();
+
+  const isPdf = tipo.includes("pdf") || nome.endsWith(".pdf");
+
+  const isImage =
+    tipo.includes("image") ||
+    nome.endsWith(".jpg") ||
+    nome.endsWith(".jpeg") ||
+    nome.endsWith(".png") ||
+    nome.endsWith(".webp");
+
+  const isOffice =
+    nome.endsWith(".doc") ||
+    nome.endsWith(".docx") ||
+    nome.endsWith(".xls") ||
+    nome.endsWith(".xlsx") ||
+    nome.endsWith(".xlsm") ||
+    nome.endsWith(".ppt") ||
+    nome.endsWith(".pptx") ||
+    nome.endsWith(".ppsx");
+
+  if (isPdf || isImage) {
+    return url;
+  }
+
+  if (isOffice) {
+    return `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(
+      url
+    )}`;
+  }
+
+  return url;
+};
+
+const handleVisualizarArquivo = (arquivo) => {
+  const previewUrl = getPreviewUrlArquivo(arquivo);
+
+  if (!previewUrl) {
+    alert("Arquivo sem URL para visualização.");
+    return;
+  }
+
+  window.open(previewUrl, "_blank", "noopener,noreferrer");
+};
+
+//++++++++++++++++++++
+
+const extrairStoragePathDaUrl = (arquivoUrl) => {
+  try {
+    const url = new URL(arquivoUrl);
+
+    const parteDepoisDoO = url.pathname.split("/o/")[1];
+
+    if (!parteDepoisDoO) return "";
+
+    return decodeURIComponent(parteDepoisDoO);
+  } catch (error) {
+    console.error("Erro ao extrair storagePath da URL:", error);
+    return "";
+  }
+};
+
+const handleDownloadArquivo = async (arquivo) => {
+  if (!arquivo?.arquivoUrl) {
+    alert("Arquivo sem URL para download.");
+    return;
+  }
+
+  const nomeArquivo = arquivo.nomeArquivo || "arquivo";
+
+  try {
+    const storagePath =
+      arquivo.storagePath || extrairStoragePathDaUrl(arquivo.arquivoUrl);
+
+    if (!storagePath) {
+      throw new Error("storagePath não encontrado.");
+    }
+
+    const arquivoRef = ref(storageFokus360, storagePath);
+
+    const blob = await getBlob(arquivoRef);
+
+    const blobUrl = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = nomeArquivo;
+    document.body.appendChild(link);
+
+    link.click();
+
+    link.remove();
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    console.error("❌ Erro ao baixar arquivo:", error);
+
+    const link = document.createElement("a");
+    link.href = arquivo.arquivoUrl;
+    link.download = nomeArquivo;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+
+    link.click();
+
+    link.remove();
+  }
+};
+
+
+
 
 
     
@@ -5376,123 +5495,166 @@ const handleRemoveAnexoTarefa = (tarefaId, indexAnexo) => {
         Anexos da tarefa
       </Typography>
 
-      <Box
-        component="table"
-        sx={{
-          width: "100%",
-          minWidth: 520,
-          borderCollapse: "collapse",
-          backgroundColor: "#fff",
-          borderRadius: "14px",
-          overflow: "hidden",
+     <Box
+  component="table"
+  sx={{
+    width: "100%",
+    minWidth: 520,
+    borderCollapse: "collapse",
+    backgroundColor: "#fff",
+    borderRadius: "14px",
+    overflow: "hidden",
+  }}
+>
+  <thead>
+    <tr
+      style={{
+        background: "linear-gradient(135deg, #f44336, #ff6b6b)",
+      }}
+    >
+      <th
+        style={{
+          padding: "14px",
+          textAlign: "left",
+          fontWeight: 900,
+          color: "#fff",
+          fontSize: 13,
         }}
       >
-        <thead>
-          <Box
-            component="tr"
-            sx={{
-              background: "linear-gradient(135deg, #f44336, #ff6b6b)",
+        Nome do Arquivo
+      </th>
+
+      <th
+        style={{
+          padding: "14px",
+          width: "110px",
+          textAlign: "center",
+          fontWeight: 900,
+          color: "#fff",
+          fontSize: 13,
+        }}
+      >
+        Visualizar
+      </th>
+
+      <th
+        style={{
+          padding: "14px",
+          width: "110px",
+          textAlign: "center",
+          fontWeight: 900,
+          color: "#fff",
+          fontSize: 13,
+        }}
+      >
+        Download
+      </th>
+
+      <th
+        style={{
+          padding: "14px",
+          width: "110px",
+          textAlign: "center",
+          fontWeight: 900,
+          color: "#fff",
+          fontSize: 13,
+        }}
+      >
+        Excluir
+      </th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {(tarefa.planoDeAcao?.anexos || []).map((arquivo, index) => (
+      <tr
+        key={`${tarefa.id}-${arquivo.arquivoUrl || arquivo.nomeArquivo}-${index}`}
+        style={{ borderTop: "1px solid #e2e8f0" }}
+      >
+        {/* Nome do arquivo */}
+        <td
+          style={{
+            padding: "14px",
+            fontSize: "0.875rem",
+            maxWidth: 420,
+            wordBreak: "break-word",
+            color: "#0f172a",
+            fontWeight: 500,
+          }}
+        >
+          {arquivo.nomeArquivo}
+        </td>
+
+        {/* Visualizar */}
+        <td
+          style={{
+            padding: "12px",
+            textAlign: "center",
+          }}
+        >
+          <IconButton
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleVisualizarArquivo(arquivo);
+            }}
+            title="Visualizar arquivo"
+          >
+            <VisibilityIcon
+              fontSize="small"
+              sx={{ color: "#f44336" }}
+            />
+          </IconButton>
+        </td>
+
+        {/* Download */}
+        <td
+          style={{
+            padding: "12px",
+            textAlign: "center",
+          }}
+        >
+          <IconButton
+            size="small"
+            title="Baixar arquivo"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleDownloadArquivo(arquivo);
             }}
           >
-            <Box
-              component="th"
-              sx={{
-                p: 1.5,
-                textAlign: "left",
-                fontWeight: 900,
-                color: "#fff",
-                fontSize: 13,
-              }}
-            >
-              Nome do Arquivo
-            </Box>
+            <DownloadIcon
+              fontSize="small"
+              sx={{ color: "#f44336" }}
+            />
+          </IconButton>
+        </td>
 
-            <Box
-              component="th"
-              sx={{
-                p: 1.5,
-                width: "110px",
-                textAlign: "center",
-                fontWeight: 900,
-                color: "#fff",
-                fontSize: 13,
-              }}
-            >
-              Download
-            </Box>
-
-            <Box
-              component="th"
-              sx={{
-                p: 1.5,
-                width: "110px",
-                textAlign: "center",
-                fontWeight: 900,
-                color: "#fff",
-                fontSize: 13,
-              }}
-            >
-              Excluir
-            </Box>
-          </Box>
-        </thead>
-
-        <tbody>
-          {(tarefa.planoDeAcao?.anexos || []).map((arquivo, index) => (
-            <tr
-              key={`${tarefa.id}-${index}`}
-              style={{ borderTop: "1px solid #e2e8f0" }}
-            >
-              <td
-                style={{
-                  padding: "14px",
-                  fontSize: "0.875rem",
-                  maxWidth: 420,
-                  wordBreak: "break-word",
-                }}
-              >
-                {arquivo.nomeArquivo}
-              </td>
-
-              <td
-                style={{
-                  padding: "12px",
-                  textAlign: "center",
-                }}
-              >
-                <IconButton
-                  href={arquivo.arquivoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  size="small"
-                >
-                  <DownloadIcon
-                    fontSize="small"
-                    sx={{ color: "#f44336" }}
-                  />
-                </IconButton>
-              </td>
-
-              <td
-                style={{
-                  padding: "12px",
-                  textAlign: "center",
-                }}
-              >
-                <IconButton
-                  size="small"
-                  onClick={() => handleRemoveAnexoTarefa(tarefa.id, index)}
-                >
-                  <DeleteForeverIcon
-                    fontSize="small"
-                    sx={{ color: "#f44336" }}
-                  />
-                </IconButton>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Box>
+        {/* Excluir */}
+        <td
+          style={{
+            padding: "12px",
+            textAlign: "center",
+          }}
+        >
+          <IconButton
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRemoveAnexoTarefa(tarefa.id, index);
+            }}
+            title="Excluir arquivo"
+          >
+            <DeleteForeverIcon
+              fontSize="small"
+              sx={{ color: "#f44336" }}
+            />
+          </IconButton>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</Box>
     </Box>
   ) : (
     <Box
