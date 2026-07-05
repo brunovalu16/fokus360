@@ -27,11 +27,11 @@ import DownloadIcon from "@mui/icons-material/Download";
   import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
   import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
   import { doc, updateDoc, getFirestore, collection, getDocs, setDoc, onSnapshot   } from "firebase/firestore";
-  import { dbFokus360 as db } from "../data/firebase-config"; // ✅ Correto para Fokus360
+  import { dbFokus360 as db, authFokus360 } from "../data/firebase-config"; // ✅ Correto para Fokus360
 
   import SelectAreaStatus from "./SelectAreaStatus";
 
-  import { ref, uploadBytes, getDownloadURL, getBlob } from "firebase/storage";
+  import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
   import { storageFokus360 } from "../data/firebase-config";
 
 
@@ -1805,68 +1805,60 @@ const handleVisualizarArquivo = (arquivo) => {
 
 //++++++++++++++++++++
 
-const extrairStoragePathDaUrl = (arquivoUrl) => {
+//Função para downlaod
+
+const BACKEND_URL = "https://fokus360-backend.vercel.app";
+
+const handleDownloadArquivoBackend = async (arquivo) => {
   try {
-    const url = new URL(arquivoUrl);
-
-    const parteDepoisDoO = url.pathname.split("/o/")[1];
-
-    if (!parteDepoisDoO) return "";
-
-    return decodeURIComponent(parteDepoisDoO);
-  } catch (error) {
-    console.error("Erro ao extrair storagePath da URL:", error);
-    return "";
-  }
-};
-
-const handleDownloadArquivo = async (arquivo) => {
-  if (!arquivo?.arquivoUrl) {
-    alert("Arquivo sem URL para download.");
-    return;
-  }
-
-  const nomeArquivo = arquivo.nomeArquivo || "arquivo";
-
-  try {
-    const storagePath =
-      arquivo.storagePath || extrairStoragePathDaUrl(arquivo.arquivoUrl);
-
-    if (!storagePath) {
-      throw new Error("storagePath não encontrado.");
+    if (!arquivo?.storagePath) {
+      alert("Este arquivo não possui storagePath. Reenvie o arquivo para habilitar o download seguro.");
+      return;
     }
 
-    const arquivoRef = ref(storageFokus360, storagePath);
+    const usuarioAtual = authFokus360.currentUser;
 
-    const blob = await getBlob(arquivoRef);
+    if (!usuarioAtual) {
+      alert("Usuário não autenticado.");
+      return;
+    }
 
+    const token = await usuarioAtual.getIdToken();
+
+    const response = await fetch(`${BACKEND_URL}/download-file`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        storagePath: arquivo.storagePath,
+        nomeArquivo: arquivo.nomeArquivo || "arquivo",
+      }),
+    });
+
+    if (!response.ok) {
+      const erro = await response.json().catch(() => null);
+      throw new Error(erro?.message || "Erro ao baixar arquivo.");
+    }
+
+    const blob = await response.blob();
     const blobUrl = window.URL.createObjectURL(blob);
 
     const link = document.createElement("a");
     link.href = blobUrl;
-    link.download = nomeArquivo;
-    document.body.appendChild(link);
+    link.download = arquivo.nomeArquivo || "arquivo";
 
+    document.body.appendChild(link);
     link.click();
 
     link.remove();
     window.URL.revokeObjectURL(blobUrl);
   } catch (error) {
     console.error("❌ Erro ao baixar arquivo:", error);
-
-    const link = document.createElement("a");
-    link.href = arquivo.arquivoUrl;
-    link.download = nomeArquivo;
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    document.body.appendChild(link);
-
-    link.click();
-
-    link.remove();
+    alert(error.message || "Não foi possível baixar o arquivo.");
   }
 };
-
 
 
 
@@ -5614,20 +5606,20 @@ const handleDownloadArquivo = async (arquivo) => {
             textAlign: "center",
           }}
         >
-          <IconButton
-            size="small"
-            title="Baixar arquivo"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleDownloadArquivo(arquivo);
-            }}
-          >
-            <DownloadIcon
-              fontSize="small"
-              sx={{ color: "#f44336" }}
-            />
-          </IconButton>
+         <IconButton
+          size="small"
+          title="Baixar arquivo"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleDownloadArquivoBackend(arquivo);
+          }}
+        >
+          <DownloadIcon
+            fontSize="small"
+            sx={{ color: "#f44336" }}
+          />
+        </IconButton>
         </td>
 
         {/* Excluir */}
