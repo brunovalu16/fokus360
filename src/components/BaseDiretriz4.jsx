@@ -1833,6 +1833,7 @@ const handleDownloadArquivoBackend = async (arquivo) => {
       },
       body: JSON.stringify({
         storagePath: arquivo.storagePath,
+        arquivoUrl: arquivo.arquivoUrl,
         nomeArquivo: arquivo.nomeArquivo || "arquivo",
       }),
     });
