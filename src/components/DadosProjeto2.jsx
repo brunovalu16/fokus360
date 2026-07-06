@@ -1442,9 +1442,7 @@ const handleTrocarBanner = async (event) => {
     <Box 
   sx={{
     marginTop: "10px",
-    width: "100%",
-    maxWidth: "1200px",
-    marginX: "auto",
+    maxWidth: "85%",
     overflow: "hidden",
     boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
     position: "relative", // 👈 importante para posicionar botão
@@ -1522,7 +1520,7 @@ const handleTrocarBanner = async (event) => {
         paddingBottom="20px"
         borderRadius="20px"
         sx={{
-          width: "100%",
+          width: "85%",
           overflowX: "auto", // muda de hidden para auto
           maxWidth: "100vw", // impede estouro
           boxSizing: "border-box",
@@ -1619,7 +1617,7 @@ const handleTrocarBanner = async (event) => {
 
 
       {/* GRÁFICO 1 - Totais */}
-<Box sx={{ mt: 4, mb: 4, width: "100%" }}>
+<Box sx={{ mt: 4, mb: 4, width: "85%" }}>
   <GraficoResumoPorArea diretrizes={diretrizes} />
 </Box>
 

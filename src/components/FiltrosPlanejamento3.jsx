@@ -926,8 +926,7 @@ const InfoCard = ({ icon, label, value, color: cardColor }) => (
 );
 
 const pageStyle = {
-  width: "100%",
-  maxWidth: "100%",
+  width: "85%",
   minWidth: 0,
   overflow: "hidden",
 };

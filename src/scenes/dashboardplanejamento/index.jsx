@@ -52,7 +52,6 @@ function DashboardPlanejamento() {
       <Box
         sx={{
           width: "100%",
-          maxWidth: "100%",
           overflowX: "hidden",
           boxSizing: "border-box",
         }}
@@ -94,15 +93,46 @@ function DashboardPlanejamento() {
                   boxSizing: "border-box",
                 }}
               >
-                <DadosProjeto2
-                  estrategicas={projetoData?.estrategicas || []}
-                  diretrizes={projetoData?.estrategicas || []}
-                  orcamento={projetoData?.orcamento}
-                  dataInicio={projetoData?.dataInicio}
-                  prazoPrevisto={projetoData?.prazoPrevisto}
-                  projetoData={projetoData}
-                  users={users}
-                />
+                <Box
+  sx={{
+    width: "100%",
+    maxWidth: "100%",
+    overflowX: "hidden",
+    overflowY: "visible",
+    boxSizing: "border-box",
+  }}
+>
+  <Box
+    sx={{
+      zoom: {
+        xs: 0.55,
+        sm: 0.65,
+        md: 0.75,
+        lg: 0.85,
+        xl: 0.9,
+      },
+      width: {
+        xs: "181.82%",
+        sm: "153.85%",
+        md: "133.33%",
+        lg: "117.65%",
+        xl: "111.11%",
+      },
+      maxWidth: "none",
+      transformOrigin: "top left",
+    }}
+  >
+    <DadosProjeto2
+      estrategicas={projetoData?.estrategicas || []}
+      diretrizes={projetoData?.estrategicas || []}
+      orcamento={projetoData?.orcamento}
+      dataInicio={projetoData?.dataInicio}
+      prazoPrevisto={projetoData?.prazoPrevisto}
+      projetoData={projetoData}
+      users={users}
+    />
+  </Box>
+</Box>
               </Box>
 
               <InformacoesPlanejamento2
