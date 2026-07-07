@@ -14,6 +14,7 @@ import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import FilterListIcon from "@mui/icons-material/FilterList"; // Ícone para o Select
 import ClearAllIcon from "@mui/icons-material/ClearAll"; // Ícone para limpar filtro
 import AddIcon from "@mui/icons-material/Add"; // ✅ Importação correta
+import PrintIcon from "@mui/icons-material/Print";
 
 import { doc, updateDoc, getFirestore, collection, getDocs, setDoc, onSnapshot   } from "firebase/firestore";
 import { dbFokus360 } from "../../data/firebase-config";
@@ -22,6 +23,8 @@ import { dbFokus360 } from "../../data/firebase-config";
 import FiltrosPlanejamento2 from "../../components/FiltrosPlanejamento2";
 import SelectAreaStatus3 from "../../components/SelectAreaStatus3";
 import StatusProgressoPorArea from "../../components/StatusProgressoPorArea";
+
+import { useNavigate } from "react-router-dom";
 
 
 
@@ -241,6 +244,16 @@ useEffect(() => {
   }
 
   return [];
+};
+
+
+
+const navigate = useNavigate();
+
+const abrirRelatorioPorArea = () => {
+  if (!selectedFilter) return;
+
+  navigate(`/eapplanejamento/relatorio/${selectedFilter}?area=TODAS`);
 };
     
 
@@ -974,7 +987,36 @@ useEffect(() => {
 
 
 
-
+<Button
+  variant="contained"
+  disabled={!selectedFilter}
+  onClick={abrirRelatorioPorArea}
+  startIcon={<PrintIcon />}
+  sx={{
+    height: "40px",
+    minWidth: "180px",
+    background: selectedFilter
+      ? "linear-gradient(135deg, #312783, #0069f7)"
+      : "#cbd5e1",
+    color: "white",
+    whiteSpace: "nowrap",
+    flexShrink: 0,
+    fontWeight: 700,
+    borderRadius: "10px",
+    boxShadow: selectedFilter
+      ? "0 10px 25px rgba(49, 39, 131, 0.25)"
+      : "none",
+    "&:hover": {
+      background: selectedFilter
+        ? "linear-gradient(135deg, #20175f, #0055c8)"
+        : "#cbd5e1",
+      boxShadow: "none",
+    },
+    "&:focus": { outline: "none" },
+  }}
+>
+  Relatório por Área
+</Button>
 
 
 

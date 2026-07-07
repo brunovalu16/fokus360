@@ -4,6 +4,7 @@ import {
   RouterProvider,
   Navigate,
 } from "react-router-dom";
+
 import App from "./App";
 import AuthLayout from "../src/components/AuthLayout";
 import Login from "./scenes/login";
@@ -49,6 +50,8 @@ import PainelIndustriasTrade from "./scenes/painel-industriasTrade";
 import MonitoramentoVendedor from "./scenes/monitoramentovendedor";
 import CadastroRelatorios from "./scenes/cadastrorelatorios";
 import RelatorioPowerBI from "./scenes/relatoriopowerbi";
+import RelatorioEapPlanejamento from "./scenes/planejamento/RelatorioEapPlanejamento";
+
 import {
   Team,
   Invoices,
@@ -61,19 +64,42 @@ import {
   Calendar,
   Stream,
 } from "./scenes";
+
 import PrivateRoute from "./components/PrivateRoute";
 
 const router = createBrowserRouter(
   [
     {
       element: <AuthLayout />,
-      children: [{ path: "/login", element: <Login /> }],
+      children: [
+        {
+          path: "/login",
+          element: <Login />,
+        },
+      ],
     },
+
     {
       element: <App />,
       children: [
-        { path: "/cadastro", element: <PrivateRoute><Cadastro /></PrivateRoute> },
-        { path: "/cadastrorelatorios", element: <PrivateRoute><CadastroRelatorios /></PrivateRoute> },
+        {
+          path: "/cadastro",
+          element: (
+            <PrivateRoute>
+              <Cadastro />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/cadastrorelatorios",
+          element: (
+            <PrivateRoute>
+              <CadastroRelatorios />
+            </PrivateRoute>
+          ),
+        },
+
         {
           path: "/relatoriopowerbi/:id",
           element: (
@@ -82,61 +108,462 @@ const router = createBrowserRouter(
             </PrivateRoute>
           ),
         },
-        { path: "/home", element: <PrivateRoute><Home /></PrivateRoute> },
-        { path: "/planejamentogeral", element: <PrivateRoute><PlanejamentoGeral /></PrivateRoute> },
-        { path: "/arquivosareas", element: <PrivateRoute><Arquivosareas /></PrivateRoute> },
-        { path: "/relatoriotrade2", element: <PrivateRoute><Relatoriotrade2 /></PrivateRoute> },
-        { path: "/monitoramentovendedor", element: <PrivateRoute><MonitoramentoVendedor /></PrivateRoute> },
-        { path: "/painelindustriastrade", element: <PrivateRoute><PainelIndustriasTrade /></PrivateRoute> },
-        { path: "/csc", element: <PrivateRoute><Csc /></PrivateRoute> },
-        { path: "/capatarefas", element: <PrivateRoute><Capatarefas /></PrivateRoute> },
-        { path: "/capaarquivos", element: <PrivateRoute><Capaarquivos /></PrivateRoute> },
-        { path: "/manuaisCSC", element: <PrivateRoute><ManuaisCSC /></PrivateRoute> },  
-        { path: "/manuais", element: <PrivateRoute><Manuais /></PrivateRoute> },
-        { path: "/eapplanejamento", element: <PrivateRoute><Eapplanejamento /></PrivateRoute> },
-        { path: "/dataplanejamento", element: <PrivateRoute><DataPlanejamento /></PrivateRoute> },
-        { path: "/dashboardplanejamento/:id", element: <PrivateRoute><DashboardPlanejamento /></PrivateRoute> },
-        { path: "/dashboard", element: <PrivateRoute><Dashboard /></PrivateRoute> },
-        { path: "/planejamento", element: <PrivateRoute><Planejamento /></PrivateRoute> },
-        { path: "/user", element: <PrivateRoute><User /></PrivateRoute> },
-        { path: "/painelindustrias", element: <PrivateRoute><PainelIndustrias /></PrivateRoute> },
-        { path: "/AcompanhamentoGrupo", element: <PrivateRoute><AcompanhamentoGrupo /></PrivateRoute> },
-        { path: "/dashboardprojeto/:id", element: <PrivateRoute><DashboardProjeto /></PrivateRoute> },
-        { path: "/vendasdevolucao", element: <PrivateRoute><VendasDevolucao /></PrivateRoute> },
-        { path: "/relatoriotrade", element: <PrivateRoute><RelatorioTrade /></PrivateRoute> },
-        { path: "/cadastroprojetos", element: <PrivateRoute><CadastroProjetos /></PrivateRoute> },
-        { path: "/dataprojeto", element: <PrivateRoute><DataProjeto /></PrivateRoute> },
-        { path: "/diretriz", element: <PrivateRoute><Diretriz /></PrivateRoute> },
-        { path: "/listaprojetos", element: <PrivateRoute><ListaProjetos /></PrivateRoute> },
-        { path: "/listaprojetos2", element: <PrivateRoute><ListaProjetos2 /></PrivateRoute> },
-        { path: "/projetos", element: <PrivateRoute><Projetos /></PrivateRoute> },
-        { path: "/projetos2", element: <PrivateRoute><Projetos2 /></PrivateRoute> },
-        { path: "/monitoramento", element: <PrivateRoute><Monitoramento /></PrivateRoute> },
-        { path: "/relatorios", element: <PrivateRoute><Relatorios /></PrivateRoute> },
-        { path: "/roteirizacao", element: <PrivateRoute><Roteirizacao /></PrivateRoute> },
-        { path: "/arquivos", element: <PrivateRoute><Arquivos /></PrivateRoute> },
-        { path: "/kanban", element: <PrivateRoute><Kanban /></PrivateRoute> },
-        { path: "/team", element: <PrivateRoute><Team /></PrivateRoute> },
-        { path: "/contacts", element: <PrivateRoute><Contacts /></PrivateRoute> },
-        { path: "/invoices", element: <PrivateRoute><Invoices /></PrivateRoute> },
-        { path: "/fluxograma", element: <PrivateRoute><FluxoGrama /></PrivateRoute> },
-        { path: "/listafluxograma", element: <PrivateRoute><Listafluxograma /></PrivateRoute> },
-        { path: "/calendar", element: <PrivateRoute><Calendar /></PrivateRoute> },
-        { path: "/cadastroareas", element: <PrivateRoute><CadastroAreas /></PrivateRoute> },
-        { path: "/bar", element: <PrivateRoute><Bar /></PrivateRoute> },
-        { path: "/pie", element: <PrivateRoute><Pie /></PrivateRoute> },
-        { path: "/stream", element: <PrivateRoute><Stream /></PrivateRoute> },
-        { path: "/line", element: <PrivateRoute><Line /></PrivateRoute> },
-        { path: "/faq", element: <PrivateRoute><FAQ /></PrivateRoute> },
-        { path: "/geography", element: <PrivateRoute><Geography /></PrivateRoute> },
-        { path: "/vendastotaltrade", element: <PrivateRoute><VendastotalTrade /></PrivateRoute> },
-        { path: "/usuario/editar", element: <PrivateRoute><UserDetalhe /></PrivateRoute> },
+
+        {
+          path: "/home",
+          element: (
+            <PrivateRoute>
+              <Home />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/planejamentogeral",
+          element: (
+            <PrivateRoute>
+              <PlanejamentoGeral />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/arquivosareas",
+          element: (
+            <PrivateRoute>
+              <Arquivosareas />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/relatoriotrade2",
+          element: (
+            <PrivateRoute>
+              <Relatoriotrade2 />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/monitoramentovendedor",
+          element: (
+            <PrivateRoute>
+              <MonitoramentoVendedor />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/painelindustriastrade",
+          element: (
+            <PrivateRoute>
+              <PainelIndustriasTrade />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/csc",
+          element: (
+            <PrivateRoute>
+              <Csc />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/capatarefas",
+          element: (
+            <PrivateRoute>
+              <Capatarefas />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/capaarquivos",
+          element: (
+            <PrivateRoute>
+              <Capaarquivos />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/manuaisCSC",
+          element: (
+            <PrivateRoute>
+              <ManuaisCSC />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/manuais",
+          element: (
+            <PrivateRoute>
+              <Manuais />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/eapplanejamento",
+          element: (
+            <PrivateRoute>
+              <Eapplanejamento />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/eapplanejamento/relatorio/:projetoId",
+          element: (
+            <PrivateRoute>
+              <RelatorioEapPlanejamento />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/dataplanejamento",
+          element: (
+            <PrivateRoute>
+              <DataPlanejamento />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/dashboardplanejamento/:id",
+          element: (
+            <PrivateRoute>
+              <DashboardPlanejamento />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/dashboard",
+          element: (
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/planejamento",
+          element: (
+            <PrivateRoute>
+              <Planejamento />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/user",
+          element: (
+            <PrivateRoute>
+              <User />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/painelindustrias",
+          element: (
+            <PrivateRoute>
+              <PainelIndustrias />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/AcompanhamentoGrupo",
+          element: (
+            <PrivateRoute>
+              <AcompanhamentoGrupo />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/dashboardprojeto/:id",
+          element: (
+            <PrivateRoute>
+              <DashboardProjeto />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/vendasdevolucao",
+          element: (
+            <PrivateRoute>
+              <VendasDevolucao />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/relatoriotrade",
+          element: (
+            <PrivateRoute>
+              <RelatorioTrade />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/cadastroprojetos",
+          element: (
+            <PrivateRoute>
+              <CadastroProjetos />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/dataprojeto",
+          element: (
+            <PrivateRoute>
+              <DataProjeto />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/diretriz",
+          element: (
+            <PrivateRoute>
+              <Diretriz />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/listaprojetos",
+          element: (
+            <PrivateRoute>
+              <ListaProjetos />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/listaprojetos2",
+          element: (
+            <PrivateRoute>
+              <ListaProjetos2 />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/projetos",
+          element: (
+            <PrivateRoute>
+              <Projetos />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/projetos2",
+          element: (
+            <PrivateRoute>
+              <Projetos2 />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/monitoramento",
+          element: (
+            <PrivateRoute>
+              <Monitoramento />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/relatorios",
+          element: (
+            <PrivateRoute>
+              <Relatorios />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/roteirizacao",
+          element: (
+            <PrivateRoute>
+              <Roteirizacao />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/arquivos",
+          element: (
+            <PrivateRoute>
+              <Arquivos />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/kanban",
+          element: (
+            <PrivateRoute>
+              <Kanban />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/team",
+          element: (
+            <PrivateRoute>
+              <Team />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/contacts",
+          element: (
+            <PrivateRoute>
+              <Contacts />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/invoices",
+          element: (
+            <PrivateRoute>
+              <Invoices />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/fluxograma",
+          element: (
+            <PrivateRoute>
+              <FluxoGrama />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/listafluxograma",
+          element: (
+            <PrivateRoute>
+              <Listafluxograma />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/calendar",
+          element: (
+            <PrivateRoute>
+              <Calendar />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/cadastroareas",
+          element: (
+            <PrivateRoute>
+              <CadastroAreas />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/bar",
+          element: (
+            <PrivateRoute>
+              <Bar />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/pie",
+          element: (
+            <PrivateRoute>
+              <Pie />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/stream",
+          element: (
+            <PrivateRoute>
+              <Stream />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/line",
+          element: (
+            <PrivateRoute>
+              <Line />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/faq",
+          element: (
+            <PrivateRoute>
+              <FAQ />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/geography",
+          element: (
+            <PrivateRoute>
+              <Geography />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/vendastotaltrade",
+          element: (
+            <PrivateRoute>
+              <VendastotalTrade />
+            </PrivateRoute>
+          ),
+        },
+
+        {
+          path: "/usuario/editar",
+          element: (
+            <PrivateRoute>
+              <UserDetalhe />
+            </PrivateRoute>
+          ),
+        },
       ],
     },
-    // Redirecionamento da rota raiz ("/") para "/login"
+
     {
       path: "/",
-      element: <Navigate to="/login" /> // Redireciona para a página de login
+      element: <Navigate to="/login" />,
     },
   ],
   {
