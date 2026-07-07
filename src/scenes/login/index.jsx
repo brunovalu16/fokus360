@@ -287,6 +287,7 @@ const Login = () => {
         <Box
           sx={{
             padding: "30px",
+            paddingLeft: "90px",
             paddingBottom: "50px",
             display: "flex",
             justifyContent: "center",
