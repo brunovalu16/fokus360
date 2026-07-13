@@ -145,6 +145,11 @@ const Manuais = () => {
   const [expandedSubAccordions, setExpandedSubAccordions] = useState({});
   const [highlightedMatches, setHighlightedMatches] = useState([]);
 
+  const [
+  arquivoBaixando,
+  setArquivoBaixando,
+] = useState(null);
+
   const formRefs = useRef({});
   const subItemRefs = useRef({});
 
@@ -218,21 +223,32 @@ const Manuais = () => {
     }
   }, [highlightedMatches]);
 
-  const uploadFileToFirebase = async (file) => {
-    const timestamp = Date.now();
-    const storageRef = ref(
-      storageFokus360,
-      `csc-anexos/${timestamp}-${file.name}`
+ const uploadFileToFirebase = async (file) => {
+  const timestamp = Date.now();
+
+  const storagePath = `csc-anexos/${timestamp}-${file.name}`;
+
+  const storageRef = ref(
+    storageFokus360,
+    storagePath
+  );
+
+  await uploadBytes(
+    storageRef,
+    file
+  );
+
+  const url =
+    await getDownloadURL(
+      storageRef
     );
 
-    await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(storageRef);
-
-    return {
-      nomeArquivo: file.name,
-      arquivoUrl: url,
-    };
+  return {
+    nomeArquivo: file.name,
+    arquivoUrl: url,
+    storagePath: storagePath,
   };
+};
 
   const carregarProjetoSelecionado = async (projectId) => {
     try {
@@ -774,6 +790,219 @@ const Manuais = () => {
     }
   };
 
+
+  const extrairStoragePathDaUrl = (
+  urlFirebase
+) => {
+  try {
+    if (!urlFirebase) return "";
+
+    const url =
+      new URL(urlFirebase);
+
+    const parteDepoisDoO =
+      url.pathname.split("/o/")[1];
+
+    if (!parteDepoisDoO) {
+      return "";
+    }
+
+    return decodeURIComponent(
+      parteDepoisDoO
+    );
+  } catch (error) {
+    console.error(
+      "Erro ao extrair storagePath da URL:",
+      error
+    );
+
+    return "";
+  }
+};
+
+
+const baixarArquivoManual = async (
+  arquivo
+) => {
+  try {
+    if (!arquivo) {
+      alert(
+        "❌ Arquivo inválido."
+      );
+
+      return;
+    }
+
+    const currentUser =
+      authFokus360.currentUser;
+
+    if (!currentUser) {
+      alert(
+        "❌ Você precisa estar autenticado para baixar o arquivo."
+      );
+
+      return;
+    }
+
+
+    // =========================================================
+    // IDENTIFICADOR DO DOWNLOAD
+    // =========================================================
+    const identificadorArquivo =
+      arquivo.storagePath ||
+      arquivo.arquivoUrl ||
+      arquivo.nomeArquivo;
+
+    setArquivoBaixando(
+      identificadorArquivo
+    );
+
+
+    // =========================================================
+    // TOKEN FIREBASE
+    // =========================================================
+    const token =
+      await currentUser.getIdToken();
+
+
+    // =========================================================
+    // CAMINHO DO ARQUIVO
+    //
+    // Arquivo novo:
+    // usa storagePath
+    //
+    // Arquivo antigo:
+    // extrai da arquivoUrl
+    // =========================================================
+    const storagePathFinal =
+      arquivo.storagePath ||
+      extrairStoragePathDaUrl(
+        arquivo.arquivoUrl
+      );
+
+    if (!storagePathFinal) {
+      throw new Error(
+        "Não foi possível identificar o caminho do arquivo."
+      );
+    }
+
+
+    // =========================================================
+    // URL DO BACKEND
+    // =========================================================
+    const API_URL =
+      import.meta.env.VITE_API_URL ||
+      (
+        window.location.hostname ===
+        "localhost"
+          ? "http://localhost:5000"
+          : "https://fokus360-backend.vercel.app"
+      );
+
+
+    // =========================================================
+    // CHAMAR ROTA EXCLUSIVA DOS MANUAIS
+    // =========================================================
+    const response = await fetch(
+      `${API_URL}/download-manual-file`,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+
+          Authorization:
+            `Bearer ${token}`,
+        },
+
+        body: JSON.stringify({
+          storagePath:
+            storagePathFinal,
+
+          arquivoUrl:
+            arquivo.arquivoUrl ||
+            "",
+
+          nomeArquivo:
+            arquivo.nomeArquivo ||
+            "arquivo",
+        }),
+      }
+    );
+
+
+    // =========================================================
+    // TRATAR ERRO
+    // =========================================================
+    if (!response.ok) {
+      let erroServidor = null;
+
+      try {
+        erroServidor =
+          await response.json();
+      } catch {
+        erroServidor = null;
+      }
+
+      throw new Error(
+        erroServidor?.message ||
+          `Erro ao baixar arquivo. Status: ${response.status}`
+      );
+    }
+
+
+    // =========================================================
+    // RECEBER ARQUIVO
+    // =========================================================
+    const blob =
+      await response.blob();
+
+    const blobUrl =
+      window.URL.createObjectURL(
+        blob
+      );
+
+
+    // =========================================================
+    // FORÇAR DOWNLOAD
+    // =========================================================
+    const link =
+      document.createElement("a");
+
+    link.href = blobUrl;
+
+    link.download =
+      arquivo.nomeArquivo ||
+      "arquivo";
+
+    document.body.appendChild(
+      link
+    );
+
+    link.click();
+
+    link.remove();
+
+    window.URL.revokeObjectURL(
+      blobUrl
+    );
+
+  } catch (error) {
+    console.error(
+      "❌ Erro ao baixar arquivo do manual:",
+      error
+    );
+
+    alert(
+      `❌ Não foi possível baixar o arquivo.\n\n${error.message}`
+    );
+
+  } finally {
+    setArquivoBaixando(null);
+  }
+};
+
   return (
     <>
       <Box
@@ -1240,7 +1469,7 @@ const Manuais = () => {
                               index,
                             }))
                           )
-                          .map(({ nomeArquivo, arquivoUrl, formId, index }) => (
+                          .map(({ nomeArquivo, arquivoUrl, storagePath, formId, index }) => (
                             <tr
                               key={`${formId}-${index}`}
                               style={{ borderTop: "1px solid #e2e8f0" }}
@@ -1250,10 +1479,37 @@ const Manuais = () => {
                               </td>
 
                               <td style={tableActionCellInlineStyle}>
-                                <IconButton href={arquivoUrl} download size="small">
+                                <IconButton
+                                  size="small"
+                                  disabled={
+                                    arquivoBaixando ===
+                                    (
+                                      storagePath ||
+                                      arquivoUrl ||
+                                      nomeArquivo
+                                    )
+                                  }
+                                  onClick={() =>
+                                    baixarArquivoManual({
+                                      nomeArquivo,
+                                      arquivoUrl,
+                                      storagePath,
+                                    })
+                                  }
+                                >
                                   <DownloadIcon
                                     fontSize="small"
-                                    sx={{ color: "#d71936" }}
+                                    sx={{
+                                      color:
+                                        arquivoBaixando ===
+                                        (
+                                          storagePath ||
+                                          arquivoUrl ||
+                                          nomeArquivo
+                                        )
+                                          ? "#94a3b8"
+                                          : "#d71936",
+                                    }}
                                   />
                                 </IconButton>
                               </td>
