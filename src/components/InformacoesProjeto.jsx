@@ -145,7 +145,7 @@ const InformacoesProjeto = ({ onUpdate, LimpaEstado }) => {
       };
 
       // Salva no Firestore
-      await addDoc(collection(dbFokus360, "projetos"), projetoFormatado); // ✅ Usa a instância correta
+      await addDoc(collection(dbFokus360, "projetos2"), projetoFormatado); // ✅ Usa a instância correta
 
 
       alert("Projeto salvo com sucesso!");

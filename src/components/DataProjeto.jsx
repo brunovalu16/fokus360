@@ -391,7 +391,7 @@ function DataProjeto() {
         }));
   
         // Agora atualiza o Firestore com os dados mais recentes
-        const docRef = doc(dbFokus360, "projetos", projectId);
+        const docRef = doc(dbFokus360, "projetos2", projectId);
         updateDoc(docRef, {
           nome: nomeProjeto || "",
           dataInicio: dataInicio || "",
